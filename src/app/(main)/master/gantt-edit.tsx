@@ -11,7 +11,6 @@ import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/components/ShiftModal";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { getAuth, signOut } from "firebase/auth";
 
 export default function GanttEditScreen() {
   const { user } = useAuth();
@@ -196,16 +195,6 @@ export default function GanttEditScreen() {
     currentYearMonth.year,
     currentYearMonth.month
   );
-
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const auth = getAuth();
-    if (!isLoggedIn) {
-      // ログインフラグがなければ強制ログアウト
-      signOut(auth);
-    }
-    // フラグがあれば何もしない（自動ログイン状態）
-  }, []);
 
   return (
     <GanttEditView
