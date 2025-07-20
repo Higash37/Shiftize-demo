@@ -18,6 +18,7 @@ export const GanttEditView: React.FC<GanttEditViewProps> = ({
   onTimeChange,
   onShiftSave,
   onShiftDelete,
+  refreshPage,
 }) => {
   const { width } = useWindowDimensions();
   const isTabletOrDesktop = width >= 768;
@@ -51,6 +52,7 @@ export const GanttEditView: React.FC<GanttEditViewProps> = ({
           onMonthChange={onMonthChange}
           onTimeChange={onTimeChange}
           classTimes={[]}
+          refreshPage={refreshPage}
         />
       ) : (
         // スマホ: カード表示

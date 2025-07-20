@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
@@ -10,9 +10,12 @@ import {
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/components/ShiftModal";
 import { Alert } from "react-native";
+import { useRouter } from "expo-router";
+import { getAuth, signOut } from "firebase/auth";
 
 export default function GanttEditScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const {
     shifts,
     fetchShiftsByMonth,
@@ -51,6 +54,12 @@ export default function GanttEditScreen() {
     await fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
   };
 
+  // ページをリフレッシュする関数（スプラッシュスクリーンなし）
+  const refreshPage = () => {
+    // 同じページに再遷移してコンポーネントを完全に再マウント
+    router.replace("/master/gantt-edit");
+  };
+
   // シフト時間のドラッグ変更ハンドラー
   const handleTimeChange = async (
     shiftId: string,
@@ -72,8 +81,9 @@ export default function GanttEditScreen() {
         duration: durationHours,
       });
 
-      // 状態を更新
-      await handleShiftUpdate();
+      // 時間変更後にページをリフレッシュ
+      console.log("シフト時間変更完了、ページをリフレッシュ中...");
+      refreshPage();
     } catch (error) {
       console.error("Time change error:", error);
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
@@ -137,7 +147,9 @@ export default function GanttEditScreen() {
           extendedTasks: data.extendedTasks || [],
         });
       }
-      await handleShiftUpdate();
+      // シフト保存後にページをリフレッシュ
+      console.log("シフト保存完了、ページをリフレッシュ中...");
+      refreshPage();
     } catch (error) {
       console.error("Shift save error:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
@@ -148,7 +160,9 @@ export default function GanttEditScreen() {
   const handleShiftDelete = async (shiftId: string) => {
     try {
       await markShiftAsDeleted(shiftId);
-      await handleShiftUpdate();
+      // シフト削除後にページをリフレッシュ
+      console.log("シフト削除完了、ページをリフレッシュ中...");
+      refreshPage();
     } catch (error) {
       console.error("Shift delete error:", error);
       Alert.alert("エラー", "シフトの削除に失敗しました");
@@ -183,6 +197,16 @@ export default function GanttEditScreen() {
     currentYearMonth.month
   );
 
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const auth = getAuth();
+    if (!isLoggedIn) {
+      // ログインフラグがなければ強制ログアウト
+      signOut(auth);
+    }
+    // フラグがあれば何もしない（自動ログイン状態）
+  }, []);
+
   return (
     <GanttEditView
       shifts={shifts}
@@ -212,6 +236,7 @@ export default function GanttEditScreen() {
       onShiftSave={handleShiftSave}
       onShiftDelete={handleShiftDelete}
       onTimeChange={handleTimeChange}
+      refreshPage={refreshPage}
     />
   );
 }

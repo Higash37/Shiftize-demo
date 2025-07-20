@@ -18,12 +18,14 @@ export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
   onShiftUpdate?: () => Promise<void> | void;
+  refreshPage?: () => void;
 }
 
 export function useGanttShiftActions({
   user,
   users = [],
   onShiftUpdate,
+  refreshPage,
 }: UseGanttShiftActionsProps) {
   // シフト保存（追加・編集）
   const saveShift = useCallback(
@@ -50,7 +52,10 @@ export function useGanttShiftActions({
             ...newShiftData,
             updatedAt: serverTimestamp(),
           });
-          if (onShiftUpdate) await onShiftUpdate();
+          console.log("シフト却下完了、ページをリフレッシュ中...");
+          if (refreshPage) {
+            refreshPage();
+          }
           return;
         }
 
@@ -134,9 +139,12 @@ export function useGanttShiftActions({
           userColor: userColor || "#4A90E2", // デフォルト青色
         });
       }
-      if (onShiftUpdate) await onShiftUpdate();
+      console.log("シフト保存完了、ページをリフレッシュ中...");
+      if (refreshPage) {
+        refreshPage();
+      }
     },
-    [user, users, onShiftUpdate]
+    [user, users, refreshPage]
   );
 
   // シフト削除
@@ -165,9 +173,12 @@ export function useGanttShiftActions({
           updatedAt: serverTimestamp(),
         });
       }
-      if (onShiftUpdate) await onShiftUpdate();
+      console.log("シフト削除完了、ページをリフレッシュ中...");
+      if (refreshPage) {
+        refreshPage();
+      }
     },
-    [onShiftUpdate]
+    [refreshPage]
   );
 
   const updateShiftStatus = useCallback(
@@ -178,12 +189,14 @@ export function useGanttShiftActions({
       console.log(`Updating shift ${shiftId} to status ${status}`); // デバッグ用ログ
       await updateDoc(shiftRef, { status });
 
-      if (onShiftUpdate) {
-        console.log("Calling onShiftUpdate callback"); // デバッグ用ログ
-        await onShiftUpdate();
+      console.log(
+        `シフトステータス更新完了 (${status})、ページをリフレッシュ中...`
+      );
+      if (refreshPage) {
+        refreshPage();
       }
     },
-    [user, onShiftUpdate]
+    [user, refreshPage]
   );
 
   return {

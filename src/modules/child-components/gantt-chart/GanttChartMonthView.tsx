@@ -78,6 +78,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   onShiftUpdate,
   onMonthChange,
   classTimes = [],
+  refreshPage,
 }) => {
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     DEFAULT_SHIFT_STATUS_CONFIG
@@ -117,6 +118,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     user,
     users, // usersパラメータを追加
     onShiftUpdate,
+    refreshPage,
   });
 
   // 時間選択オプションを生成
@@ -233,24 +235,26 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     await updateShiftStatus(shiftId, newStatus);
     setShowEditModal(false); // モーダルを閉じる
 
-    // シフト削除後に即座に画面をリロード
-    console.log("シフト削除完了、画面を更新中...");
-    if (onShiftUpdate) {
-      await onShiftUpdate();
-      console.log("画面更新完了");
-    }
-    // 強制再レンダリングを促すためにキーを更新
-    setRefreshKey((prev) => prev + 1);
+    // シフト削除後にページをリフレッシュ
+    console.log("シフト削除完了、ページをリフレッシュ中...");
     setIsLoading(false); // ローディング終了
+    if (refreshPage) {
+      refreshPage();
+    }
   };
 
-  const handleBatchDelete = () => {
+  const handleBatchDelete = async () => {
     const rejectedShifts = shifts.filter(
       (shift) => shift.status === "rejected"
     );
     rejectedShifts.forEach((shift) => {
       updateShiftStatus(shift.id, "deleted"); // 一括削除で削除済みに変更
     });
+    // 一括削除後にページをリフレッシュ
+    console.log("一括削除完了、ページをリフレッシュ中...");
+    if (refreshPage) {
+      refreshPage();
+    }
   };
 
   // シフト保存
@@ -280,14 +284,12 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       setShowEditModal(false);
       setShowAddModal(false);
 
-      // シフト更新後に即座に画面をリロード
-      console.log("シフト保存完了、画面を更新中...");
-      if (onShiftUpdate) {
-        await onShiftUpdate();
-        console.log("画面更新完了");
+      // シフト更新後にページをリフレッシュ
+      console.log("シフト保存完了、ページをリフレッシュ中...");
+      setIsLoading(false); // ローディング終了
+      if (refreshPage) {
+        refreshPage();
       }
-      // 強制再レンダリングを促すためにキーを更新
-      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("シフト保存エラー:", error);
     } finally {
@@ -509,18 +511,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         styles={styles}
         setBatchModal={setBatchModal}
         setIsLoading={setIsLoading}
-        onReload={() => {
-          if (typeof window !== "undefined" && window.location) {
-            window.location.reload();
-          } else if (Platform.OS !== "web") {
-            try {
-              const { AppRegistry } = require("react-native");
-              if (AppRegistry && AppRegistry.reload) {
-                AppRegistry.reload();
-              }
-            } catch (e) {}
-          }
-        }}
+        refreshPage={refreshPage}
       />
       {/* 横スクロール全体をCustomScrollViewでラップ */}
       <CustomScrollView horizontal showsHorizontalScrollIndicator={false}>

@@ -18,4 +18,5 @@ export interface GanttEditViewProps {
   ) => void;
   onShiftSave?: (data: ShiftData) => void;
   onShiftDelete?: (shiftId: string) => void;
+  refreshPage?: () => void;
 }

@@ -22,7 +22,7 @@ interface BatchConfirmModalProps {
     type: "approve" | "delete" | null;
   }) => void;
   setIsLoading: (loading: boolean) => void;
-  onReload: () => void;
+  refreshPage?: () => void;
 }
 
 const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
@@ -33,7 +33,7 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   styles,
   setBatchModal,
   setIsLoading,
-  onReload,
+  refreshPage,
 }) => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -89,7 +89,10 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
     }
     setIsLoading(false);
     setBatchModal({ visible: false, type: null });
-    onReload(); // Call the reload function after batch actions
+    // バッチ操作後にページをリフレッシュ
+    if (refreshPage) {
+      refreshPage();
+    }
   };
 
   return (
