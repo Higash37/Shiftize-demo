@@ -24,7 +24,6 @@ export const DetailTextModal: React.FC<DetailTextModalProps> = ({
   initialText,
   title,
 }) => {
-  console.log("DetailTextModal - visible:", visible);
   const [text, setText] = useState(initialText);
 
   // initialTextが変更されたときに内部状態を更新

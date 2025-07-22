@@ -25,7 +25,7 @@ export function Header({
       await signOut();
       router.replace("/(auth)/login");
     } catch (error) {
-      console.error("Error signing out:", error);
+      // Error signing out
     }
   };
 

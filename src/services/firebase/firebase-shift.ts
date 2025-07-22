@@ -75,7 +75,6 @@ export const ShiftService = {
         return dateCompare;
       });
     } catch (error) {
-      console.error("シフトの取得に失敗しました:", error);
       throw error;
     }
   },
@@ -95,7 +94,6 @@ export const ShiftService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error("シフトの追加に失敗しました:", error);
       throw error;
     }
   },
@@ -111,7 +109,6 @@ export const ShiftService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("シフトの更新に失敗しました:", error);
       throw error;
     }
   },
@@ -124,7 +121,6 @@ export const ShiftService = {
       const shiftRef = doc(db, "shifts", id);
       await deleteDoc(shiftRef);
     } catch (error) {
-      console.error("シフトの削除に失敗しました:", error);
       throw error;
     }
   },
@@ -147,7 +143,6 @@ export const ShiftService = {
         });
       }
     } catch (error) {
-      console.error("シフトの変更承認に失敗しました:", error);
       throw error;
     }
   },
@@ -163,7 +158,6 @@ export const ShiftService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("シフトの完了状態への更新に失敗しました:", error);
       throw error;
     }
   },
@@ -185,7 +179,6 @@ export const ShiftService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("シフトの更新に失敗しました:", error);
       throw error;
     }
   },
@@ -209,7 +202,6 @@ export const ShiftService = {
         createdAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("シフト報告の保存に失敗しました:", error);
       throw error;
     }
   },
@@ -269,7 +261,6 @@ export const ShiftService = {
         return dateCompare;
       });
     } catch (error) {
-      console.error("複数店舗のシフト取得に失敗しました:", error);
       throw error;
     }
   },
@@ -299,12 +290,9 @@ export const ShiftService = {
         });
       }
 
-      console.log("User accessible store IDs:", accessibleStoreIds);
-
       // 複数店舗のシフトを取得
       return await ShiftService.getShiftsFromMultipleStores(accessibleStoreIds);
     } catch (error) {
-      console.error("ユーザーアクセス可能シフトの取得に失敗しました:", error);
       throw error;
     }
   },

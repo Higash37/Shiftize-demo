@@ -62,7 +62,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer]}>
+      <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>読み込み中...</Text>
       </View>
     );

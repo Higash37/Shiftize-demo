@@ -5,7 +5,7 @@ const LoadingOverlay: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   if (!isLoading) return null;
 
   return (
-    <View style={styles.overlay} pointerEvents="auto">
+    <View style={[styles.overlay, { pointerEvents: "auto" }]}>
       <ActivityIndicator size="large" color="#1976D2" />
     </View>
   );

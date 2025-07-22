@@ -456,12 +456,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       }
 
       // タスクを作成
-      console.log("=== TaskCreateModal Debug ===");
-      console.log("Creating task with storeId:", storeId);
-      console.log("Task data:", taskData);
       const createdTaskId = await createTask(taskData);
-      console.log("Created task ID:", createdTaskId);
-      console.log("=== TaskCreateModal Debug End ===");
 
       // シフトに直接追加する場合
       if (addToShift && initialShiftId && initialShiftData) {

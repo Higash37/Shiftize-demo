@@ -14,12 +14,7 @@ import { ErrorMessageProps } from "./types";
  * <ErrorMessage message={formErrors.email} />
  * ```
  */
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
-  message,
-  textStyle,
-  style,
-  testID,
-}) => {
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, textStyle, testID }) => {
   if (!message) return null;
 
   return (

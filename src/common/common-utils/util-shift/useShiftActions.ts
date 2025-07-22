@@ -59,7 +59,6 @@ export const useShift = (storeId?: string) => {
 
       setShifts(filteredShifts);
     } catch (error) {
-      console.error("シフトの取得に失敗しました:", error);
       setShifts([]);
     } finally {
       setLoading(false);
@@ -82,7 +81,6 @@ export const useShift = (storeId?: string) => {
       await addShift(shiftWithStoreId);
       await fetchShifts(); // データを即時更新
     } catch (error) {
-      console.error("シフトの追加に失敗しました:", error);
       throw error;
     }
   };
@@ -104,7 +102,6 @@ export const useShift = (storeId?: string) => {
       await updateShift(shiftId, updatedData);
       await fetchShifts(); // データを即時更新
     } catch (error) {
-      console.error("シフトの更新に失敗しました:", error);
       throw error;
     }
   };
@@ -114,7 +111,6 @@ export const useShift = (storeId?: string) => {
       await updateShift(shiftId, { status: "deleted" });
       await fetchShifts();
     } catch (error) {
-      console.error("シフトの状態更新に失敗しました:", error);
       throw error;
     }
   };
@@ -124,7 +120,6 @@ export const useShift = (storeId?: string) => {
       await approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
       await fetchShifts(); // データを即時更新
     } catch (error) {
-      console.error("シフトの承認に失敗しました:", error);
       throw error;
     }
   };
@@ -134,7 +129,6 @@ export const useShift = (storeId?: string) => {
       await updateShift(shiftId, { status });
       await fetchShifts(); // データを即時更新
     } catch (error) {
-      console.error("シフトのステータス更新に失敗しました:", error);
       throw error;
     }
   };

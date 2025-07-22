@@ -92,7 +92,6 @@ export const MultiStoreService = {
         currentStoreId: data.currentStoreId || "",
       };
     } catch (error) {
-      console.error("店舗アクセス権限の取得に失敗:", error);
       throw error;
     }
   },
@@ -184,7 +183,6 @@ export const MultiStoreService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("ユーザー招待に失敗:", error);
       throw error;
     }
   },
@@ -222,7 +220,6 @@ export const MultiStoreService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("店舗切り替えに失敗:", error);
       throw error;
     }
   },
@@ -244,7 +241,6 @@ export const MultiStoreService = {
         createdAt: doc.data().createdAt?.toDate() || new Date(),
       }));
     } catch (error) {
-      console.error("店舗一覧の取得に失敗:", error);
       throw error;
     }
   },
@@ -291,7 +287,6 @@ export const MultiStoreService = {
         }
       }
     } catch (error) {
-      console.error("ユーザー削除に失敗:", error);
       throw error;
     }
   },
@@ -339,7 +334,6 @@ export const MultiStoreService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("レガシーユーザーの移行に失敗:", error);
       throw error;
     }
   },
@@ -366,7 +360,6 @@ export const MultiStoreService = {
 
       return password;
     } catch (error) {
-      console.error("連携パスワードの生成に失敗:", error);
       throw error;
     }
   },
@@ -438,7 +431,6 @@ export const MultiStoreService = {
         toStoreId
       );
     } catch (error) {
-      console.error("店舗連携に失敗:", error);
       throw error;
     }
   },
@@ -511,7 +503,6 @@ export const MultiStoreService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("クロス店舗アクセス権限の付与に失敗:", error);
       throw error;
     }
   },
@@ -560,7 +551,6 @@ export const MultiStoreService = {
         "disconnect"
       );
     } catch (error) {
-      console.error("店舗連携の解除に失敗:", error);
       throw error;
     }
   },
@@ -630,13 +620,12 @@ export const MultiStoreService = {
             });
           });
         } catch (error) {
-          console.error(`店舗${connectedStoreId}のユーザー取得に失敗:`, error);
+          // Failed to get users from connected store
         }
       }
 
       return allUsers;
     } catch (error) {
-      console.error("連携校舎ユーザーの取得に失敗:", error);
       throw error;
     }
   },
@@ -646,17 +635,10 @@ export const MultiStoreService = {
    */
   getConnectedStores: async (userUid: string): Promise<StoreInfo[]> => {
     try {
-      console.log(
-        "MultiStoreService.getConnectedStores called for userUid:",
-        userUid
-      );
-
       // ユーザーのアクセス権限を取得
       const userAccess = await MultiStoreService.getUserStoreAccess(userUid);
-      console.log("User access data:", userAccess);
 
       if (!userAccess || !userAccess.storesAccess) {
-        console.log("No user access found, returning empty array");
         return [];
       }
 
@@ -683,14 +665,12 @@ export const MultiStoreService = {
             }
           }
         } catch (error) {
-          console.error(`店舗${storeId}の情報取得に失敗:`, error);
+          // Failed to get store info
         }
       }
 
-      console.log("Connected stores found:", connectedStores);
       return connectedStores;
     } catch (error) {
-      console.error("連携店舗の取得に失敗:", error);
       return [];
     }
   },
@@ -786,14 +766,9 @@ export const MultiStoreService = {
       // 全ての更新を実行
       await Promise.all(updates);
 
-      console.log(
-        `Successfully ${action}ed stores for users: ${updates.length} users updated`
-      );
+      // Successfully updated stores for users
     } catch (error) {
-      console.error(
-        `Failed to update users' connected stores during ${action}:`,
-        error
-      );
+      // Failed to update users' connected stores
       throw error;
     }
   },

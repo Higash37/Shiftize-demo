@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
@@ -35,16 +35,10 @@ export default function GanttEditScreen() {
       year: nextMonth.getFullYear(),
       month: nextMonth.getMonth(),
     };
-    console.log(
-      `Initial currentYearMonth (1ヶ月先):`,
-      yearMonth,
-      `(${yearMonth.year}年${yearMonth.month + 1}月)`
-    );
     return yearMonth;
   });
 
   const handleMonthChange = async (year: number, month: number) => {
-    console.log(`Month changed to: ${year}年${month + 1}月`);
     setCurrentYearMonth({ year, month });
     await fetchShiftsByMonth(year, month);
   };
@@ -81,7 +75,6 @@ export default function GanttEditScreen() {
       });
 
       // 時間変更後にページをリフレッシュ
-      console.log("シフト時間変更完了、ページをリフレッシュ中...");
       refreshPage();
     } catch (error) {
       console.error("Time change error:", error);
@@ -89,9 +82,7 @@ export default function GanttEditScreen() {
     }
   };
 
-  const handleShiftPress = (shift: any) => {
-    console.log("Shift pressed:", shift);
-  };
+  const handleShiftPress = (shift: ShiftData) => {};
 
   const handleShiftSave = async (data: ShiftData) => {
     try {
@@ -147,7 +138,6 @@ export default function GanttEditScreen() {
         });
       }
       // シフト保存後にページをリフレッシュ
-      console.log("シフト保存完了、ページをリフレッシュ中...");
       refreshPage();
     } catch (error) {
       console.error("Shift save error:", error);
@@ -160,7 +150,6 @@ export default function GanttEditScreen() {
     try {
       await markShiftAsDeleted(shiftId);
       // シフト削除後にページをリフレッシュ
-      console.log("シフト削除完了、ページをリフレッシュ中...");
       refreshPage();
     } catch (error) {
       console.error("Shift delete error:", error);
@@ -170,7 +159,6 @@ export default function GanttEditScreen() {
   };
 
   const generateDaysForMonth = (year: number, month: number) => {
-    console.log(`Generating days for: ${year}年${month + 1}月`); // デバッグ用
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const days = Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month, i + 1);
@@ -179,14 +167,6 @@ export default function GanttEditScreen() {
       const mm = String(date.getMonth() + 1).padStart(2, "0");
       const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
-    });
-    console.log(`Generated days:`, days.slice(0, 5)); // 最初の5日だけ表示
-    console.log(`First day details:`, {
-      year,
-      month,
-      firstDay: days[0],
-      dateObject: new Date(year, month, 1),
-      dateString: new Date(year, month, 1).toLocaleDateString(),
     });
     return days;
   };

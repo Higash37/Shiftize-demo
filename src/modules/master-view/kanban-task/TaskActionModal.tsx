@@ -328,9 +328,6 @@ export const TaskActionModal: React.FC<TaskActionModalProps> = ({
                 {/* メモ一覧 */}
                 <ScrollView style={styles.memoList}>
                   {(() => {
-                    console.log("=== メモ表示時点でのメモ状態 ===");
-                    console.log("memos.length:", memos.length);
-                    console.log("memos:", memos);
                     return null;
                   })()}
                   {memos.length === 0 ? (

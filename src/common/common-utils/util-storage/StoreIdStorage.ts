@@ -9,9 +9,8 @@ export const StoreIdStorage = {
   saveStoreId: async (storeId: string): Promise<void> => {
     try {
       await AsyncStorage.setItem(STORE_ID_KEY, storeId);
-      console.log("店舗IDを保存しました:", storeId);
     } catch (error) {
-      console.error("店舗IDの保存に失敗しました:", error);
+      // Error saving store ID
     }
   },
 
@@ -21,10 +20,8 @@ export const StoreIdStorage = {
   getStoreId: async (): Promise<string | null> => {
     try {
       const storeId = await AsyncStorage.getItem(STORE_ID_KEY);
-      console.log("保存された店舗IDを取得:", storeId);
       return storeId;
     } catch (error) {
-      console.error("店舗IDの取得に失敗しました:", error);
       return null;
     }
   },
@@ -35,9 +32,8 @@ export const StoreIdStorage = {
   clearStoreId: async (): Promise<void> => {
     try {
       await AsyncStorage.removeItem(STORE_ID_KEY);
-      console.log("店舗IDを削除しました");
     } catch (error) {
-      console.error("店舗IDの削除に失敗しました:", error);
+      // Error clearing store ID
     }
   },
 };

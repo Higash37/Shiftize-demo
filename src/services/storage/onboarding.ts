@@ -7,7 +7,7 @@ export class OnboardingStorage {
     try {
       await AsyncStorage.setItem(ONBOARDING_KEY, "true");
     } catch (error) {
-      console.error("Error setting onboarding completed:", error);
+      // Error setting onboarding completed
     }
   }
 
@@ -18,7 +18,6 @@ export class OnboardingStorage {
 
       return isCompleted;
     } catch (error) {
-      console.error("Error checking onboarding status:", error);
       return false;
     }
   }
@@ -27,7 +26,7 @@ export class OnboardingStorage {
     try {
       await AsyncStorage.removeItem(ONBOARDING_KEY);
     } catch (error) {
-      console.error("Error clearing onboarding status:", error);
+      // Error clearing onboarding status
     }
   }
 }

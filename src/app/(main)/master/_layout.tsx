@@ -12,7 +12,7 @@ function isStandalonePWA() {
   if (typeof window !== "undefined") {
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true
+      (window.navigator as Navigator).standalone === true
     );
   }
   return false;
@@ -94,14 +94,14 @@ export default function MasterLayout() {
           justifyContent: "space-around",
           alignItems: "center",
           ...(isPWA && {
-            position: "fixed" as any,
+            position: "fixed" as "fixed",
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 1000,
-            width: "100vw" as any,
-            minWidth: "100vw" as any,
-            maxWidth: "100vw" as any,
+            width: "100vw" as "100vw",
+            minWidth: "100vw" as "100vw",
+            maxWidth: "100vw" as "100vw",
             margin: 0,
             padding: 0,
           }),

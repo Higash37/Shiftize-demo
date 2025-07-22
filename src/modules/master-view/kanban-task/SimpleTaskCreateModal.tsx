@@ -33,7 +33,6 @@ export const SimpleTaskCreateModal: React.FC<SimpleTaskCreateModalProps> = ({
   currentUser,
   editTask,
 }) => {
-  console.log("SimpleTaskCreateModal - visible:", visible);
   const isEditMode = !!editTask;
 
   const [formData, setFormData] = useState<TaskFormData>({

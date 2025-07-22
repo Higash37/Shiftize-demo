@@ -64,4 +64,4 @@ export const styles = StyleSheet.create({
   margin_none: {
     margin: 0,
   },
-}) as Record<BoxStyleName, any>;
+}) as Record<BoxStyleName, ViewStyle>;

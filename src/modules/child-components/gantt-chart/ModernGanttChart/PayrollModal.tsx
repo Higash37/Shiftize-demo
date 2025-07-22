@@ -276,7 +276,6 @@ export const PayrollModal: React.FC<PayrollModalProps> = ({
             title="CSVエクスポート"
             onPress={() => {
               // CSVエクスポート機能（今後実装）
-              console.log("CSV export");
             }}
             variant="outline"
             style={styles.exportButton}

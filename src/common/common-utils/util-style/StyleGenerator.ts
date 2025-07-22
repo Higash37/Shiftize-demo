@@ -2,28 +2,18 @@
  * UI関連のユーティリティ関数
  */
 import { Platform } from "react-native";
+import { shadows } from "../../common-constants/ShadowConstants";
 
 /**
  * プラットフォーム固有のシャドウスタイルを生成するヘルパー関数
- * @param elevation 影の強さ（高さ）
+ * @param elevation 影の強さ（小さい値：1-2、中程度：3-6、大きい値：7以上）
  * @returns プラットフォームに適したシャドウスタイル
  */
 export const getPlatformShadow = (elevation: number = 2) => {
-  if (Platform.OS === "web") {
-    return {
-      boxShadow: `0px ${elevation}px ${elevation * 2}px rgba(0, 0, 0, 0.1)`,
-    };
-  }
-  return {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: elevation,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: elevation,
-    elevation,
-  };
+  if (elevation <= 2) return shadows.small;
+  if (elevation <= 6) return shadows.medium;
+  if (elevation <= 10) return shadows.large;
+  return shadows.xlarge;
 };
 
 /**

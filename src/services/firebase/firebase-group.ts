@@ -46,12 +46,6 @@ export const GroupService = {
 
       return exists;
     } catch (error: any) {
-      console.error("店舗ID確認エラー:", {
-        storeId,
-        error: error.message,
-        code: error.code,
-        fullError: error,
-      });
 
       // 権限エラーやネットワークエラーの場合は例外を投げる
       if (error.code === "permission-denied") {
@@ -96,7 +90,6 @@ export const GroupService = {
       const storeIdExists = await GroupService.checkStoreIdExists(data.storeId);
 
       if (storeIdExists) {
-        console.error("店舗ID重複エラー:", data.storeId);
         throw new Error("この店舗IDは既に使用されています");
       }
 
@@ -151,7 +144,6 @@ export const GroupService = {
               !member.password ||
               member.password.length < 6
             ) {
-              console.warn("メンバーのバリデーションエラー:", member);
               continue;
             }
 
@@ -187,11 +179,6 @@ export const GroupService = {
               isActive: true,
             });
           } catch (memberError: any) {
-            console.error(
-              "メンバー作成エラー:",
-              member.nickname,
-              memberError.message
-            );
             // 個別のメンバー作成失敗は全体の失敗にしない
           }
         }
@@ -204,7 +191,6 @@ export const GroupService = {
         message: "グループが正常に作成されました",
       };
     } catch (error: any) {
-      console.error("グループ作成エラー:", error);
 
       // Firebase Authのエラーコードに応じたメッセージ
       let errorMessage = "グループの作成に失敗しました";
@@ -248,7 +234,6 @@ export const GroupService = {
 
       return { exists: false };
     } catch (error) {
-      console.error("グループ確認エラー:", error);
       throw new Error("グループの確認に失敗しました");
     }
   },

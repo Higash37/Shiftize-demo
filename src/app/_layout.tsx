@@ -3,7 +3,7 @@ import { Stack, Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import { View, AppState, Platform } from "react-native";
+import { View, AppState } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -50,9 +50,7 @@ function RootLayoutNav() {
     <>
       <StatusBar style="light" backgroundColor={colors.primary} />
       <View style={getLayoutStyle()}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Slot />
-        </Stack>
+        <Slot />
       </View>
     </>
   );

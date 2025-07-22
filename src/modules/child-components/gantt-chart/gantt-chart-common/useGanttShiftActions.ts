@@ -52,7 +52,6 @@ export function useGanttShiftActions({
             ...newShiftData,
             updatedAt: serverTimestamp(),
           });
-          console.log("シフト却下完了、ページをリフレッシュ中...");
           if (refreshPage) {
             refreshPage();
           }
@@ -67,12 +66,6 @@ export function useGanttShiftActions({
           const selectedUser = users.find((u) => u.uid === selectedUserId);
           if (selectedUser && selectedUser.color) {
             userColor = selectedUser.color;
-            console.log(
-              "編集時にユーザー色を更新:",
-              userColor,
-              "ユーザー:",
-              selectedUser.nickname
-            );
           }
         } catch (error) {
           console.error("ユーザー情報取得エラー:", error);
@@ -91,9 +84,6 @@ export function useGanttShiftActions({
         // 選択されたユーザーIDを取得（優先的に選択されたユーザーIDを使用）
         const selectedUserId = newShiftData.userId;
 
-        console.log("新規シフト追加 - 選択ユーザーID:", selectedUserId);
-        console.log("新規シフト追加 - 現在のユーザーID:", user?.uid);
-
         // ユーザーカラーを取得
         let userColor;
         try {
@@ -101,30 +91,9 @@ export function useGanttShiftActions({
           const selectedUser = users.find((u) => u.uid === selectedUserId);
           if (selectedUser && selectedUser.color) {
             userColor = selectedUser.color;
-            console.log(
-              "ユーザー色を取得:",
-              userColor,
-              "ユーザー:",
-              selectedUser.nickname
-            );
           }
         } catch (error) {
           console.error("ユーザー情報取得エラー:", error);
-        }
-
-        console.log("ユーザーリスト:", users);
-        if (!selectedUserId) {
-          console.error("選択されたユーザーIDが存在しません。");
-        } else {
-          const selectedUser = users.find((u) => u.uid === selectedUserId);
-          if (!selectedUser) {
-            console.error("選択されたユーザーがユーザーリストに存在しません。");
-          } else {
-            console.log(
-              "選択されたユーザーのニックネーム:",
-              selectedUser.nickname
-            );
-          }
         }
 
         await addDoc(collection(db, "shifts"), {
@@ -139,7 +108,6 @@ export function useGanttShiftActions({
           userColor: userColor || "#4A90E2", // デフォルト青色
         });
       }
-      console.log("シフト保存完了、ページをリフレッシュ中...");
       if (refreshPage) {
         refreshPage();
       }
@@ -173,7 +141,6 @@ export function useGanttShiftActions({
           updatedAt: serverTimestamp(),
         });
       }
-      console.log("シフト削除完了、ページをリフレッシュ中...");
       if (refreshPage) {
         refreshPage();
       }
@@ -186,12 +153,8 @@ export function useGanttShiftActions({
       if (!user) throw new Error("ユーザーが未ログインです");
 
       const shiftRef = doc(db, "shifts", shiftId);
-      console.log(`Updating shift ${shiftId} to status ${status}`); // デバッグ用ログ
       await updateDoc(shiftRef, { status });
 
-      console.log(
-        `シフトステータス更新完了 (${status})、ページをリフレッシュ中...`
-      );
       if (refreshPage) {
         refreshPage();
       }

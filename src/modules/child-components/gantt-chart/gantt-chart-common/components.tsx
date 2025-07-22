@@ -12,6 +12,7 @@ import { ShiftItem, TaskItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../gantt-chart-types/GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons } from "@expo/vector-icons";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 // --- DateCell ---
 export type DateCellProps = {
@@ -296,11 +297,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     : 1,
                 zIndex: 2, // シフトバーはグリッド全体より前面
                 borderRadius: 4,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 2,
-                elevation: 2,
+                ...shadows.small,
               },
             ]}
             onPress={() => onShiftPress?.(shift)}
@@ -476,8 +473,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     onPress={() => {
                       if (onTaskAdd) {
                         onTaskAdd(shift.id);
-                      } else {
-                        console.log("Add task for shift:", shift.id);
                       }
                     }}
                   >
@@ -491,23 +486,9 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   const classTasks = convertClassesToTasks(shift);
                   const legacyTasks = shift.tasks || [];
 
-                  // デバッグログ追加
-                  console.log("=== GanttChart Task Display Debug ===");
-                  console.log("Shift ID:", shift.id);
-                  console.log("Shift extendedTasks:", shift.extendedTasks);
-                  console.log(
-                    "extendedTasks type:",
-                    typeof shift.extendedTasks
-                  );
-                  console.log(
-                    "extendedTasks length:",
-                    shift.extendedTasks?.length
-                  );
-
                   // extendedTasksをTaskItem形式に変換
                   const extendedTasks = (shift.extendedTasks || []).map(
                     (taskSlot: any) => {
-                      console.log("Processing extended task:", taskSlot);
                       return {
                         id: taskSlot.id,
                         startTime: taskSlot.startTime,
@@ -521,17 +502,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     }
                   );
 
-                  console.log("Converted extendedTasks:", extendedTasks);
-
                   const allTasks = [
                     ...legacyTasks,
                     ...classTasks,
                     ...extendedTasks,
                   ];
-
-                  console.log("All tasks count:", allTasks.length);
-                  console.log("All tasks:", allTasks);
-                  console.log("=== GanttChart Task Display Debug End ===");
 
                   return allTasks.length > 0 ? (
                     <View
@@ -543,26 +518,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       }}
                     >
                       {allTasks.map((task, taskIndex) => {
-                        console.log("Processing task for display:", task);
-                        console.log(
-                          "Task startTime:",
-                          task.startTime,
-                          "endTime:",
-                          task.endTime
-                        );
-
                         // タスクの時間範囲を計算
                         const taskStartPos = timeToPosition(task.startTime);
                         const taskEndPos = timeToPosition(task.endTime);
                         const taskWidth = taskEndPos - taskStartPos;
                         const shiftStartPos = timeToPosition(shift.startTime);
-
-                        console.log("Task position calculation:", {
-                          taskStartPos,
-                          taskEndPos,
-                          taskWidth,
-                          shiftStartPos,
-                        });
 
                         // シフト開始位置からの相対位置を計算
                         const relativeStartPos = Math.max(
@@ -570,13 +530,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                           taskStartPos - shiftStartPos
                         );
                         const relativeWidth = Math.max(taskWidth, 12); // 最小幅12px
-
-                        console.log("Final task display params:", {
-                          relativeStartPos,
-                          relativeWidth,
-                          taskColor: task.color,
-                          taskIcon: task.icon,
-                        });
 
                         return (
                           <View
@@ -593,11 +546,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               alignItems: "center",
                               justifyContent: "flex-start",
                               paddingHorizontal: 0,
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: 1 },
-                              shadowOpacity: 0.25,
-                              shadowRadius: 2,
-                              elevation: 2,
+                              ...shadows.small,
                               borderWidth: 0.5,
                               borderColor: "rgba(255, 255, 255, 0.3)",
                             }}

@@ -10,6 +10,7 @@ import {
 import { styles as ganttStyles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
 import { timeSlots } from "../../home-data/scheduleSample";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 interface UserDayGanttModalProps {
   visible: boolean;
@@ -145,10 +146,7 @@ const modalStyles = StyleSheet.create({
     width: "90%",
     maxHeight: "90%",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    ...shadows.modal,
   },
   title: {
     fontWeight: "bold",

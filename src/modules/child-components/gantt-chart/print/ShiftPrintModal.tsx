@@ -831,7 +831,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                   <tbody>
                     ${(() => {
                       let html = "";
-                      let weeks: (Date | null)[][] = [];
+                      const weeks: (Date | null)[][] = [];
                       let currentWeek: (Date | null)[] = [];
 
                       calendarDays.forEach((day, index) => {
@@ -978,7 +978,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           <tbody>
             ${(() => {
               let html = "";
-              let weeks: (Date | null)[][] = [];
+              const weeks: (Date | null)[][] = [];
               let currentWeek: (Date | null)[] = [];
 
               calendarDays.forEach((day, index) => {
@@ -1133,7 +1133,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                 });
 
                 let html = "";
-                let weeks: (Date | null)[][] = [];
+                const weeks: (Date | null)[][] = [];
                 let currentWeek: (Date | null)[] = [];
 
                 nextCalendarDays.forEach((day, index) => {
@@ -1627,7 +1627,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
-                    console.log("PDF保存ボタンが押されました");
                     handleSavePDF();
                   }}
                   style={styles.saveButton}

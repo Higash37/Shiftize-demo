@@ -44,10 +44,6 @@ export const ExtendedTaskService = {
     taskData: Omit<ExtendedTask, "id" | "createdAt" | "updatedAt">
   ): Promise<string> => {
     try {
-      console.log("=== createTask Debug ===");
-      console.log("Creating task with data:", taskData);
-      console.log("storeId in taskData:", taskData.storeId);
-
       // undefinedフィールドを除外
       const cleanedData = removeUndefinedFields({
         ...taskData,
@@ -57,19 +53,14 @@ export const ExtendedTaskService = {
         validTo: taskData.validTo ? Timestamp.fromDate(taskData.validTo) : null,
       });
 
-      console.log("Cleaned data:", cleanedData);
-
       const taskRef = await addDoc(collection(db, "extendedTasks"), {
         ...cleanedData,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       });
 
-      console.log("Task created successfully with ID:", taskRef.id);
-      console.log("=== createTask Debug End ===");
       return taskRef.id;
     } catch (error) {
-      console.error("タスクの作成に失敗しました:", error);
       throw error;
     }
   },
@@ -83,7 +74,7 @@ export const ExtendedTaskService = {
   ): Promise<ExtendedTask[]> => {
     try {
       // 単純なクエリに変更（複合インデックス不要）
-      let q = query(
+      const q = query(
         collection(db, "extendedTasks"),
         where("storeId", "==", storeId)
       );
@@ -126,7 +117,6 @@ export const ExtendedTaskService = {
 
       return filteredTasks;
     } catch (error) {
-      console.error("タスクの取得に失敗しました:", error);
       throw error;
     }
   },
@@ -159,7 +149,6 @@ export const ExtendedTaskService = {
         } as ExtendedTask;
       });
     } catch (error) {
-      console.error("タイプ別タスクの取得に失敗しました:", error);
       throw error;
     }
   },
@@ -199,7 +188,6 @@ export const ExtendedTaskService = {
         return current >= start && current <= end;
       });
     } catch (error) {
-      console.error("時間指定タスクの取得に失敗しました:", error);
       throw error;
     }
   },
@@ -228,7 +216,6 @@ export const ExtendedTaskService = {
         updatedAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("タスクの更新に失敗しました:", error);
       throw error;
     }
   },
@@ -243,7 +230,6 @@ export const ExtendedTaskService = {
         updatedAt: new Date(),
       });
     } catch (error) {
-      console.error("タスクの無効化に失敗しました:", error);
       throw error;
     }
   },
@@ -256,7 +242,6 @@ export const ExtendedTaskService = {
       const taskRef = doc(db, "extendedTasks", taskId);
       await deleteDoc(taskRef);
     } catch (error) {
-      console.error("タスクの削除に失敗しました:", error);
       throw error;
     }
   },
@@ -307,7 +292,6 @@ export const TaskPerformanceService = {
         recordedAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("タスク実行記録の保存に失敗しました:", error);
       throw error;
     }
   },
@@ -360,7 +344,6 @@ export const TaskPerformanceService = {
         lastUpdated: new Date(),
       };
     } catch (error) {
-      console.error("パフォーマンス計算に失敗しました:", error);
       return null;
     }
   },
@@ -377,7 +360,6 @@ export const TaskPerformanceService = {
       // 実装は複雑になるため、基本構造のみ
       return [];
     } catch (error) {
-      console.error("ランキング取得に失敗しました:", error);
       return [];
     }
   },

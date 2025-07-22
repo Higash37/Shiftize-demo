@@ -5,7 +5,7 @@ import { SettingsBackupView } from "@/modules/master-view/settings/settingsBacku
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 
 export default function SettingsBackupScreen() {
-  const { settings, loading, resetSettings, exportSettings, importSettings } =
+  const { loading, resetSettings, exportSettings, importSettings } =
     useSettings();
   const [isProcessing, setIsProcessing] = useState(false);
 

@@ -62,7 +62,6 @@ export const AuthService = {
         role: email.startsWith("master@") ? "master" : "user",
       };
     } catch (error) {
-      console.error("サインインエラー:", error);
       throw error;
     }
   },
@@ -82,7 +81,6 @@ export const AuthService = {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("サインアウトエラー:", error);
       throw error;
     }
   },
@@ -157,12 +155,11 @@ export const AuthService = {
         try {
           await deleteApp(tempApp);
         } catch (deleteError) {
-          console.error("一時的なアプリの削除に失敗:", deleteError);
+          // Failed to delete temporary app
         }
         throw error;
       }
     } catch (error) {
-      console.error("ユーザー作成エラー:", error);
       throw error;
     }
   },
@@ -221,7 +218,6 @@ export const AuthService = {
                 currentPassword: updates.password,
               });
             } catch (error) {
-              console.error("パスワード更新エラー:", error);
               throw new Error("パスワードの更新に失敗しました");
             }
           }
@@ -241,7 +237,6 @@ export const AuthService = {
       }
       return undefined;
     } catch (error) {
-      console.error("Error updating user:", error);
       throw error;
     }
   },
@@ -277,7 +272,6 @@ export const AuthService = {
         });
       }
     } catch (error: any) {
-      console.error("パスワード変更エラー:", error);
       if (error.code === "auth/wrong-password") {
         throw new Error("現在のパスワードが正しくありません");
       } else if (error.code === "auth/weak-password") {
@@ -298,7 +292,7 @@ export const AuthService = {
       if (error.code === "auth/email-already-in-use") {
         return;
       }
-      console.error("初期マスターユーザーの作成に失敗しました:", error);
+      // Initial master user creation failed
     }
   },
 };

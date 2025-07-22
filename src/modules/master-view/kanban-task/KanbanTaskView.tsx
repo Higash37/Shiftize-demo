@@ -41,16 +41,6 @@ export const KanbanTaskView: React.FC = () => {
     },
   ];
 
-  // カラムごとのタスク数をログ出力
-  console.log("=== カラム情報 ===");
-  columns.forEach((column) => {
-    console.log(`${column.title}: ${column.tasks.length}件`);
-    column.tasks.forEach((task) => {
-      console.log(`  - ${task.title} (${task.status})`);
-    });
-  });
-  console.log("==================");
-
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
@@ -61,21 +51,15 @@ export const KanbanTaskView: React.FC = () => {
 
       try {
         setLoading(true);
-        console.log("=== setupRealtimeListener 開始 ===");
-        console.log("user.storeId:", user.storeId);
 
         // リアルタイム監視を設定
         unsubscribe = normalTaskService.watchTasks(
           user.storeId,
           (tasksData) => {
-            console.log("取得したタスク数:", tasksData.length);
-            console.log("タスクデータ:", tasksData);
             setTasks(tasksData);
             setLoading(false);
           }
         );
-
-        console.log("=== setupRealtimeListener 完了 ===");
       } catch (error) {
         console.error("タスク取得エラー:", error);
         Alert.alert("エラー", "タスクの読み込みに失敗しました");
@@ -95,22 +79,12 @@ export const KanbanTaskView: React.FC = () => {
 
   const loadTasks = async () => {
     // この関数は現在使用されていませんが、必要に応じて手動リロード用に保持
-    console.log("loadTasks called - リアルタイム監視により自動更新されます");
   };
-
-  console.log("KanbanTaskView - createModalVisible:", createModalVisible);
-  console.log("KanbanTaskView - actionModalVisible:", actionModalVisible);
-  console.log("KanbanTaskView - editModalVisible:", editModalVisible);
 
   const handleStatusChange = async (
     task: NormalTask,
     newStatus: TaskStatus
   ) => {
-    console.log("=== ステータス変更処理 ===");
-    console.log("タスクID:", task.id);
-    console.log("現在のステータス:", task.status);
-    console.log("新しいステータス:", newStatus);
-
     try {
       await normalTaskService.updateTaskStatus(
         task.id,
@@ -119,7 +93,6 @@ export const KanbanTaskView: React.FC = () => {
         user?.nickname
       );
 
-      console.log("ステータス更新API呼び出し完了");
       Alert.alert("成功", "タスクのステータスが更新されました");
     } catch (error) {
       console.error("ステータス更新エラー:", error);
@@ -404,9 +377,6 @@ export const KanbanTaskView: React.FC = () => {
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}
         onTaskCreated={() => {
-          console.log(
-            "タスクが作成されました - リアルタイム監視により自動更新"
-          );
           setCreateModalVisible(false);
         }}
         storeId={user?.storeId || ""}
@@ -434,9 +404,6 @@ export const KanbanTaskView: React.FC = () => {
           setSelectedTask(null);
         }}
         onTaskCreated={() => {
-          console.log(
-            "タスクが編集されました - リアルタイム監視により自動更新"
-          );
           setEditModalVisible(false);
           setSelectedTask(null);
         }}

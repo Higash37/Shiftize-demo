@@ -35,7 +35,6 @@ export const handleLogin = async (
     // Firebase Authでのログイン（メールアドレスとcurrentPasswordを使用）
     await signInWithEmailAndPassword(auth, email, userData.currentPassword);
   } catch (err: any) {
-    console.error("ログインエラー:", err);
     setError(err.message || "ログインに失敗しました");
   }
 };

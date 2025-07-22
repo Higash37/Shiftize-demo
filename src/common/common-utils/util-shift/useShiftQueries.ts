@@ -74,7 +74,6 @@ export const useShifts = (storeId?: string) => {
     async (year: number, month: number) => {
       // storeIdが未定義の場合は処理を停止
       if (!storeId) {
-        console.log("storeId is not provided, skipping fetchShiftsByMonth");
         setShifts([]);
         setLoading(false);
         return;
@@ -102,27 +101,11 @@ export const useShifts = (storeId?: string) => {
 
         const querySnapshot = await getDocs(q);
 
-        console.log("fetchShiftsByMonth debug:", {
-          year,
-          month,
-          storeId,
-          startDateStr,
-          endDateStr,
-          docsCount: querySnapshot.docs.length,
-        });
 
         // 既にFirestoreクエリでフィルタリング済みなので、追加のJavaScriptフィルタリングは不要
         const shiftsData = querySnapshot.docs
           .map((doc) => {
             const data = doc.data();
-            // デバッグ用: シフトデータの内容を出力
-            console.log("shift document:", {
-              id: doc.id,
-              data,
-              hasStoreId: !!data.storeId,
-              storeId: data.storeId,
-              extendedTasks: data.extendedTasks,
-            });
             return {
               id: doc.id,
               userId: data.userId || "",
@@ -164,7 +147,6 @@ export const useShifts = (storeId?: string) => {
         setShifts(shiftsData);
       } catch (err) {
         setError(err as Error);
-        console.error("Error fetching shifts by month:", err);
       } finally {
         setLoading(false);
       }

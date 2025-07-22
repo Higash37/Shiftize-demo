@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  Platform,
-  useWindowDimensions,
-  SafeAreaView,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, Platform, useWindowDimensions, SafeAreaView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
@@ -24,7 +15,6 @@ export default function Login() {
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isDesktop = isWeb && width > 1024; // PC判定
-  const isTablet = isWeb && width > 768 && width <= 1024; // タブレット判定
   const isMobile = width <= 768; // スマホ判定
 
   const handleLogin = async (
@@ -38,7 +28,6 @@ export default function Login() {
       const email = `${storeId}${username}@example.com`;
       await signIn(email, password, storeId);
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage("ニックネームまたはパスワードが違います");
     } finally {
       setLoading(false);

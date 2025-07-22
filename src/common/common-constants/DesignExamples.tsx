@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
+
 import { MaterialIcons } from "@expo/vector-icons";
 
 /**
@@ -95,7 +95,7 @@ export const ExampleChip: React.FC<{
   >
     {icon && (
       <MaterialIcons
-        name={icon as any}
+        name={icon as "string"}
         size={16}
         color={selected ? colors.text.white : colors.text.primary}
         style={styles.chipIcon}
@@ -134,7 +134,7 @@ export const ExampleListItem: React.FC<{
         {subtitle && <Text style={styles.listItemSubtitle}>{subtitle}</Text>}
       </View>
       <MaterialIcons
-        name={rightIcon as any}
+        name={rightIcon as "string"}
         size={20}
         color={colors.text.secondary}
       />

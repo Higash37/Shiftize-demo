@@ -3,14 +3,11 @@ import {
   View,
   StyleSheet,
   useWindowDimensions,
-  Modal,
-  TouchableOpacity,
-  Text,
 } from "react-native";
 import { useUser } from "@/modules/child-components/user-management/user-hooks/useUser";
 import { UserForm } from "@/modules/child-components/user-management/user-props/UserForm";
 import { UserList } from "@/modules/child-components/user-management/user-props/UserList";
-import { InviteUserForm } from "@/modules/child-components/user-management/user-props/InviteUserForm";
+
 import { User } from "@/common/common-models/model-user/UserModel";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
@@ -19,7 +16,7 @@ import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { db } from "@/services/firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "@/services/auth/useAuth";
-import { Ionicons } from "@expo/vector-icons";
+
 
 interface UserFormData {
   email: string;
@@ -40,6 +37,8 @@ export default function UsersScreen() {
     currentUser?.storeId
   );
   const { width } = useWindowDimensions();
+  const isTablet = width >= 768 && width < 1024;
+  const isDesktop = width >= 1024;
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
     null
@@ -47,14 +46,9 @@ export default function UsersScreen() {
   const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
     {}
   );
-  const [showInviteForm, setShowInviteForm] = useState(false);
-
-  // レスポンシブ対応：画面サイズに応じてフォーム幅を調整
-  const isTablet = width >= 768;
-  const isDesktop = width >= 1024;
+  
   const handleAddUser = async (data: UserFormData) => {
     if (!data.password) {
-      console.error("パスワードは必須です");
       return;
     }
 
@@ -79,7 +73,6 @@ export default function UsersScreen() {
         setIsAddingUser(false);
       }
     } catch (err) {
-      console.error("ユーザー追加エラー:", err);
       // エラーメッセージの表示などはuseUserフック内で処理される
     } finally {
       // ローディング状態の解除はuseUserフック内で処理されるため、ここでは不要
@@ -108,7 +101,7 @@ export default function UsersScreen() {
 
       setSelectedUser(null);
     } catch (err) {
-      console.error("ユーザー編集エラー:", err);
+      // Error handled by useUser hook
     }
   };
   const handleDeleteUser = async (userId: string) => {
@@ -125,7 +118,7 @@ export default function UsersScreen() {
       delete newPasswords[userId];
       setUserPasswords(newPasswords);
     } catch (err) {
-      console.error("ユーザー削除エラー:", err);
+      // Error deleting user
     }
   };
 

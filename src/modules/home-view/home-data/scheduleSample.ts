@@ -67,10 +67,10 @@ function makeSlots90min(name: string): SampleSlot[] {
       continue;
     }
     // 90分後の時刻を計算
-    let [h, m] = cur.split(":").map(Number);
-    let endMin = h * 60 + m + 90;
-    let endH = Math.floor(endMin / 60);
-    let endM = endMin % 60;
+    const [h, m] = cur.split(":").map(Number);
+    const endMin = h * 60 + m + 90;
+    const endH = Math.floor(endMin / 60);
+    const endM = endMin % 60;
     let end = `${endH}:${endM.toString().padStart(2, "0")}`;
     // 16:00をまたぐ場合は15:30~16:00で区切る
     if (cur < "16:00" && end > "16:00") {

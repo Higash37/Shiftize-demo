@@ -17,7 +17,7 @@ export function useAutoReloadOnLayoutBug(
     if (Platform.OS === "web") {
       // セッション単位でリロード回数を管理
       const key = "autoReloadCount";
-      let count = Number(sessionStorage.getItem(key) || "0");
+      const count = Number(sessionStorage.getItem(key) || "0");
       if ((width < threshold || height < threshold) && count < maxRetry) {
         sessionStorage.setItem(key, String(count + 1));
         window.location.reload();

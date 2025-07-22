@@ -62,14 +62,6 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
   selectedStoreId,
   onStoreChange,
 }) => {
-  // デバッグ用のログ出力
-  console.log(
-    "ShiftCreateFormContent: Render - connectedStores length:",
-    connectedStores.length
-  );
-  console.log("ShiftCreateFormContent: selectedStoreId:", selectedStoreId);
-  console.log("ShiftCreateFormContent: connectedStores data:", connectedStores);
-
   return (
     <>
       <View style={{ width: "100%" }}></View>
@@ -81,9 +73,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
         <View style={styles.formContainer}>
           {/* 店舗選択 - デバッグ用の表示 */}
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>
-              勤務店舗 (Debug: {connectedStores.length} stores)
-            </Text>
+            <Text style={styles.sectionTitle}>勤務店舗</Text>
             {connectedStores.length > 0 ? (
               <View style={styles.storeSelectContainer}>
                 {connectedStores.map((store) => (

@@ -39,7 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await signIn(email, password);
     } catch (error) {
-      console.error("ログインエラー:", error);
       throw error;
     }
   };
@@ -48,7 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await signOutUser();
     } catch (error) {
-      console.error("ログアウトエラー:", error);
       throw error;
     }
   };

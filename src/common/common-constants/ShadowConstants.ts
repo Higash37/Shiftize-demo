@@ -47,7 +47,7 @@ const createShadow = (
   if (Platform.OS === "web") {
     return {
       boxShadow: createWebShadow(color, x, y, blur, opacity),
-    } as any; // Webプロパティのため型アサーション
+    } as ViewStyle;
   }
   return {
     shadowColor: color,
@@ -61,7 +61,7 @@ const createShadow = (
 export const shadows: ShadowsType = {
   none:
     Platform.OS === "web"
-      ? ({ boxShadow: "none" } as any)
+      ? ({ boxShadow: "none" } as ViewStyle)
       : {
           shadowColor: "transparent",
           shadowOffset: { width: 0, height: 0 },

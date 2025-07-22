@@ -4,7 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { Footer, Header } from "@/common/common-ui/ui-layout";
+import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
 export default function userLayout() {
@@ -60,15 +60,7 @@ export default function userLayout() {
     <View style={{ flex: 1 }}>
       {/* メインコンテンツエリア - フッター分を除いた高さ */}
       <View style={{ flex: 1 }}>
-        <Stack
-          screenOptions={{
-            gestureEnabled: true,
-            animation: "slide_from_right",
-            headerShown: false, // デフォルトのWebヘッダーを非表示
-          }}
-        >
-          <Slot />
-        </Stack>
+        <Slot />
       </View>
       {/* フッター - 固定サイズ */}
       <Footer />

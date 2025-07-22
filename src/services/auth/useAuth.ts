@@ -47,10 +47,6 @@ export const useAuth = () => {
 
       // storeIdの一致を確認
       if (userData.storeId !== storeId) {
-        console.error("店舗IDが一致しません。", {
-          expected: userData.storeId,
-          received: storeId,
-        });
         throw new Error("店舗IDが一致しません");
       }
 
@@ -76,7 +72,6 @@ export const useAuth = () => {
       setStoreId(userData.storeId);
       setAuthError(null);
     } catch (error: any) {
-      console.error("signIn関数内でエラーが発生しました", error);
       setUser(null);
       setRole(null);
       setStoreId(null);
@@ -94,7 +89,6 @@ export const useAuth = () => {
       setStoreId(null);
       setAuthError(null);
     } catch (error) {
-      console.error("ログアウトに失敗しました:", error);
       throw error;
     }
   };
@@ -108,7 +102,6 @@ export const useAuth = () => {
         if (userData) {
           // 削除フラグを確認
           if (userData.deleted) {
-            console.error("削除されたユーザーです");
             await getAuth().signOut();
             setUser(null);
             setRole(null);
@@ -132,7 +125,6 @@ export const useAuth = () => {
           setStoreId(userStoreId);
           setAuthError(null); // 成功時はエラーをクリア
         } else {
-          console.error("ユーザー情報が見つかりません。");
           // Firebase認証をログアウト
           await getAuth().signOut();
           setUser(null);

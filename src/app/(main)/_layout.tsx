@@ -1,4 +1,4 @@
-import { Stack, Slot } from "expo-router";
+import { Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";

@@ -272,33 +272,24 @@ export const normalTaskService = {
    */
   debugTaskMemos: async (taskId?: string) => {
     try {
-      console.log("=== debugTaskMemos 開始 ===");
-      console.log("taskId:", taskId);
-
       const memosRef = collection(db, "TaskMemos");
 
       // 全てのメモを取得してデバッグ
       const allMemosSnapshot = await getDocs(memosRef);
-      console.log("全メモ数:", allMemosSnapshot.size);
 
       allMemosSnapshot.forEach((doc) => {
         const data = doc.data();
-        console.log("全メモドキュメント:", doc.id, data);
       });
 
       // 特定のtaskIdのメモを取得
       if (taskId) {
         const taskMemosQuery = query(memosRef, where("taskId", "==", taskId));
         const taskMemosSnapshot = await getDocs(taskMemosQuery);
-        console.log(`taskId=${taskId}のメモ数:`, taskMemosSnapshot.size);
 
         taskMemosSnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log(`taskId=${taskId}のメモドキュメント:`, doc.id, data);
         });
       }
-
-      console.log("=== debugTaskMemos 終了 ===");
     } catch (error) {
       console.error("debugTaskMemos エラー:", error);
     }

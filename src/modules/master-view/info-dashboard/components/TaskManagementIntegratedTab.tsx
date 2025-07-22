@@ -74,13 +74,8 @@ export const TaskManagementIntegratedTab: React.FC<
       setLoading(true);
 
       // タスク一覧を取得
-      console.log("=== InfoDashboard TaskManagement Debug ===");
-      console.log("Fetching tasks for storeId:", storeId);
       const taskList = await getTasks(storeId);
-      console.log("InfoDashboard - Fetched tasks count:", taskList.length);
-      console.log("InfoDashboard - Fetched tasks:", taskList);
       setTasks(taskList);
-      console.log("=== InfoDashboard TaskManagement Debug End ===");
 
       // モックパフォーマンスデータを生成
       const mockPerformances: TaskPerformance[] = taskList.map(

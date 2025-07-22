@@ -1,8 +1,8 @@
 import { ViewStyle, TextStyle } from "react-native";
 import { layout } from "./LayoutConstants";
-import { shadows } from "./ShadowConstants";
 import { colors } from "./ColorConstants";
 import { typography } from "./TypographyConstants";
+import { shadows } from "./ShadowConstants";
 
 /**
  * 包括的なデザインシステム定義
@@ -280,7 +280,7 @@ export const textStyles = {
   // ヘッダータイトル
   headerTitle: {
     fontSize: typography.fontSize.xxlarge + 8,
-    fontWeight: typography.fontWeight.bold as any,
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.white,
     textAlign: "center",
   } as TextStyle,
@@ -296,7 +296,7 @@ export const textStyles = {
   // ウェルカムテキスト
   welcomeText: {
     fontSize: typography.fontSize.xxlarge,
-    fontWeight: typography.fontWeight.bold as any,
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
     textAlign: "center",
     marginBottom: layout.padding.medium,
@@ -322,14 +322,14 @@ export const textStyles = {
   // ボタンテキスト
   buttonText: {
     fontSize: typography.fontSize.medium,
-    fontWeight: typography.fontWeight.bold as any,
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.white,
   } as TextStyle,
 
   // アウトラインボタンテキスト
   outlineButtonText: {
     fontSize: typography.fontSize.medium,
-    fontWeight: typography.fontWeight.bold as any,
+    fontWeight: typography.fontWeight.bold,
     color: colors.primary,
   } as TextStyle,
 };

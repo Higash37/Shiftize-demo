@@ -237,7 +237,9 @@ export interface ShiftItem {
 export type TaskType =
   | "standard" // 通常タスク
   | "time_specific" // 時間指定タスク
-  | "custom"; // 独自設定タスク
+  | "custom" // 独自設定タスク
+  | "user_defined"
+  | "class";
 
 /**
  * 時間指定タスクの時間範囲

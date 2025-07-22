@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "expo-router";
 import { SettingsIndexView } from "@/modules/master-view/settings/settingIndexView/SettingsIndexView";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import { View, Button } from "react-native";
+import { View } from "react-native";
 
 export default function MasterSettingsIndex() {
   const router = useRouter();

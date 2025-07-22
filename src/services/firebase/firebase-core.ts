@@ -35,7 +35,7 @@ const FirebaseCore = (() => {
   // Web環境での認証永続化設定
   if (Platform.OS === "web") {
     setPersistence(auth, browserLocalPersistence).catch((error) => {
-      console.error("認証永続化の設定に失敗しました:", error);
+      // Authentication persistence setup failed
     });
   }
 

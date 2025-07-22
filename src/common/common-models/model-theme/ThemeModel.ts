@@ -14,6 +14,4 @@ export interface Theme {
 }
 
 // テーマの拡張を可能にするための型
-export type ExtendedTheme = Theme & {
-  [key: string]: any;
-};
+export type ExtendedTheme = Theme;

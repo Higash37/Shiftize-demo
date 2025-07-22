@@ -110,20 +110,10 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
           // ユーザーの店舗ドキュメントを取得
           if (userData.storeId) {
-            console.log(
-              "Fetching store document for storeId:",
-              userData.storeId
-            );
             const storeDoc = await getDoc(doc(db, "stores", userData.storeId));
             if (storeDoc.exists()) {
               const storeData = storeDoc.data();
-              console.log("Current store data:", storeData);
               setCurrentStore(storeData);
-            } else {
-              console.log(
-                "Store document not found for storeId:",
-                userData.storeId
-              );
             }
           }
         }
@@ -146,24 +136,15 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   // 連携店舗を取得
   useEffect(() => {
     const fetchConnectedStores = async () => {
-      console.log("ShiftCreateForm: fetchConnectedStores called");
       if (!user?.uid || !userData) {
-        console.log("ShiftCreateForm: No user uid or userData available");
         return;
       }
 
       try {
-        console.log("ShiftCreateForm: Starting store loading process...");
-        console.log("ShiftCreateForm: Current userData:", userData);
-
         // 新しいアプローチ: ユーザーのconnectedStoresから直接取得
         const userConnectedStores = userData.connectedStores || [];
-        console.log(
-          "ShiftCreateForm: User's connected stores from userData:",
-          userConnectedStores
-        );
 
-        let allStores: StoreInfo[] = [];
+        const allStores: StoreInfo[] = [];
 
         // 現在の店舗を追加
         if (userData.storeId && currentStore) {
@@ -201,7 +182,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           }
         }
 
-        console.log("Final stores list:", allStores);
         setConnectedStores(allStores);
 
         // 初期選択店舗を設定
@@ -217,16 +197,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       fetchConnectedStores();
     }
   }, [user?.uid, userData, currentStore]);
-
-  // connectedStoresとselectedStoreIdの状態を監視
-  useEffect(() => {
-    console.log(
-      "ShiftCreateForm: State update - connectedStores length:",
-      connectedStores.length
-    );
-    console.log("ShiftCreateForm: connectedStores:", connectedStores);
-    console.log("ShiftCreateForm: selectedStoreId:", selectedStoreId);
-  }, [connectedStores, selectedStoreId]);
 
   // 既存のシフトデータがある場合、それを使用してフォームを初期化
   useEffect(() => {

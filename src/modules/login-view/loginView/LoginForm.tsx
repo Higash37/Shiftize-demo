@@ -50,7 +50,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
           setSaveStoreId(true);
         }
       } catch (error) {
-        console.error("保存された店舗IDの読み込みに失敗しました:", error);
+        // Error loading saved store ID - fail silently
       }
     };
 
@@ -96,7 +96,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
 
         setErrorMessage("");
       } catch (error) {
-        console.error("ログインフォームエラー:", error);
         setErrorMessage("ログインに失敗しました。再度お試しください。");
       }
     }
