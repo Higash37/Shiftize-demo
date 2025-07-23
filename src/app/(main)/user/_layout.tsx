@@ -2,10 +2,12 @@ import { Stack, Slot } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
+
+const { height: screenHeight } = Dimensions.get("window");
 
 export default function userLayout() {
   const { user, loading, role } = useAuth();
@@ -57,9 +59,9 @@ export default function userLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       {/* メインコンテンツエリア - フッター分を除いた高さ */}
-      <View style={{ flex: 1 }}>
+      <View style={styles.contentArea}>
         <Slot />
       </View>
       {/* フッター - 固定サイズ */}
@@ -68,3 +70,15 @@ export default function userLayout() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "column",
+    height: screenHeight,
+  },
+  contentArea: {
+    flex: 1,
+    height: 0, // これが重要：flexと組み合わせて適切なサイズ制限を設ける
+  },
+});

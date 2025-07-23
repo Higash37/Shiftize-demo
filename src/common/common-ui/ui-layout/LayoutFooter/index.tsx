@@ -39,13 +39,33 @@ const user_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
   {
+    name: "files",
+    label: "ファイル",
+    path: "/user/files",
+    icon: (active: boolean) => (
+      <MaterialIcons
+        name="folder"
+        size={IS_SMALL_DEVICE ? 20 : 24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
     name: "create",
     label: "シフト追加",
     path: "/user/shifts/create",
     icon: (active: boolean) => (
-      <View style={styles.addButtonContainer}>
-        <AntDesign name="plus" size={IS_SMALL_DEVICE ? 20 : 24} color="white" />
-      </View>
+      // 通常のタブと同じ高さのデザイン
+      <AntDesign
+        name="plus"
+        size={IS_SMALL_DEVICE ? 20 : 24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+      // フローティングボタンデザイン（奇数個のタブで真ん中に配置する場合に使用）
+      // <View style={styles.addButtonContainer}>
+      //   <AntDesign name="plus" size={IS_SMALL_DEVICE ? 20 : 24} color="white" />
+      // </View>
     ),
     isUnderDevelopment: false,
   },
@@ -106,7 +126,7 @@ export function Footer({}: FooterProps) {
               key={tab.name}
               style={[
                 styles.tab,
-                tab.name === "create" && styles.createTab,
+                // tab.name === "create" && styles.createTab, // フローティングボタン用（コメントアウト）
                 tab.isUnderDevelopment && styles.disabledTab,
               ]}
               onPress={() => handleTabPress(tab)}
@@ -117,7 +137,7 @@ export function Footer({}: FooterProps) {
                 style={[
                   styles.label,
                   active && styles.activeLabel,
-                  tab.name === "create" && styles.createLabel,
+                  // tab.name === "create" && styles.createLabel, // フローティングボタン用（コメントアウト）
                   tab.isUnderDevelopment && styles.disabledLabel,
                 ]}
               >

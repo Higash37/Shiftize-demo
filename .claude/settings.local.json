@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(npx expo start:*)",
+      "Bash(rm:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(claude --version)"
     ],
     "deny": []
   }

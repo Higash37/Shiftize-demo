@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     borderRightWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.background,
+    backgroundColor: "#FFFFFF",
   },
   timeHeaderCell: {
     backgroundColor: colors.primary + "10",

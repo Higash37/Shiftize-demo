@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Firebase Storage Rules for File Management System (Simplified for debugging)
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Temporary: Allow all authenticated users to access files
+    match /files/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isValidFile();
+    }
+    
+    function isValidFile() {
+      // File validation rules for write operations
+      return request.resource.size <= 50 * 1024 * 1024  // Max 50MB
+             && (request.resource.contentType.matches('image/.*')     // Images
+                 || request.resource.contentType.matches('video/.*')  // Videos
+                 || request.resource.contentType == 'application/pdf' // PDFs
+                 || request.resource.contentType.matches('application/.*') // Documents
+                 || request.resource.contentType.matches('text/.*'));       // Text files
+    }
+  }
+} 

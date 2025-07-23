@@ -29,6 +29,19 @@ const MASTER_TABS: TabItem[] = [
     isUnderDevelopment: false,
   },
   {
+    name: "files",
+    label: "ファイル",
+    path: "/master/files",
+    icon: (active: boolean) => (
+      <MaterialIcons
+        name="folder"
+        size={24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
     name: "info",
     label: "インフォ",
     path: "/master/info",

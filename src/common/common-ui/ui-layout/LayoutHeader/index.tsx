@@ -64,4 +64,5 @@ export function Header({
   );
 }
 
+export { MasterHeader } from "./MasterHeader";
 export default Header;

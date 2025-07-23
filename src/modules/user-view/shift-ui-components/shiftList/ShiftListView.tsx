@@ -282,8 +282,9 @@ export const UserShiftList = () => {
         width: width * 0.8,
         height: height * 0.8,
         alignSelf: "center" as FlexAlignType,
+        backgroundColor: "#FFFFFF",
       } // タブレット用スタイル
-    : { flex: 1 }; // スマホやPC用スタイル
+    : { flex: 1, backgroundColor: "#FFFFFF" }; // スマホやPC用スタイル
 
   return (
     <>
