@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     flexDirection: "row",
-    maxHeight: "100%",
+    height: 0, // フッター分を除いた高さ制限
   },
 
   fileArea: {
