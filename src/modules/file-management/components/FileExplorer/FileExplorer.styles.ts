@@ -337,12 +337,13 @@ export const styles = StyleSheet.create({
 
   listItem: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start", // 上揃えに変更
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 20, // パディングを増やして4行表示に対応
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
     backgroundColor: "#ffffff",
+    minHeight: 80, // 最小高さを4行分に増やす
   },
 
   selectedListItem: {
@@ -352,24 +353,28 @@ export const styles = StyleSheet.create({
   checkbox: {
     marginRight: 12,
     padding: 4,
+    marginTop: 4, // 上揃えに調整
   },
 
   listIcon: {
     width: 32,
     alignItems: "center",
     marginRight: 12,
+    marginTop: 4, // 上揃えに調整
   },
 
   listContent: {
-    flex: 1,
-    marginRight: 12,
+    flex: 2, // より多くのスペースを確保
+    marginRight: 8, // マージンを少し縮小
+    minWidth: 0, // flexで縮小可能にする
   },
 
   listTitle: {
-    fontSize: 14,
+    fontSize: 12, // 文字サイズを小さく
     fontWeight: "500",
     color: colors.text.primary,
     marginBottom: 2,
+    lineHeight: 16, // 2行表示用の行間調整
   },
 
   listSubtitle: {
@@ -380,17 +385,21 @@ export const styles = StyleSheet.create({
   listDate: {
     fontSize: 12,
     color: colors.text.secondary,
-    width: 80,
+    width: 60, // 幅を縮小
     textAlign: "right",
-    marginRight: 12,
+    marginRight: 8,
+    flexShrink: 0, // 縮小しないように固定
+    marginTop: 4, // 上揃えに調整
   },
 
   listType: {
     fontSize: 10,
     color: colors.text.secondary,
-    width: 40,
+    width: 35, // 幅を縮小
     textAlign: "right",
     fontWeight: "500",
+    flexShrink: 0, // 縮小しないように固定
+    marginTop: 4, // 上揃えに調整
   },
   itemContainer: {
     flexDirection: "row",
@@ -520,4 +529,44 @@ export const styles = StyleSheet.create({
       paddingHorizontal: 24,
     },
   }),
+
+  // モバイル用縦一列アイコンバー
+  mobileIconBar: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 50,
+    backgroundColor: "#ffffff",
+    borderRightWidth: 1,
+    borderRightColor: "#e9ecef",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: 20,
+    zIndex: 5,
+  },
+
+  mobileIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#f8f9fa",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+
+  hamburgerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
 });

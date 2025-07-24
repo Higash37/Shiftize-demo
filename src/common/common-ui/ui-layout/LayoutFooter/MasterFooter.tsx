@@ -72,9 +72,11 @@ const MASTER_TABS: TabItem[] = [
     label: "シフト追加",
     path: "/master/shifts/create",
     icon: (active: boolean) => (
-      <View style={styles.addButtonContainer}>
-        <AntDesign name="plus" size={24} color="white" />
-      </View>
+      <AntDesign
+        name="plus"
+        size={24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
     ),
     isUnderDevelopment: false,
   },
@@ -184,7 +186,6 @@ export function MasterFooter({}: MasterFooterProps) {
             key={tab.name}
             style={[
               styles.tab,
-              tab.name === "create" && styles.createTab,
               tab.isUnderDevelopment && styles.disabledTab,
               {
                 flex: 1,
@@ -205,7 +206,6 @@ export function MasterFooter({}: MasterFooterProps) {
               style={[
                 styles.label,
                 active && styles.activeLabel,
-                tab.name === "create" && styles.createLabel,
                 tab.isUnderDevelopment && styles.disabledLabel,
               ]}
             >

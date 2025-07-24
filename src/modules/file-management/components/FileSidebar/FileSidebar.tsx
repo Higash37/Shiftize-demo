@@ -20,6 +20,9 @@ interface FileSidebarProps {
   onHomePress: () => void;
   onCreateFolder: () => void;
   onUploadFiles: () => void;
+  isMobile?: boolean;
+  isOverlay?: boolean;
+  onClose?: () => void;
 }
 
 export function FileSidebar({
@@ -30,9 +33,11 @@ export function FileSidebar({
   onHomePress,
   onCreateFolder,
   onUploadFiles,
+  isMobile = false,
+  isOverlay = false,
+  onClose,
 }: FileSidebarProps) {
   const { width } = Dimensions.get("window");
-  const isMobile = width < 768;
 
   // フォルダを階層構造で整理
   const buildFolderTree = () => {

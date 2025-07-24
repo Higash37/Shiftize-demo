@@ -63,6 +63,7 @@ export function FileExplorer({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const { width } = Dimensions.get("window");
+  const isMobile = width < 768;
 
   // 選択状態の管理
   const handleSelectItem = (id: string, type: "folder" | "file") => {
@@ -366,7 +367,7 @@ export function FileExplorer({
 
         {/* ファイル/フォルダ情報 */}
         <View style={styles.listContent}>
-          <Text style={styles.listTitle} numberOfLines={1}>
+          <Text style={styles.listTitle} numberOfLines={4} ellipsizeMode="tail">
             {item.name}
           </Text>
           <Text style={styles.listSubtitle}>
@@ -408,7 +409,7 @@ export function FileExplorer({
           </View>
 
           <View style={styles.cardInfo}>
-            <Text style={styles.cardTitle} numberOfLines={3}>
+            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
               {item.name}
             </Text>
             <Text style={styles.cardSubtitle}>{item.filesCount} ファイル</Text>
@@ -434,7 +435,7 @@ export function FileExplorer({
           </View>
 
           <View style={styles.cardInfo}>
-            <Text style={styles.cardTitle} numberOfLines={3}>
+            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
               {item.name}
             </Text>
             <Text style={styles.cardSubtitle}>{formatFileSize(item.size)}</Text>
@@ -568,6 +569,7 @@ export function FileExplorer({
     );
   };
 
+
   return (
     <View style={styles.container}>
       {!hideHeader && (
@@ -583,20 +585,27 @@ export function FileExplorer({
         <View style={styles.breadcrumbOnlyHeader}>{renderBreadcrumbs()}</View>
       )}
 
-      {/* サイドバー付きレイアウト */}
+      {/* メインコンテンツ */}
       <View style={styles.mainContent}>
-        <FileSidebar
-          folders={folders}
-          currentFolderId={currentFolderId}
-          breadcrumbs={breadcrumbs}
-          onFolderPress={onFolderPress}
-          onHomePress={() =>
-            onBreadcrumbPress({ id: "", name: "ルート", path: "/" })
-          }
-          onCreateFolder={onCreateFolder}
-          onUploadFiles={onUploadFiles}
-        />
-        <View style={styles.fileArea}>{renderContent()}</View>
+        {/* デスクトップ用サイドバー */}
+        {!isMobile && (
+          <FileSidebar
+            folders={folders}
+            currentFolderId={currentFolderId}
+            breadcrumbs={breadcrumbs}
+            onFolderPress={onFolderPress}
+            onHomePress={() =>
+              onBreadcrumbPress({ id: "", name: "ルート", path: "/" })
+            }
+            onCreateFolder={onCreateFolder}
+            onUploadFiles={onUploadFiles}
+            isMobile={isMobile}
+          />
+        )}
+
+        <View style={styles.fileArea}>
+          {renderContent()}
+        </View>
       </View>
     </View>
   );
