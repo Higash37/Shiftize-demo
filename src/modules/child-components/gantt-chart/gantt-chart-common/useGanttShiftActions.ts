@@ -75,7 +75,7 @@ export function useGanttShiftActions({
         if (editingShift.status !== newShiftData.status && newShiftData.status === "approved") {
           // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
           await ShiftService.approveShiftChanges(editingShift.id, {
-            nickname: user?.nickname || "教室長",
+            nickname: (user as any)?.nickname || "教室長",
             userId: user?.uid || ""
           });
           
@@ -141,7 +141,7 @@ export function useGanttShiftActions({
       try {
         // 通知付き削除を使用
         const { ShiftAPIService } = await import("@/services/api/ShiftAPIService");
-        const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
+        const deletedBy = user ? { nickname: (user as any).nickname, userId: user.uid } : undefined;
         
         // ステータスに応じて仕様通りに分岐
         if (shift.status === "deleted") {
@@ -180,7 +180,7 @@ export function useGanttShiftActions({
       // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
       if (status === "approved") {
         await ShiftService.approveShiftChanges(shiftId, {
-          nickname: user.nickname || "教室長",
+          nickname: (user as any).nickname || "教室長",
           userId: user.uid
         });
       } else {

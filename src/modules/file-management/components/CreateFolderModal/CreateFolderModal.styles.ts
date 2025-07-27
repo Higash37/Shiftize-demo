@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 export const styles = StyleSheet.create({
   overlay: {
@@ -14,14 +14,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     width: "100%",
     maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...shadows.modal,
   },
   header: {
     flexDirection: "row",

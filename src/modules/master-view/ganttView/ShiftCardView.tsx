@@ -90,9 +90,9 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
             {startTime} - {endTime}
           </Text>
         </View>
-        {shift.subject && (
+        {shift.subject ? (
           <Text style={styles.shiftSubject}>{shift.subject}</Text>
-        )}
+        ) : null}
       </TouchableOpacity>
     );
   };
@@ -124,7 +124,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
 
         <View style={styles.shiftsContainer}>
           {dayShifts.length > 0 ? (
-            dayShifts.map((shift) => renderShiftCard(shift))
+            dayShifts.map((shift) => shift ? renderShiftCard(shift) : null)
           ) : (
             <Text style={styles.noShiftText}>シフトなし</Text>
           )}
@@ -161,7 +161,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
         contentContainerStyle={styles.scrollContent}
       >
         <View style={[styles.cardsGrid, isTablet && styles.cardsGridTablet]}>
-          {days.map((date) => renderDayCard(date))}
+          {days.map((date) => date ? renderDayCard(date) : null)}
         </View>
       </ScrollView>
     </View>

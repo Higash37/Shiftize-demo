@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { colors, typography } from "@/common/common-constants/ThemeConstants";
+import { colors, typography, shadows } from "@/common/common-constants/ThemeConstants";
 
 export const masterDashboardViewStyles = StyleSheet.create({
   container: {
@@ -52,14 +52,7 @@ export const masterDashboardViewStyles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadows.card,
   },
   value: {
     fontSize: 32,

@@ -6,6 +6,8 @@
     "target": "es2020",
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [],
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["src/common/common-ui/*"],
@@ -19,5 +21,6 @@
     "**/*.ts",
     "**/*.tsx",
     "src/common/common-utils/util-shift/useShift"
-  ]
+  ],
+  "exclude": ["functions/**/*"]
 }

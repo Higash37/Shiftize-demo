@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 import { NormalTask, KanbanColumn, TaskStatus } from "./types";
 import { useAuth } from "../../../services/auth/useAuth";
 import { theme } from "../../../common/common-theme/ThemeDefinition";
@@ -144,11 +145,7 @@ export const KanbanTaskView: React.FC = () => {
         marginRight: 12,
         backgroundColor: "#fff",
         borderRadius: 8,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        ...shadows.card,
       }}
     >
       {/* カラムヘッダー */}
@@ -217,11 +214,7 @@ export const KanbanTaskView: React.FC = () => {
                     : task.priority === "medium"
                     ? "#ef6c00"
                     : "#2e7d32",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2,
+                ...shadows.listItem,
               }}
               onPress={() => {
                 setSelectedTask(task);

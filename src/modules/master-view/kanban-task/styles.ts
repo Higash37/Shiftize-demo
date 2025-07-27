@@ -1,5 +1,6 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { IS_SMALL_DEVICE } from "../../../common/common-utils/util-style/responsive";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 const screenWidth = Dimensions.get("window").width;
 const columnWidth = (screenWidth - 60) / 3; // 3カラム + マージン
@@ -49,11 +50,7 @@ export const styles = StyleSheet.create({
     marginRight: 12,
     backgroundColor: "#fff",
     borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadows.card,
   },
   columnHeader: {
     paddingHorizontal: 12,
@@ -100,11 +97,7 @@ export const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
     borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadows.listItem,
   },
   taskTitle: {
     fontSize: IS_SMALL_DEVICE ? 13 : 15,

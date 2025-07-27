@@ -11,7 +11,7 @@ import {
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { AntDesign } from "@expo/vector-icons";
-import { colors, typography } from "@/common/common-constants/ThemeConstants";
+import { colors, typography, shadows } from "@/common/common-constants/ThemeConstants";
 import { MultiStoreService } from "@/services/firebase/firebase-multistore";
 import { useAuth } from "@/services/auth/useAuth";
 
@@ -381,14 +381,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 400,
     maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 10,
+    ...shadows.modal,
   },
   modalHeader: {
     flexDirection: "row",

@@ -386,7 +386,7 @@ export function RecruitmentShiftModal({
 
                 <TouchableOpacity
                   style={{
-                    backgroundColor: colors.border.light,
+                    backgroundColor: colors.border,
                     paddingVertical: 12,
                     paddingHorizontal: 20,
                     borderRadius: 8,
@@ -453,7 +453,7 @@ export function RecruitmentShiftModal({
 
                 <TouchableOpacity
                   style={{
-                    backgroundColor: colors.border.light,
+                    backgroundColor: colors.border,
                     paddingVertical: 12,
                     paddingHorizontal: 20,
                     borderRadius: 8,

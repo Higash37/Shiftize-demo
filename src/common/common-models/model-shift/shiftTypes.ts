@@ -214,6 +214,7 @@ export interface ShiftItem {
   endTime: string;
   type: ShiftType;
   subject?: string;
+  notes?: string; // メモを追加
   isCompleted: boolean;
   status: ShiftStatus;
   duration: string;

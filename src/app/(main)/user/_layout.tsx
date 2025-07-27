@@ -60,10 +60,46 @@ export default function userLayout() {
 
   return (
     <View style={styles.container}>
-      {/* メインコンテンツエリア - フッター分を除いた高さ */}
-      <View style={styles.contentArea}>
-        <Slot />
-      </View>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: true,
+          animation: "slide_from_right",
+          presentation: "card",
+        }}
+      >
+        <Stack.Screen 
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="files"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="shifts/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="shifts/create"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="change-password"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      
       {/* フッター - 固定サイズ */}
       <Footer />
       <Toast />

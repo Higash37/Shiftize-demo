@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 interface DetailTextModalProps {
   visible: boolean;
@@ -104,14 +105,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: "95%",
     height: "70%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    ...shadows.modal,
   },
   header: {
     flexDirection: "row",

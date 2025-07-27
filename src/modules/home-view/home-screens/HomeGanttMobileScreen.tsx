@@ -5,7 +5,7 @@ import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { GanttHeaderRow } from "../home-components/home-gantt/GanttHeaderRow";
 import { GanttRowMobile } from "../home-components/home-gantt/GanttRowMobile";
-import { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
+import { ShiftItem, ShiftStatus, ClassTimeSlot, ShiftTaskSlot } from "@/common/common-models/model-shift/shiftTypes";
 import { User } from "@/common/common-models/model-user/UserModel";
 import { useAuth } from "@/services/auth/useAuth";
 import { MobileShiftModal } from "@/modules/child-components/gantt-chart/view-modals/MobileShiftModal";
@@ -15,9 +15,6 @@ import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/
 import BatchConfirmModal from "@/modules/child-components/gantt-chart/view-modals/BatchConfirmModal";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/datePickerModal/DatePickerModal";
-import { format, addMonths, subMonths } from "date-fns";
-import { ja } from "date-fns/locale";
 
 interface Props {
   namesFirst: string[];
@@ -75,16 +72,17 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
     endTime: "11:00",
     userId: "",
     nickname: "",
-    status: "approved" as const,
-    classes: [],
-    extendedTasks: [],
+    status: "approved" as ShiftStatus,
+    classes: [] as ClassTimeSlot[],
+    extendedTasks: [] as ShiftTaskSlot[],
+    subject: "",
+    notes: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [batchModal, setBatchModal] = useState<{
     visible: boolean;
     type: "approve" | "delete" | null;
   }>({ visible: false, type: null });
-  const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   
   // スクロール位置を保持する関数
   const handleScroll = (event: any) => {
@@ -189,9 +187,9 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         endTime: "11:00",
         userId: "",
         nickname: "",
-        status: "approved",
-        classes: [],
-        extendedTasks: [],
+        status: "approved" as ShiftStatus,
+        classes: [] as ClassTimeSlot[],
+        extendedTasks: [] as ShiftTaskSlot[],
         subject: "",
         notes: "",
       });
@@ -244,27 +242,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
     marginLeft: 4,
   };
   
-  // 月ナビゲーション
-  const handlePrevMonth = () => {
-    const newDate = subMonths(selectedDate, 1);
-    if (onMonthChange) {
-      onMonthChange(newDate.getFullYear(), newDate.getMonth());
-    }
-  };
   
-  const handleNextMonth = () => {
-    const newDate = addMonths(selectedDate, 1);
-    if (onMonthChange) {
-      onMonthChange(newDate.getFullYear(), newDate.getMonth());
-    }
-  };
-  
-  const handleDateSelect = (date: Date) => {
-    setShowYearMonthPicker(false);
-    if (onMonthChange) {
-      onMonthChange(date.getFullYear(), date.getMonth());
-    }
-  };
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -291,38 +269,6 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
 
   return (
     <View style={{ flex: 1, paddingBottom: insets.bottom }}>
-      {/* 月選択バー */}
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-      }}>
-        <TouchableOpacity onPress={handlePrevMonth} style={{ padding: 8 }}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          onPress={() => setShowYearMonthPicker(true)}
-          style={{ flex: 1, alignItems: 'center' }}
-        >
-          <Text style={{ 
-            fontSize: 18, 
-            fontWeight: '600', 
-            color: colors.text.primary 
-          }}>
-            {format(selectedDate, 'yyyy年M月', { locale: ja })}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity onPress={handleNextMonth} style={{ padding: 8 }}>
-          <Ionicons name="chevron-forward" size={24} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
       
       {/* 一括操作ボタン（マスターのみ） */}
       {user?.role === "master" && shifts.length > 0 && (
@@ -438,13 +384,6 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         }}
       />
       
-      {/* 年月ピッカーモーダル */}
-      <DatePickerModal
-        isVisible={showYearMonthPicker}
-        initialDate={selectedDate}
-        onClose={() => setShowYearMonthPicker(false)}
-        onSelect={handleDateSelect}
-      />
     </View>
   );
 };

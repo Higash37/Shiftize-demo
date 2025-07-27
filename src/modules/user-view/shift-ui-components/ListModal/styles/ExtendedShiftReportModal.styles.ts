@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 export const useExtendedShiftReportStyles = () => {
   return StyleSheet.create({
@@ -85,11 +86,7 @@ export const useExtendedShiftReportStyles = () => {
     },
     taskItemSelected: {
       borderColor: colors.primary,
-      shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      ...shadows.listItem,
     },
     taskHeader: {
       flexDirection: "row",

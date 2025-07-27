@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 export type ShiftRuleValuePickerProps = {
   visible: boolean;
@@ -111,11 +112,7 @@ const styles = StyleSheet.create({
     minWidth: 320,
     maxHeight: "80%",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    ...shadows.modal,
   },
   row2col: {
     flexDirection: "row",

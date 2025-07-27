@@ -35,15 +35,30 @@ export type Margin = "small" | "medium" | "large" | "none";
 export type Shadow = "none" | "small" | "medium" | "large";
 
 /**
- * 配置位置
+ * 主軸方向の配置位置（justifyContent用）
  */
-export type Alignment =
+export type JustifyContent =
   | "start"
   | "center"
   | "end"
   | "between"
   | "around"
   | "evenly";
+
+/**
+ * 交差軸方向の配置位置（alignItems用）
+ */
+export type AlignItems =
+  | "start"
+  | "center"
+  | "end"
+  | "stretch"
+  | "baseline";
+
+/**
+ * 配置位置（後方互換性のため）
+ */
+export type Alignment = JustifyContent;
 
 /**
  * 方向
@@ -60,14 +75,14 @@ export interface FlexContainerProps {
   direction?: Direction;
 
   /**
-   * 横方向の配置
+   * 主軸方向の配置（justifyContent）
    */
-  justify?: Alignment;
+  justify?: JustifyContent;
 
   /**
-   * 縦方向の配置
+   * 交差軸方向の配置（alignItems）
    */
-  align?: Alignment;
+  align?: AlignItems;
 
   /**
    * フレックスラップ

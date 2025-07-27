@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 export const shiftStatusSettingsViewStyles = StyleSheet.create({
   container: {
@@ -18,11 +19,7 @@ export const shiftStatusSettingsViewStyles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 0,
-    shadowColor: "transparent",
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
+    ...shadows.none,
   },
   statusHeader: {
     flexDirection: "row",

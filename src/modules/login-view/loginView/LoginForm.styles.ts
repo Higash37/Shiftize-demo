@@ -98,11 +98,7 @@ export const loginFormStyles = StyleSheet.create({
     fontSize: IS_TABLET ? 24 : 16,
     backgroundColor: IS_TABLET ? "#f8faff" : "#fafafa",
     ...(IS_TABLET && {
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      ...shadows.small,
     }),
   },
   rememberMe: {
@@ -140,11 +136,7 @@ export const loginFormStyles = StyleSheet.create({
     padding: IS_TABLET ? 24 : 12,
     borderRadius: IS_TABLET ? 14 : 6,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: IS_TABLET ? 4 : 2 },
-    shadowOpacity: IS_TABLET ? 0.25 : 0.1,
-    shadowRadius: IS_TABLET ? 8 : 3,
-    elevation: IS_TABLET ? 8 : 4,
+    ...(IS_TABLET ? shadows.large : shadows.button),
     ...(IS_TABLET &&
       Platform.OS === "web" && {
         cursor: "pointer",

@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 const { width } = Dimensions.get("window");
 
@@ -103,10 +103,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 6,
     padding: width < 768 ? 4 : width < 1024 ? 14 : 18,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    ...shadows.small,
     elevation: 2,
     borderWidth: 1,
     borderColor: "#e9ecef",
@@ -118,10 +115,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 6,
     padding: width < 768 ? 4 : width < 1024 ? 14 : 18,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    ...shadows.small,
     elevation: 2,
     borderWidth: 1,
     borderColor: "#e9ecef",

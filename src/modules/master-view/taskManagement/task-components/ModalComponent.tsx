@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 interface ModalProps {
   isVisible: boolean;
@@ -75,11 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignSelf: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    ...shadows.modal,
   },
   modalTitle: {
     fontSize: 20,

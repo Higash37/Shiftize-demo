@@ -62,7 +62,13 @@ const Box: React.FC<BoxProps> = ({
               ? "flex-start"
               : align === "end"
               ? "flex-end"
-              : align,
+              : align === "center"
+              ? "center"
+              : align === "stretch"
+              ? "stretch"
+              : align === "baseline"
+              ? "baseline"
+              : "flex-start",
         },
         justify && {
           justifyContent:

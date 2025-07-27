@@ -13,6 +13,7 @@ export interface User {
   storeId?: string; // 店舗IDを追加
   color?: string; // 講師ごとの色
   hourlyWage?: number; // 時給
+  currentPassword?: string; // パスワード
 }
 
 /**

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 const styles = StyleSheet.create({
   container: {
@@ -24,11 +25,7 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
+    ...shadows.small,
   },
   modalOverlay: {
     flex: 1,
@@ -41,11 +38,7 @@ const styles = StyleSheet.create({
     width: 320,
     borderRadius: 14,
     padding: 24,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    ...shadows.modal,
     borderWidth: 1,
     borderColor: "#eee",
   },

@@ -145,7 +145,10 @@ export class ShiftAPIService {
         // フェーズ2以降: APIエンドポイント
         await this.fetchFromAPI(`/api/shifts/${shiftId}`, {
           method: 'DELETE',
-          body: JSON.stringify({ deletedBy, reason })
+          body: { deletedBy, reason },
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
       } else {
         // フェーズ1: Firebase直接呼び出し

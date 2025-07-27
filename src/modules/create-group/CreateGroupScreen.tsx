@@ -938,4 +938,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: layout.padding.small,
   },
+  inputHelper: {
+    fontSize: typography.fontSize.small,
+    color: colors.text.secondary,
+    marginTop: layout.padding.small,
+  },
 });

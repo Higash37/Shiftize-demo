@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 const TaskManagementStyles = StyleSheet.create({
   container: {
@@ -27,11 +28,7 @@ const TaskManagementStyles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadows.card,
   },
   cardTitle: {
     fontSize: 18,

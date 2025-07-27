@@ -52,12 +52,13 @@ export function FileList({
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         data={folderItems}
-        renderItem={({ item }) =>
-          renderListItem(
+        renderItem={({ item }) => {
+          const renderedItem = renderListItem(
             item as Folder | FileItem,
             item.itemType === "folder" ? "folder" : "file"
-          )
-        }
+          );
+          return renderedItem as React.ReactElement;
+        }}
         keyExtractor={(item) => `${item.itemType}-${item.id}`}
         showsVerticalScrollIndicator={true}
         removeClippedSubviews={false}
@@ -93,12 +94,13 @@ export function FileList({
       style={{ flex: 1 }}
       contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
       data={allItems}
-      renderItem={({ item }) =>
-        renderListItem(
+      renderItem={({ item }) => {
+        const renderedItem = renderListItem(
           item as Folder | FileItem,
           item.itemType === "folder" ? "folder" : "file"
-        )
-      }
+        );
+        return renderedItem as React.ReactElement;
+      }}
       keyExtractor={(item) => `${item.itemType}-${item.id}`}
       showsVerticalScrollIndicator={true}
       removeClippedSubviews={false}

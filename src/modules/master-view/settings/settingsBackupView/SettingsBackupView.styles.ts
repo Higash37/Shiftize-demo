@@ -1,5 +1,6 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { Theme } from "@/common/common-theme";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -36,14 +37,7 @@ export const settingsBackupViewStyles = StyleSheet.create({
     padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.lg,
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...shadows.card,
   },
   sectionTitle: {
     fontSize: isDesktop ? 20 : isTablet ? 18 : 16,

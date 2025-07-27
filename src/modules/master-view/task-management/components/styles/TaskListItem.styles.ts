@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 export const useTaskListItemStyles = () => {
   return StyleSheet.create({
@@ -8,11 +9,7 @@ export const useTaskListItemStyles = () => {
       borderRadius: 8,
       padding: 16,
       marginVertical: 4,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      ...shadows.listItem,
     },
     inactiveContainer: {
       backgroundColor: "#f5f5f5",

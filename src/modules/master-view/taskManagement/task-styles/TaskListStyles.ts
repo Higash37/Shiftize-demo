@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions } from "react-native";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_TABLET = SCREEN_WIDTH > 768;
@@ -12,11 +13,7 @@ const TaskListStyles = StyleSheet.create({
     borderRadius: 12,
     width: IS_TABLET ? "80%" : "70%",
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    ...shadows.card,
   },
   taskText: {
     fontSize: IS_TABLET ? 18 : IS_SMALL_DEVICE ? 14 : 16,
@@ -36,11 +33,7 @@ const TaskListStyles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    ...shadows.floatingButton,
     zIndex: 1000, // Ensure button is above other elements
   },
   addButtonText: {
@@ -65,11 +58,7 @@ const TaskListStyles = StyleSheet.create({
     borderRadius: 16,
     padding: IS_TABLET ? 32 : IS_SMALL_DEVICE ? 20 : 24, // スマートフォンの場合にパディングを少し減らす
     alignSelf: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    ...shadows.modal,
   },
   modalTitle: {
     fontSize: 20,

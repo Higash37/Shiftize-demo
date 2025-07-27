@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 
 export const useTaskFiltersStyles = () => {
   return StyleSheet.create({
@@ -75,11 +76,7 @@ export const useTaskFiltersStyles = () => {
     },
     statusFilterActive: {
       backgroundColor: "white",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      ...shadows.small,
     },
     statusFilterText: {
       fontSize: 14,

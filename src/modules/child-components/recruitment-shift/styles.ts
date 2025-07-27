@@ -78,7 +78,7 @@ export const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.border.light,
+    borderTopColor: colors.border,
   },
   applicantsCount: {
     fontSize: 14,
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.border.light,
+    borderTopColor: colors.border,
   },
   applicationStatusText: {
     fontSize: 14,
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     ...shadows.card,
     borderWidth: 1,
-    borderColor: colors.border.light,
+    borderColor: colors.border,
     minHeight: 80,
     maxHeight: 120,
   },
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#fafafa",
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    borderBottomColor: colors.border,
   },
   dateTimeContainer: {
     flex: 1,

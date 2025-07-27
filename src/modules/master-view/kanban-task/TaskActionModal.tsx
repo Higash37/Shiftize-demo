@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { shadows } from "@/common/common-constants/ThemeConstants";
 import { NormalTask, TaskStatus, TaskMemo } from "./types";
 import {
   formatTimeAgo,
@@ -451,11 +452,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: "95%",
     height: "85%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    ...shadows.modal,
   },
   header: {
     flexDirection: "row",

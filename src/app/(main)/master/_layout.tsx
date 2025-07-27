@@ -75,18 +75,112 @@ export default function MasterLayout() {
 
   return (
     <View style={styles.container}>
-      {/* メインコンテンツエリア - フッター分を除いた高さ */}
-      <View style={[styles.contentArea, isPWA && { paddingBottom: 80 }]}>
-        <Stack
-          screenOptions={{
-            headerShown: false, // デフォルトヘッダーを非表示にする
-            gestureEnabled: true,
-            animation: "slide_from_right",
+      <Stack
+        screenOptions={{
+          headerShown: false, // デフォルトヘッダーを非表示にする
+          gestureEnabled: true,
+          animation: "slide_from_right",
+          presentation: "card",
+        }}
+      >
+        <Stack.Screen 
+          name="home"
+          options={{
+            headerShown: false,
           }}
-        >
-          <Slot />
-        </Stack>
-      </View>
+        />
+        <Stack.Screen 
+          name="gantt-view"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="gantt-edit"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="files"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="info"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="tasks"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="users/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/backup"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/shift-appearance"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/shift-holiday"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/shift-rule"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="settings/shift-status"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="shifts/create"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="taskManagement/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="kanban-task/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      
       {/* フッター - 固定サイズ、画面幅いっぱいに配置 */}
       <View style={[styles.footerArea, isPWA && styles.footerPWA]}>
         <MasterFooter />

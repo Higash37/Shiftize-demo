@@ -246,8 +246,8 @@ export const UserService = {
       const emailSnapshot = await getDocs(emailQuery);
       
       if (!emailSnapshot.empty) {
-        const doc = emailSnapshot.docs[0];
-        const userData = { id: doc.id, ...doc.data() };
+        const userDoc = emailSnapshot.docs[0];
+        const userData = { id: userDoc.id, ...userDoc.data() };
         
         // 実メールアドレス用のアカウントの場合、元のアカウント情報を取得
         if ((userData as any).originalUserId) {
@@ -274,8 +274,8 @@ export const UserService = {
       const realEmailSnapshot = await getDocs(realEmailQuery);
       
       if (!realEmailSnapshot.empty) {
-        const doc = realEmailSnapshot.docs[0];
-        const userData = { id: doc.id, ...doc.data() };
+        const userDoc = realEmailSnapshot.docs[0];
+        const userData = { id: userDoc.id, ...userDoc.data() };
         return userData;
       }
 
