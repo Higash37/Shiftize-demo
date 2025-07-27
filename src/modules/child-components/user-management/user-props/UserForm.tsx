@@ -31,7 +31,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 }) => {
   const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
   const { width } = useWindowDimensions();
-  const [email, setEmail] = useState(""); // メールアドレスは自動生成するため初期値は空
+  const [email, setEmail] = useState(initialData?.email || ""); // メールアドレス（任意）
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
   const [role, setRole] = useState<"master" | "user">(
@@ -57,7 +57,6 @@ export const UserForm: React.FC<UserFormProps> = ({
         const hasMasterUser = await checkMasterExists();
         setHasMaster(hasMasterUser);
       } catch (err) {
-        console.error("マスターユーザーチェックエラー:", err);
       }
     };
 
@@ -68,15 +67,14 @@ export const UserForm: React.FC<UserFormProps> = ({
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {
-      // 店舗ID + ニックネームの形式でemailを設定（編集時用）
-      setEmail(`${currentUser?.storeId}${initialData.nickname}@example.com`);
+      setEmail(initialData.email || "");
       setNickname(initialData.nickname ?? "");
       setRole(initialData.role);
       setPassword("");
       setColor(initialData.color || PRESET_COLORS[0]);
       setHourlyWage(initialData.hourlyWage?.toString() || "");
     }
-  }, [initialData, currentUser?.storeId]);
+  }, [initialData]);
 
   const handleSubmit = async () => {
     // パスワードのバリデーション
@@ -98,17 +96,27 @@ export const UserForm: React.FC<UserFormProps> = ({
       return;
     }
 
+    // メールアドレスのバリデーション（入力されている場合のみ）
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("有効なメールアドレスを入力してください");
+      return;
+    }
+
     try {
       setError(null);
-      await onSubmit({
-        email: `${currentUser.storeId}${nickname}@example.com`, // 店舗ID + ニックネーム + @example.com の形式
+      
+      const formData = {
+        email: email || `${currentUser.storeId}${nickname}@example.com`, // 入力があればそれを使用、なければ自動生成
         password: password || undefined,
         nickname,
         role: isMasterEdit ? "master" : role,
         color,
         storeId: currentUser.storeId, // 現在のユーザーのstoreIdを自動設定
         hourlyWage: hourlyWage ? parseFloat(hourlyWage) : undefined,
-      });
+      };
+      
+      
+      await onSubmit(formData);
 
       if (mode === "add") {
         setEmail("");
@@ -151,6 +159,24 @@ export const UserForm: React.FC<UserFormProps> = ({
           placeholder="山田 太郎"
           error={!nickname ? "ニックネームを入力してください" : undefined}
         />
+
+        <Input
+          label="メールアドレス（任意）"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@email.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "有効なメールアドレスを入力してください" : undefined}
+        />
+
+        {!email && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>
+              メールアドレスを入力しない場合、自動生成されます：{currentUser?.storeId}{nickname}@example.com
+            </Text>
+          </View>
+        )}
 
         <Input
           label="時給（円）"

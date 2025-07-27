@@ -27,6 +27,7 @@ import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker/const
 interface GroupCreationForm {
   groupName: string;
   adminNickname: string;
+  adminEmail: string; // 実際のメールアドレス（任意）
   adminPassword: string;
   confirmPassword: string;
 }
@@ -48,6 +49,7 @@ export const CreateGroupScreen: React.FC = () => {
   const [form, setForm] = useState<GroupCreationForm>({
     groupName: "",
     adminNickname: "",
+    adminEmail: "",
     adminPassword: "",
     confirmPassword: "",
   });
@@ -67,7 +69,6 @@ export const CreateGroupScreen: React.FC = () => {
       setGeneratedStoreId(storeId);
       return storeId;
     } catch (error) {
-      console.error("店舗ID生成エラー:", error);
       // フォールバック：シンプルなランダム生成
       const fallbackId = Math.floor(1000 + Math.random() * 9000).toString();
       setGeneratedStoreId(fallbackId);
@@ -101,7 +102,6 @@ export const CreateGroupScreen: React.FC = () => {
         return true;
       }
     } catch (error) {
-      console.error("店舗ID確認エラー:", error);
       setStoreIdError("店舗IDの確認に失敗しました");
       return false;
     } finally {
@@ -178,6 +178,11 @@ export const CreateGroupScreen: React.FC = () => {
       Alert.alert("エラー", "管理者ニックネームを入力してください");
       return false;
     }
+    // メールアドレスのバリデーション（入力されている場合のみ）
+    if (form.adminEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail)) {
+      Alert.alert("エラー", "有効なメールアドレスを入力してください");
+      return false;
+    }
     if (!form.adminPassword.trim()) {
       Alert.alert("エラー", "パスワードを入力してください");
       return false;
@@ -229,6 +234,7 @@ export const CreateGroupScreen: React.FC = () => {
         groupName: form.groupName,
         storeId: currentStoreId,
         adminNickname: form.adminNickname,
+        adminEmail: form.adminEmail || undefined, // 実際のメールアドレス（任意）
         adminPassword: form.adminPassword,
         initialMembers:
           initialMembers.length > 0
@@ -263,11 +269,9 @@ export const CreateGroupScreen: React.FC = () => {
           },
         });
       } else {
-        console.error("グループ作成失敗:", result.message);
         Alert.alert("エラー", result.message);
       }
     } catch (error) {
-      console.error("グループ作成エラー:", error);
       Alert.alert(
         "エラー",
         "グループの作成に失敗しました。再度お試しください。"
@@ -408,6 +412,28 @@ export const CreateGroupScreen: React.FC = () => {
                 placeholderTextColor="#999"
                 maxLength={20}
               />
+            </View>
+
+            {/* 管理者メールアドレス入力 */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>メールアドレス（任意）</Text>
+              <TextInput
+                style={styles.input}
+                value={form.adminEmail}
+                onChangeText={(value) =>
+                  handleInputChange("adminEmail", value)
+                }
+                placeholder="example@email.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                maxLength={100}
+              />
+              {!form.adminEmail && (
+                <Text style={styles.inputHelper}>
+                  未入力の場合、自動生成されます：{getCurrentStoreId()}{form.adminNickname}@example.com
+                </Text>
+              )}
             </View>
 
             {/* パスワード入力 */}

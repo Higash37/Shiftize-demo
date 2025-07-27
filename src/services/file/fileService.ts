@@ -92,7 +92,6 @@ export class FolderService {
 
       return docRef.id;
     } catch (error) {
-      console.error("フォルダ作成エラー:", error);
       throw error;
     }
   }
@@ -110,7 +109,6 @@ export class FolderService {
         updatedAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("フォルダ更新エラー:", error);
       throw error;
     }
   }
@@ -160,7 +158,6 @@ export class FolderService {
 
       await batch.commit();
     } catch (error) {
-      console.error("フォルダ削除エラー:", error);
       throw error;
     }
   }
@@ -189,7 +186,6 @@ export class FolderService {
           } as Folder)
       );
     } catch (error) {
-      console.error("フォルダ取得エラー:", error);
       throw error;
     }
   }
@@ -227,7 +223,6 @@ export class FolderService {
 
       return folders;
     } catch (error) {
-      console.error("子フォルダ取得エラー:", error);
       throw error;
     }
   }
@@ -259,7 +254,6 @@ export class FolderService {
 
       return breadcrumbs;
     } catch (error) {
-      console.error("パンくずリスト取得エラー:", error);
       throw error;
     }
   }
@@ -290,7 +284,6 @@ export class FolderService {
       // 階層順にソート
       return this.sortFoldersHierarchically(allFolders);
     } catch (error) {
-      console.error("階層フォルダ取得エラー:", error);
       throw error;
     }
   }
@@ -349,7 +342,6 @@ export class FileService {
           const folders = await FolderService.getFoldersByStore(fileData.storeId);
           folderPath = this.buildFolderPath(fileData.folderId, folders);
         } catch (error) {
-          console.warn("フォルダパス取得失敗:", error);
         }
       }
 
@@ -380,7 +372,6 @@ export class FileService {
 
       return docRef.id;
     } catch (error) {
-      console.error("ファイル作成エラー:", error);
       throw error;
     }
   }
@@ -404,7 +395,6 @@ export class FileService {
 
       await updateDoc(doc(db, FILES_COLLECTION, fileId), updateData);
     } catch (error) {
-      console.error("ファイル更新エラー:", error);
       throw error;
     }
   }
@@ -427,7 +417,6 @@ export class FileService {
         });
       }
     } catch (error) {
-      console.error("ファイル削除エラー:", error);
       throw error;
     }
   }
@@ -481,7 +470,6 @@ export class FileService {
 
       return files;
     } catch (error) {
-      console.error("ファイル取得エラー:", error);
       throw error;
     }
   }
@@ -569,7 +557,6 @@ export class FileService {
 
       return files;
     } catch (error) {
-      console.error("ファイル検索エラー:", error);
       throw error;
     }
   }
@@ -585,7 +572,6 @@ export class FileService {
         updatedAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("ダウンロード回数更新エラー:", error);
       throw error;
     }
   }
@@ -660,7 +646,6 @@ export class FileSystemStatsService {
         popularFiles,
       };
     } catch (error) {
-      console.error("統計取得エラー:", error);
       throw error;
     }
   }

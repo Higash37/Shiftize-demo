@@ -56,7 +56,6 @@ const ShiftReportModal = ({
         fetchShifts();
         setReportModalVisible(false);
       } catch (error) {
-        console.error("報告の保存に失敗しました:", error);
       }
     }
   };

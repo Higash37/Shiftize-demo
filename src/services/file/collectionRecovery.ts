@@ -16,7 +16,6 @@ export class CollectionRecoveryService {
     files: any[];
   }> {
     try {
-      console.log("filesコレクションの存在確認中...");
       const filesRef = collection(db, "files");
       const snapshot = await getDocs(filesRef);
       
@@ -25,7 +24,6 @@ export class CollectionRecoveryService {
         ...doc.data()
       }));
 
-      console.log(`filesコレクションに${snapshot.size}個のドキュメントが見つかりました`);
       
       return {
         exists: snapshot.size > 0,
@@ -33,7 +31,6 @@ export class CollectionRecoveryService {
         files: files
       };
     } catch (error) {
-      console.error("filesコレクション確認エラー:", error);
       return {
         exists: false,
         fileCount: 0,
@@ -51,7 +48,6 @@ export class CollectionRecoveryService {
     folders: any[];
   }> {
     try {
-      console.log("foldersコレクションの存在確認中...");
       const foldersRef = collection(db, "folders");
       const snapshot = await getDocs(foldersRef);
       
@@ -60,7 +56,6 @@ export class CollectionRecoveryService {
         ...doc.data()
       }));
 
-      console.log(`foldersコレクションに${snapshot.size}個のドキュメントが見つかりました`);
       
       return {
         exists: snapshot.size > 0,
@@ -68,7 +63,6 @@ export class CollectionRecoveryService {
         folders: folders
       };
     } catch (error) {
-      console.error("foldersコレクション確認エラー:", error);
       return {
         exists: false,
         folderCount: 0,
@@ -85,11 +79,9 @@ export class CollectionRecoveryService {
     errors: string[];
   }> {
     try {
-      console.log("Storage内ファイルからの復旧開始...");
       
       // Storage内の全ファイルを取得
       const storageFiles = await StorageService.getAllStorageFiles(storeId);
-      console.log(`Storage内に${storageFiles.length}個のファイルを発見`);
 
       let recoveredCount = 0;
       const errors: string[] = [];
@@ -119,16 +111,13 @@ export class CollectionRecoveryService {
 
           await addDoc(collection(db, "files"), fileData);
           recoveredCount++;
-          console.log(`復旧完了: ${storageFile.name}`);
           
         } catch (error) {
           const errorMsg = `ファイル ${storageFile.name} の復旧エラー: ${error}`;
-          console.error(errorMsg);
           errors.push(errorMsg);
         }
       }
 
-      console.log(`復旧完了: ${recoveredCount}個のファイルを復旧しました`);
       
       return {
         recoveredCount,
@@ -136,7 +125,6 @@ export class CollectionRecoveryService {
       };
       
     } catch (error) {
-      console.error("Storage復旧エラー:", error);
       throw error;
     }
   }
@@ -146,7 +134,6 @@ export class CollectionRecoveryService {
    */
   static async generateDiagnosticReport(storeId: string): Promise<string> {
     try {
-      console.log("診断レポート生成中...");
       
       const filesCheck = await this.checkFilesCollection();
       const foldersCheck = await this.checkFoldersCollection();
@@ -157,7 +144,6 @@ export class CollectionRecoveryService {
         const storageFiles = await StorageService.getAllStorageFiles(storeId);
         storageFileCount = storageFiles.length;
       } catch (error) {
-        console.error("Storage確認エラー:", error);
       }
 
       const report = `
@@ -193,11 +179,9 @@ ${foldersCheck.folders.map((folder, index) =>
 ).join('\n')}
 `;
 
-      console.log(report);
       return report;
       
     } catch (error) {
-      console.error("診断レポート生成エラー:", error);
       throw error;
     }
   }

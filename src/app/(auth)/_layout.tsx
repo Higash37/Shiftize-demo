@@ -9,6 +9,7 @@ export default function AuthLayout() {
   const router = useRouter();
   useEffect(() => {
     const checkAuth = async () => {
+      
       if (loading) return;
 
       // 認証エラーがある場合は遷移しない
@@ -24,7 +25,10 @@ export default function AuthLayout() {
           route = "/(main)/user/home";
         }
         if (route) {
-          await router.replace(route);
+          try {
+            await router.replace(route);
+          } catch (navError) {
+          }
         }
       }
     };

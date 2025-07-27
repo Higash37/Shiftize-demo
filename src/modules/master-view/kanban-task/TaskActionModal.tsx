@@ -81,7 +81,6 @@ export const TaskActionModal: React.FC<TaskActionModalProps> = ({
 
       setMemoText("");
     } catch (error) {
-      console.error("メモ追加エラー:", error);
       Alert.alert("エラー", "メモの追加に失敗しました");
     }
   };
@@ -429,7 +428,6 @@ export const TaskActionModal: React.FC<TaskActionModalProps> = ({
               });
               Alert.alert("成功", "詳細が更新されました");
             } catch (error) {
-              console.error("詳細更新エラー:", error);
               Alert.alert("エラー", "詳細の更新に失敗しました");
             }
           }

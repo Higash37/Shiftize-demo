@@ -39,9 +39,6 @@ export function FileUploadModal({
   // デバッグ: propsの受け取り確認
   React.useEffect(() => {
     if (visible) {
-      console.log("=== FileUploadModal props 確認 ===");
-      console.log("受け取ったfolderId:", folderId, "型:", typeof folderId);
-      console.log("受け取ったstoreId:", storeId);
     }
   }, [visible, folderId, storeId]);
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
@@ -50,9 +47,6 @@ export function FileUploadModal({
   // デバッグログ: propsで受け取った値を確認
   React.useEffect(() => {
     if (visible) {
-      console.log("=== FileUploadModal props 確認 ===");
-      console.log("受け取ったfolderId:", folderId, "型:", typeof folderId);
-      console.log("受け取ったstoreId:", storeId);
     }
   }, [visible, folderId, storeId]);
 
@@ -87,19 +81,9 @@ export function FileUploadModal({
 
         const resolvedFiles = await Promise.all(files);
 
-        console.log("=== selectFiles内でのアップロード開始 ===");
-        console.log(
-          "selectFiles内のfolderId:",
-          folderId,
-          "型:",
-          typeof folderId
-        );
-        console.log("selectFiles内のstoreId:", storeId);
-
         startUpload(resolvedFiles);
       }
     } catch (error) {
-      console.error("ファイル選択エラー:", error);
       Alert.alert("エラー", "ファイルの選択に失敗しました。");
     }
   }, [folderId, storeId]);
@@ -107,8 +91,6 @@ export function FileUploadModal({
   // アップロード開始
   const startUpload = useCallback(
     async (files: File[]) => {
-      console.log("=== startUpload開始 ===");
-      console.log("startUpload内のfolderId:", folderId, "型:", typeof folderId);
 
       setIsUploading(true);
       const initialUploading: UploadingFile[] = files.map((file) => ({
@@ -124,16 +106,6 @@ export function FileUploadModal({
       setUploadingFiles(initialUploading);
 
       try {
-        console.log("ファイルアップロード開始:", {
-          fileCount: files.length,
-          folderId,
-          storeId,
-          files: files.map((f) => ({
-            name: f.name,
-            size: f.size,
-            type: f.type,
-          })),
-        });
 
         // ファイル検証
         const validationErrors: string[] = [];
@@ -145,7 +117,6 @@ export function FileUploadModal({
         }
 
         if (validationErrors.length > 0) {
-          console.error("ファイル検証エラー:", validationErrors);
           Alert.alert("ファイル検証エラー", validationErrors.join("\n"));
           setIsUploading(false);
           setUploadingFiles([]);
@@ -153,16 +124,11 @@ export function FileUploadModal({
         }
 
         // 複数ファイルアップロード
-        console.log("StorageServiceを使用してアップロード開始");
-        console.log("uploadMultipleFilesに渡すfolderId:", folderId);
-        console.log("uploadMultipleFilesに渡すstoreId:", storeId);
-        console.log("folderIdの型とlength:", typeof folderId, folderId.length);
         const results = await StorageService.uploadMultipleFiles(
           files,
           folderId,
           storeId,
           (progress) => {
-            console.log("アップロード進捗:", progress);
             setUploadingFiles((prev) =>
               prev.map((item) =>
                 item.progress.fileId === progress.fileId
@@ -174,23 +140,12 @@ export function FileUploadModal({
         );
 
         // 結果の処理
-        console.log("アップロード結果:", results);
         const successCount = results.length;
 
         if (successCount > 0) {
           // Firestoreにファイル情報を保存
           for (const result of results) {
             try {
-              console.log("=== ファイル保存デバッグ ===");
-              console.log(
-                "受信したfolderId:",
-                folderId,
-                "型:",
-                typeof folderId
-              );
-              console.log("result.folderId:", result.folderId);
-              console.log("最終的に保存されるfolderId:", result.folderId);
-              console.log("ファイル名:", result.originalName);
 
               await FileService.createFile({
                 name: result.originalName,
@@ -212,7 +167,7 @@ export function FileUploadModal({
                 downloadCount: 0,
               });
             } catch (error) {
-              console.error("Firestoreへの保存エラー:", error);
+              console.error("ファイル情報の保存に失敗しました:", error);
             }
           }
 

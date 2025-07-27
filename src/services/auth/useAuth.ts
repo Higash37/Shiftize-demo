@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   collection,
   query,
   where,
@@ -25,41 +26,138 @@ export const useAuth = () => {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const signIn = async (email: string, password: string, storeId: string) => {
+  const signIn = async (
+    emailOrUsernameWithStore: string, 
+    password: string, 
+    storeId?: string
+  ) => {
     setAuthError(null);
 
     try {
-      // Firestoreからユーザー情報を取得
-      const usersRef = collection(db, "users");
-      const userQuery = query(usersRef, where("email", "==", email));
-      const userSnapshot = await getDocs(userQuery);
+      let emailToUse = emailOrUsernameWithStore;
+      let storeIdToUse = storeId;
 
-      if (userSnapshot.empty) {
+      // メールアドレス形式かどうかを判定
+      const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsernameWithStore);
+      
+      if (!isEmailFormat) {
+        // 従来の店舗ID + ニックネーム形式の場合
+        if (!storeId) {
+          throw new Error("店舗IDが必要です");
+        }
+        // 自動生成メールアドレス形式に変換
+        emailToUse = `${storeId}${emailOrUsernameWithStore}@example.com`;
+        storeIdToUse = storeId;
+      }
+
+      // Firestoreからユーザー情報を取得（自動生成メール + 実メール両方に対応）
+      const { UserService } = await import("../firebase/firebase-user");
+      const userInfo = await UserService.findUserByEmail(emailToUse);
+      
+      
+      if (!userInfo) {
         throw new Error("ユーザーが見つかりません");
       }
 
-      const userData = userSnapshot.docs[0].data();
+      const userData = userInfo;
 
       // 削除フラグを確認
       if (userData.deleted) {
         throw new Error("このユーザーは削除されています");
       }
 
-      // storeIdの一致を確認
-      if (userData.storeId !== storeId) {
+      // 店舗ID確認（実メールアドレスの場合はFirestoreのstoreIdを使用）
+      if (isEmailFormat) {
+        storeIdToUse = userData.storeId;
+      } else if (userData.storeId !== storeIdToUse) {
         throw new Error("店舗IDが一致しません");
       }
 
+      // パスワード確認
       if (userData.currentPassword !== password) {
         throw new Error("パスワードが正しくありません");
       }
 
-      // Firebase Authでのログイン（入力されたパスワードを使用）
-      const userCredential = await signInWithEmailAndPassword(
-        getAuth(),
-        email,
-        password
-      );
+      // Firebase Authでのログイン
+      const firebaseAuthEmail = isEmailFormat ? emailToUse : userData.email;
+      
+      
+      let userCredential;
+      try {
+        // 実メールアドレスの場合、入力されたパスワードでまず試行
+        userCredential = await signInWithEmailAndPassword(
+          getAuth(),
+          firebaseAuthEmail,
+          password
+        );
+      } catch (authError: any) {
+        
+        // 入力されたパスワードで失敗した場合、Firestoreのパスワードで試行
+        if (isEmailFormat && userData.currentPassword && userData.currentPassword !== password) {
+          try {
+            userCredential = await signInWithEmailAndPassword(
+              getAuth(),
+              firebaseAuthEmail,
+              userData.currentPassword
+            );
+          } catch (firestorePasswordError: any) {
+            authError = firestorePasswordError; // 最後のエラーを保持
+          }
+        }
+        
+        if (!userCredential) {
+          
+          // 実メールアドレスでログインしようとしてアカウントが見つからない場合、自動作成を試行
+          if (isEmailFormat && authError.code === 'auth/user-not-found') {
+            try {
+            const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+            
+            // Firebase Authアカウントを作成（Firestoreのパスワードを使用）
+            const newUserCredential = await createUserWithEmailAndPassword(
+              getAuth(),
+              firebaseAuthEmail,
+              userData.currentPassword
+            );
+            
+            // プロフィール更新
+            await updateProfile(newUserCredential.user, {
+              displayName: userData.nickname,
+            });
+            
+            // Firestoreに実メールアドレス用のユーザードキュメントを作成
+            const realEmailUserRef = doc(db, 'users', newUserCredential.user.uid);
+            await setDoc(realEmailUserRef, {
+              uid: newUserCredential.user.uid,
+              nickname: userData.nickname,
+              email: firebaseAuthEmail,
+              role: userData.role,
+              currentPassword: userData.currentPassword,
+              color: userData.color,
+              storeId: userData.storeId,
+              hourlyWage: userData.hourlyWage,
+              isActive: userData.isActive,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              originalUserId: userData.id,
+            });
+            
+            // 元のFirestoreドキュメントに実メールアドレス情報を追加
+            const originalUserRef = doc(db, 'users', userData.id);
+            await updateDoc(originalUserRef, {
+              realEmail: firebaseAuthEmail,
+              realEmailUserId: newUserCredential.user.uid,
+              updatedAt: new Date(),
+            });
+            
+            userCredential = newUserCredential;
+          } catch (createError: any) {
+            throw new Error("Firebase認証アカウントの作成に失敗しました: " + createError.message);
+          }
+          } else {
+            throw new Error("Firebase認証に失敗しました: " + authError.message);
+          }
+        }
+      }
 
       setUser({
         uid: userCredential.user.uid,
@@ -95,9 +193,22 @@ export const useAuth = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
+      
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        const userData = userDoc.data();
+        
+        let userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        let userData = userDoc.data();
+
+
+        // 直接UIDで見つからない場合、メールアドレスで検索
+        if (!userData && firebaseUser.email) {
+          const { UserService } = await import("../firebase/firebase-user");
+          const userInfo = await UserService.findUserByEmail(firebaseUser.email);
+          
+          if (userInfo) {
+            userData = userInfo;
+          }
+        }
 
         if (userData) {
           // 削除フラグを確認
@@ -115,7 +226,7 @@ export const useAuth = () => {
           const userStoreId = userData.storeId || storeId;
 
           setUser({
-            uid: firebaseUser.uid,
+            uid: userData.id || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
             nickname: userData.nickname,
             role: userData.role,
             email: firebaseUser.email || undefined,
@@ -153,4 +264,25 @@ export const useAuth = () => {
     signIn,
     signOut,
   };
+};
+
+/**
+ * 認証トークンを取得（API呼び出し用）
+ */
+export const getAuthToken = async (): Promise<string | null> => {
+  try {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      return null;
+    }
+    
+    // Firebase ID トークンを取得
+    const token = await currentUser.getIdToken();
+    return token;
+    
+  } catch (error) {
+    return null;
+  }
 };

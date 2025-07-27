@@ -63,7 +63,6 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
           setStoreName("");
         }
       } catch (error) {
-        console.error("Error fetching store name:", error);
       }
     };
 

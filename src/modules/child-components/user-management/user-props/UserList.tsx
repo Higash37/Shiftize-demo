@@ -106,6 +106,9 @@ export const UserList: React.FC<UserListProps> = ({
           <Text style={styles.userRole}>
             {item.role === "master" ? "マスター" : "一般ユーザー"}
           </Text>
+          {item.email && (
+            <Text style={styles.userEmail}>📧 {item.email}</Text>
+          )}
           {item.storeId && (
             <Text style={styles.storeId}>店舗ID: {item.storeId}</Text>
           )}

@@ -495,7 +495,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             `タスクを作成し、${initialShiftData.date}のシフトに追加しました`
           );
         } catch (shiftError) {
-          console.error("シフトへの追加に失敗しました:", shiftError);
           Alert.alert(
             "一部完了",
             "タスクは作成されましたが、シフトへの追加に失敗しました"
@@ -509,7 +508,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       onClose();
       resetForm();
     } catch (error) {
-      console.error("タスクの作成に失敗しました:", error);
       Alert.alert("エラー", "タスクの作成に失敗しました");
     } finally {
       setSaving(false);

@@ -140,7 +140,6 @@ export function FileExplorer({
           printedCount++;
         }
       } catch (error) {
-        console.error("印刷エラー:", error);
       }
     }
 

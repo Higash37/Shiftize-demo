@@ -102,7 +102,6 @@ const TaskList: React.FC<TaskListProps> = ({
       setCustomInterval("");
       setModalVisible(false); // モーダルを閉じる
     } catch (error) {
-      console.error("タスクの処理中にエラーが発生しました: ", error);
     } finally {
       setIsSubmitting(false); // ボタンを再度有効化
     }

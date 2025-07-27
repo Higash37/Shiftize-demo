@@ -366,7 +366,6 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
       onTaskUpdated();
       onClose();
     } catch (error) {
-      console.error("タスクの更新に失敗しました:", error);
       Alert.alert("エラー", "タスクの更新に失敗しました");
     } finally {
       setSaving(false);

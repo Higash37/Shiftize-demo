@@ -31,6 +31,7 @@ const Button: React.FC<ButtonProps> = ({
   style,
   testID,
 }) => {
+  
   return (
     <TouchableOpacity
       style={[
@@ -60,7 +61,7 @@ const Button: React.FC<ButtonProps> = ({
             styles[`text_${size}` as ButtonStyleName],
           ]}
         >
-          {title}
+          {typeof title === 'string' ? title : 'Button'}
         </Text>
       )}
     </TouchableOpacity>

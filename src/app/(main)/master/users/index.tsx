@@ -53,7 +53,6 @@ export default function UsersScreen() {
     }
 
     try {
-      setIsAddingUser(true);
       const newUser = await addUser(
         data.email,
         data.password,
@@ -69,39 +68,45 @@ export default function UsersScreen() {
           ...prev,
           [newUser.uid]: data.password!,
         }));
-        // 追加後、フォームを閉じて一覧表示に戻る
+        
+        // 成功時：フォームを閉じて一覧表示に戻る
         setIsAddingUser(false);
       }
     } catch (err) {
-      // エラーメッセージの表示などはuseUserフック内で処理される
-    } finally {
-      // ローディング状態の解除はuseUserフック内で処理されるため、ここでは不要
-      // setIsAddingUser(false); // ここでは解除しない
+      // エラーの場合はフォームを開いたままにして、ユーザーが再試行できるようにする
     }
   };
   const handleEditUser = async (data: UserFormData) => {
     if (!selectedUser) return;
 
     try {
-      const updatedUser = await editUser(selectedUser, {
+      
+      const updateData = {
         nickname: data.nickname,
+        email: data.email, // メールアドレス更新を追加
         role: data.role,
         ...(data.password ? { password: data.password } : {}),
         color: data.color,
         storeId: data.storeId,
-      });
+      };
+      
+      
+      const updatedUser = await editUser(selectedUser, updateData);
 
-      // パスワードが更新された場合、新しいパスワードを保存
-      if (data.password && updatedUser) {
-        const newPasswords = { ...userPasswords };
-        delete newPasswords[selectedUser.uid];
-        newPasswords[updatedUser.uid] = data.password;
-        setUserPasswords(newPasswords);
+      if (updatedUser) {
+        // パスワードが更新された場合、新しいパスワードを保存
+        if (data.password) {
+          const newPasswords = { ...userPasswords };
+          delete newPasswords[selectedUser.uid];
+          newPasswords[updatedUser.uid] = data.password;
+          setUserPasswords(newPasswords);
+        }
+
+        // 成功時：フォームを閉じて一覧表示に戻る
+        setSelectedUser(null);
       }
-
-      setSelectedUser(null);
     } catch (err) {
-      // Error handled by useUser hook
+      // エラーの場合はフォームを開いたままにして、ユーザーが再試行できるようにする
     }
   };
   const handleDeleteUser = async (userId: string) => {
@@ -144,34 +149,45 @@ export default function UsersScreen() {
     <View style={styles.root}>
       <MasterHeader title="ユーザー管理" />
       <View style={styles.container}>
-        {selectedUser || isAddingUser ? (
-          <View
-            style={[
-              styles.formContainer,
-              isTablet && styles.formContainerTablet,
-              isDesktop && styles.formContainerDesktop,
-            ]}
-          >
-            <UserForm
-              onSubmit={selectedUser ? handleEditUser : handleAddUser}
-              onCancel={handleCancel}
-              initialData={selectedUser}
-              currentPassword={selectedUser?.currentPassword}
-              error={error}
+        <View style={[
+          styles.mainContent,
+          isDesktop && styles.mainContentDesktop
+        ]}>
+          {/* ユーザーリスト：常に表示 */}
+          <View style={[
+            styles.listContainer,
+            isDesktop && styles.listContainerDesktop,
+            (selectedUser || isAddingUser) && isDesktop && styles.listContainerWithPanel,
+            (selectedUser || isAddingUser) && !isDesktop && styles.listContainerHidden,
+          ]}>
+            <UserList
+              userList={users}
               loading={loading}
-              mode={selectedUser ? "edit" : "add"}
+              onEdit={handleSelectUser}
+              onDelete={handleDeleteUser}
+              onAdd={handleStartAddUser}
+              userPasswords={userPasswords}
             />
           </View>
-        ) : (
-          <UserList
-            userList={users}
-            loading={loading}
-            onEdit={handleSelectUser}
-            onDelete={handleDeleteUser}
-            onAdd={handleStartAddUser}
-            userPasswords={userPasswords}
-          />
-        )}
+
+          {/* フォームパネル：サイドパネルとして表示 */}
+          {(selectedUser || isAddingUser) && (
+            <View style={[
+              styles.panelContainer,
+              isDesktop ? styles.panelContainerDesktop : styles.panelContainerMobile,
+            ]}>
+              <UserForm
+                onSubmit={selectedUser ? handleEditUser : handleAddUser}
+                onCancel={handleCancel}
+                initialData={selectedUser}
+                currentPassword={selectedUser?.currentPassword}
+                error={error}
+                loading={loading}
+                mode={selectedUser ? "edit" : "add"}
+              />
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -187,23 +203,53 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: layout.padding.large,
   },
-  formContainer: {
+  
+  // メインコンテンツコンテナ
+  mainContent: {
     flex: 1,
+    flexDirection: "column",
+  },
+  mainContentDesktop: {
+    flexDirection: "row",
+    gap: layout.padding.large,
+  },
+
+  // ユーザーリストコンテナ
+  listContainer: {
+    flex: 1,
+  },
+  listContainerDesktop: {
+    flex: 1,
+    minWidth: 400,
+  },
+  listContainerWithPanel: {
+    flex: 1,
+    maxWidth: "60%", // デスクトップでパネル表示時はリストを60%に制限
+  },
+  listContainerHidden: {
+    display: "none", // モバイルでパネル表示時はリストを非表示
+  },
+
+  // フォームパネルコンテナ
+  panelContainer: {
     backgroundColor: colors.surface,
     borderRadius: layout.borderRadius.large,
     borderWidth: 1,
     borderColor: colors.border,
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: 400,
     ...shadows.large,
   },
-  formContainerTablet: {
-    maxWidth: 600,
-    width: "80%",
+  panelContainerDesktop: {
+    flex: 1,
+    maxWidth: 500,
+    minWidth: 400,
   },
-  formContainerDesktop: {
-    maxWidth: 700,
-    width: "70%",
+  panelContainerMobile: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    margin: layout.padding.medium,
   },
 });

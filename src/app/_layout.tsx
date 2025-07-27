@@ -7,11 +7,15 @@ import { View, AppState } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 function RootLayoutNav() {
   const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  
+  // 🔔 プッシュ通知初期化
+  const { isInitialized, hasPermission, error } = usePushNotifications();
 
   useEffect(() => {
     if (loading) return;

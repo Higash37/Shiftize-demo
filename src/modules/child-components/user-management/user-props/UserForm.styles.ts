@@ -69,6 +69,24 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
+  // 情報メッセージ
+  infoContainer: {
+    backgroundColor: colors.primary + "10",
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: layout.borderRadius.medium,
+    padding: layout.padding.medium,
+    marginBottom: layout.padding.large,
+    ...shadows.small,
+  },
+  infoText: {
+    color: colors.primary,
+    fontSize: typography.fontSize.small,
+    textAlign: "center",
+    fontWeight: "500",
+    lineHeight: 20,
+  },
+
   // カラーピッカーセクション
   colorSection: {
     gap: layout.padding.medium,

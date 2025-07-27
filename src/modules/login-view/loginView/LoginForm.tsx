@@ -19,7 +19,6 @@ import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorag
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
-import Button from "@/common/common-ui/ui-forms/FormButton";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   useAutoReloadOnLayoutBug();
@@ -29,6 +28,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   const [saveStoreId, setSaveStoreId] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [storeIdAndUsername, setStoreIdAndUsername] = useState(""); // 店舗ID+ニックネーム
+  const [loginMode, setLoginMode] = useState<'storeId' | 'email'>('storeId'); // ログイン方式
+  const [emailInput, setEmailInput] = useState(""); // メールアドレス入力
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isTablet = width >= 768 && width < 1024; // タブレットサイズ
@@ -38,6 +39,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   // フォーカスの状態を管理
   const [storeIdAndUsernameFocused, setStoreIdAndUsernameFocused] =
     useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
   // コンポーネントマウント時に保存された店舗IDを読み込み
@@ -68,35 +70,61 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   };
 
   const handleLogin = async () => {
-    const { storeId, username } = parseStoreIdAndUsername(storeIdAndUsername);
+    
+    if (loginMode === 'storeId') {
+      // 従来の店舗ID + ニックネーム方式
+      const { storeId, username } = parseStoreIdAndUsername(storeIdAndUsername);
 
-    if (!username || !password || !storeId) {
-      setErrorMessage(
-        "店舗ID（4桁）+ ニックネーム・パスワードを入力してください"
-      );
-      return;
-    }
+      if (!username || !password || !storeId) {
+        setErrorMessage(
+          "店舗ID（4桁）+ ニックネーム・パスワードを入力してください"
+        );
+        return;
+      }
 
-    // storeIdの形式チェック（4桁の数字）
-    if (!/^\d{4}$/.test(storeId)) {
-      setErrorMessage("店舗IDは4桁の数字で入力してください");
-      return;
-    }
+      // storeIdの形式チェック（4桁の数字）
+      if (!/^\d{4}$/.test(storeId)) {
+        setErrorMessage("店舗IDは4桁の数字で入力してください");
+        return;
+      }
 
-    if (onLogin) {
-      try {
-        await onLogin(username, password, storeId);
+      if (onLogin) {
+        try {
+          await onLogin(username, password, storeId);
 
-        // 店舗ID保存の設定に応じて処理
-        if (saveStoreId) {
-          await StoreIdStorage.saveStoreId(storeId);
-        } else {
-          await StoreIdStorage.clearStoreId();
+          // 店舗ID保存の設定に応じて処理
+          if (saveStoreId) {
+            await StoreIdStorage.saveStoreId(storeId);
+          } else {
+            await StoreIdStorage.clearStoreId();
+          }
+
+          setErrorMessage("");
+        } catch (error) {
+          setErrorMessage("ログインに失敗しました。再度お試しください。");
         }
+      }
+    } else {
+      // メールアドレス方式
+      if (!emailInput || !password) {
+        setErrorMessage("メールアドレスとパスワードを入力してください");
+        return;
+      }
 
-        setErrorMessage("");
-      } catch (error) {
-        setErrorMessage("ログインに失敗しました。再度お試しください。");
+      // メールアドレス形式チェック
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+        setErrorMessage("有効なメールアドレスを入力してください");
+        return;
+      }
+
+      if (onLogin) {
+        try {
+          await onLogin(emailInput, password); // storeIdは不要（認証システム側で取得）
+          setErrorMessage("");
+        } catch (error) {
+          setErrorMessage("ログインに失敗しました。再度お試しください。");
+        }
+      } else {
       }
     }
   };
@@ -112,100 +140,175 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   }
 
   return (
-    <View
-      style={[styles.container, isTabletOrDesktop && styles.containerTablet]}
-    >
-      {/* メインフォームカード */}
-      <Box
-        variant="card"
-        style={[
-          styles.formCard,
-          isTablet && styles.formCardTablet,
-          isPC && styles.formCardPC,
-        ]}
-      >
-        <Text style={designSystem.text.welcomeText}>ログイン</Text>
-
-        {/* エラーメッセージ */}
-        {errorMessage && (
-          <Box variant="outlined" style={styles.errorContainer}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          </Box>
-        )}
-
-        {/* 店舗ID + ニックネーム入力 */}
-        <View style={styles.inputGroup}>
-          <View style={styles.labelContainer}>
-            <MaterialIcons name="store" size={20} color={colors.primary} />
-            <Text style={styles.label}>店舗ID + ニックネーム</Text>
+    <View style={[
+      styles.container,
+      isTabletOrDesktop && styles.containerTablet
+    ]}>
+      <View style={[
+        styles.formCard,
+        isTablet && styles.formCardTablet,
+        isPC && styles.formCardPC
+      ]}>
+        <Box variant="card">
+          <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20}}>ログイン</Text>
+          
+          {/* エラーメッセージ */}
+          {errorMessage && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
+          
+          {/* ログイン方式切り替えタブ */}
+          <View style={{flexDirection: 'row', marginBottom: 20, backgroundColor: '#f0f0f0', borderRadius: 8}}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                backgroundColor: loginMode === 'storeId' ? '#007bff' : 'transparent',
+                borderRadius: 8,
+              }}
+              onPress={() => setLoginMode('storeId')}
+            >
+              <MaterialIcons 
+                name="store" 
+                size={18} 
+                color={loginMode === 'storeId' ? '#fff' : '#007bff'} 
+              />
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: loginMode === 'storeId' ? '#fff' : '#007bff',
+                marginLeft: 8,
+              }}>
+                店舗ID
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                backgroundColor: loginMode === 'email' ? '#007bff' : 'transparent',
+                borderRadius: 8,
+              }}
+              onPress={() => setLoginMode('email')}
+            >
+              <MaterialIcons 
+                name="email" 
+                size={18} 
+                color={loginMode === 'email' ? '#fff' : '#007bff'} 
+              />
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: loginMode === 'email' ? '#fff' : '#007bff',
+                marginLeft: 8,
+              }}>
+                メール
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TextInput
-            style={inputStyle(storeIdAndUsernameFocused, !!errorMessage)}
-            value={storeIdAndUsername}
-            onChangeText={setStoreIdAndUsername}
-            autoCapitalize="none"
-            onFocus={() => setStoreIdAndUsernameFocused(true)}
-            onBlur={() => setStoreIdAndUsernameFocused(false)}
-            placeholder="例: 1234山田太郎"
-            keyboardType="default"
-            placeholderTextColor="#999"
-          />
-        </View>
 
-        {/* パスワード入力 */}
-        <View style={styles.inputGroup}>
-          <View style={styles.labelContainer}>
-            <MaterialIcons name="lock" size={20} color={colors.primary} />
-            <Text style={styles.label}>パスワード</Text>
+          {/* 入力フィールド - ログイン方式により切り替え */}
+          {loginMode === 'storeId' && (
+            <View style={{marginBottom: 20}}>
+              <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
+                <MaterialIcons name="store" size={20} color="#007bff" />
+                <Text style={{fontSize: 16, fontWeight: '500', color: '#333', marginLeft: 8}}>店舗ID + ニックネーム</Text>
+              </View>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  borderRadius: 8,
+                  padding: 12,
+                  fontSize: 16,
+                  backgroundColor: '#fff'
+                }}
+                value={storeIdAndUsername}
+                onChangeText={setStoreIdAndUsername}
+                placeholder="例: 1234山田太郎"
+                autoCapitalize="none"
+              />
+            </View>
+          )}
+          {loginMode === 'email' && (
+            <View style={{marginBottom: 20}}>
+              <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
+                <MaterialIcons name="email" size={20} color="#007bff" />
+                <Text style={{fontSize: 16, fontWeight: '500', color: '#333', marginLeft: 8}}>メールアドレス</Text>
+              </View>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#ccc',
+                  borderRadius: 8,
+                  padding: 12,
+                  fontSize: 16,
+                  backgroundColor: '#fff'
+                }}
+                value={emailInput}
+                onChangeText={setEmailInput}
+                placeholder="example@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+          )}
+
+          {/* パスワード入力 */}
+          <View style={{marginBottom: 20}}>
+            <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
+              <MaterialIcons name="lock" size={20} color="#007bff" />
+              <Text style={{fontSize: 16, fontWeight: '500', color: '#333', marginLeft: 8}}>パスワード</Text>
+            </View>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                borderRadius: 8,
+                padding: 12,
+                fontSize: 16,
+                backgroundColor: '#fff'
+              }}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="パスワードを入力"
+              secureTextEntry
+            />
           </View>
-          <TextInput
-            style={inputStyle(passwordFocused, !!errorMessage)}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            onFocus={() => setPasswordFocused(true)}
-            onBlur={() => setPasswordFocused(false)}
-            placeholder="パスワードを入力"
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        {/* 店舗ID保存チェックボックス */}
-        <TouchableOpacity
-          style={styles.checkboxContainer}
-          onPress={() => setSaveStoreId(!saveStoreId)}
-        >
-          <View
-            style={[styles.checkbox, saveStoreId && styles.checkboxChecked]}
+          
+          {/* ログインボタン */}
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#007bff',
+              padding: 16,
+              borderRadius: 8,
+              alignItems: 'center',
+              width: '100%',
+              opacity: loading ? 0.7 : 1
+            }}
+            onPress={handleLogin}
+            disabled={loading}
           >
-            {saveStoreId && (
-              <MaterialIcons name="check" size={16} color={colors.text.white} />
-            )}
-          </View>
-          <Text style={styles.checkboxLabel}>店舗IDを保存する</Text>
-        </TouchableOpacity>
-
-        {/* ログインボタン */}
-        <Button
-          title={loading ? "ログイン中..." : "ログイン"}
-          onPress={handleLogin}
-          variant="primary"
-          size="compact"
-          fullWidth
-          disabled={loading}
-          style={styles.loginButton}
-        />
-      </Box>
-
-      {/* フッター情報 */}
-      <Box variant="default" style={styles.footerInfo}>
-        <Text style={designSystem.text.footerText}>
-          パスワード変更の際は管理者（教室長）までお問い合わせください。
-        </Text>
-        <Text style={styles.exampleText}>
-          入力例: 1234山田太郎（店舗ID4桁 + ニックネーム）
-        </Text>
-      </Box>
+            <Text style={{
+              color: '#fff',
+              fontSize: 16,
+              fontWeight: 'bold'
+            }}>
+              {loading ? "ログイン中..." : "ログイン"}
+            </Text>
+          </TouchableOpacity>
+        </Box>
+      </View>
     </View>
   );
 };
@@ -219,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: "center", // タブレット以上で中央寄せ
   },
   formCard: {
-    marginBottom: 2,
+    marginBottom: 20,
   },
   formCardTablet: {
     width: "80%", // タブレットで幅を80%に変更
@@ -301,4 +404,35 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.text.disabled,
   } as TextStyle,
+  // タブ機能のスタイル
+  tabContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 8,
+    backgroundColor: colors.background,
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.primary,
+  },
+  tabTextActive: {
+    color: colors.text.white,
+  },
 });

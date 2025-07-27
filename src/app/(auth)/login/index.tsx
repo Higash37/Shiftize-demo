@@ -18,17 +18,34 @@ export default function Login() {
   const isMobile = width <= 768; // スマホ判定
 
   const handleLogin = async (
-    username: string,
+    emailOrUsername: string,
     password: string,
-    storeId: string
+    storeId?: string
   ) => {
+    
     setLoading(true);
     setErrorMessage("");
     try {
-      const email = `${storeId}${username}@example.com`;
-      await signIn(email, password, storeId);
+      // メールアドレス形式かどうかを判定
+      const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsername);
+      
+      if (isEmailFormat) {
+        // 実メールアドレスの場合はそのまま使用
+        await signIn(emailOrUsername, password);
+      } else {
+        // 店舗ID + ニックネーム形式の場合は自動生成メールを作成
+        if (!storeId) {
+          throw new Error("店舗IDが必要です");
+        }
+        const email = `${storeId}${emailOrUsername}@example.com`;
+        await signIn(email, password, storeId);
+      }
+      
+      // ナビゲーション処理を待つために少し待機
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
     } catch (error) {
-      setErrorMessage("ニックネームまたはパスワードが違います");
+      setErrorMessage("ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います");
     } finally {
       setLoading(false);
     }

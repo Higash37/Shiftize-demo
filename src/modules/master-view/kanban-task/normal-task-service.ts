@@ -66,7 +66,6 @@ export const normalTaskService = {
 
       return tasks;
     } catch (error) {
-      console.error("タスク取得エラー:", error);
       throw error;
     }
   },
@@ -113,7 +112,6 @@ export const normalTaskService = {
       const docRef = await addDoc(tasksRef, newTask);
       return docRef.id;
     } catch (error) {
-      console.error("タスク作成エラー:", error);
       throw error;
     }
   },
@@ -161,7 +159,6 @@ export const normalTaskService = {
 
       await updateDoc(taskRef, updateData);
     } catch (error) {
-      console.error("ステータス更新エラー:", error);
       throw error;
     }
   },
@@ -201,7 +198,6 @@ export const normalTaskService = {
 
       await updateDoc(taskRef, updateData);
     } catch (error) {
-      console.error("タスク更新エラー:", error);
       throw error;
     }
   },
@@ -214,7 +210,6 @@ export const normalTaskService = {
       const taskRef = doc(db, "NormalTasks", taskId);
       await deleteDoc(taskRef);
     } catch (error) {
-      console.error("タスク削除エラー:", error);
       throw error;
     }
   },
@@ -254,14 +249,12 @@ export const normalTaskService = {
           callback(memos);
         },
         (error) => {
-          console.error("メモ監視エラー:", error);
           callback([]);
         }
       );
 
       return unsubscribe;
     } catch (error) {
-      console.error("メモ監視エラー:", error);
       callback([]);
       return () => {};
     }
@@ -291,7 +284,6 @@ export const normalTaskService = {
         });
       }
     } catch (error) {
-      console.error("debugTaskMemos エラー:", error);
     }
   },
 
@@ -324,7 +316,6 @@ export const normalTaskService = {
         lastActionAt: now,
       });
     } catch (error) {
-      console.error("メモ作成エラー:", error);
       throw error;
     }
   },
@@ -380,7 +371,6 @@ export const normalTaskService = {
 
       return unsubscribe;
     } catch (error) {
-      console.error("タスク監視エラー:", error);
       callback([]);
       return () => {};
     }
@@ -404,7 +394,6 @@ const getUserName = async (userId: string): Promise<string> => {
 
     return "Unknown User";
   } catch (error) {
-    console.error("ユーザー名取得エラー:", error);
     return "Unknown User";
   }
 };

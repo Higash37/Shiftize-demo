@@ -220,7 +220,6 @@ export const useAppSettings = () => {
       }
       setError(null);
     } catch (err) {
-      console.error("設定の読み込みに失敗しました:", err);
       setError("設定の読み込みに失敗しました");
       // エラー時もデフォルト設定を設定
       setSettings(DEFAULT_SETTINGS);
@@ -242,7 +241,6 @@ export const useAppSettings = () => {
         }));
         setError(null);
       } catch (err) {
-        console.error("設定の保存に失敗しました:", err);
         setError("設定の保存に失敗しました");
         throw err;
       }
@@ -392,7 +390,6 @@ export const useAppSettings = () => {
       setSettings(DEFAULT_SETTINGS);
       setError(null);
     } catch (err) {
-      console.error("設定のリセットに失敗しました:", err);
       setError("設定のリセットに失敗しました");
       throw err;
     }
@@ -404,7 +401,6 @@ export const useAppSettings = () => {
       const settingsJson = JSON.stringify(settings, null, 2);
       return settingsJson;
     } catch (err) {
-      console.error("設定のエクスポートに失敗しました:", err);
       throw new Error("設定のエクスポートに失敗しました");
     }
   }, [settings]);
@@ -438,7 +434,6 @@ export const useAppSettings = () => {
       setSettings(importedSettings);
       setError(null);
     } catch (err) {
-      console.error("設定のインポートに失敗しました:", err);
       if (err instanceof Error) {
         setError(err.message);
         throw err;

@@ -29,7 +29,6 @@ export default function ShiftStatusSettingsScreen() {
         )
       );
     } catch (error) {
-      console.error("Error updating status color:", error);
     }
   };
 

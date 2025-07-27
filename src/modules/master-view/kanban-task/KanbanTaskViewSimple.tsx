@@ -46,7 +46,6 @@ export const KanbanTaskView: React.FC = () => {
       const tasksData = await kanbanTaskService.getTasks(user.storeId);
       setTasks(tasksData);
     } catch (error) {
-      console.error("タスク取得エラー:", error);
       Alert.alert("エラー", "タスクの読み込みに失敗しました");
     } finally {
       setLoading(false);

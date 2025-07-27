@@ -1,0 +1,90 @@
+[debug] [2025-07-25T08:24:16.252Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-07-25T08:24:22.701Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-07-25T08:24:22.714Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-25T08:24:22.715Z] > authorizing via signed-in user (higashionna37@icloud.com)
+[debug] [2025-07-25T08:24:22.719Z] Checked if tokens are valid: false, expires at: 1753337070881
+[debug] [2025-07-25T08:24:22.719Z] Checked if tokens are valid: false, expires at: 1753337070881
+[debug] [2025-07-25T08:24:22.720Z] > refreshing access token with scopes: []
+[debug] [2025-07-25T08:24:22.722Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-07-25T08:24:22.722Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-25T08:24:22.734Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.10.0) on port 50001
+[debug] [2025-07-25T08:24:23.569Z] 'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0725 17:24:23.521162   19232 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0725 17:24:23.521162   19232 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:24:23.570Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-07-25T08:24:23.570Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-07-25T08:24:23.570Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\higas_38udawz\\.cache\\firebase\\emulators\\dataconnect-emulator-2.10.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\git\\shift-scheduler-app\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\higas_38udawz\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.10.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-07-25T08:24:23.673Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-07-25T08:24:23.673Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-25T08:24:23.704Z] [Firebase Plugin] User found:  higashionna37@icloud.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-07-25T08:24:23.707Z] Checked if tokens are valid: true, expires at: 1753435462673
+[debug] [2025-07-25T08:24:23.708Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-07-25T08:24:23.934Z] E0725 17:24:23.828436   18376 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:24:23.828436   18376 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:24:23.946Z] E0725 17:24:23.946823   18376 watch.go:76] watchAllDir unable to walk dir `c:\git\shift-scheduler-app\dataconnect`: on path "c:\\git\\shift-scheduler-app\\dataconnect" (DirEntry: <nil>): CreateFile c:\git\shift-scheduler-app\dataconnect: The system cannot find the file specified.
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:24:23.946823   18376 watch.go:76] watchAllDir unable to walk dir `c:\\git\\shift-scheduler-app\\dataconnect`: on path \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\" (DirEntry: <nil>): CreateFile c:\\git\\shift-scheduler-app\\dataconnect: The system cannot find the file specified.\n"}}
+[debug] [2025-07-25T08:24:23.999Z] I0725 17:24:23.999067   18376 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0725 17:24:23.999067   18376 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-07-25T08:24:24.321Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-07-25T08:24:24.321Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-07-25T08:24:33.947Z] E0725 17:24:33.946987   18376 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:24:33.946987   18376 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:24:43.949Z] E0725 17:24:43.948767   18376 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:24:43.948767   18376 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:24:53.948Z] E0725 17:24:53.948038   18376 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:24:53.948038   18376 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:25:03.947Z] E0725 17:25:03.947318   18376 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:03.947318   18376 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] !  Data Connect Emulator has exited upon receiving signal: SIGKILL 
+[debug] [2025-07-25T08:25:20.342Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-07-25T08:25:23.397Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-07-25T08:25:23.399Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-25T08:25:23.399Z] > authorizing via signed-in user (higashionna37@icloud.com)
+[debug] [2025-07-25T08:25:23.402Z] Checked if tokens are valid: true, expires at: 1753435462673
+[debug] [2025-07-25T08:25:23.402Z] Checked if tokens are valid: true, expires at: 1753435462673
+[debug] [2025-07-25T08:25:23.402Z] [Firebase Plugin] User found:  higashionna37@icloud.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-07-25T08:25:23.403Z] Checked if tokens are valid: true, expires at: 1753435462673
+[debug] [2025-07-25T08:25:23.405Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-07-25T08:25:23.412Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.10.1) on port 50001
+[info] i  dataconnect: downloading dataconnect-emulator-2.10.1.exe... {"metadata":{"emulator":{"name":"dataconnect"},"message":"downloading dataconnect-emulator-2.10.1.exe..."}}
+[debug] [2025-07-25T08:25:23.671Z] >>> [apiv2][query] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.10.1 
+[debug] [2025-07-25T08:25:24.111Z] <<< [apiv2][status] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.10.1 200
+[debug] [2025-07-25T08:25:24.112Z] <<< [apiv2][body] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-v2.10.1 [stream]
+[debug] [2025-07-25T08:25:24.255Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-07-25T08:25:24.256Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] i  dataconnect: Removing outdated emulator files: dataconnect-emulator-2.10.0.exe {"metadata":{"emulator":{"name":"dataconnect"},"message":"Removing outdated emulator files: dataconnect-emulator-2.10.0.exe"}}
+[debug] [2025-07-25T08:25:27.782Z] 'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0725 17:25:27.755070   18492 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"'fdc build' failed with error: Unable to build your Data Connect schema and connectors (exit code 1): E0725 17:25:27.755070   18492 cmd.go:43] Error loading data connect config: could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:25:27.782Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-07-25T08:25:27.783Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-07-25T08:25:27.783Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\higas_38udawz\\.cache\\firebase\\emulators\\dataconnect-emulator-2.10.1.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\git\\shift-scheduler-app\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\higas_38udawz\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.10.1.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-07-25T08:25:27.858Z] E0725 17:25:27.811521   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:27.811521   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:25:27.859Z] E0725 17:25:27.858962   17660 watch.go:76] watchAllDir unable to walk dir `c:\git\shift-scheduler-app\dataconnect`: on path "c:\\git\\shift-scheduler-app\\dataconnect" (DirEntry: <nil>): CreateFile c:\git\shift-scheduler-app\dataconnect: The system cannot find the file specified.
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:27.858962   17660 watch.go:76] watchAllDir unable to walk dir `c:\\git\\shift-scheduler-app\\dataconnect`: on path \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\" (DirEntry: <nil>): CreateFile c:\\git\\shift-scheduler-app\\dataconnect: The system cannot find the file specified.\n"}}
+[debug] [2025-07-25T08:25:27.868Z] I0725 17:25:27.868742   17660 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0725 17:25:27.868742   17660 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-07-25T08:25:37.861Z] E0725 17:25:37.860897   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:37.860897   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:25:47.860Z] E0725 17:25:47.860228   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:47.860228   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:25:57.859Z] E0725 17:25:57.859605   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:25:57.859605   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:26:07.859Z] E0725 17:26:07.859919   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:26:07.859919   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:26:17.859Z] E0725 17:26:17.859357   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:26:17.859357   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[debug] [2025-07-25T08:26:27.858Z] E0725 17:26:27.859637   17660 load.go:23] Could not load config from "c:\\git\\shift-scheduler-app\\dataconnect": could not find dataconnect.yaml in `c:\git\shift-scheduler-app\dataconnect`
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0725 17:26:27.859637   17660 load.go:23] Could not load config from \"c:\\\\git\\\\shift-scheduler-app\\\\dataconnect\": could not find dataconnect.yaml in `c:\\git\\shift-scheduler-app\\dataconnect`\n"}}
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] !  Data Connect Emulator has exited upon receiving signal: SIGKILL 

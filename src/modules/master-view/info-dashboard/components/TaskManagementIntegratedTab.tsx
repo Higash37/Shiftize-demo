@@ -100,7 +100,6 @@ export const TaskManagementIntegratedTab: React.FC<
 
       setPerformances(mockPerformances);
     } catch (error) {
-      console.error("タスクデータの取得に失敗しました:", error);
       Alert.alert("エラー", "タスクデータの取得に失敗しました");
     } finally {
       setLoading(false);
@@ -176,7 +175,6 @@ export const TaskManagementIntegratedTab: React.FC<
               await loadTaskData();
               Alert.alert("完了", "タスクを削除しました");
             } catch (error) {
-              console.error("タスクの削除に失敗しました:", error);
               Alert.alert("エラー", "タスクの削除に失敗しました");
             }
           },
@@ -192,7 +190,6 @@ export const TaskManagementIntegratedTab: React.FC<
       });
       await loadTaskData();
     } catch (error) {
-      console.error("タスクの状態更新に失敗しました:", error);
       Alert.alert("エラー", "タスクの状態更新に失敗しました");
     }
   };

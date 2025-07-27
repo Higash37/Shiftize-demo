@@ -13,6 +13,7 @@ export interface CreateGroupData {
   groupName: string;
   storeId: string;
   adminNickname: string;
+  adminEmail?: string; // 実際のメールアドレス（任意）
   adminPassword: string;
   initialMembers?: InitialMember[];
 }
@@ -93,8 +94,8 @@ export const GroupService = {
         throw new Error("この店舗IDは既に使用されています");
       }
 
-      // 2. 管理者用のメールアドレスを生成（店舗ID + ニックネームの順）
-      const adminEmail = `${data.storeId}${data.adminNickname}@example.com`;
+      // 2. 管理者用のメールアドレス（実際のメールまたは自動生成）
+      const adminEmail = data.adminEmail || `${data.storeId}${data.adminNickname}@example.com`;
 
       // 3. Firebase Authで管理者アカウントを作成
       const userCredential = await createUserWithEmailAndPassword(

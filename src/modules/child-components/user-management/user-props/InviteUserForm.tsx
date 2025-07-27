@@ -50,7 +50,6 @@ export const InviteUserForm: React.FC<InviteUserFormProps> = ({
         const stores = await MultiStoreService.getAllStores();
         setAvailableStores(stores);
       } catch (error) {
-        console.error("店舗一覧の取得に失敗:", error);
       }
     };
 

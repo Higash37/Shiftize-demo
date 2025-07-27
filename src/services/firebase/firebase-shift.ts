@@ -13,13 +13,15 @@ import {
   doc,
   query,
   getDoc,
-  orderBy,
   serverTimestamp,
   where,
 } from "firebase/firestore";
 
-import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { Shift } from "@/common/common-models/ModelIndex";
 import { db } from "./firebase-core";
+import { ShiftNotificationService } from "../notifications/ShiftNotificationService";
+import { EmailNotificationService } from "../notifications/EmailNotificationService";
+import { Platform } from "react-native";
 
 /**
  * シフト関連のサービス
@@ -92,6 +94,28 @@ export const ShiftService = {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // 🔔 通知: 新しいシフト作成
+      try {
+        const createdShift: Shift = { id: docRef.id, ...shift };
+        const creatorNickname = shift.nickname || 'Unknown User';
+
+        if (Platform.OS === 'web') {
+          // Web環境: メール通知
+          await EmailNotificationService.notifyShiftCreatedByEmail(
+            createdShift,
+            creatorNickname
+          );
+        } else {
+          // モバイル環境: プッシュ通知
+          await ShiftNotificationService.notifyShiftCreated(
+            createdShift,
+            creatorNickname
+          );
+        }
+      } catch (notificationError) {
+      }
+
       return docRef.id;
     } catch (error) {
       throw error;
@@ -116,9 +140,44 @@ export const ShiftService = {
   /**
    * シフトを削除します
    */
-  markShiftAsDeleted: async (id: string): Promise<void> => {
+  markShiftAsDeleted: async (id: string, deletedBy?: { nickname: string; userId: string }, reason?: string): Promise<void> => {
     try {
+      if (process.env.EXPO_PUBLIC_DEBUG_EMAIL_NOTIFICATIONS === 'true') {
+        console.log('🔍 DEBUG - markShiftAsDeleted called with:', { id, deletedBy, reason });
+      }
+      
       const shiftRef = doc(db, "shifts", id);
+      
+      // 🔔 削除前に通知用のシフト情報を取得
+      const shiftDoc = await getDoc(shiftRef);
+      const shiftData = shiftDoc.data();
+      
+      if (shiftData && deletedBy) {
+        const shift: Shift = { id, ...shiftData } as Shift;
+        
+        // 通知: シフト削除
+        try {
+          if (Platform.OS === 'web') {
+            // Web環境: メール通知
+            await EmailNotificationService.notifyShiftDeletedByEmail(
+              shift,
+              deletedBy.nickname,
+              reason
+            );
+          } else {
+            // モバイル環境: プッシュ通知
+            console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftDeleted');
+            await ShiftNotificationService.notifyShiftDeleted(
+              shift,
+              deletedBy.nickname,
+              reason
+            );
+          }
+        } catch (notificationError) {
+          console.error('❌ Email notification failed:', notificationError);
+        }
+      }
+      
       await deleteDoc(shiftRef);
     } catch (error) {
       throw error;
@@ -128,19 +187,59 @@ export const ShiftService = {
   /**
    * シフト変更を承認します
    */
-  approveShiftChanges: async (id: string): Promise<void> => {
+  approveShiftChanges: async (id: string, approver?: { nickname: string; userId: string }): Promise<void> => {
     try {
+      if (process.env.EXPO_PUBLIC_DEBUG_EMAIL_NOTIFICATIONS === 'true') {
+        console.log('🔍 DEBUG - approveShiftChanges called with:', { id, approver });
+      }
+      
       const shiftRef = doc(db, "shifts", id);
       const shiftDoc = await getDoc(shiftRef);
       const shiftData = shiftDoc.data();
 
-      if (shiftData?.requestedChanges) {
+      // pendingからapprovedへの変更、またはrequestedChangesがある場合に通知
+      const isPendingToApproved = shiftData?.status === "pending";
+      const hasRequestedChanges = shiftData?.requestedChanges;
+
+      if (hasRequestedChanges) {
+        // requestedChangesがある場合：変更内容を適用
         await updateDoc(shiftRef, {
           ...shiftData.requestedChanges,
           status: "approved",
           requestedChanges: null,
           updatedAt: serverTimestamp(),
         });
+      } else if (isPendingToApproved) {
+        // 単純なpending→approved変更の場合
+        await updateDoc(shiftRef, {
+          status: "approved",
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      // 🔔 通知: シフト承認（pendingからapprovedまたはrequestedChangesがある場合）
+      if ((isPendingToApproved || hasRequestedChanges) && approver) {
+        try {
+          const shift: Shift = { id, ...shiftData } as Shift;
+          
+          if (Platform.OS === 'web') {
+            // Web環境: メール通知
+            await EmailNotificationService.notifyShiftApprovedByEmail(
+              shift,
+              approver.nickname
+            );
+          } else {
+            // モバイル環境: プッシュ通知
+            console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftApproved');
+            await ShiftNotificationService.notifyShiftApproved(
+              shift,
+              approver.nickname,
+              shiftData.nickname || 'Unknown User'
+            );
+          }
+        } catch (notificationError) {
+          console.error('❌ Approval notification failed:', notificationError);
+        }
       }
     } catch (error) {
       throw error;

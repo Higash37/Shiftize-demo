@@ -72,7 +72,6 @@ export const TaskPerformanceTab: React.FC<TaskPerformanceTabProps> = ({
 
       setPerformances(mockPerformances);
     } catch (error) {
-      console.error("タスクパフォーマンスデータの取得に失敗しました:", error);
     } finally {
       setLoading(false);
     }

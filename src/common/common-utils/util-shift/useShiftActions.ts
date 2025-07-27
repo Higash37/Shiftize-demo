@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getShifts,
-  addShift,
-  updateShift,
-  approveShiftChanges,
-  getUserAccessibleShifts,
-} from "@/services/firebase/firebase";
+// 🔄 API移行テスト: 新しいAPIサービスを使用
+import { ShiftAPIService } from "@/services/api";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
@@ -28,12 +23,19 @@ export const useShift = (storeId?: string) => {
 
     try {
       setLoading(true);
+      setError(null);
+
+      // 🔄 デバッグ情報表示
+      const debugInfo = ShiftAPIService.getDebugInfo();
 
       let allShifts: Shift[] = [];
 
       if (role === "master") {
         // 教室長の場合：指定されたstoreIdまたは自分のstoreIdのシフトを取得
-        allShifts = await getShifts(storeId || user?.storeId);
+        // 🔄 新APIサービス使用
+        allShifts = await ShiftAPIService.getShifts({ 
+          storeId: storeId || user?.storeId 
+        });
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -42,13 +44,17 @@ export const useShift = (storeId?: string) => {
           const userData = userDoc.data();
 
           // 連携店舗も含むシフトを取得
-          allShifts = await getUserAccessibleShifts({
+          // 🔄 新APIサービス使用
+          allShifts = await ShiftAPIService.getUserAccessibleShifts({
             storeId: userData.storeId,
             connectedStores: userData.connectedStores || [],
           });
         } else {
           // ユーザーデータが見つからない場合は従来の方法
-          allShifts = await getShifts(storeId || user?.storeId);
+          // 🔄 新APIサービス使用
+          allShifts = await ShiftAPIService.getShifts({ 
+            storeId: storeId || user?.storeId 
+          });
         }
       }
 
@@ -58,7 +64,8 @@ export const useShift = (storeId?: string) => {
           : allShifts.filter((shift: Shift) => shift.userId === user?.uid);
 
       setShifts(filteredShifts);
-    } catch (error) {
+    } catch (error: any) {
+      setError(error.message || 'シフトの取得に失敗しました');
       setShifts([]);
     } finally {
       setLoading(false);
@@ -78,7 +85,10 @@ export const useShift = (storeId?: string) => {
         storeId: shiftData.storeId || user?.storeId || "",
       };
 
-      await addShift(shiftWithStoreId);
+      // 🔄 新APIサービス使用
+      // 型変換: ShiftAPIServiceは内部でShiftServiceを呼び出すため、
+      // 元のShift型をそのまま渡せる
+      await ShiftAPIService.createShift(shiftWithStoreId as any);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -99,16 +109,19 @@ export const useShift = (storeId?: string) => {
           },
         ],
       };
-      await updateShift(shiftId, updatedData);
+      // 🔄 新APIサービス使用
+      await ShiftAPIService.updateShift(shiftId, updatedData);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
     }
   };
 
-  const markShiftAsDeleted = async (shiftId: string) => {
+  const markShiftAsDeleted = async (shiftId: string, reason?: string) => {
     try {
-      await updateShift(shiftId, { status: "deleted" });
+      // 🔄 新APIサービス使用（通知付き削除）
+      const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
+      await ShiftAPIService.deleteShift(shiftId, deletedBy, reason);
       await fetchShifts();
     } catch (error) {
       throw error;
@@ -117,7 +130,8 @@ export const useShift = (storeId?: string) => {
 
   const approveShift = async (shiftId: string) => {
     try {
-      await approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
+      // 🔄 新APIサービス使用
+      await ShiftAPIService.approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -126,7 +140,8 @@ export const useShift = (storeId?: string) => {
 
   const updateShiftStatus = async (shiftId: string, status: ShiftStatus) => {
     try {
-      await updateShift(shiftId, { status });
+      // 🔄 新APIサービス使用
+      await ShiftAPIService.updateShift(shiftId, { status });
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -136,12 +151,15 @@ export const useShift = (storeId?: string) => {
   return {
     shifts,
     loading,
+    error, // 🔄 エラー状態を追加
     fetchShifts,
     createShift,
     editShift,
     markShiftAsDeleted,
     approveShift,
     updateShiftStatus,
+    // 🔄 デバッグ用情報も追加
+    debugInfo: ShiftAPIService.getDebugInfo(),
   };
 };
 

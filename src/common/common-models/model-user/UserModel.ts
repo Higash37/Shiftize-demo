@@ -9,6 +9,7 @@ export interface User {
   uid: string;
   role: "master" | "user";
   nickname: string;
+  email?: string; // メールアドレスを追加
   storeId?: string; // 店舗IDを追加
   color?: string; // 講師ごとの色
   hourlyWage?: number; // 時給

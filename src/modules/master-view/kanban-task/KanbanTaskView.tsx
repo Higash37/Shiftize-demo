@@ -61,7 +61,6 @@ export const KanbanTaskView: React.FC = () => {
           }
         );
       } catch (error) {
-        console.error("タスク取得エラー:", error);
         Alert.alert("エラー", "タスクの読み込みに失敗しました");
         setLoading(false);
       }
@@ -95,7 +94,6 @@ export const KanbanTaskView: React.FC = () => {
 
       Alert.alert("成功", "タスクのステータスが更新されました");
     } catch (error) {
-      console.error("ステータス更新エラー:", error);
       Alert.alert("エラー", "ステータスの更新に失敗しました");
     }
   };
@@ -110,7 +108,6 @@ export const KanbanTaskView: React.FC = () => {
       );
       Alert.alert("成功", "タスクを開始しました");
     } catch (error) {
-      console.error("開始エラー:", error);
       Alert.alert("エラー", "タスクの開始に失敗しました");
     }
   };
@@ -132,7 +129,6 @@ export const KanbanTaskView: React.FC = () => {
             setActionModalVisible(false);
             Alert.alert("成功", "タスクが削除されました");
           } catch (error) {
-            console.error("削除エラー:", error);
             Alert.alert("エラー", "タスクの削除に失敗しました");
           }
         },

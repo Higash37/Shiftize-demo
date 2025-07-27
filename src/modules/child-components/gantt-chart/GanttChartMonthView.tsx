@@ -231,8 +231,18 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // シフト削除
   const handleDeleteShift = async (shiftId: string) => {
     setIsLoading(true); // ローディング開始
-    const newStatus: ShiftStatus = "deleted"; // 状態に関係なく削除済みに変更
-    await updateShiftStatus(shiftId, newStatus);
+    
+    // 編集中のシフトの情報を取得
+    const targetShift = editingShift || shifts.find(s => s.id === shiftId);
+    if (targetShift) {
+      // 通知対応の削除機能を使用
+      await deleteShift(targetShift);
+    } else {
+      // フォールバック: 従来の方法
+      const newStatus: ShiftStatus = "deleted";
+      await updateShiftStatus(shiftId, newStatus);
+    }
+    
     setShowEditModal(false); // モーダルを閉じる
 
     // シフト削除後にページをリフレッシュ
@@ -288,7 +298,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         refreshPage();
       }
     } catch (error) {
-      console.error("シフト保存エラー:", error);
     } finally {
       setIsLoading(false);
     }

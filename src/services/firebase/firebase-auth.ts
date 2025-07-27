@@ -97,6 +97,7 @@ export const AuthService = {
     storeId?: string
   ): Promise<User> => {
     try {
+      
       // 現在のユーザー情報を保存
       const currentUser = auth.currentUser;
       if (!currentUser) {
@@ -137,6 +138,7 @@ export const AuthService = {
         if (color) userData.color = color;
         if (storeId) userData.storeId = storeId;
 
+
         await setDoc(userRef, userData);
 
         // 4. 一時的なアプリを削除
@@ -171,6 +173,7 @@ export const AuthService = {
     user: User,
     updates: {
       nickname?: string;
+      email?: string; // メールアドレス更新を追加
       password?: string;
       role?: "master" | "user";
       color?: string;
@@ -184,6 +187,20 @@ export const AuthService = {
       if (updates.nickname) {
         updateData.nickname = updates.nickname;
         updateData.displayName = updates.nickname;
+      }
+      if (updates.email) {
+        // 実メールアドレスは別フィールドに保存（元のemailフィールドは変更しない）
+        updateData.realEmail = updates.email;
+        
+        // 現在のユーザーデータを取得してパスワードを確認
+        const currentUserData = await getDoc(userRef);
+        if (currentUserData.exists()) {
+          const userData = currentUserData.data();
+          const passwordToUse = updates.password || userData.currentPassword;
+          
+          // Firebase Authに実メールアドレスでの新しいアカウントを作成
+          await AuthService.createSecondaryEmailAccount(user, updates.email, passwordToUse);
+        }
       }
       if (updates.role) updateData.role = updates.role;
       if (updates.password) updateData.currentPassword = updates.password;
@@ -231,11 +248,94 @@ export const AuthService = {
           uid: updatedDoc.id,
           role: data.role as "master" | "user",
           nickname: data.nickname || "",
+          email: data.email, // メールアドレスを追加
           color: data.color,
           storeId: data.storeId,
         };
       }
       return undefined;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * 実メールアドレス用のFirebase Authアカウントを作成
+   */
+  createSecondaryEmailAccount: async (
+    originalUser: any,
+    realEmail: string,
+    password: string
+  ): Promise<void> => {
+    try {
+
+      // 一時的なFirebaseアプリインスタンスを作成
+      const tempApp = initializeApp(firebaseConfig, "temp-app-secondary-" + Date.now());
+      const tempAuth = getAuth(tempApp);
+
+      try {
+        // 実メールアドレスでFirebase Authアカウント作成
+        const userCredential = await createUserWithEmailAndPassword(
+          tempAuth,
+          realEmail,
+          password
+        );
+
+        // プロフィール更新
+        await updateProfile(userCredential.user, {
+          displayName: originalUser.nickname,
+        });
+
+        // Firestoreに実メールアドレス用の新しいユーザードキュメント作成
+        const realEmailUserRef = doc(db, 'users', userCredential.user.uid);
+        const userData: any = {
+          uid: userCredential.user.uid,
+          nickname: originalUser.nickname,
+          email: realEmail, // 実メールアドレス
+          role: originalUser.role,
+          currentPassword: password,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          // 元のアカウントへの参照
+          originalUserId: originalUser.uid,
+        };
+        
+        // undefined値を除外して追加
+        if (originalUser.color !== undefined) userData.color = originalUser.color;
+        if (originalUser.storeId !== undefined) userData.storeId = originalUser.storeId;
+        if (originalUser.hourlyWage !== undefined) userData.hourlyWage = originalUser.hourlyWage;
+        
+        await setDoc(realEmailUserRef, userData);
+
+        // 元のFirestoreドキュメントに実メールアカウント情報を追加
+        const originalUserRef = doc(db, 'users', originalUser.uid);
+        await updateDoc(originalUserRef, {
+          realEmail: realEmail,
+          realEmailUserId: userCredential.user.uid,
+          updatedAt: new Date(),
+        });
+
+
+        // 一時的なアプリを削除
+        await deleteApp(tempApp);
+
+      } catch (authError: any) {
+        
+        // 一時的なアプリを削除
+        try {
+          await deleteApp(tempApp);
+        } catch (deleteError) {
+        }
+        
+        // メールアドレスが既に使用されている場合は警告だけ出して続行
+        if (authError.code === 'auth/email-already-in-use') {
+          return;
+        }
+        
+        throw authError;
+      }
+
     } catch (error) {
       throw error;
     }

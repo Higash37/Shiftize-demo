@@ -93,7 +93,6 @@ export const UserShiftList = () => {
           setCurrentUserStoreId(userData.storeId);
         }
       } catch (error) {
-        console.error("Error fetching user store ID:", error);
       }
     };
 
@@ -240,7 +239,6 @@ export const UserShiftList = () => {
 
         setTaskCounts(taskCountsData);
       } catch (error) {
-        console.error("タスクの取得に失敗しました:", error);
       }
     }
   };

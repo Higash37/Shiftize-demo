@@ -239,7 +239,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
         }
       }
     } catch (error) {
-      console.error("PDF保存エラー:", error);
       Alert.alert(
         "エラー",
         `PDFの保存に失敗しました: ${
@@ -423,7 +422,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
         }
       }
     } catch (error) {
-      console.error("共有エラー:", error);
       Alert.alert(
         "エラー",
         `PDFの共有に失敗しました: ${

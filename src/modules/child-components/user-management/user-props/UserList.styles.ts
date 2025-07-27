@@ -108,6 +108,12 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 2,
   },
+  userEmail: {
+    fontSize: 11,
+    color: colors.primary,
+    fontWeight: "500",
+    marginBottom: 2,
+  },
   storeId: {
     fontSize: 11,
     color: colors.text.secondary,

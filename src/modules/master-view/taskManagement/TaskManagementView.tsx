@@ -49,7 +49,6 @@ const TaskManagementView: React.FC = () => {
 
   const handleAddTask = async () => {
     if (!newTaskTitle || !newTaskFrequency || !newTaskTimePerTask) {
-      console.error("タスクの追加に必要なデータが不足しています。");
       return;
     }
 
@@ -71,7 +70,6 @@ const TaskManagementView: React.FC = () => {
       setNewTaskTimePerTask("");
       await reloadTasks();
     } catch (error) {
-      console.error("タスクの追加中にエラーが発生しました: ", error);
     } finally {
       setIsSubmitting(false);
     }

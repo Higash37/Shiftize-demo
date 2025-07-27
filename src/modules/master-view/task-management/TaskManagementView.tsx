@@ -50,7 +50,6 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
       setTasks(taskList);
       applyFilters(taskList);
     } catch (error) {
-      console.error("タスクの取得に失敗しました:", error);
       Alert.alert("エラー", "タスクの取得に失敗しました");
     } finally {
       setLoading(false);
@@ -113,7 +112,6 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
             await loadTasks();
             Alert.alert("完了", "タスクを削除しました");
           } catch (error) {
-            console.error("タスクの削除に失敗しました:", error);
             Alert.alert("エラー", "タスクの削除に失敗しました");
           }
         },
@@ -129,7 +127,6 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
       });
       await loadTasks();
     } catch (error) {
-      console.error("タスクの状態更新に失敗しました:", error);
       Alert.alert("エラー", "タスクの状態更新に失敗しました");
     }
   };

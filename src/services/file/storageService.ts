@@ -70,29 +70,19 @@ export class StorageService {
       const { FolderService } = await import("./fileService");
       let folderPath = "root";
       
-      console.log("アップロード開始 - folderId:", folderId);
       
       if (folderId && folderId !== "root" && folderId !== "") {
         try {
           const folders = await FolderService.getFoldersByStore(storeId);
-          console.log("取得したフォルダ一覧:", folders.map(f => ({ id: f.id, name: f.name, path: f.path, parentId: f.parentId })));
           folderPath = this.buildStoragePath(folderId, folders);
-          console.log("生成されたfolderPath:", folderPath);
         } catch (error) {
-          console.warn("フォルダ情報の取得に失敗、rootを使用:", error);
         }
       }
 
       // ストレージパスを構築
       const storagePath = `files/${storeId}/${folderPath}/${fileName}`;
-      console.log("最終ストレージパス:", storagePath);
       const storageRef = ref(storage, storagePath);
 
-      console.log("アップロード開始:", {
-        storagePath,
-        fileSize: file.size,
-        fileType: file.type,
-      });
 
       // アップロードタスクを作成
       const uploadTask = uploadBytesResumable(storageRef, file);
@@ -106,7 +96,6 @@ export class StorageService {
               (snapshot.bytesTransferred / snapshot.totalBytes) * 100
             );
 
-            console.log(`アップロード進捗: ${progress}%`);
 
             if (onProgress) {
               onProgress({
@@ -118,7 +107,6 @@ export class StorageService {
             }
           },
           (error) => {
-            console.error("ファイルアップロードエラー:", error);
             if (onProgress) {
               onProgress({
                 fileId: fileName,
@@ -136,7 +124,6 @@ export class StorageService {
               const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
               const fileType = this.getFileType(file.type);
 
-              console.log("アップロード完了:", { downloadUrl, fileType });
 
               if (onProgress) {
                 onProgress({
@@ -155,14 +142,12 @@ export class StorageService {
                 type: fileType,
               });
             } catch (error) {
-              console.error("ダウンロードURL取得エラー:", error);
               reject(error);
             }
           }
         );
       });
     } catch (error) {
-      console.error("アップロード準備エラー:", error);
       throw error;
     }
   }
@@ -186,13 +171,11 @@ export class StorageService {
       folderId: string;
     }>
   > {
-    console.log("uploadMultipleFiles開始 - 受信folderId:", folderId);
     const results = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        console.log(`ファイル${i}のアップロード開始 - folderId:`, folderId);
         const result = await this.uploadFile(
           file,
           folderId,
@@ -212,12 +195,10 @@ export class StorageService {
           folderId: folderId, // folderIdを結果に含める
         });
       } catch (error) {
-        console.error(`ファイル ${file.name} のアップロードに失敗:`, error);
         // エラーがあっても他のファイルの処理を続行
       }
     }
 
-    console.log("uploadMultipleFiles完了 - results:", results.map(r => ({name: r.originalName, folderId: r.folderId})));
     return results;
   }
 
@@ -225,26 +206,21 @@ export class StorageService {
    * フォルダIDからStorage用のパスを構築
    */
   private static buildStoragePath(folderId: string, folders: Folder[]): string {
-    console.log("buildStoragePath開始 - folderId:", folderId);
     const pathParts: string[] = [];
     let currentFolderId: string | undefined = folderId;
     
     // 親フォルダを辿って階層パスを構築
     while (currentFolderId) {
       const folder = folders.find(f => f.id === currentFolderId);
-      console.log("検索中のフォルダID:", currentFolderId, "見つかったフォルダ:", folder);
       if (folder) {
         pathParts.unshift(folder.name); // 先頭に追加
-        console.log("パス部分追加:", folder.name, "現在のpathParts:", pathParts);
         currentFolderId = folder.parentId;
       } else {
-        console.log("フォルダが見つからない:", currentFolderId);
         break;
       }
     }
     
     const result = pathParts.length > 0 ? pathParts.join("/") : "root";
-    console.log("最終的なStorageパス:", result);
     return result;
   }
 
@@ -256,7 +232,6 @@ export class StorageService {
       const fileRef = ref(storage, storageUrl);
       await deleteObject(fileRef);
     } catch (error) {
-      console.error("ファイル削除エラー:", error);
       throw error;
     }
   }
@@ -283,7 +258,6 @@ export class StorageService {
         downloadTokens: metadata.customMetadata?.downloadTokens,
       };
     } catch (error) {
-      console.error("メタデータ取得エラー:", error);
       throw error;
     }
   }
@@ -296,7 +270,6 @@ export class StorageService {
       const fileRef = ref(storage, storageUrl);
       return await getDownloadURL(fileRef);
     } catch (error) {
-      console.error("ダウンロードURL更新エラー:", error);
       throw error;
     }
   }
@@ -316,7 +289,6 @@ export class StorageService {
     }>
   > {
     try {
-      console.log(`Storage内のファイルを検索中: store=${storeId}`);
 
       // ストア全体のファイル一覧を取得
       const storeRef = ref(storage, `files/${storeId}`);
@@ -347,13 +319,7 @@ export class StorageService {
               folderId,
             });
 
-            console.log(
-              `ファイル発見: ${itemRef.name} (${this.formatFileSize(
-                metadata.size
-              )})`
-            );
           } catch (error) {
-            console.error(`ファイル ${itemRef.name} の情報取得エラー:`, error);
           }
         }
       }
@@ -374,16 +340,12 @@ export class StorageService {
             folderId: "", // ルートファイルは空文字
           });
 
-          console.log(`ルートファイル発見: ${itemRef.name}`);
         } catch (error) {
-          console.error(`ファイル ${itemRef.name} の情報取得エラー:`, error);
         }
       }
 
-      console.log(`Storage検索完了: ${files.length}個のファイルを発見`);
       return files;
     } catch (error) {
-      console.error("Storage内ファイル一覧取得エラー:", error);
       throw error;
     }
   }
@@ -423,13 +385,11 @@ export class StorageService {
             downloadUrl,
           });
         } catch (error) {
-          console.error(`ファイル ${itemRef.name} の情報取得エラー:`, error);
         }
       }
 
       return files;
     } catch (error) {
-      console.error("フォルダ内ファイル一覧取得エラー:", error);
       throw error;
     }
   }
@@ -454,7 +414,6 @@ export class StorageService {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("ファイルダウンロードエラー:", error);
       throw error;
     }
   }

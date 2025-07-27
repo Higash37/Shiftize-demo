@@ -29,7 +29,6 @@ const useTaskManagementHook = () => {
         }));
         setTasks(fetchedTasks);
       } catch (error) {
-        console.error("タスクの取得中にエラーが発生しました: ", error);
       }
     };
 
@@ -45,7 +44,6 @@ const useTaskManagementHook = () => {
       const taskId = await TaskService.addTask(taskWithStoreId);
       setTasks([...tasks, { ...taskWithStoreId, id: taskId }]);
     } catch (error) {
-      console.error("タスクの追加中にエラーが発生しました: ", error);
     }
   };
 
@@ -56,7 +54,6 @@ const useTaskManagementHook = () => {
         tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
       );
     } catch (error) {
-      console.error("タスクの更新中にエラーが発生しました: ", error);
     }
   };
 

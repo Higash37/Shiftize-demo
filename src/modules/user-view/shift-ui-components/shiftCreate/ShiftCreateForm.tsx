@@ -125,7 +125,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         }
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching user data:", error);
         setIsLoading(false);
       }
     };
@@ -175,10 +174,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               });
             }
           } catch (error) {
-            console.error(
-              `Failed to get store data for ${connectedStoreId}:`,
-              error
-            );
           }
         }
 
@@ -189,7 +184,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           setSelectedStoreId(userData.storeId || allStores[0].storeId);
         }
       } catch (error) {
-        console.error("Error fetching connected stores:", error);
       }
     };
 
@@ -411,7 +405,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         router.back();
       }, 10);
     } catch (error) {
-      console.error("Error creating/updating shift:", error);
       setIsLoading(false);
       setErrorMessage("シフトの保存中にエラーが発生しました");
     }
@@ -445,17 +438,14 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
         if (updatedShiftDoc.exists()) {
         } else {
-          console.error("Shift document not found after update.");
         }
       } else {
-        console.error("Shift document not found.");
       }
 
       setIsLoading(false);
       router.back();
     } catch (error) {
       const errorMessage = (error as Error).message;
-      console.error("Error deleting shift:", error);
       setIsLoading(false);
       setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
     }

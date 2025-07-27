@@ -110,7 +110,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           setUserData(userDoc.data() as UserData);
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -134,7 +133,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         );
         setConnectedStoreUsers(connectedUsers);
       } catch (error) {
-        console.error("Error fetching connected store users:", error);
       }
     };
 
@@ -170,7 +168,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           });
         }
       } catch (error) {
-        console.error("Error fetching existing shift:", error);
       } finally {
         setIsLoading(false);
       }
@@ -280,7 +277,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         classes: [],
       });
     } catch (error) {
-      console.error("Error creating shift:", error);
       setErrorMessage("シフトの作成に失敗しました");
     } finally {
       setIsLoading(false);
@@ -335,7 +331,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch (error) {
-      console.error("Error updating shift:", error);
       setErrorMessage("シフトの更新に失敗しました");
     } finally {
       setIsLoading(false);
@@ -359,7 +354,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               { text: "OK", onPress: () => router.back() },
             ]);
           } catch (error) {
-            console.error("Error deleting shift:", error);
             setErrorMessage("シフトの削除に失敗しました");
           } finally {
             setIsLoading(false);

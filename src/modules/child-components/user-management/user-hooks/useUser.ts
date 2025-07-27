@@ -25,7 +25,9 @@ export const useUser = (storeId?: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers();
+    if (storeId) {
+      fetchUsers();
+    }
   }, [storeId]);
   const fetchUsers = async () => {
     try {
@@ -35,7 +37,6 @@ export const useUser = (storeId?: string) => {
       setError(null);
     } catch (err) {
       setError("ユーザー情報の取得に失敗しました");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -73,16 +74,20 @@ export const useUser = (storeId?: string) => {
         }
       }
 
-      const userEmail =
+      // 実際のメールアドレスが提供された場合はそれを使用、なければ自動生成
+      const userEmail = email || (
         role === "master"
           ? "master@example.com"
-          : `${storeId}${nickname}@example.com`;
-      if (role === "user") {
-        const emailExists = await checkEmailExists(userEmail);
-        if (emailExists) {
-          throw new Error("このニックネームは既に使用されています");
-        }
+          : `${storeId}${nickname}@example.com`
+      );
+      
+      
+      // メールアドレスの重複チェック
+      const emailExists = await checkEmailExists(userEmail);
+      if (emailExists) {
+        throw new Error(email ? "このメールアドレスは既に使用されています" : "このニックネームは既に使用されています");
       }
+      
       const newUser = await createUser(
         userEmail,
         password,
@@ -91,10 +96,10 @@ export const useUser = (storeId?: string) => {
         storeId
       );
 
+      // リストを更新
       await fetchUsers();
       return newUser;
     } catch (err: any) {
-      console.error("ユーザー作成エラー:", err);
       const errorMessage =
         err.code === "auth/weak-password"
           ? "パスワードは6文字以上で入力してください"
@@ -113,6 +118,7 @@ export const useUser = (storeId?: string) => {
     user: User,
     updates: {
       nickname?: string;
+      email?: string; // メールアドレス更新を追加
       password?: string;
       role?: "master" | "user";
       color?: string;
@@ -121,7 +127,11 @@ export const useUser = (storeId?: string) => {
   ): Promise<User | undefined> => {
     try {
       setLoading(true);
+      
+      
       const updatedUser = await updateUser(user, updates);
+      
+      
       if (updatedUser) {
         setUsers((prev) =>
           prev.map((u) => (u.uid === user.uid ? updatedUser : u))
@@ -132,7 +142,6 @@ export const useUser = (storeId?: string) => {
       return updatedUser;
     } catch (err) {
       setError("ユーザー情報の更新に失敗しました");
-      console.error(err);
       throw err;
     } finally {
       setLoading(false);
@@ -146,7 +155,6 @@ export const useUser = (storeId?: string) => {
       await fetchUsers();
     } catch (err) {
       setError("ユーザーの削除に失敗しました");
-      console.error(err);
       throw err;
     } finally {
       setLoading(false);

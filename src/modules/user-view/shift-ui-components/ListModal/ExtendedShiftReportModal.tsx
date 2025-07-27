@@ -62,7 +62,6 @@ export const ExtendedShiftReportModal: React.FC<
 
       setAvailableTasks(availableNow);
     } catch (error) {
-      console.error("タスクの読み込みに失敗しました:", error);
       Alert.alert("エラー", "タスクの読み込みに失敗しました");
     }
   };
@@ -177,7 +176,6 @@ export const ExtendedShiftReportModal: React.FC<
       onReported();
       onClose();
     } catch (error) {
-      console.error("シフト報告の送信に失敗しました:", error);
       Alert.alert("エラー", "シフト報告の送信に失敗しました");
     } finally {
       setLoading(false);

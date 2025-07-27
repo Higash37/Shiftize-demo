@@ -113,7 +113,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         );
         setConnectedStoreUsers(users);
       } catch (error) {
-        console.error("Error fetching connected store users:", error);
       }
     };
 
@@ -199,7 +198,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
       await onSave?.(data);
       onClose();
     } catch (error) {
-      console.error("Save shift error:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
     } finally {
       setLoading(false);
@@ -220,7 +218,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
             await onDelete?.(shiftData.id!);
             onClose();
           } catch (error) {
-            console.error("Delete shift error:", error);
             Alert.alert("エラー", "シフトの削除に失敗しました");
           } finally {
             setLoading(false);

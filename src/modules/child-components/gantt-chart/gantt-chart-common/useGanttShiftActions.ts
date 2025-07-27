@@ -13,6 +13,7 @@ import {
   ShiftStatus,
   ClassTimeSlot,
 } from "@/common/common-models/ModelIndex";
+import { ShiftService } from "@/services/firebase/firebase-shift";
 
 export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string } | null;
@@ -68,14 +69,33 @@ export function useGanttShiftActions({
             userColor = selectedUser.color;
           }
         } catch (error) {
-          console.error("ユーザー情報取得エラー:", error);
         }
 
-        await updateDoc(doc(db, "shifts", editingShift.id), {
-          ...newShiftData,
-          userColor: userColor || "#4A90E2", // ユーザーカラー情報も更新
-          updatedAt: serverTimestamp(),
-        });
+        // ステータス変更の場合は通知機能を使用
+        if (editingShift.status !== newShiftData.status && newShiftData.status === "approved") {
+          // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
+          await ShiftService.approveShiftChanges(editingShift.id, {
+            nickname: user?.nickname || "教室長",
+            userId: user?.uid || ""
+          });
+          
+          // ステータス以外の変更がある場合は追加で更新
+          const { status, ...otherChanges } = newShiftData;
+          if (Object.keys(otherChanges).length > 0) {
+            await updateDoc(doc(db, "shifts", editingShift.id), {
+              ...otherChanges,
+              userColor: userColor || "#4A90E2",
+              updatedAt: serverTimestamp(),
+            });
+          }
+        } else {
+          // その他の変更は直接更新
+          await updateDoc(doc(db, "shifts", editingShift.id), {
+            ...newShiftData,
+            userColor: userColor || "#4A90E2", // ユーザーカラー情報も更新
+            updatedAt: serverTimestamp(),
+          });
+        }
       } else {
         if (newShiftData.status === "deleted") {
           newShiftData.status = "deletion_requested"; // 削除申請中に変更
@@ -93,7 +113,6 @@ export function useGanttShiftActions({
             userColor = selectedUser.color;
           }
         } catch (error) {
-          console.error("ユーザー情報取得エラー:", error);
         }
 
         await addDoc(collection(db, "shifts"), {
@@ -118,42 +137,57 @@ export function useGanttShiftActions({
   // シフト削除
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
-      // ステータスに応じて仕様通りに分岐
-      if (shift.status === "deleted") {
-        // 物理削除
-        await deleteDoc(doc(db, "shifts", shift.id));
-      } else if (shift.status === "pending" || shift.status === "rejected") {
-        // 直接削除
-        await updateDoc(doc(db, "shifts", shift.id), {
-          status: "deleted",
-          updatedAt: serverTimestamp(),
-        });
-      } else if (shift.status === "approved") {
-        // 削除申請
-        await updateDoc(doc(db, "shifts", shift.id), {
-          status: "deletion_requested",
-          updatedAt: serverTimestamp(),
-        });
-      } else if (shift.status === "deletion_requested") {
-        // マスターによる承認で完全削除
-        await updateDoc(doc(db, "shifts", shift.id), {
-          status: "deleted",
-          updatedAt: serverTimestamp(),
-        });
+      
+      try {
+        // 通知付き削除を使用
+        const { ShiftAPIService } = await import("@/services/api/ShiftAPIService");
+        const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
+        
+        // ステータスに応じて仕様通りに分岐
+        if (shift.status === "deleted") {
+          await ShiftAPIService.deleteShift(shift.id, deletedBy);
+        } else if (shift.status === "pending" || shift.status === "rejected") {
+          await ShiftAPIService.deleteShift(shift.id, deletedBy);
+        } else if (shift.status === "approved") {
+          // マスターが承認済みシフトを削除する場合は直接削除（通知付き）
+          await ShiftAPIService.deleteShift(shift.id, deletedBy);
+        } else if (shift.status === "deletion_requested") {
+          await ShiftAPIService.deleteShift(shift.id, deletedBy);
+        }
+      } catch (error) {
+        // フォールバック: 直接Firebase操作
+        if (shift.status === "deleted") {
+          await deleteDoc(doc(db, "shifts", shift.id));
+        } else {
+          await updateDoc(doc(db, "shifts", shift.id), {
+            status: "deleted",
+            updatedAt: serverTimestamp(),
+          });
+        }
       }
+      
       if (refreshPage) {
         refreshPage();
       }
     },
-    [refreshPage]
+    [refreshPage, user]
   );
 
   const updateShiftStatus = useCallback(
     async (shiftId: string, status: ShiftStatus) => {
       if (!user) throw new Error("ユーザーが未ログインです");
 
-      const shiftRef = doc(db, "shifts", shiftId);
-      await updateDoc(shiftRef, { status });
+      // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
+      if (status === "approved") {
+        await ShiftService.approveShiftChanges(shiftId, {
+          nickname: user.nickname || "教室長",
+          userId: user.uid
+        });
+      } else {
+        // その他のステータス変更は直接更新
+        const shiftRef = doc(db, "shifts", shiftId);
+        await updateDoc(shiftRef, { status });
+      }
 
       if (refreshPage) {
         refreshPage();

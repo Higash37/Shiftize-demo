@@ -96,7 +96,6 @@ export function CreateFolderModal({
       setFolderName("");
       onClose();
     } catch (error) {
-      console.error("フォルダ作成エラー:", error);
       Alert.alert("エラー", "フォルダの作成に失敗しました。");
     } finally {
       setIsCreating(false);

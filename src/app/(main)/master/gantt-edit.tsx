@@ -77,7 +77,6 @@ export default function GanttEditScreen() {
       // 時間変更後にページをリフレッシュ
       refreshPage();
     } catch (error) {
-      console.error("Time change error:", error);
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
     }
   };
@@ -140,7 +139,6 @@ export default function GanttEditScreen() {
       // シフト保存後にページをリフレッシュ
       refreshPage();
     } catch (error) {
-      console.error("Shift save error:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
       throw error;
     }
@@ -152,7 +150,6 @@ export default function GanttEditScreen() {
       // シフト削除後にページをリフレッシュ
       refreshPage();
     } catch (error) {
-      console.error("Shift delete error:", error);
       Alert.alert("エラー", "シフトの削除に失敗しました");
       throw error;
     }

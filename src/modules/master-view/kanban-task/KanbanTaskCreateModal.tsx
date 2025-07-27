@@ -73,7 +73,6 @@ export const KanbanTaskCreateModal: React.FC<KanbanTaskCreateModalProps> = ({
       onTaskCreated();
       onClose();
     } catch (error) {
-      console.error("タスク作成エラー:", error);
       Alert.alert("エラー", "タスクの作成に失敗しました");
     } finally {
       setLoading(false);

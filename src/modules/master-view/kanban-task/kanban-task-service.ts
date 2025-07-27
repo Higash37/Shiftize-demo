@@ -53,7 +53,6 @@ export const kanbanTaskService = {
 
       return tasks;
     } catch (error) {
-      console.error("タスク取得エラー:", error);
       throw error;
     }
   },
@@ -94,7 +93,6 @@ export const kanbanTaskService = {
       const docRef = await addDoc(tasksRef, newTask);
       return docRef.id;
     } catch (error) {
-      console.error("タスク作成エラー:", error);
       throw error;
     }
   },
@@ -113,7 +111,6 @@ export const kanbanTaskService = {
         updatedAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("ステータス更新エラー:", error);
       throw error;
     }
   },
@@ -139,7 +136,6 @@ export const kanbanTaskService = {
 
       await updateDoc(taskRef, updateData);
     } catch (error) {
-      console.error("タスク更新エラー:", error);
       throw error;
     }
   },
@@ -152,7 +148,6 @@ export const kanbanTaskService = {
       const taskRef = doc(db, "kanbanTasks", taskId);
       await deleteDoc(taskRef);
     } catch (error) {
-      console.error("タスク削除エラー:", error);
       throw error;
     }
   },
@@ -175,7 +170,6 @@ const getUserName = async (userId: string): Promise<string> => {
 
     return "Unknown User";
   } catch (error) {
-    console.error("ユーザー名取得エラー:", error);
     return "Unknown User";
   }
 };

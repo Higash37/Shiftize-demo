@@ -143,7 +143,6 @@ export const TaskPerformanceView: React.FC<TaskPerformanceViewProps> = ({
       setMetrics(mockMetrics);
       setRankings(mockRankings);
     } catch (error) {
-      console.error("パフォーマンスデータ読み込みエラー:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);

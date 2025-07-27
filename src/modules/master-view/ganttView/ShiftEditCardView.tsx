@@ -124,7 +124,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
       await onShiftSave?.(data);
       onShiftUpdate(); // 一覧を更新
     } catch (error) {
-      console.error("Shift save error:", error);
       throw error;
     }
   };
@@ -134,7 +133,6 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
       await onShiftDelete?.(shiftId);
       onShiftUpdate(); // 一覧を更新
     } catch (error) {
-      console.error("Shift delete error:", error);
       throw error;
     }
   };
