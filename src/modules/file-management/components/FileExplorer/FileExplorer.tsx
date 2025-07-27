@@ -20,6 +20,7 @@ import {
 import { styles } from "./FileExplorer.styles";
 import { FileSidebar } from "../FileSidebar/FileSidebar";
 import { StorageService } from "@/services/file/storageService";
+import { FileList } from "../FileList/FileList";
 
 interface FileExplorerProps {
   folders: Folder[];
@@ -495,116 +496,51 @@ export function FileExplorer({
     );
   };
 
-  // メインコンテンツのレンダリング
-  const renderContent = () => {
-    // フォルダ内を表示している場合は子フォルダとファイルを両方チェック
-    if (currentFolderId !== null) {
-      // 現在のフォルダの子フォルダを取得
-      const childFolders = folders.filter(
-        (folder) => folder.parentId === currentFolderId
-      );
 
-      // 特定フォルダ内表示：子フォルダとファイルの両方が空の場合
-      if (childFolders.length === 0 && files.length === 0) {
-        return renderEmptyState();
-      }
 
-      // 子フォルダとファイルを結合して表示
-      const folderItems = [
-        ...childFolders.map((folder) => ({
-          ...folder,
-          itemType: "folder" as const,
-        })),
-        ...files.map((file) => ({ ...file, itemType: "file" as const })),
-      ];
-
-      return (
-        <ScrollView
-          style={styles.fileAreaContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {folderItems.map((item) =>
-            renderListItem(
-              item as Folder | FileItem,
-              item.itemType === "folder" ? "folder" : "file"
-            )
-          )}
-        </ScrollView>
-      );
-    }
-
-    // ルート表示：ルートレベルのフォルダとファイルのみを表示
-    const rootFolders = folders.filter(
-      (folder) =>
-        folder.parentId === null ||
-        folder.parentId === undefined ||
-        folder.parentId === ""
-    );
-
-    if (rootFolders.length === 0 && files.length === 0) {
-      return renderEmptyState();
-    }
-
-    const allItems = [
-      ...rootFolders.map((folder) => ({
-        ...folder,
-        itemType: "folder" as const,
-      })),
-      ...files.map((file) => ({ ...file, itemType: "file" as const })),
-    ];
-
-    return (
-      <ScrollView
-        style={styles.fileAreaContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {allItems.map((item) =>
-          renderListItem(
-            item as Folder | FileItem,
-            item.itemType === "folder" ? "folder" : "file"
-          )
-        )}
-      </ScrollView>
-    );
-  };
-
+  // データの準備
+  const currentFolders = folders.filter(
+    (folder) => currentFolderId ? folder.parentId === currentFolderId : !folder.parentId
+  );
+  
+  const allItems = [
+    ...currentFolders.map((folder) => ({
+      ...folder,
+      itemType: "folder" as const,
+    })),
+    ...files.map((file) => ({ ...file, itemType: "file" as const })),
+  ];
 
   return (
     <View style={styles.container}>
       {!hideHeader && (
-        <View style={styles.fixedHeader}>
+        <>
           <View style={styles.titleContainer}>
             <Text style={styles.pageTitle}>ファイル管理</Text>
           </View>
           {renderBreadcrumbs()}
           {renderToolbar()}
-        </View>
+        </>
       )}
-      {hideHeader && showBreadcrumbs && (
-        <View style={styles.breadcrumbOnlyHeader}>{renderBreadcrumbs()}</View>
-      )}
+      {hideHeader && showBreadcrumbs && renderBreadcrumbs()}
 
       {/* メインコンテンツ */}
-      <View style={styles.mainContent}>
-        {/* デスクトップ用サイドバー */}
-        {!isMobile && (
-          <FileSidebar
-            folders={folders}
-            currentFolderId={currentFolderId}
-            breadcrumbs={breadcrumbs}
-            onFolderPress={onFolderPress}
-            onHomePress={() =>
-              onBreadcrumbPress({ id: "", name: "ルート", path: "/" })
+      <View style={{ flex: 1 }}>
+        {allItems.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <FlatList
+            data={allItems}
+            renderItem={({ item }) =>
+              renderListItem(
+                item as Folder | FileItem,
+                item.itemType === "folder" ? "folder" : "file"
+              )
             }
-            onCreateFolder={onCreateFolder}
-            onUploadFiles={onUploadFiles}
-            isMobile={isMobile}
+            keyExtractor={(item) => `${item.itemType}-${item.id}`}
+            showsVerticalScrollIndicator={true}
           />
         )}
-
-        <View style={styles.fileArea}>
-          {renderContent()}
-        </View>
       </View>
     </View>
   );

@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, Alert, Platform } from "react-native";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
+import { View, Alert, Platform, Text, TouchableOpacity, FlatList, ScrollView } from "react-native";
 import { useAuth } from "@/services/auth/useAuth";
+import { MasterHeader, Header } from "@/common/common-ui/ui-layout";
+import { MaterialIcons } from "@expo/vector-icons";
 import {
   Folder,
   FileItem,
@@ -40,6 +42,7 @@ export function FileManagerView({
   const [uploadModalFolderId, setUploadModalFolderId] = useState<string | null>(
     null
   );
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   // 既存Storageファイルとの同期
   const syncStorageFiles = useCallback(async () => {
@@ -398,37 +401,362 @@ export function FileManagerView({
     [handleFilePress, loadData, currentFolderId]
   );
 
+  // 選択ハンドラー
+  const handleSelectItem = (id: string, type: "folder" | "file") => {
+    const itemId = `${type}-${id}`;
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  // 全選択/全解除
+  const handleSelectAll = () => {
+    const currentFolders = folders.filter(
+      (folder) => currentFolderId ? folder.parentId === currentFolderId : !folder.parentId
+    );
+    
+    if (selectedItems.size > 0) {
+      setSelectedItems(new Set());
+    } else {
+      const allItems = new Set<string>();
+      currentFolders.forEach((folder) => allItems.add(`folder-${folder.id}`));
+      files.forEach((file) => allItems.add(`file-${file.id}`));
+      setSelectedItems(allItems);
+    }
+  };
+
+  // 選択されたファイルの印刷
+  const handlePrintSelected = async () => {
+    const selectedFiles = files.filter((file) =>
+      selectedItems.has(`file-${file.id}`)
+    );
+
+    if (selectedFiles.length === 0) {
+      Alert.alert("エラー", "印刷するファイルを選択してください。");
+      return;
+    }
+
+    let printedCount = 0;
+
+    for (const file of selectedFiles) {
+      try {
+        if (Platform.OS === "web") {
+          let printUrl = file.downloadUrl;
+
+          if (!printUrl) {
+            printUrl = await StorageService.refreshDownloadUrl(file.storageUrl);
+          }
+
+          if (printUrl) {
+            if (file.type === "pdf") {
+              const printWindow = window.open(printUrl, "_blank");
+              if (printWindow) {
+                printWindow.onload = () => {
+                  setTimeout(() => {
+                    printWindow.print();
+                  }, 1000);
+                };
+                printedCount++;
+              }
+            } else {
+              window.open(printUrl, "_blank");
+              printedCount++;
+            }
+          }
+        } else {
+          await StorageService.downloadFile(file.storageUrl, file.originalName);
+          printedCount++;
+        }
+      } catch (error) {
+        console.error(`印刷エラー: ${file.name}`, error);
+      }
+    }
+
+    if (printedCount > 0) {
+      const message =
+        Platform.OS === "web"
+          ? `${printedCount}個のファイルを印刷用に開きました。PDFファイルは自動で印刷ダイアログが表示されます。`
+          : `${printedCount}個のファイルをダウンロードしました。`;
+      Alert.alert("印刷", message);
+      setSelectedItems(new Set());
+    } else {
+      Alert.alert("エラー", "ファイルの印刷に失敗しました。");
+    }
+  };
+
+  // レンダリング関数
+  const renderFileList = () => {
+    const currentFolders = folders.filter(
+      (folder) => currentFolderId ? folder.parentId === currentFolderId : !folder.parentId
+    );
+    
+    const allItems = [...currentFolders, ...files];
+    
+    if (allItems.length === 0) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <MaterialIcons name="folder-open" size={64} color="#6c757d" />
+          <Text style={{ fontSize: 20, color: "#1a1a1a", marginTop: 16, marginBottom: 8 }}>
+            {currentFolderId ? "このフォルダは空です" : "ファイルがありません"}
+          </Text>
+          <Text style={{ fontSize: 16, color: "#6c757d", textAlign: 'center', paddingHorizontal: 32 }}>
+            {currentFolderId 
+              ? "このフォルダにファイルをアップロードするか、新しいフォルダを作成してください"
+              : "新しいフォルダを作成するか、ファイルをアップロードして開始してください"}
+          </Text>
+        </View>
+      );
+    }
+    
+    return (
+      <FlatList
+        data={allItems}
+        renderItem={({ item }) => {
+          const isFolder = 'filesCount' in item;
+          return (
+            <TouchableOpacity
+              style={{ 
+                paddingHorizontal: 16,
+                paddingVertical: 20,
+                borderBottomWidth: 1, 
+                borderBottomColor: '#f0f0f0',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                backgroundColor: selectedItems.has(`${isFolder ? 'folder' : 'file'}-${item.id}`) ? '#e3f2fd' : '#fff',
+              }}
+              onPress={() => {
+                if (isFolder) {
+                  handleFolderPress(item as Folder);
+                } else {
+                  handleFilePress(item as FileItem);
+                }
+              }}
+              onLongPress={() => {
+                if (isFolder) {
+                  handleFolderLongPress?.(item as Folder);
+                } else {
+                  handleFileLongPress?.(item as FileItem);
+                }
+              }}
+            >
+              {/* チェックボックス */}
+              <TouchableOpacity 
+                style={{ marginRight: 12, padding: 4 }}
+                onPress={() => handleSelectItem(item.id, isFolder ? 'folder' : 'file')}
+              >
+                <MaterialIcons 
+                  name={selectedItems.has(`${isFolder ? 'folder' : 'file'}-${item.id}`) ? "check-box" : "check-box-outline-blank"} 
+                  size={20} 
+                  color={selectedItems.has(`${isFolder ? 'folder' : 'file'}-${item.id}`) ? "#007bff" : "#6c757d"} 
+                />
+              </TouchableOpacity>
+              
+              {/* アイコン */}
+              <View style={{ width: 32, alignItems: 'center', marginRight: 12 }}>
+                {isFolder ? (
+                  <MaterialIcons name="folder" size={24} color="#007bff" />
+                ) : (
+                  <MaterialIcons name="insert-drive-file" size={24} color="#6c757d" />
+                )}
+              </View>
+              
+              {/* コンテンツ */}
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, fontWeight: '500', color: '#1a1a1a', marginBottom: 2 }}>
+                  {item.name}
+                </Text>
+                <Text style={{ fontSize: 12, color: '#6c757d' }}>
+                  {isFolder 
+                    ? `${(item as Folder).filesCount} ファイル` 
+                    : `${Math.round((item as FileItem).size / 1024)} KB`}
+                </Text>
+              </View>
+              
+              {/* 日付 */}
+              <Text style={{ fontSize: 12, color: '#6c757d', width: 60, textAlign: 'right' }}>
+                {new Date(item.updatedAt).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={true}
+      />
+    );
+  };
+
   if (!user?.storeId) {
     return null;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <View style={{ flex: 1, overflow: "hidden", backgroundColor: "#FFFFFF" }}>
-        <FileExplorer
-          folders={folders}
-          files={files}
-          breadcrumbs={breadcrumbs}
-          currentFolderId={currentFolderId}
-          isLoading={isLoading}
-          sortOptions={sortOptions}
-          onFolderPress={handleFolderPress}
-          onFilePress={handleFilePress}
-          onBreadcrumbPress={handleBreadcrumbPress}
-          onCreateFolder={() => setShowCreateFolderModal(true)}
-          onUploadFiles={() => {
-
-            // 現在のフォルダIDを固定してモーダルに渡す
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {user?.role === "master" ? (
+        <MasterHeader title="ファイル管理" />
+      ) : (
+        <Header title="ファイル管理" />
+      )}
+      
+      {/* パンくずリスト */}
+      <View style={{ 
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: "#ffffff",
+        borderBottomWidth: 1,
+        borderBottomColor: "#e9ecef",
+      }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => handleBreadcrumbPress({ id: "", name: "ルート", path: "/" })}
+              style={{ paddingHorizontal: 6, paddingVertical: 2 }}
+            >
+              <Text style={{ fontSize: 14, color: "#007bff" }}>ホーム</Text>
+            </TouchableOpacity>
+            
+            {breadcrumbs.map((breadcrumb, index) => (
+              <Fragment key={breadcrumb.id}>
+                <Text style={{ fontSize: 14, color: "#6c757d", marginHorizontal: 2 }}> / </Text>
+                <TouchableOpacity
+                  onPress={() => handleBreadcrumbPress(breadcrumb)}
+                  style={{ paddingHorizontal: 6, paddingVertical: 2 }}
+                >
+                  <Text style={{ 
+                    fontSize: 14, 
+                    color: index === breadcrumbs.length - 1 ? "#1a1a1a" : "#007bff",
+                    fontWeight: index === breadcrumbs.length - 1 ? "600" : "normal"
+                  }}>
+                    {breadcrumb.name}
+                  </Text>
+                </TouchableOpacity>
+              </Fragment>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+      
+      {/* ツールバー */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: "#ffffff",
+        borderBottomWidth: 1,
+        borderBottomColor: "#e9ecef",
+      }}>
+        <TouchableOpacity 
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            marginRight: 12,
+            borderRadius: 6,
+            backgroundColor: "#f8f9fa",
+          }}
+          onPress={() => setShowCreateFolderModal(true)}
+        >
+          <MaterialIcons name="create-new-folder" size={20} color="#007bff" />
+          <Text style={{ fontSize: 14, color: "#007bff", fontWeight: "500", marginLeft: 4 }}>
+            フォルダ
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            marginRight: 12,
+            borderRadius: 6,
+            backgroundColor: "#f8f9fa",
+          }}
+          onPress={() => {
             setUploadModalFolderId(currentFolderId);
             setShowUploadModal(true);
           }}
-          onSortChange={handleSortChange}
-          onFolderLongPress={handleFolderLongPress}
-          onFileLongPress={handleFileLongPress}
-          onDiagnosisAndRecover={diagnosisAndRecover}
-          hideHeader={hideHeader}
-          showBreadcrumbs={showBreadcrumbs}
-        />
+        >
+          <MaterialIcons name="file-upload" size={20} color="#007bff" />
+          <Text style={{ fontSize: 14, color: "#007bff", fontWeight: "500", marginLeft: 4 }}>
+            アップロード
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            marginRight: 12,
+            borderRadius: 6,
+            backgroundColor: "#f8f9fa",
+          }}
+          onPress={handleSelectAll}
+        >
+          <MaterialIcons 
+            name={selectedItems.size > 0 ? "deselect" : "select-all"} 
+            size={20} 
+            color="#007bff" 
+          />
+          <Text style={{ fontSize: 14, color: "#007bff", fontWeight: "500", marginLeft: 4 }}>
+            {selectedItems.size > 0 ? "全解除" : "全選択"}
+          </Text>
+        </TouchableOpacity>
+        
+        {selectedItems.size > 0 && (
+          <TouchableOpacity 
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              marginRight: 12,
+              borderRadius: 6,
+              backgroundColor: "#28a745",
+            }}
+            onPress={handlePrintSelected}
+          >
+            <MaterialIcons name="print" size={20} color="white" />
+            <Text style={{ fontSize: 14, color: "white", fontWeight: "500", marginLeft: 4 }}>
+              印刷 ({Array.from(selectedItems).filter(id => id.startsWith('file-')).length})
+            </Text>
+          </TouchableOpacity>
+        )}
+        
+        {diagnosisAndRecover && (
+          <TouchableOpacity 
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 6,
+              backgroundColor: "#f8f9fa",
+            }}
+            onPress={diagnosisAndRecover}
+          >
+            <MaterialIcons name="healing" size={20} color="#FF9800" />
+            <Text style={{ fontSize: 14, color: "#FF9800", fontWeight: "500", marginLeft: 4 }}>
+              診断
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      {/* スクロール可能なリスト部分 */}
+      <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        {renderFileList()}
       </View>
 
       <FileUploadModal

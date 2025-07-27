@@ -20,6 +20,57 @@ export function groupShiftsByOverlap(shifts: ShiftItem[]): ShiftItem[][] {
     .map((shift) => [shift]);
 }
 
+// 重複しないシフトをグループ化（時間が重複しないシフトを同じ行にまとめる）
+export function groupNonOverlappingShifts(shifts: ShiftItem[]): ShiftItem[][] {
+  if (!shifts || shifts.length === 0) return [];
+  
+  // 時間順にソート
+  const sortedShifts = [...shifts].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const groups: ShiftItem[][] = [];
+  
+  sortedShifts.forEach(shift => {
+    // 既存のグループで重複しないものを探す
+    let addedToGroup = false;
+    
+    for (const group of groups) {
+      // このグループの全シフトと重複しないかチェック
+      const hasOverlap = group.some(existingShift => 
+        shiftsOverlap(existingShift, shift)
+      );
+      
+      if (!hasOverlap) {
+        group.push(shift);
+        addedToGroup = true;
+        break;
+      }
+    }
+    
+    // どのグループにも追加できなかった場合、新しいグループを作成
+    if (!addedToGroup) {
+      groups.push([shift]);
+    }
+  });
+  
+  return groups;
+}
+
+// 2つのシフトが時間的に重複するかチェック
+function shiftsOverlap(shift1: ShiftItem, shift2: ShiftItem): boolean {
+  const start1 = timeToMinutes(shift1.startTime);
+  const end1 = timeToMinutes(shift1.endTime);
+  const start2 = timeToMinutes(shift2.startTime);
+  const end2 = timeToMinutes(shift2.endTime);
+  
+  // 重複条件: start1 < end2 && start2 < end1
+  return start1 < end2 && start2 < end1;
+}
+
+// 時間文字列を分に変換
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
 // 時間(string)→位置(number) - 15分刻みに対応
 export function timeToPosition(time: string): number {
   const [hours, minutes] = time.split(":").map(Number);

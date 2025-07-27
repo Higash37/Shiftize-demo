@@ -95,7 +95,7 @@ export const ExampleChip: React.FC<{
   >
     {icon && (
       <MaterialIcons
-        name={icon as "string"}
+        name={icon as any}
         size={16}
         color={selected ? colors.text.white : colors.text.primary}
         style={styles.chipIcon}
@@ -134,7 +134,7 @@ export const ExampleListItem: React.FC<{
         {subtitle && <Text style={styles.listItemSubtitle}>{subtitle}</Text>}
       </View>
       <MaterialIcons
-        name={rightIcon as "string"}
+        name={rightIcon as any}
         size={20}
         color={colors.text.secondary}
       />

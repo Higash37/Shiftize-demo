@@ -39,6 +39,7 @@ import { useUsers } from "@/modules/child-components/user-management/user-hooks/
 import { MultiStoreService } from "@/services/firebase/firebase-multistore";
 import { styles } from "./MasterShiftCreate.styles";
 import { ShiftData, MasterShiftCreateProps } from "./MasterShiftCreate.types";
+import { RecruitmentShiftService } from "@/services/recruitment-shift/recruitmentShiftService";
 
 export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   mode,
@@ -217,37 +218,69 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         }
       }
 
-      // シフトを各日付に登録
-      const createPromises = shiftData.dates.map(async (date) => {
-        // 時間の差を計算（duration）
-        const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+      const totalDays = shiftData.dates.length;
+      let completedCount = 0;
 
-        const newShift = {
-          userId: selectedUserId,
-          storeId: user?.storeId || "", // storeIdを追加
-          nickname: nickname,
-          date,
-          startTime: shiftData.startTime,
-          endTime: shiftData.endTime,
-          type: shiftData.hasClass ? ("class" as const) : ("user" as const),
-          subject: "", // subjectフィールドを追加
-          isCompleted: false, // isCompletedフィールドを追加
-          duration: durationHours, // durationフィールドを追加
-          classes: shiftData.classes,
-          status: selectedStatus, // マスターが選択したステータス
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+      // 募集シフトか通常シフトかを判定
+      if (selectedUserId === "recruitment") {
+        // 募集シフトを各日付に登録（並列処理）
+        const createPromises = shiftData.dates.map(async (date) => {
+          const recruitmentShift = {
+            storeId: user?.storeId || "",
+            date,
+            startTime: shiftData.startTime,
+            endTime: shiftData.endTime,
+            subject: "", // 必要に応じて教科を追加
+            notes: "", // 必要に応じてメモを追加
+            createdBy: user?.uid || "",
+            status: "open" as const,
+            maxApplicants: undefined, // 制限なし
+          };
 
-        // useShiftのcreateShiftメソッドを使用
-        await createShift(newShift);
-      });
+          await RecruitmentShiftService.createRecruitmentShift(recruitmentShift);
+          completedCount++;
+          // プログレス更新は削除（シンプルにする）
+        });
 
-      await Promise.all(createPromises);
+        await Promise.all(createPromises);
+      } else {
+        // 通常のシフトを各日付に登録（並列処理）
+        const createPromises = shiftData.dates.map(async (date) => {
+          // 時間の差を計算（duration）
+          const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
+          const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
+          const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
+          const durationHours =
+            Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+
+          const newShift = {
+            userId: selectedUserId,
+            storeId: user?.storeId || "", // storeIdを追加
+            nickname: nickname,
+            date,
+            startTime: shiftData.startTime,
+            endTime: shiftData.endTime,
+            type: shiftData.hasClass ? ("class" as const) : ("user" as const),
+            subject: "", // subjectフィールドを追加
+            isCompleted: false, // isCompletedフィールドを追加
+            duration: durationHours, // durationフィールドを追加
+            classes: shiftData.classes,
+            status: selectedStatus, // マスターが選択したステータス
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // useShiftのcreateShiftメソッドを使用
+          await createShift(newShift);
+          completedCount++;
+          // プログレス更新は削除（シンプルにする）
+        });
+
+        await Promise.all(createPromises);
+      }
+
+      // ローディングを早めに解除
+      setIsLoading(false);
 
       // 成功通知を表示
       setShowSuccess(true);
@@ -257,7 +290,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // 2秒後に通知を消す
+      // 1.5秒後に通知を消す
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -266,7 +299,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         }).start(() => {
           setShowSuccess(false);
         });
-      }, 2000);
+      }, 1500);
 
       // 入力内容をリセット
       setShiftData({
@@ -278,7 +311,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       });
     } catch (error) {
       setErrorMessage("シフトの作成に失敗しました");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -414,9 +446,42 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </View>
             <View style={styles.userListContainer}>
               {searchQuery.trim() === "" ? (
-                <Text style={styles.noResultsText}>
-                  ユーザー名で検索してください
-                </Text>
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.userItem,
+                      styles.recruitmentItem,
+                      selectedUserId === "recruitment" && styles.selectedUserItem,
+                    ]}
+                    onPress={() => {
+                      if (selectedUserId === "recruitment") {
+                        // 既に選択されている場合は解除
+                        setSelectedUserId("");
+                        setSelectedUserNickname("");
+                      } else {
+                        // 選択されていない場合は選択
+                        setSelectedUserId("recruitment");
+                        setSelectedUserNickname("募集");
+                      }
+                    }}
+                  >
+                    <AntDesign 
+                      name="bells" 
+                      size={20} 
+                      color={selectedUserId === "recruitment" ? "#fff" : colors.primary} 
+                    />
+                    <Text style={[
+                      styles.userItemText, 
+                      styles.recruitmentText,
+                      selectedUserId === "recruitment" && styles.selectedUserItemText
+                    ]}>
+                      募集シフトとして作成
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.noResultsText}>
+                    またはユーザー名で検索してください
+                  </Text>
+                </>
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <TouchableOpacity
@@ -458,23 +523,41 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </View>
           </View>
 
-          {/* ステータス設定セクション（マスター用） */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>ステータス設定</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedStatus}
-                onValueChange={(itemValue) =>
-                  setSelectedStatus(itemValue as ShiftStatus)
-                }
-                style={styles.picker}
-              >
-                <Picker.Item label="承認済み" value="approved" />
-                <Picker.Item label="保留中" value="pending" />
-                <Picker.Item label="下書き" value="draft" />
-              </Picker>
+          {/* ステータス設定セクション（通常シフト用のみ表示） */}
+          {selectedUserId !== "recruitment" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>ステータス設定</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedStatus}
+                  onValueChange={(itemValue) =>
+                    setSelectedStatus(itemValue as ShiftStatus)
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="承認済み" value="approved" />
+                  <Picker.Item label="申請中" value="pending" />
+                </Picker>
+              </View>
             </View>
-          </View>
+          )}
+
+          {/* 募集シフト用ステータス表示 */}
+          {selectedUserId === "recruitment" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>ステータス</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: "#e3f2fd" }]}>
+                <Text style={{ 
+                  padding: 16, 
+                  fontSize: 16, 
+                  color: "#1976d2", 
+                  fontWeight: "600" 
+                }}>
+                  募集中
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* スタッフ時間セクション */}
           <View style={styles.section}>

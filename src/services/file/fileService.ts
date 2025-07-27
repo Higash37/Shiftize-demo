@@ -455,8 +455,10 @@ export class FileService {
           const aValue = a[sortOptions.field as keyof FileItem];
           const bValue = b[sortOptions.field as keyof FileItem];
           
-          if (aValue < bValue) return sortOptions.direction === "asc" ? -1 : 1;
-          if (aValue > bValue) return sortOptions.direction === "asc" ? 1 : -1;
+          if (aValue !== undefined && bValue !== undefined) {
+            if (aValue < bValue) return sortOptions.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortOptions.direction === "asc" ? 1 : -1;
+          }
           return 0;
         });
       } else {

@@ -11,6 +11,7 @@ import {
   GanttChartInfo,
   EmptyCell,
 } from "./components";
+import { getDateBackgroundColor } from "@/common/common-utils/date/dateUtils";
 
 interface GanttChartRowProps {
   date: string;
@@ -69,10 +70,13 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   const mergedCellHeight =
     typeof rowHeight === "number" ? rowHeight * groupSize : 65 * groupSize;
 
+  // 日曜日・祝日の背景色を取得
+  const dateBackgroundColor = getDateBackgroundColor(date);
+
   if (group && group.length > 0) {
     // シフトがある日
     return (
-      <View key={date} style={styles.shiftRow}>
+      <View key={date} style={[styles.shiftRow, { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
         {/* 日付セルは同じ日付の最初の行のみ表示 */}
         {isFirstInGroup && (
           <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
@@ -91,25 +95,27 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
         )}
         {/* 日付セル分のスペースを確保 */}
         <View style={{ width: dateColumnWidth }} />
-        <GanttChartGrid
-          shifts={group}
-          cellWidth={cellWidth}
-          ganttColumnWidth={ganttColumnWidth}
-          halfHourLines={halfHourLines}
-          isClassTime={isClassTime}
-          getStatusConfig={getStatusConfig}
-          onShiftPress={handleShiftPress}
-          onBackgroundPress={(x) => {
-            const position =
-              (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
-            handleEmptyCellClick(date, position);
-          }}
-          onTimeChange={onTimeChange}
-          onTaskAdd={onTaskAdd} // タスク追加ハンドラーを追加
-          styles={styles}
-          userColorsMap={userColorsMap}
-          users={users}
-        />
+        <View style={{ height: rowHeight }}>
+          <GanttChartGrid
+            shifts={group}
+            cellWidth={cellWidth}
+            ganttColumnWidth={ganttColumnWidth}
+            halfHourLines={halfHourLines}
+            isClassTime={isClassTime}
+            getStatusConfig={getStatusConfig}
+            onShiftPress={handleShiftPress}
+            onBackgroundPress={(x) => {
+              const position =
+                (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
+              handleEmptyCellClick(date, position);
+            }}
+            onTimeChange={onTimeChange}
+            onTaskAdd={onTaskAdd} // タスク追加ハンドラーを追加
+            styles={styles}
+            userColorsMap={userColorsMap}
+            users={users}
+          />
+        </View>
         <GanttChartInfo
           shifts={group}
           getStatusConfig={getStatusConfig}
@@ -123,7 +129,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   } else {
     // シフトがない日
     return (
-      <View key={date} style={styles.shiftRow}>
+      <View key={date} style={[styles.shiftRow, { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
         {/* 日付セルは同じ日付の最初の行のみ表示 */}
         {isFirstInGroup && (
           <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
@@ -142,16 +148,18 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
         )}
         {/* 日付セル分のスペースを確保 */}
         <View style={{ width: dateColumnWidth }} />
-        <EmptyCell
-          date={date}
-          width={ganttColumnWidth}
-          cellWidth={cellWidth}
-          halfHourLines={halfHourLines}
-          isClassTime={isClassTime}
-          styles={styles}
-          handleEmptyCellClick={handleEmptyCellClick}
-        />
-        <View style={[styles.emptyInfoCell, { width: infoColumnWidth }]} />
+        <View style={{ height: rowHeight }}>
+          <EmptyCell
+            date={date}
+            width={ganttColumnWidth}
+            cellWidth={cellWidth}
+            halfHourLines={halfHourLines}
+            isClassTime={isClassTime}
+            styles={styles}
+            handleEmptyCellClick={handleEmptyCellClick}
+          />
+        </View>
+        <View style={[styles.emptyInfoCell, { width: infoColumnWidth, height: rowHeight }]} />
       </View>
     );
   }

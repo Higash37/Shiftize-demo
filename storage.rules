@@ -1,22 +1,69 @@
 rules_version = '2';
 
-// Firebase Storage Rules for File Management System (Simplified for debugging)
+// Firebase Storage Rules for File Management System - Security Hardened
 service firebase.storage {
   match /b/{bucket}/o {
-    // Temporary: Allow all authenticated users to access files
-    match /files/{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isValidFile();
+    
+    // ヘルパー関数
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function belongsToSameStore(storeId) {
+      return isAuthenticated() && getUserData().storeId == storeId;
+    }
+    
+    function isMaster() {
+      return isAuthenticated() && getUserData().role == "master";
     }
     
     function isValidFile() {
-      // File validation rules for write operations
-      return request.resource.size <= 50 * 1024 * 1024  // Max 50MB
-             && (request.resource.contentType.matches('image/.*')     // Images
-                 || request.resource.contentType.matches('video/.*')  // Videos
-                 || request.resource.contentType == 'application/pdf' // PDFs
-                 || request.resource.contentType.matches('application/.*') // Documents
-                 || request.resource.contentType.matches('text/.*'));       // Text files
+      // ファイル検証ルール
+      return request.resource.size <= 50 * 1024 * 1024  // 最大50MB
+             && request.resource.size > 0                 // 空ファイル拒否
+             && (
+               request.resource.contentType.matches('image/.*')      // 画像
+               || request.resource.contentType.matches('video/.*')   // 動画  
+               || request.resource.contentType == 'application/pdf'  // PDF
+               || request.resource.contentType.matches('application/msword.*') // Word
+               || request.resource.contentType.matches('application/vnd.openxmlformats.*') // Office
+               || request.resource.contentType.matches('text/.*')    // テキスト
+             )
+             && !request.resource.contentType.matches('.*executable.*') // 実行ファイル拒否
+             && !request.resource.contentType.matches('.*script.*');    // スクリプトファイル拒否
+    }
+    
+    function isValidFilename() {
+      // ファイル名の安全性チェック
+      let filename = request.resource.name;
+      return !filename.matches('.*\\.\\..*')    // パストラバーサル防止
+             && !filename.matches('.*/.*')       // パス区切り文字防止
+             && !filename.matches('.*<.*')       // HTML文字防止
+             && !filename.matches('.*>.*')
+             && !filename.matches('.*".*')
+             && !filename.matches(".*'.*");
+    }
+    
+    // 店舗別ファイルアクセス - 厳格な店舗分離
+    match /files/{storeId}/{allPaths=**} {
+      allow read: if isAuthenticated() && belongsToSameStore(storeId);
+      allow write: if isAuthenticated() && belongsToSameStore(storeId) 
+                      && isValidFile() && isValidFilename();
+      allow delete: if isAuthenticated() && belongsToSameStore(storeId) && isMaster();
+    }
+    
+    // ルートファイルアクセス拒否
+    match /files/{filename} {
+      allow read, write: if false;
+    }
+    
+    // その他のパスは全て拒否
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 } 

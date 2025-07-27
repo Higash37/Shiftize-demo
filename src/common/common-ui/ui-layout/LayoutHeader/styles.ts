@@ -55,6 +55,27 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginRight: 4,
   },
+  notificationButton: {
+    padding: 8,
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: colors.error,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: colors.text.white,
+    fontSize: 11,
+    fontWeight: "bold",
+  },
   // モーダル関連のスタイル
   modalOverlay: {
     flex: 1,

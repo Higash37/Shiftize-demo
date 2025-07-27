@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
 import { theme } from "../../../common-theme/ThemeDefinition";
 import { layout } from "../../../common-constants/LayoutConstants";
 import { shadows } from "../../../common-constants/ShadowConstants";

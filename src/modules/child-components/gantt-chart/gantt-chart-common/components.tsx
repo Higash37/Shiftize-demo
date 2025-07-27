@@ -13,6 +13,7 @@ import { ShiftStatusConfig } from "../gantt-chart-types/GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/common/common-constants/ShadowConstants";
+import { getDateTextColor } from "@/common/common-utils/date/dateUtils";
 
 // --- DateCell ---
 export type DateCellProps = {
@@ -28,12 +29,10 @@ export const DateCell: React.FC<DateCellProps> = ({
   const formattedDate = new Date(date);
   const dayOfWeek = format(formattedDate, "E", { locale: ja });
   const dayOfMonth = format(formattedDate, "d");
-  const isWeekend = dayOfWeek === "土" || dayOfWeek === "日";
-  const textColor = isWeekend
-    ? dayOfWeek === "土"
-      ? "#0000FF"
-      : "#FF0000"
-    : "#000000";
+  
+  // 祝日・日曜日対応の色分け
+  const holidayTextColor = getDateTextColor(date);
+  const textColor = holidayTextColor || (dayOfWeek === "土" ? "#0000FF" : "#000000");
   return (
     <View
       style={[
@@ -238,12 +237,24 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
         const cellHeight = 70;
+        
+        // 重複チェック - 他のシフトと時間が重複するかどうか
+        const hasOverlap = shifts.some((otherShift, otherIndex) => {
+          if (otherIndex === index) return false;
+          const otherStartPos = timeToPosition(otherShift.startTime);
+          const otherEndPos = timeToPosition(otherShift.endTime);
+          return !(endPos <= otherStartPos || startPos >= otherEndPos);
+        });
+        
         let singleBarHeight;
         let barVerticalOffset;
-        if (totalShifts === 1) {
+        
+        if (!hasOverlap) {
+          // 重複しない場合は全体の高さを使用
           singleBarHeight = cellHeight;
           barVerticalOffset = 0;
         } else {
+          // 重複する場合のみ分割表示
           singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
           barVerticalOffset = index * singleBarHeight;
         }
@@ -684,88 +695,87 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
         {
           width: infoColumnWidth,
           backgroundColor: "#f0f5fb",
-          height: "100%",
+          minHeight: 65, // 最小高さを固定
+          height: Math.max(65, shifts.length * 32), // シフト数に応じて高さ調整
         },
       ]}
     >
       <CustomScrollView
         style={{ flex: 1, width: "100%" }}
-        contentContainerStyle={{ paddingVertical: 0 }}
+        contentContainerStyle={{ paddingVertical: 4 }}
       >
-        {shifts.map((shift) => {
+        {shifts.map((shift, index) => {
           const statusConfig = getStatusConfig(shift.status);
           return (
-            <TouchableOpacity
-              key={shift.id}
-              activeOpacity={onShiftPress ? 0.7 : 1}
-              onPress={() => onShiftPress?.(shift)}
-              onLongPress={() => {
-                // 削除済みシフトのみ長押しで完全削除ダイアログ
-                if (shift.status === "deleted") {
-                  onDelete(shift);
-                }
-              }}
-              style={[
-                styles.infoContent,
-                {
-                  borderColor: statusConfig.color,
-                  // 下線を消して全周枠だけに
-                  borderBottomWidth: undefined,
-                  borderBottomColor: undefined,
-                  // 他の枠線設定はstylesで一元化
-                },
-              ]}
-            >
-              {/* 1行目: 名前＋時間 */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                  minHeight: 28,
+            <View key={shift.id} style={{ marginBottom: index < shifts.length - 1 ? 2 : 0 }}>
+              <TouchableOpacity
+                activeOpacity={onShiftPress ? 0.7 : 1}
+                onPress={() => onShiftPress?.(shift)}
+                onLongPress={() => {
+                  // 削除済みシフトのみ長押しで完全削除ダイアログ
+                  if (shift.status === "deleted") {
+                    onDelete(shift);
+                  }
                 }}
-              >
-                <Text
-                  style={[
-                    styles.infoText,
-                    { fontSize: 15, fontWeight: "bold", flexShrink: 1 },
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {shift.nickname}
-                </Text>
-                <Text
-                  style={[
-                    styles.infoTimeText,
-                    {
-                      fontSize: 15,
-                      fontWeight: "bold",
-                      marginLeft: 30,
-                      textAlignVertical: "center",
-                      textAlign: "left",
-                      alignSelf: "center",
-                      minWidth: 80,
-                    },
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {shift.startTime}～{shift.endTime}
-                </Text>
-              </View>
-              {/* 2行目: ステータス */}
-              <Text
                 style={[
-                  styles.statusText,
-                  { fontSize: 13, fontWeight: "bold" },
+                  styles.infoContent,
+                  {
+                    borderColor: statusConfig.color,
+                    marginVertical: 0,
+                    paddingVertical: 6,
+                    minHeight: 32,
+                    // 複数シフトの場合はコンパクトに
+                    ...(shifts.length > 1 && {
+                      paddingVertical: 4,
+                      minHeight: 28,
+                    }),
+                  },
                 ]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
               >
-                {statusConfig.label}
-              </Text>
-            </TouchableOpacity>
+                {/* コンパクト表示: 名前 時間 [ステータス] */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.infoText,
+                    {
+                      fontSize: shifts.length > 1 ? 12 : 14,
+                      fontWeight: "600",
+                      flexShrink: 1,
+                      marginRight: 4,
+                    },
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {shift.startTime}-{shift.endTime} {shift.nickname}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statusText,
+                      {
+                        fontSize: shifts.length > 1 ? 10 : 12,
+                        fontWeight: "500",
+                        color: statusConfig.color,
+                        paddingHorizontal: 4,
+                        paddingVertical: 1,
+                        backgroundColor: statusConfig.color + "15",
+                        borderRadius: 4,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {statusConfig.label}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           );
         })}
       </CustomScrollView>

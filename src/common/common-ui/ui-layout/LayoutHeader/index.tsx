@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
@@ -6,6 +6,10 @@ import { router } from "expo-router";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "./styles";
 import { HeaderProps } from "./types";
+import { RecruitmentShiftModal } from "@/modules/child-components/recruitment-shift/RecruitmentShiftModal";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/services/firebase/firebase";
+import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 
 /**
  * Header - 標準のヘッダーコンポーネント
@@ -18,7 +22,35 @@ export function Header({
   onBack,
   onPressSettings,
 }: HeaderProps) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.storeId) return;
+
+    const q = query(
+      collection(db, "recruitmentShifts"),
+      where("storeId", "==", user.storeId),
+      where("status", "==", "open")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const shifts: RecruitmentShift[] = [];
+      snapshot.forEach((doc) => {
+        shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
+      });
+
+      // 未応募のシフト数をカウント
+      const unappliedCount = shifts.filter(
+        (shift) => !shift.applications?.some((app) => app.userId === user.uid)
+      ).length;
+      
+      setUnreadCount(unappliedCount);
+    });
+
+    return () => unsubscribe();
+  }, [user?.storeId, user?.uid]);
 
   const handleSignOut = async () => {
     try {
@@ -48,6 +80,17 @@ export function Header({
         <Text style={styles.title}>{title}</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => setShowRecruitmentModal(true)}
+          style={styles.notificationButton}
+        >
+          <AntDesign name="bells" size={24} color={colors.text.primary} />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
         {onPressSettings && (
           <TouchableOpacity
             onPress={onPressSettings}
@@ -60,6 +103,12 @@ export function Header({
           <FontAwesome name="sign-out" size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
+
+      <RecruitmentShiftModal
+        visible={showRecruitmentModal}
+        onClose={() => setShowRecruitmentModal(false)}
+        userRole="teacher"
+      />
     </View>
   );
 }

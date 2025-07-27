@@ -79,6 +79,5 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     flex: 1,
-    height: 0, // これが重要：flexと組み合わせて適切なサイズ制限を設ける
   },
 });

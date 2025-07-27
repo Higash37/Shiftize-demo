@@ -7,11 +7,14 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
+    flexDirection: "column",
+    overflow: "hidden",
   },
 
   fixedHeader: {
     backgroundColor: "#ffffff",
     zIndex: 10,
+    flexShrink: 0,
   },
 
   breadcrumbOnlyHeader: {
@@ -44,7 +47,6 @@ export const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     flexDirection: "row",
-    height: 0, // フッター分を除いた高さ制限
   },
 
   fileArea: {

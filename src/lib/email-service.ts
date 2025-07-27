@@ -51,7 +51,7 @@ export class EmailService {
    */
   static async sendEmail(message: EmailMessage): Promise<boolean> {
     try {
-      if (process.env.EXPO_PUBLIC_DEBUG_EMAIL_NOTIFICATIONS === 'true') {
+      if (__DEV__) {
         console.log('📧 Email Service - Sending email:', {
           to: message.to,
           subject: message.subject,
@@ -60,7 +60,7 @@ export class EmailService {
       
       // モック有効時のみシミュレート
       if (process.env.EXPO_PUBLIC_USE_EMAIL_MOCK === 'true') {
-        console.log('📧 [MOCK] Email content:', message.html);
+        if (__DEV__) console.log('📧 [MOCK] Email content:', message.html);
         return true;
       }
 
@@ -80,7 +80,7 @@ export class EmailService {
         const data = result.data as { success: boolean; messageId?: string };
         
         if (data.success) {
-          console.log('📧 Email sent successfully via Cloud Functions:', data.messageId);
+          if (__DEV__) console.log('📧 Email sent successfully via Cloud Functions:', data.messageId);
           return true;
         } else {
           console.error('❌ Cloud Function returned failure');
@@ -90,13 +90,15 @@ export class EmailService {
         console.error('❌ Cloud Function error:', cloudFunctionError);
         
         // フォールバック: 開発環境では詳細ログを出力
-        console.log('📧 Email fallback - Details:', {
-          to: message.to,
-          subject: message.subject,
-          html: message.html, // 開発環境では完全なHTMLを表示
-        });
-        
-        console.log('💡 Note: In development, email sending failed due to CORS. In production, this should work correctly.');
+        if (__DEV__) {
+          console.log('📧 Email fallback - Details:', {
+            to: message.to,
+            subject: message.subject,
+            html: message.html, // 開発環境では完全なHTMLを表示
+          });
+          
+          console.log('💡 Note: In development, email sending failed due to CORS. In production, this should work correctly.');
+        }
         
         // エラーでもアプリの動作を継続させるためtrueを返す
         return true;

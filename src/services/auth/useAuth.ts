@@ -18,6 +18,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/firebase-core";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
+import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
+import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,13 +36,56 @@ export const useAuth = () => {
     setAuthError(null);
 
     try {
+      // セキュリティ検証
+      const clientId = `${navigator.userAgent}_${window.location.origin}`;
+      
+      // レート制限チェック
+      if (!RateLimiter.isAllowed(clientId)) {
+        SecurityLogger.logEvent({
+          type: 'rate_limit_exceeded',
+          details: 'Login rate limit exceeded',
+          userAgent: navigator.userAgent,
+        });
+        throw new Error("ログイン試行回数が上限に達しました。しばらく時間を置いてから再試行してください。");
+      }
+
+      // 入力値検証
+      if (!emailOrUsernameWithStore || !password) {
+        SecurityLogger.logEvent({
+          type: 'invalid_input',
+          details: 'Empty email or password provided',
+        });
+        throw new Error("メールアドレスとパスワードを入力してください");
+      }
+
+      // メールアドレス形式の場合は検証
+      const isEmailFormatInput = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsernameWithStore);
+      if (isEmailFormatInput) {
+        const emailValidation = validateEmail(emailOrUsernameWithStore);
+        if (!emailValidation.isValid) {
+          SecurityLogger.logEvent({
+            type: 'invalid_input',
+            details: `Invalid email format: ${emailValidation.error}`,
+          });
+          throw new Error(emailValidation.error);
+        }
+      }
+
+      // パスワード基本検証（完全検証は新規登録時のみ）
+      if (password.length < 6) {
+        SecurityLogger.logEvent({
+          type: 'invalid_input',
+          details: 'Password too short',
+        });
+        throw new Error("パスワードは6文字以上で入力してください");
+      }
       let emailToUse = emailOrUsernameWithStore;
       let storeIdToUse = storeId;
 
       // メールアドレス形式かどうかを判定
-      const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsernameWithStore);
+      const emailFormatCheck = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsernameWithStore);
       
-      if (!isEmailFormat) {
+      if (!emailFormatCheck) {
         // 従来の店舗ID + ニックネーム形式の場合
         if (!storeId) {
           throw new Error("店舗IDが必要です");
@@ -67,7 +112,7 @@ export const useAuth = () => {
       }
 
       // 店舗ID確認（実メールアドレスの場合はFirestoreのstoreIdを使用）
-      if (isEmailFormat) {
+      if (emailFormatCheck) {
         storeIdToUse = userData.storeId;
       } else if (userData.storeId !== storeIdToUse) {
         throw new Error("店舗IDが一致しません");
@@ -79,7 +124,7 @@ export const useAuth = () => {
       }
 
       // Firebase Authでのログイン
-      const firebaseAuthEmail = isEmailFormat ? emailToUse : userData.email;
+      const firebaseAuthEmail = emailFormatCheck ? emailToUse : userData.email;
       
       
       let userCredential;
@@ -93,7 +138,7 @@ export const useAuth = () => {
       } catch (authError: any) {
         
         // 入力されたパスワードで失敗した場合、Firestoreのパスワードで試行
-        if (isEmailFormat && userData.currentPassword && userData.currentPassword !== password) {
+        if (emailFormatCheck && userData.currentPassword && userData.currentPassword !== password) {
           try {
             userCredential = await signInWithEmailAndPassword(
               getAuth(),
@@ -108,7 +153,7 @@ export const useAuth = () => {
         if (!userCredential) {
           
           // 実メールアドレスでログインしようとしてアカウントが見つからない場合、自動作成を試行
-          if (isEmailFormat && authError.code === 'auth/user-not-found') {
+          if (emailFormatCheck && authError.code === 'auth/user-not-found') {
             try {
             const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
             
@@ -180,12 +225,22 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
+      // セキュリティ: ログアウト時にCSRFトークンをクリア
+      CSRFTokenManager.clearToken();
+      
       await getAuth().signOut();
       // ログアウト時は店舗IDを保持する（ユーザーが明示的にログアウトした場合のみクリア）
       setUser(null);
       setRole(null);
       setStoreId(null);
       setAuthError(null);
+
+      // セキュリティ: ログアウトログ
+      SecurityLogger.logEvent({
+        type: 'unauthorized_access',
+        details: 'User logged out',
+        userAgent: navigator.userAgent,
+      });
     } catch (error) {
       throw error;
     }

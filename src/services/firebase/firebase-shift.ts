@@ -142,7 +142,7 @@ export const ShiftService = {
    */
   markShiftAsDeleted: async (id: string, deletedBy?: { nickname: string; userId: string }, reason?: string): Promise<void> => {
     try {
-      if (process.env.EXPO_PUBLIC_DEBUG_EMAIL_NOTIFICATIONS === 'true') {
+      if (__DEV__) {
         console.log('🔍 DEBUG - markShiftAsDeleted called with:', { id, deletedBy, reason });
       }
       
@@ -166,7 +166,7 @@ export const ShiftService = {
             );
           } else {
             // モバイル環境: プッシュ通知
-            console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftDeleted');
+            if (__DEV__) console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftDeleted');
             await ShiftNotificationService.notifyShiftDeleted(
               shift,
               deletedBy.nickname,
@@ -189,7 +189,7 @@ export const ShiftService = {
    */
   approveShiftChanges: async (id: string, approver?: { nickname: string; userId: string }): Promise<void> => {
     try {
-      if (process.env.EXPO_PUBLIC_DEBUG_EMAIL_NOTIFICATIONS === 'true') {
+      if (__DEV__) {
         console.log('🔍 DEBUG - approveShiftChanges called with:', { id, approver });
       }
       
@@ -230,7 +230,7 @@ export const ShiftService = {
             );
           } else {
             // モバイル環境: プッシュ通知
-            console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftApproved');
+            if (__DEV__) console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftApproved');
             await ShiftNotificationService.notifyShiftApproved(
               shift,
               approver.nickname,

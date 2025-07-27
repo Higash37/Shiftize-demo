@@ -24,6 +24,7 @@ import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 import { DEFAULT_SHIFT_TYPES, ShiftTypeConfig } from "./types";
 import { PayrollModal } from "./PayrollModal";
 import { ShiftTypeLegend } from "./ShiftTypeLegend";
+import { getDateBackgroundColor, getDateTextColor } from "@/common/common-utils/date/dateUtils";
 
 type ViewMode = "week" | "month";
 
@@ -351,15 +352,18 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
               viewMode === "week"
                 ? (width * 0.7) / 7
                 : (width * 0.7) / daysToShow.length;
+            const dateString = format(date, "yyyy-MM-dd");
+            const dateBackgroundColor = getDateBackgroundColor(dateString);
+            const dateTextColor = getDateTextColor(dateString);
 
             return (
               <View
                 key={date.toISOString()}
-                style={[styles.dayColumn, { width: dayWidth }]}
+                style={[styles.dayColumn, { width: dayWidth, backgroundColor: dateBackgroundColor }]}
               >
                 <View style={styles.dayHeader}>
-                  <Text style={styles.dayNumber}>{format(date, "d")}</Text>
-                  <Text style={styles.dayName}>
+                  <Text style={[styles.dayNumber, dateTextColor ? { color: dateTextColor } : undefined]}>{format(date, "d")}</Text>
+                  <Text style={[styles.dayName, dateTextColor ? { color: dateTextColor } : undefined]}>
                     {format(date, "E", { locale: ja })}
                   </Text>
                 </View>

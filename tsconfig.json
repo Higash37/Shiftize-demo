@@ -2,6 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "module": "esnext",
+    "target": "es2020",
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "paths": {

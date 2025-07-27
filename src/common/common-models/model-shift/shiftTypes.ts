@@ -84,7 +84,7 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
 /**
  * シフトの種類
  */
-export type ShiftType = "user" | "class" | "staff" | "deleted";
+export type ShiftType = "user" | "class" | "staff" | "deleted" | "recruitment";
 
 /**
  * 基本的なシフト情報
@@ -347,6 +347,39 @@ export interface TaskPerformance {
   periodStart: Date;
   periodEnd: Date;
   lastUpdated: Date;
+}
+
+/**
+ * 募集シフト情報
+ */
+export interface RecruitmentShift {
+  id: string;
+  storeId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  subject?: string;
+  notes?: string;
+  createdBy: string; // マスターのユーザーID
+  createdAt: Date;
+  updatedAt: Date;
+  maxApplicants?: number; // 最大応募者数
+  applications: RecruitmentApplication[]; // 応募情報の配列
+  status: "open" | "closed" | "cancelled"; // 募集状態
+  deadline?: Date; // 応募締切日時
+}
+
+/**
+ * 募集シフトへの応募情報
+ */
+export interface RecruitmentApplication {
+  userId: string; // 応募した講師のユーザーID
+  nickname: string; // 講師のニックネーム
+  requestedStartTime: string; // 希望開始時間
+  requestedEndTime: string; // 希望終了時間
+  appliedAt: Date; // 応募日時
+  status: "pending" | "approved" | "rejected"; // 応募状態
+  notes?: string; // 応募時のメモ
 }
 
 /**

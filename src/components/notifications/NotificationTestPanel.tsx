@@ -136,7 +136,7 @@ const StatusItem: React.FC<{
     <Text style={styles.statusLabel}>{label}:</Text>
     <Text style={[
       styles.statusValue, 
-      { color: isGood ? colors.success : colors.danger }
+      { color: isGood ? colors.success : colors.error }
     ]}>
       {value}
     </Text>
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   
   tokenContainer: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.background,
     padding: 12,
     borderRadius: 8,
   },

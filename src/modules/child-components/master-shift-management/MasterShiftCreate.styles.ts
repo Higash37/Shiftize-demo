@@ -1,10 +1,11 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { shadows } from "@/common/common-constants/ShadowConstants";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#fff",
     maxWidth: "70%",
     width: "100%",
     alignSelf: "center",
@@ -16,38 +17,44 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background,
+    backgroundColor: "#fff",
   },
   scrollView: {
-    padding: 16,
+    padding: 24,
     width: "100%",
   },
   errorContainer: {
-    backgroundColor: "rgba(255, 0, 0, 0.1)",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15,
+    backgroundColor: "#fff1f0",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 20,
+    borderLeft: 4,
+    borderLeftColor: "#ff4d4f",
   },
   errorText: {
-    color: "red",
+    color: "#ff4d4f",
     textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: colors.text.primary,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
+    color: "#1976d2",
   },
   datePickerButton: {
     flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderRadius: 5,
+    backgroundColor: "#f5f5f5",
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   dateText: {
     fontSize: 16,
@@ -138,22 +145,25 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   searchContainer: {
-    marginBottom: 10,
+    marginBottom: 16,
   },
   searchInput: {
-    backgroundColor: "#f0f0f0",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#f5f5f5",
+    padding: 16,
+    borderRadius: 12,
     fontSize: 16,
-  },
-  userListContainer: {
-    maxHeight: 200,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    borderRadius: 5,
+  },
+  userListContainer: {
+    maxHeight: 240,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    backgroundColor: "#fafafa",
   },
   userItem: {
-    padding: 10,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
@@ -179,12 +189,14 @@ export const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   pickerContainer: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 5,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
     overflow: "hidden",
   },
   picker: {
-    height: 50,
+    height: 56,
     width: "100%",
   },
   selectedDatesContainer: {
@@ -236,19 +248,15 @@ export const styles = StyleSheet.create({
   },
   addButton: {
     flexDirection: "row",
-    backgroundColor: "#43a047", // 濃い緑色
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 24,
+    backgroundColor: "#1976d2",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 16,
     alignSelf: "flex-start",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadows.button,
   },
   addButtonText: {
     color: "#fff",
@@ -259,5 +267,16 @@ export const styles = StyleSheet.create({
   },
   removeButton: {
     marginLeft: 10,
+  },
+  recruitmentItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.primary + "10",
+    borderColor: colors.primary,
+  },
+  recruitmentText: {
+    color: colors.primary,
+    fontWeight: "600",
   },
 });

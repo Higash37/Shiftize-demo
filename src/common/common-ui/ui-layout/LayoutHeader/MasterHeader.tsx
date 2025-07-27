@@ -19,6 +19,10 @@ import { StoreConnectionModal } from "@/modules/child-components/store-connectio
 import { styles } from "./styles";
 import { MasterHeaderProps } from "./types";
 import { useAuth } from "@/services/auth/useAuth";
+import { RecruitmentShiftModal } from "@/modules/child-components/recruitment-shift/RecruitmentShiftModal";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/services/firebase/firebase";
+import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 
 /**
  * MasterHeader - マスター用ヘッダーコンポーネント
@@ -37,6 +41,8 @@ export function MasterHeader({
   const [showStoreSelector, setShowStoreSelector] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [currentStoreInfo, setCurrentStoreInfo] = useState<string>("1456"); // デフォルト値
+  const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
+  const [recruitmentCount, setRecruitmentCount] = useState(0);
 
   // ユーザーの店舗アクセス権限を取得
   useEffect(() => {
@@ -72,6 +78,23 @@ export function MasterHeader({
 
     fetchUserStoreAccess();
   }, [user]);
+
+  // 募集シフトの数を監視
+  useEffect(() => {
+    if (!user?.storeId) return;
+
+    const q = query(
+      collection(db, "recruitmentShifts"),
+      where("storeId", "==", user.storeId),
+      where("status", "==", "open")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setRecruitmentCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [user?.storeId]);
 
   const handleBack = () => {
     if (onBack) {
@@ -162,6 +185,19 @@ export function MasterHeader({
       </View>
 
       <View style={styles.rightContainer}>
+        {/* 募集シフト通知ボタン */}
+        <TouchableOpacity
+          onPress={() => setShowRecruitmentModal(true)}
+          style={styles.notificationButton}
+        >
+          <AntDesign name="bells" size={24} color={colors.primary} />
+          {recruitmentCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{recruitmentCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
         {/* カンバンタスク管理ボタン */}
         <TouchableOpacity
           onPress={() => router.push("/(main)/master/kanban-task")}
@@ -269,6 +305,13 @@ export function MasterHeader({
             fetchUserStoreAccess();
           }
         }}
+      />
+
+      {/* 募集シフトモーダル */}
+      <RecruitmentShiftModal
+        visible={showRecruitmentModal}
+        onClose={() => setShowRecruitmentModal(false)}
+        userRole="master"
       />
     </View>
   );

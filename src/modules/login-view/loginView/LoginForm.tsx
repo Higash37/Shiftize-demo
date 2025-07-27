@@ -111,15 +111,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
         return;
       }
 
-      // メールアドレス形式チェック
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
-        setErrorMessage("有効なメールアドレスを入力してください");
+      // セキュアなメールアドレス検証
+      const { validateEmail } = await import("@/common/common-utils/validation/inputValidation");
+      const emailValidation = validateEmail(emailInput);
+      if (!emailValidation.isValid) {
+        setErrorMessage(emailValidation.error || "有効なメールアドレスを入力してください");
         return;
       }
 
       if (onLogin) {
         try {
-          await onLogin(emailInput, password); // storeIdは不要（認証システム側で取得）
+          const storeId = await StoreIdStorage.getStoreId() || "default";
+          await onLogin(emailInput, password, storeId);
           setErrorMessage("");
         } catch (error) {
           setErrorMessage("ログインに失敗しました。再度お試しください。");

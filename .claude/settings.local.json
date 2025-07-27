@@ -30,7 +30,8 @@
       "Bash(grep:*)",
       "Bash(nvm use:*)",
       "Bash(source ~/.bashrc)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }

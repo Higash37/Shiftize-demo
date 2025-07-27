@@ -17,6 +17,8 @@ import {
 } from "firebase/firestore";
 import { User, UserData } from "@/common/common-models/model-user/UserModel";
 import { db } from "./firebase-core";
+import { PersonalDataDeletion } from "@/common/common-utils/security/encryptionUtils";
+import { SecurityLogger } from "@/common/common-utils/security/securityUtils";
 
 /**
  * ユーザー管理サービス
@@ -148,7 +150,8 @@ export const UserService = {
       }
 
       // 4. Firebase Authに実メールアドレスでの新しいアカウントを作成
-      const { createUserWithEmailAndPassword, initializeApp, getAuth, updateProfile, deleteApp } = await import('firebase/auth');
+      const { createUserWithEmailAndPassword, getAuth, updateProfile } = await import('firebase/auth');
+      const { initializeApp, deleteApp } = await import('firebase/app');
       const { firebaseConfig } = await import('./firebase-core');
       
       // 一時的なFirebaseアプリインスタンスを作成（現在のセッションに影響しないように）
@@ -247,8 +250,8 @@ export const UserService = {
         const userData = { id: doc.id, ...doc.data() };
         
         // 実メールアドレス用のアカウントの場合、元のアカウント情報を取得
-        if (userData.originalUserId) {
-          const originalUserRef = doc(db, 'users', userData.originalUserId);
+        if ((userData as any).originalUserId) {
+          const originalUserRef = doc(db, 'users', (userData as any).originalUserId);
           const originalUserDoc = await getDoc(originalUserRef);
           
           if (originalUserDoc.exists()) {
@@ -256,7 +259,7 @@ export const UserService = {
             // 元のアカウント情報を返すが、実メールアドレスも含める
             return {
               id: originalUserDoc.id,
-              ...originalData,
+              ...(originalData as any),
               realEmail: email, // 実メールアドレスを追加
               realEmailUserId: userData.id, // 実メールアカウントのUIDも保存
             };
@@ -281,6 +284,60 @@ export const UserService = {
       return null;
     }
   },
+
+  /**
+   * ユーザーデータの完全削除（GDPR対応）
+   */
+  secureDeleteUser: async (userId: string, storeId: string): Promise<void> => {
+    try {
+      await PersonalDataDeletion.deleteUserData(userId, storeId);
+      
+      SecurityLogger.logEvent({
+        type: 'unauthorized_access',
+        userId: userId,
+        details: 'User requested data deletion (GDPR)',
+        userAgent: navigator.userAgent,
+      });
+    } catch (error) {
+      SecurityLogger.logEvent({
+        type: 'unauthorized_access',
+        userId: userId,
+        details: `Data deletion failed: ${error}`,
+        userAgent: navigator.userAgent,
+      });
+      throw error;
+    }
+  },
+
+  /**
+   * 管理者による他ユーザーデータの削除
+   */
+  secureDeleteUserByAdmin: async (targetUserId: string, storeId: string, adminUserId: string): Promise<void> => {
+    try {
+      // 管理者権限の確認
+      const adminUser = await UserService.getUserData(adminUserId);
+      if (!adminUser || adminUser.role !== 'master') {
+        throw new Error('管理者権限が必要です');
+      }
+
+      await PersonalDataDeletion.deleteUserDataByAdmin(targetUserId, storeId, adminUserId);
+      
+      SecurityLogger.logEvent({
+        type: 'unauthorized_access',
+        userId: adminUserId,
+        details: `Admin deleted user: ${targetUserId}`,
+        userAgent: navigator.userAgent,
+      });
+    } catch (error) {
+      SecurityLogger.logEvent({
+        type: 'unauthorized_access',
+        userId: adminUserId,
+        details: `Admin deletion failed: ${error}`,
+        userAgent: navigator.userAgent,
+      });
+      throw error;
+    }
+  },
 };
 
 // エクスポート
@@ -291,4 +348,6 @@ export const {
   checkMasterExists,
   checkEmailExists,
   findUserByEmail,
+  secureDeleteUser,
+  secureDeleteUserByAdmin,
 } = UserService;

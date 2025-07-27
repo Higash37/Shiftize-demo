@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { RecruitmentShiftService } from "@/services/recruitment-shift/recruitmentShiftService";
 import {
   View,
   Text,
@@ -51,6 +52,7 @@ import { GanttChartMonthViewProps } from "./gantt-chart-types/GanttChartProps";
 import {
   generateTimeOptions,
   groupShiftsByOverlap,
+  groupNonOverlappingShifts,
   positionToTime,
   timeToPosition,
 } from "./gantt-chart-common/utils";
@@ -163,7 +165,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
     const dayShifts = visibleShifts.filter((s) => s.date === date);
     if (dayShifts.length === 0) return [[date, []]];
-    const groups = groupShiftsByOverlap(dayShifts);
+    const groups = groupNonOverlappingShifts(dayShifts);
     // 空のグループを除外
     return groups
       .filter((group) => group.length > 0)
@@ -275,9 +277,51 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       Alert.alert("エラー", "日付と時間を正しく入力してください。");
       return;
     }
+    
+    // ユーザー選択チェック
+    if (!newShiftData.userId) {
+      Alert.alert("エラー", "ユーザーまたは募集を選択してください。");
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      await saveShift(editingShift, newShiftData);
+      // 募集シフトの場合は専用のサービスを使用
+      if (newShiftData.userId === "recruitment") {
+        const recruitmentShiftData = {
+          storeId: user?.storeId || "",
+          date: newShiftData.date,
+          startTime: newShiftData.startTime,
+          endTime: newShiftData.endTime,
+          subject: "", // 必要に応じて件名を追加
+          notes: "", // 必要に応じてメモを追加
+          createdBy: user?.uid || "", // 必須フィールドを追加
+          status: "open" as const, // 必須フィールドを追加
+          // オプショナルフィールドは省略（undefinedを避ける）
+        };
+        
+        try {
+          const shiftId = await RecruitmentShiftService.createRecruitmentShift(recruitmentShiftData);
+          Alert.alert("成功", "募集シフトを作成しました。");
+        } catch (recruitmentError: any) {
+          console.error("募集シフト作成エラー詳細:", recruitmentError);
+          console.error("エラーメッセージ:", recruitmentError?.message);
+          console.error("エラーコード:", recruitmentError?.code);
+          
+          // Firebase エラーの詳細を表示
+          if (recruitmentError?.code) {
+            Alert.alert("エラー", `募集シフトの作成に失敗しました。\nエラーコード: ${recruitmentError.code}\nメッセージ: ${recruitmentError.message}`);
+          } else {
+            Alert.alert("エラー", `募集シフトの作成に失敗しました。\n${recruitmentError?.message || "不明なエラーが発生しました。"}`);
+          }
+          
+          throw recruitmentError; // エラーを再スロー
+        }
+      } else {
+        // 通常のシフト保存
+        await saveShift(editingShift, newShiftData);
+      }
+      
       setEditingShift(null);
       setNewShiftData({
         date: "",
@@ -298,10 +342,12 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         refreshPage();
       }
     } catch (error) {
+      console.error("シフト保存エラー:", error);
+      Alert.alert("エラー", "シフトの保存に失敗しました。");
     } finally {
       setIsLoading(false);
     }
-  }, [editingShift, newShiftData, saveShift]);
+  }, [editingShift, newShiftData, saveShift, user]);
 
   // --- シフトバー・グリッド全体押下時のモーダル表示 ---
   const handleShiftPress = useCallback(

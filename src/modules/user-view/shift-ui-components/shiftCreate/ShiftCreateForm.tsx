@@ -400,10 +400,10 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // 一定時間後に前の画面に戻る
+      // 1.5秒後に前の画面に戻る（ユーザーが成功を確認できる時間）
       setTimeout(() => {
         router.back();
-      }, 10);
+      }, 1500);
     } catch (error) {
       setIsLoading(false);
       setErrorMessage("シフトの保存中にエラーが発生しました");

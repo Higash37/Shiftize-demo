@@ -1,8 +1,92 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // ヘルパー関数
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isMaster() {
+      return isAuthenticated() && getUserData().role == "master";
+    }
+    
+    function belongsToSameStore(storeId) {
+      return isAuthenticated() && getUserData().storeId == storeId;
+    }
+    
+    function isOwnerOrMaster(userId) {
+      return isAuthenticated() && (request.auth.uid == userId || isMaster());
+    }
+    
+    // ユーザーコレクション - 認証されたユーザーのみアクセス可能
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwnerOrMaster(userId);
+      allow delete: if isMaster();
+    }
+    
+    // シフトコレクション - 店舗分離 + 所有者/マスター制御
+    match /shifts/{shiftId} {
+      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
+      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.userId == request.auth.uid || isMaster());
+      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId)
+                       && (resource.data.userId == request.auth.uid || isMaster());
+    }
+    
+    // 募集シフトコレクション - 店舗分離
+    match /recruitmentShifts/{shiftId} {
+      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
+      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) && isMaster();
+    }
+    
+    // タスクコレクション - 店舗分離
+    match /NormalTasks/{taskId} {
+      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
+      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    }
+    
+    // タスクメモコレクション - 関連タスクの店舗に属する場合のみ
+    match /TaskMemos/{memoId} {
+      allow read, write: if isAuthenticated() && 
+        belongsToSameStore(get(/databases/$(database)/documents/NormalTasks/$(resource.data.taskId)).data.storeId);
+    }
+    
+    // ファイルコレクション - 店舗分離
+    match /files/{fileId} {
+      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
+      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.createdBy == request.auth.uid || isMaster());
+      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    }
+    
+    // フォルダコレクション - 店舗分離
+    match /folders/{folderId} {
+      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
+      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
+      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.createdBy == request.auth.uid || isMaster());
+      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
+                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    }
+    
+    // その他のコレクションは明示的に拒否
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

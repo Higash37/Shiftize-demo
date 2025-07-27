@@ -63,17 +63,28 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
                 <Picker
                   selectedValue={newShiftData.userId}
                   onValueChange={(itemValue) => {
-                    const user = users.find((u) => u.uid === itemValue);
-                    onChange("userData", {
-                      userId: itemValue,
-                      nickname: user ? user.nickname : "",
-                    });
+                    if (itemValue === "recruitment") {
+                      onChange("userData", {
+                        userId: "recruitment",
+                        nickname: "募集",
+                      });
+                    } else {
+                      const user = users.find((u) => u.uid === itemValue);
+                      onChange("userData", {
+                        userId: itemValue,
+                        nickname: user ? user.nickname : "",
+                      });
+                    }
                   }}
                   style={styles.picker}
                 >
                   <Picker.Item
                     label={newShiftData.nickname || "ユーザーを選択"}
                     value=""
+                  />
+                  <Picker.Item
+                    label="募集"
+                    value="recruitment"
                   />
                   {users.map((user) => (
                     <Picker.Item

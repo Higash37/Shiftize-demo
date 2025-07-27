@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { MaterialIcons } from "@expo/vector-icons";
+import { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
+import { User } from "@/common/common-models/model-user/UserModel";
 
 interface GanttRowMobileProps {
   time: string;
@@ -12,6 +14,14 @@ interface GanttRowMobileProps {
   cellWidth: number;
   cellHeight: number;
   onCellPress?: (userName: string) => void;
+  // PC版機能用の新しいプロパティ
+  shifts?: ShiftItem[];
+  users?: User[];
+  date?: string;
+  onShiftPress?: (shift: ShiftItem) => void;
+  onEmptyCellPress?: (date: string, time: string, userId: string) => void;
+  userColorsMap?: Record<string, string>;
+  getStatusConfig?: (status: string) => any;
 }
 
 export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
@@ -21,6 +31,13 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
   cellWidth,
   cellHeight,
   onCellPress,
+  shifts = [],
+  users = [],
+  date,
+  onShiftPress,
+  onEmptyCellPress,
+  userColorsMap = {},
+  getStatusConfig,
 }) => {
   return (
     <View
@@ -36,7 +53,73 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
         <Text style={styles.positionText}>{time}</Text>
       </View>
       {names.map((name, index) => {
-        // 授業時間優先でslotを取得
+        // PC版機能: 実際のシフトデータがある場合はそれを使用
+        if (shifts.length > 0 && date && users.length > 0) {
+          const user = users.find(u => u.nickname === name);
+          if (!user) return null;
+          
+          // この時間とユーザーのシフトを検索
+          const userShift = shifts.find(shift => 
+            shift.userId === user.uid && 
+            shift.date === date &&
+            time >= shift.startTime && 
+            time < shift.endTime
+          );
+          
+          const statusConfig = getStatusConfig ? getStatusConfig(userShift?.status || 'approved') : null;
+          const backgroundColor = userShift 
+            ? (userColorsMap[user.uid] || statusConfig?.color || colors.primary)
+            : 'transparent';
+            
+          return (
+            <TouchableOpacity
+              key={`${name}-${index}`}
+              style={[
+                styles.cell,
+                {
+                  width: cellWidth,
+                  height: cellHeight,
+                  backgroundColor: userShift ? backgroundColor : 'transparent',
+                  borderColor: userShift ? '#ddd' : '#f0f0f0',
+                  borderWidth: 1,
+                  opacity: userShift ? 0.8 : 0.3,
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+              onPress={() => {
+                if (userShift && onShiftPress) {
+                  onShiftPress(userShift);
+                } else if (!userShift && onEmptyCellPress && date) {
+                  onEmptyCellPress(date, time, user.uid);
+                }
+              }}
+              disabled={!userShift && !onEmptyCellPress}
+            >
+              {userShift && (
+                <View style={{ alignItems: 'center' }}>
+                  <MaterialIcons
+                    name={userShift.type === "class" ? "school" : "person"}
+                    size={14}
+                    color="white"
+                  />
+                  {userShift.subject && (
+                    <Text style={{ 
+                      fontSize: 10, 
+                      color: 'white', 
+                      textAlign: 'center',
+                      marginTop: 2
+                    }}>
+                      {userShift.subject.length > 6 ? userShift.subject.slice(0, 6) + '...' : userShift.subject}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        }
+        
+        // 従来のサンプルデータ表示（後方互換性のため）
         const classSlot = sampleSchedule
           .flatMap((col) => col.slots)
           .find(
@@ -57,7 +140,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
           );
         const slot = classSlot || staffSlot;
         return (
-          <View
+          <TouchableOpacity
             key={`${name}-${index}`}
             style={[
               styles.cell,
@@ -67,21 +150,21 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 backgroundColor: slot
                   ? slot.type === "class"
                     ? "#eee"
-                    : undefined // スタッフのときは背景色なし
+                    : undefined
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
                     ? "#bbb"
-                    : colors.primary // スタッフのときは青枠
+                    : colors.primary
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
                 justifyContent: "center",
                 alignItems: "center",
-                flexDirection: "row", // アイコンとテキストを横並び
+                flexDirection: "row",
               },
             ]}
-            onTouchEnd={() => onCellPress && onCellPress(name)}
+            onPress={() => onCellPress && onCellPress(name)}
           >
             {slot && (
               <MaterialIcons
@@ -97,13 +180,13 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
               <Text
                 style={[
                   styles.taskText,
-                  slot.type !== "class" && { color: colors.primary }, // スタッフのときは青文字
+                  slot.type !== "class" && { color: colors.primary },
                 ]}
               >
                 {slot.task}
               </Text>
             )}
-          </View>
+          </TouchableOpacity>
         );
       })}
     </View>
