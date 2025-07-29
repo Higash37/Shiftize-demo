@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -28,17 +28,29 @@ import { getDateBackgroundColor, getDateTextColor } from "@/common/common-utils/
 
 type ViewMode = "week" | "month";
 
+// 型安全性の強化
+interface Shift {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  userId: string;
+  shiftType: string;
+}
+
+interface User {
+  uid: string;
+  nickname: string;
+  color?: string;
+  hourlyWage?: number;
+}
+
 interface ModernGanttChartProps {
-  shifts: any[];
-  users: Array<{
-    uid: string;
-    nickname: string;
-    color?: string;
-    hourlyWage?: number;
-  }>;
+  shifts: Shift[];
+  users: User[];
   currentDate: Date;
   onDateChange: (date: Date) => void;
-  onShiftPress?: (shift: any) => void;
+  onShiftPress?: (shift: Shift) => void;
   onShiftCreate?: (date: string, time: string, userId: string) => void;
   shiftTypes?: ShiftTypeConfig[];
 }
@@ -64,8 +76,8 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
   const totalMinutes = (endHour - startHour) * 60;
   const timeSlots = totalMinutes / minuteInterval;
 
-  // 表示する日付の計算
-  const getDaysToShow = () => {
+  // 表示する日付の計算（メモ化）
+  const daysToShow = useMemo(() => {
     if (viewMode === "week") {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // 月曜始まり
       return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -79,53 +91,51 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
         (_, i) => new Date(year, month, i + 1)
       );
     }
-  };
+  }, [currentDate, viewMode]);
 
-  const daysToShow = getDaysToShow();
-
-  // 時間位置の計算
-  const timeToPosition = (timeString: string): number => {
+  // 時間位置の計算（メモ化）
+  const timeToPosition = useCallback((timeString: string): number => {
     const [hours, minutes] = timeString.split(":").map(Number);
     const totalMinutesFromStart = (hours - startHour) * 60 + minutes;
     return (totalMinutesFromStart / totalMinutes) * 100;
-  };
+  }, [startHour, endHour]);
 
-  // 時間幅の計算
-  const getTimeWidth = (startTime: string, endTime: string): number => {
+  // 時間幅の計算（メモ化）
+  const getTimeWidth = useCallback((startTime: string, endTime: string): number => {
     const startPos = timeToPosition(startTime);
     const endPos = timeToPosition(endTime);
     return endPos - startPos;
-  };
+  }, [timeToPosition]);
 
-  // シフトタイプの取得
-  const getShiftType = (shiftTypeId: string) => {
+  // シフトタイプの取得（メモ化）
+  const getShiftType = useCallback((shiftTypeId: string) => {
     return shiftTypes.find((type) => type.id === shiftTypeId) || shiftTypes[0];
-  };
+  }, [shiftTypes]);
 
-  // 日付のシフト取得
-  const getShiftsForDate = (date: Date, userId?: string) => {
+  // 日付のシフト取得（メモ化）
+  const getShiftsForDate = useCallback((date: Date, userId?: string) => {
     const dateString = format(date, "yyyy-MM-dd");
     return shifts.filter(
       (shift) =>
         shift.date === dateString && (!userId || shift.userId === userId)
     );
-  };
+  }, [shifts]);
 
-  // 重複シフトのレイヤー計算
-  const calculateShiftLayers = (dayShifts: any[]) => {
+  // 重複シフトのレイヤー計算（メモ化・最適化）
+  const calculateShiftLayers = useCallback((dayShifts: Shift[]) => {
     const sortedShifts = [...dayShifts].sort((a, b) => {
       const aStart = timeToPosition(a.startTime);
       const bStart = timeToPosition(b.startTime);
       return aStart - bStart;
     });
 
-    const layers: any[][] = [];
+    const layers: Shift[][] = [];
 
-    sortedShifts.forEach((shift) => {
+    for (const shift of sortedShifts) {
       const shiftStart = timeToPosition(shift.startTime);
       const shiftEnd = timeToPosition(shift.endTime);
 
-      // 適切なレイヤーを見つける
+      // 適切なレイヤーを見つける（早期終了最適化）
       let layerIndex = 0;
       while (layerIndex < layers.length) {
         const layer = layers[layerIndex];
@@ -143,10 +153,10 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
         layers[layerIndex] = [];
       }
       layers[layerIndex].push(shift);
-    });
+    }
 
     return layers;
-  };
+  }, [timeToPosition]);
 
   // 給与計算
   const calculatePayroll = (userId: string, startDate: Date, endDate: Date) => {

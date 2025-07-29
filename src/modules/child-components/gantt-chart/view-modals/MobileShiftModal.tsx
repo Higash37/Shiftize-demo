@@ -251,7 +251,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent}>
+            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
               {users.map((user) => (
                 <TouchableOpacity
                   key={user.uid}
@@ -286,7 +286,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent}>
+            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
               {timeOptions.map((time) => (
                 <TouchableOpacity
                   key={time}
@@ -319,7 +319,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent}>
+            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
               {statusConfigs.map((config) => (
                 <TouchableOpacity
                   key={config.status}

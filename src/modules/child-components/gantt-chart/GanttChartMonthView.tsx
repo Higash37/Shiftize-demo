@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { RecruitmentShiftService } from "@/services/recruitment-shift/recruitmentShiftService";
 import {
   View,
@@ -64,12 +64,13 @@ import {
 } from "./gantt-chart-common/components";
 import { EditShiftModalView } from "./view-modals/EditShiftModalView";
 import { AddShiftModalView } from "./view-modals/AddShiftModalView";
+import { PayrollDetailModal } from "./view-modals/PayrollDetailModal";
 import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
+import { CalendarView } from "./gantt-chart-common/CalendarView";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
 import BatchConfirmModal from "./view-modals/BatchConfirmModal";
-import LoadingOverlay from "./gantt-chart-common/LoadingOverlay";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -82,8 +83,47 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   classTimes = [],
   refreshPage,
 }) => {
+  // 簡略化されたステータス設定（承認済み、申請中、削除申請中、削除済み、完了のみ）
+  const simplifiedStatusConfigs: ShiftStatusConfig[] = [
+    {
+      status: "approved",
+      label: "承認済み",
+      color: "#90caf9",
+      canEdit: false,
+      description: "承認されたシフト",
+    },
+    {
+      status: "pending",
+      label: "申請中",
+      color: "#FFD700",
+      canEdit: true,
+      description: "新規申請されたシフト",
+    },
+    {
+      status: "deletion_requested",
+      label: "削除申請中",
+      color: "#FFA500",
+      canEdit: false,
+      description: "削除申請中のシフト",
+    },
+    {
+      status: "deleted",
+      label: "削除済み",
+      color: "#9e9e9e",
+      canEdit: false,
+      description: "削除されたシフト",
+    },
+    {
+      status: "completed",
+      label: "完了",
+      color: "#4CAF50",
+      canEdit: false,
+      description: "完了したシフト",
+    },
+  ];
+
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
-    DEFAULT_SHIFT_STATUS_CONFIG
+    simplifiedStatusConfigs
   );
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
@@ -109,18 +149,22 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     extendedTasks: [], // 拡張タスクの初期値
   });
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // モーダルのローディング状態用（オーバーレイなし）
   const [refreshKey, setRefreshKey] = useState(0); // 強制再レンダリング用
+  const [scrollPosition, setScrollPosition] = useState(0); // スクロール位置保存用
   const [batchModal, setBatchModal] = useState<{
     visible: boolean;
     type: "approve" | "delete" | null;
   }>({ visible: false, type: null });
+  const [colorMode, setColorMode] = useState<"status" | "user">("status"); // デフォルトはステータス色
+  const [showPayrollModal, setShowPayrollModal] = useState(false); // 給与詳細モーダル表示状態
+  const [viewMode, setViewMode] = useState<"gantt" | "calendar">("gantt"); // ビューモード（デフォルトはガントチャート）
   const { user } = useAuth();
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
     users, // usersパラメータを追加
     onShiftUpdate,
-    refreshPage,
+    // refreshPageを使わずにstate更新のみで処理
   });
 
   // 時間選択オプションを生成
@@ -157,20 +201,24 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   };
 
   // 表示対象のシフト（deleted, purgedは除外）
-  const visibleShifts = shifts.filter(
-    (s) => s.status !== "deleted" && s.status !== "purged"
+  const visibleShifts = useMemo(() => 
+    shifts.filter((s) => s.status !== "deleted" && s.status !== "purged"),
+    [shifts]
   );
 
-  // 日付ごとにシフトをグループ化
-  const rows: [string, ShiftItem[]][] = days.flatMap((date) => {
-    const dayShifts = visibleShifts.filter((s) => s.date === date);
-    if (dayShifts.length === 0) return [[date, []]];
-    const groups = groupNonOverlappingShifts(dayShifts);
-    // 空のグループを除外
-    return groups
-      .filter((group) => group.length > 0)
-      .map((group) => [date, group] as [string, ShiftItem[]]);
-  });
+  // 日付ごとにシフトをグループ化（useMemoで安定化）
+  const rows = useMemo(() => {
+    const result: [string, ShiftItem[]][] = days.flatMap((date) => {
+      const dayShifts = visibleShifts.filter((s) => s.date === date);
+      if (dayShifts.length === 0) return [[date, []]];
+      const groups = groupNonOverlappingShifts(dayShifts);
+      // 空のグループを除外
+      return groups
+        .filter((group) => group.length > 0)
+        .map((group) => [date, group] as [string, ShiftItem[]]);
+    });
+    return result;
+  }, [days, visibleShifts]);
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
     // Viewモードでは縦線を一切表示しない
@@ -232,12 +280,12 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
   // シフト削除
   const handleDeleteShift = async (shiftId: string) => {
-    setIsLoading(true); // ローディング開始
     
     // 編集中のシフトの情報を取得
     const targetShift = editingShift || shifts.find(s => s.id === shiftId);
+    
     if (targetShift) {
-      // 通知対応の削除機能を使用
+      // 通知対忌の削除機能を使用
       await deleteShift(targetShift);
     } else {
       // フォールバック: 従来の方法
@@ -247,11 +295,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     
     setShowEditModal(false); // モーダルを閉じる
 
-    // シフト削除後にページをリフレッシュ
-    setIsLoading(false); // ローディング終了
-    if (refreshPage) {
-      refreshPage();
-    }
+    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 
   const handleBatchDelete = async () => {
@@ -261,10 +305,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     rejectedShifts.forEach((shift) => {
       updateShiftStatus(shift.id, "deleted"); // 一括削除で削除済みに変更
     });
-    // 一括削除後にページをリフレッシュ
-    if (refreshPage) {
-      refreshPage();
-    }
+    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 
   // シフト保存
@@ -284,7 +325,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       return;
     }
     
-    setIsLoading(true);
     try {
       // 募集シフトの場合は専用のサービスを使用
       if (newShiftData.userId === "recruitment") {
@@ -336,16 +376,12 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       setShowEditModal(false);
       setShowAddModal(false);
 
-      // シフト更新後にページをリフレッシュ
-      setIsLoading(false); // ローディング終了
-      if (refreshPage) {
-        refreshPage();
-      }
+          
+      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
+      
     } catch (error) {
       console.error("シフト保存エラー:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
-    } finally {
-      setIsLoading(false);
     }
   }, [editingShift, newShiftData, saveShift, user]);
 
@@ -428,6 +464,21 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     });
     setShowAddModal(true);
   }, [selectedDate, user, users]);
+
+  // 色モード切替
+  const handleColorModeToggle = useCallback(() => {
+    setColorMode(prev => prev === "status" ? "user" : "status");
+  }, []);
+
+  // 給与詳細モーダル表示
+  const handlePayrollPress = useCallback(() => {
+    setShowPayrollModal(true);
+  }, []);
+
+  // ビューモード切替
+  const handleViewToggle = useCallback(() => {
+    setViewMode(prev => prev === "gantt" ? "calendar" : "gantt");
+  }, []);
 
   // ユーザーID→colorマップを作成
   const userColorsMap = React.useMemo(() => {
@@ -513,6 +564,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     const { totalAmount, totalHours } = calculateMonthlyTotals();
     setTotalWage({ totalAmount, totalHours });
   }, [shifts, users, calculateMonthlyTotals]);
+  
 
   // --- 本体 ---
   return (
@@ -542,6 +594,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         totalHours={totalWage.totalHours}
         shifts={shifts}
         users={users}
+        colorMode={colorMode}
+        onColorModeToggle={handleColorModeToggle}
+        onPayrollPress={handlePayrollPress}
+        viewMode={viewMode}
+        onViewModeToggle={handleViewToggle}
       />
       {/* 年月ピッカーモーダル */}
       <DatePickerModal
@@ -561,34 +618,55 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         setIsLoading={setIsLoading}
         refreshPage={refreshPage}
       />
-      {/* 横スクロール全体をCustomScrollViewでラップ */}
-      <CustomScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
-          <GanttHeader
-            hourLabels={hourLabels}
-            dateColumnWidth={dateColumnWidth}
-            ganttColumnWidth={ganttColumnWidth}
-            infoColumnWidth={infoColumnWidth}
-          />
-          {/* 本体 */}
-          <GanttChartBody
-            key={refreshKey} // 強制再レンダリング用のキーを追加
-            days={days}
-            rows={rows}
-            dateColumnWidth={dateColumnWidth}
-            ganttColumnWidth={ganttColumnWidth}
-            infoColumnWidth={infoColumnWidth}
-            cellWidth={cellWidth}
-            halfHourLines={halfHourLines}
-            isClassTime={isClassTime}
-            getStatusConfig={getStatusConfig}
-            handleShiftPress={handleShiftPress}
-            handleEmptyCellClick={handleEmptyCellClick}
-            styles={styles}
-            userColorsMap={userColorsMap}
-          />
-        </View>
-      </CustomScrollView>
+      {/* 本体 - ビューモードに応じて切り替え */}
+      {viewMode === "gantt" ? (
+        /* 横スクロール全体をCustomScrollViewでラップ（ガントチャートのみ） */
+        <CustomScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          onScroll={(event) => {
+            // スクロール位置を保存
+            setScrollPosition(event.nativeEvent.contentOffset.x);
+          }}
+          scrollEventThrottle={16}
+        >
+          <View>
+            <GanttHeader
+              hourLabels={hourLabels}
+              dateColumnWidth={dateColumnWidth}
+              ganttColumnWidth={ganttColumnWidth}
+              infoColumnWidth={infoColumnWidth}
+            />
+            <GanttChartBody
+              // keyを削除して不要な再マウントを防ぐ
+              days={days}
+              rows={rows}
+              dateColumnWidth={dateColumnWidth}
+              ganttColumnWidth={ganttColumnWidth}
+              infoColumnWidth={infoColumnWidth}
+              cellWidth={cellWidth}
+              halfHourLines={halfHourLines}
+              isClassTime={isClassTime}
+              getStatusConfig={getStatusConfig}
+              handleShiftPress={handleShiftPress}
+              handleEmptyCellClick={handleEmptyCellClick}
+              styles={styles}
+              userColorsMap={userColorsMap}
+              colorMode={colorMode}
+            />
+          </View>
+        </CustomScrollView>
+      ) : (
+        /* カレンダービューは横スクロール不要 */
+        <CalendarView
+          shifts={shifts}
+          users={users}
+          selectedDate={selectedDate}
+          onShiftPress={handleShiftPress}
+          onMonthChange={onMonthChange}
+          styles={styles}
+        />
+      )}
       {/* シフト編集モーダル */}
       <EditShiftModalView
         visible={showEditModal}
@@ -634,7 +712,14 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveShift}
       />
-      <LoadingOverlay isLoading={isLoading} />
+      {/* 給与詳細モーダル */}
+      <PayrollDetailModal
+        visible={showPayrollModal}
+        onClose={() => setShowPayrollModal(false)}
+        shifts={shifts}
+        users={users}
+        selectedDate={selectedDate}
+      />
     </View>
   );
 };

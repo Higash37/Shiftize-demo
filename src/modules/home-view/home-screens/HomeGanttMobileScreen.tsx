@@ -195,11 +195,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
       });
       setShowEditModal(false);
       setShowAddModal(false);
-      if (refreshPage) {
-        refreshPage();
-        // リフレッシュ後にスクロール位置を復元
-        restoreScrollPosition();
-      }
+      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     } catch (error) {
       console.error("シフト保存エラー:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
@@ -216,11 +212,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
       await deleteShift(targetShift);
     }
     setShowEditModal(false);
-    if (refreshPage) {
-      refreshPage();
-      // リフレッシュ後にスクロール位置を復元
-      restoreScrollPosition();
-    }
+    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     setIsLoading(false);
   };
   
@@ -377,10 +369,8 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         setBatchModal={setBatchModal}
         setIsLoading={setIsLoading}
         refreshPage={() => {
-          if (refreshPage) {
-            refreshPage();
-            restoreScrollPosition();
-          }
+          // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
+          // 互換性のためダミー関数を残す
         }}
       />
       

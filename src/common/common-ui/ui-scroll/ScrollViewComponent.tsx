@@ -6,13 +6,13 @@ import { ScrollView, ScrollViewProps } from "react-native";
  * アプリ全体で統一的に使用することでスクロールバーを非表示にできます
  */
 export const CustomScrollView: React.FC<ScrollViewProps> = (props) => {
-  const { children, ...rest } = props;
+  const { children, showsVerticalScrollIndicator = false, showsHorizontalScrollIndicator = false, ...rest } = props;
 
   return (
     <ScrollView
       {...rest}
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+      showsHorizontalScrollIndicator={showsHorizontalScrollIndicator}
     >
       {children}
     </ScrollView>

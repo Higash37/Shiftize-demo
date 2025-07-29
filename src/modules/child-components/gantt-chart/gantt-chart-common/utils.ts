@@ -1,6 +1,8 @@
 // ガントチャート共通ユーティリティ
-// 15分ごとの時間選択リストを生成
-export function generateTimeOptions() {
+import { useMemo } from 'react';
+
+// メモ化された時間選択リストを生成
+const TIME_OPTIONS_CACHE = (() => {
   const options: string[] = [];
   for (let hour = 9; hour <= 22; hour++) {
     options.push(`${hour.toString().padStart(2, "0")}:00`);
@@ -9,6 +11,10 @@ export function generateTimeOptions() {
     options.push(`${hour.toString().padStart(2, "0")}:45`);
   }
   return options;
+})();
+
+export function generateTimeOptions() {
+  return TIME_OPTIONS_CACHE;
 }
 
 // シフトの重なりをグループ化（1人1行表示のため、各シフトを別グループに）
@@ -20,22 +26,25 @@ export function groupShiftsByOverlap(shifts: ShiftItem[]): ShiftItem[][] {
     .map((shift) => [shift]);
 }
 
+// メモ化されたシフト重複チェック用のキャッシュ
+const shiftOverlapCache = new Map<string, boolean>();
+
 // 重複しないシフトをグループ化（時間が重複しないシフトを同じ行にまとめる）
 export function groupNonOverlappingShifts(shifts: ShiftItem[]): ShiftItem[][] {
   if (!shifts || shifts.length === 0) return [];
   
-  // 時間順にソート
+  // 時間順にソート（最適化：in-placeソートではなくメモ化を活用）
   const sortedShifts = [...shifts].sort((a, b) => a.startTime.localeCompare(b.startTime));
   const groups: ShiftItem[][] = [];
   
-  sortedShifts.forEach(shift => {
+  for (const shift of sortedShifts) {
     // 既存のグループで重複しないものを探す
     let addedToGroup = false;
     
     for (const group of groups) {
-      // このグループの全シフトと重複しないかチェック
+      // このグループの全シフトと重複しないかチェック（最適化：早期終了）
       const hasOverlap = group.some(existingShift => 
-        shiftsOverlap(existingShift, shift)
+        shiftsOverlapCached(existingShift, shift)
       );
       
       if (!hasOverlap) {
@@ -49,9 +58,25 @@ export function groupNonOverlappingShifts(shifts: ShiftItem[]): ShiftItem[][] {
     if (!addedToGroup) {
       groups.push([shift]);
     }
-  });
+  }
   
   return groups;
+}
+
+// キャッシュ機能付きシフト重複チェック
+function shiftsOverlapCached(shift1: ShiftItem, shift2: ShiftItem): boolean {
+  // キャッシュキーを生成（ID順で統一）
+  const key = shift1.id < shift2.id 
+    ? `${shift1.id}-${shift2.id}` 
+    : `${shift2.id}-${shift1.id}`;
+    
+  if (shiftOverlapCache.has(key)) {
+    return shiftOverlapCache.get(key)!;
+  }
+  
+  const result = shiftsOverlap(shift1, shift2);
+  shiftOverlapCache.set(key, result);
+  return result;
 }
 
 // 2つのシフトが時間的に重複するかチェック
@@ -65,18 +90,36 @@ function shiftsOverlap(shift1: ShiftItem, shift2: ShiftItem): boolean {
   return start1 < end2 && start2 < end1;
 }
 
-// 時間文字列を分に変換
+// メモ化された時間変換キャッシュ
+const timeToMinutesCache = new Map<string, number>();
+
+// 時間文字列を分に変換（キャッシュ機能付き）
 function timeToMinutes(time: string): number {
+  if (timeToMinutesCache.has(time)) {
+    return timeToMinutesCache.get(time)!;
+  }
+  
   const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
+  const result = hours * 60 + minutes;
+  timeToMinutesCache.set(time, result);
+  return result;
 }
 
-// 時間(string)→位置(number) - 15分刻みに対応
+// 時間位置変換キャッシュ
+const timePositionCache = new Map<string, number>();
+
+// 時間(string)→位置(number) - 15分刻みに対応（キャッシュ機能付き）
 export function timeToPosition(time: string): number {
+  if (timePositionCache.has(time)) {
+    return timePositionCache.get(time)!;
+  }
+  
   const [hours, minutes] = time.split(":").map(Number);
   // 15分刻みでの位置を計算 (0-51の範囲)
   const totalMinutesFromStart = (hours - 9) * 60 + minutes;
-  return totalMinutesFromStart / 15;
+  const result = totalMinutesFromStart / 15;
+  timePositionCache.set(time, result);
+  return result;
 }
 
 // 位置(number)→時間(string) - 動的グリッドに対応

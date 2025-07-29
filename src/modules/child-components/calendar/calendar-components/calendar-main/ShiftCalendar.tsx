@@ -102,6 +102,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     return marks;
   }, [selectedDate, shifts, currentUserStoreId]);
 
+  // propMarkedDatesが提供されている場合はそれを使用、そうでなければ内部のmarkedDatesを使用
+  const finalMarkedDates = propMarkedDates || markedDates;
+  
+  console.log('ShiftCalendar - propMarked:', !!propMarkedDates, 'internal:', !!markedDates);
+  if (propMarkedDates) {
+    console.log('Using propMarkedDates:', Object.keys(propMarkedDates).length, 'dates');
+    const sampleKey = Object.keys(propMarkedDates)[0];
+    const sampleData = propMarkedDates[sampleKey];
+    console.log('PropMarkedDates sample:', sampleData);
+    if (sampleData.dots) {
+      console.log('Sample dots detail:', sampleData.dots);
+    }
+  } else {
+    console.log('Using internal markedDates:', Object.keys(markedDates).length, 'dates');
+    console.log('Internal markedDates sample:', markedDates[Object.keys(markedDates)[0]]);
+  }
+
   const handleDateSelect = (date: Date) => {
     setTempDate(date);
     if (onMonthChange) {
@@ -117,7 +134,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         current={currentMonth}
         onDayPress={onDayPress}
         onMonthChange={onMonthChange}
-        markedDates={markedDates}
+        markedDates={finalMarkedDates}
+        markingType={'multi-dot'} // multi-dot機能を有効化
         enableSwipeMonths={true}
         style={[
           styles.calendar,

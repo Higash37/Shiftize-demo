@@ -174,6 +174,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
+              showsVerticalScrollIndicator={false}
             >
               <Text style={styles.modalTitle}>授業時間を追加</Text>
 
@@ -270,6 +271,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
             >
               <Text style={styles.modalTitle}>登録済みタスク</Text>
               {newShiftData.extendedTasks &&
@@ -354,6 +356,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
+                showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.modalTitle}>タスクの詳細を設定</Text>
                 <Text style={styles.modalSubtitle}>
@@ -488,6 +491,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
+                showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.modalTitle}>タスクを選択</Text>
                 <Text
@@ -574,6 +578,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
             >
               <Text style={styles.modalTitle}>シフト編集</Text>
               <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
@@ -658,7 +663,6 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                           value={config.status}
                         />
                       ))}
-                      <Picker.Item label="完了" value="completed" />
                     </Picker>
                     <Text
                       style={[

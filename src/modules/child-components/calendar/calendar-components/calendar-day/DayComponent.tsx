@@ -82,7 +82,25 @@ export const DayComponent = memo<DayComponentPropsExtended>(
         >
           {date?.day}
         </Text>
-        {hasMarker && <View style={[styles.dot, marking.dotStyle]} />}
+        {/* 複数ドット対応 */}
+        {marking?.dots && marking.dots.length > 0 ? (
+          <View style={styles.dotsContainer}>
+            {marking.dots.map((dot: any, index: number) => (
+              <View
+                key={dot.key || index}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: dot.color,
+                    marginHorizontal: 1,
+                  }
+                ]}
+              />
+            ))}
+          </View>
+        ) : (
+          hasMarker && <View style={[styles.dot, marking.dotStyle]} />
+        )}
       </TouchableOpacity>
     );
   }

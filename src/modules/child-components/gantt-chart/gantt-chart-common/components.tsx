@@ -77,6 +77,7 @@ export type GanttChartGridProps = {
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   getTimeWidth?: (time: string) => number; // 動的幅計算用
+  colorMode?: "status" | "user"; // 色表示モード
 };
 
 // 授業データをタスクアイテムに変換するヘルパー関数
@@ -110,6 +111,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   userColorsMap,
   users = [], // デフォルト値を設定
   getTimeWidth,
+  colorMode = "status", // デフォルトはステータス色
 }) => {
   // 動的時間位置の計算
   function timeToPosition(time: string): number {
@@ -258,8 +260,10 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
           barVerticalOffset = index * singleBarHeight;
         }
-        // ユーザー色を取得（なければステータス色）
-        const userColor = userColorsMap?.[shift.userId] || statusConfig.color;
+        // 色モードに応じて色を取得
+        const borderColor = colorMode === "status" 
+          ? statusConfig.color 
+          : (userColorsMap?.[shift.userId] || statusConfig.color);
 
         // 2時間以下かどうかを判定（120分 = 2時間）
         const startTimeMinutes = (() => {
@@ -294,13 +298,13 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                 top: barVerticalOffset,
                 backgroundColor: "rgba(255, 255, 255, 0.95)", // 背景は白ベース
                 borderLeftWidth: 4, // 左端にユーザー色
-                borderLeftColor: userColor,
-                borderRightWidth: 4, // 右端にもユーザー色を追加
-                borderRightColor: userColor,
-                borderTopWidth: 4, // 上端にユーザー色（半分のサイズ）
-                borderTopColor: userColor,
-                borderBottomWidth: 4, // 下端にユーザー色（半分のサイズ）
-                borderBottomColor: userColor,
+                borderLeftColor: borderColor,
+                borderRightWidth: 4, // 右端にも色を追加
+                borderRightColor: borderColor,
+                borderTopWidth: 4, // 上端に色（半分のサイズ）
+                borderTopColor: borderColor,
+                borderBottomWidth: 4, // 下端に色（半分のサイズ）
+                borderBottomColor: borderColor,
                 opacity:
                   shift.status === "deleted" ||
                   shift.status === "deletion_requested"
@@ -343,7 +347,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     <Ionicons
                       name={userIcon as any}
                       size={16}
-                      color={userColor}
+                      color={borderColor}
                       style={{ marginRight: 4 }}
                     />
                     <Text
@@ -407,7 +411,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     <Ionicons
                       name={userIcon as any}
                       size={16}
-                      color={userColor}
+                      color={borderColor}
                       style={{ marginRight: 4 }}
                     />
                     <Text
@@ -703,6 +707,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
       <CustomScrollView
         style={{ flex: 1, width: "100%" }}
         contentContainerStyle={{ paddingVertical: 4 }}
+        showsVerticalScrollIndicator={false}
       >
         {shifts.map((shift, index) => {
           const statusConfig = getStatusConfig(shift.status);

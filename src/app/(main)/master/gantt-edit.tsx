@@ -1,5 +1,5 @@
 import React from "react";
-import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
+import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import {
@@ -20,7 +20,7 @@ export default function GanttEditScreen() {
     fetchShiftsByMonth,
     loading: shiftsLoading,
     error: shiftsError,
-  } = useShifts(user?.storeId);
+  } = useShiftsRealtime(user?.storeId);
   const {
     users,
     loading: usersLoading,
@@ -40,17 +40,20 @@ export default function GanttEditScreen() {
 
   const handleMonthChange = async (year: number, month: number) => {
     setCurrentYearMonth({ year, month });
-    await fetchShiftsByMonth(year, month);
+    // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
+    fetchShiftsByMonth(year, month);
   };
 
   const handleShiftUpdate = async () => {
-    await fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
+    // リアルタイムリスナーで自動更新されるため、何もしない
+    // コールバックの互換性のため関数は残す
   };
 
-  // ページをリフレッシュする関数（スプラッシュスクリーンなし）
+  // リアルタイムリスナーで自動更新されるため、refreshPageは不要
+  // 互換性のためダミー関数を用意
   const refreshPage = () => {
-    // 同じページに再遷移してコンポーネントを完全に再マウント
-    router.replace("/master/gantt-edit");
+    // リアルタイムリスナーで自動更新されるため何もしない
+    console.log("リアルタイム更新中...");
   };
 
   // シフト時間のドラッグ変更ハンドラー
@@ -74,8 +77,7 @@ export default function GanttEditScreen() {
         duration: durationHours,
       });
 
-      // 時間変更後にページをリフレッシュ
-      refreshPage();
+      // リアルタイムリスナーで自動更新される
     } catch (error) {
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
     }
@@ -136,8 +138,7 @@ export default function GanttEditScreen() {
           extendedTasks: data.extendedTasks || [],
         });
       }
-      // シフト保存後にページをリフレッシュ
-      refreshPage();
+      // リアルタイムリスナーで自動更新される
     } catch (error) {
       Alert.alert("エラー", "シフトの保存に失敗しました");
       throw error;
@@ -147,8 +148,7 @@ export default function GanttEditScreen() {
   const handleShiftDelete = async (shiftId: string) => {
     try {
       await markShiftAsDeleted(shiftId);
-      // シフト削除後にページをリフレッシュ
-      refreshPage();
+      // リアルタイムリスナーで自動更新される
     } catch (error) {
       Alert.alert("エラー", "シフトの削除に失敗しました");
       throw error;

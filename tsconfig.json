@@ -14,7 +14,14 @@
       "@utils/*": ["src/common/common-utils/*"],
       "@types/*": ["src/common/common-models/*"],
       "@services/*": ["./src/services/*"],
-      "@providers/*": ["./src/providers/*"]
+      "@providers/*": ["./src/providers/*"],
+      "@core/*": ["./src/common/*"],
+      "@features/*": ["./src/modules/*"],
+      "@backend/*": ["./src/backend-migration/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@constants/*": ["./src/common/common-constants/*"],
+      "@theme/*": ["./src/common/common-theme/*"]
     }
   },
   "include": [

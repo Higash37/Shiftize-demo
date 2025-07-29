@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import { FlatList, ListRenderItemInfo } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
 import {
@@ -29,6 +29,7 @@ interface GanttChartBodyProps {
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   statusStyles?: (status: string) => { borderColor: string; color: string };
+  colorMode?: "status" | "user"; // 色表示モード
 }
 
 interface RowData {
@@ -54,6 +55,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   userColorsMap,
   users = [], // デフォルト値を設定
   statusStyles,
+  colorMode = "status", // デフォルトはステータス色
 }) => {
   // 日付ごとに行を生成し、シフトがない日も空のグループとして含める
   // 同じ日付の行をグループ化して、日付セルを結合表示するための情報を付与
@@ -98,15 +100,44 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
       return result;
     }, [days, rows]);
 
+  const flatListRef = useRef<FlatList>(null);
+  const lastScrollOffset = useRef(0);
+
+  // スクロール位置を記録
+  const handleScroll = (event: any) => {
+    lastScrollOffset.current = event.nativeEvent.contentOffset.y;
+  };
+
+  // データ更新後にスクロール位置を復元
+  useEffect(() => {
+    if (flatListRef.current && lastScrollOffset.current > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: lastScrollOffset.current,
+          animated: false
+        });
+      }, 50);
+    }
+  }, [data]);
+
   return (
     <FlatList
+      ref={flatListRef}
       data={data}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      // ユニークなキーを生成するために日付とインデックスを組み合わせる
+      // 安定したキーを生成（シフトIDまたは日付とグループ情報）
       keyExtractor={(
         item: RowData & { isFirstInGroup: boolean; groupSize: number },
         index: number
-      ) => `${item.date}-${index}`}
+      ) => {
+        // indexに依存しない安定したキーを生成
+        if (item.group.length > 0) {
+          return `${item.date}-${item.group.map(s => s.id).join('-')}`;
+        }
+        return `${item.date}-empty-${item.isFirstInGroup}`;
+      }}
       renderItem={({
         item,
       }: ListRenderItemInfo<
@@ -132,11 +163,16 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           statusStyles={statusStyles}
           isFirstInGroup={item.isFirstInGroup}
           groupSize={item.groupSize}
+          colorMode={colorMode}
         />
       )}
       initialNumToRender={20}
       windowSize={21}
-      removeClippedSubviews={true}
+      removeClippedSubviews={false}
+      maintainVisibleContentPosition={{
+        minIndexForVisible: 0,
+        autoscrollToTopThreshold: 0
+      }}
     />
   );
 };

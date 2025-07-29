@@ -1,13 +1,13 @@
 import React from "react";
 import { ShiftData } from "@/modules/master-view/ganttView/components/ShiftModal";
-import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
+import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { GanttViewView } from "@/modules/master-view/ganttView/GanttViewView";
 
 export default function GanttViewScreen() {
   const { user } = useAuth();
-  const { shifts, fetchShiftsByMonth } = useShifts(user?.storeId);
+  const { shifts, fetchShiftsByMonth } = useShiftsRealtime(user?.storeId);
   const { users } = useUsers(user?.storeId);
 
   const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
@@ -36,11 +36,13 @@ export default function GanttViewScreen() {
 
   const handleMonthChange = async (year: number, month: number) => {
     setCurrentYearMonth({ year, month });
-    await fetchShiftsByMonth(year, month);
+    // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
+    fetchShiftsByMonth(year, month);
   };
 
   const handleShiftUpdate = async () => {
-    await fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
+    // リアルタイムリスナーで自動更新されるため、何もしない
+    // コールバックの互換性のため関数は残す
   };
 
   const handleShiftPress = (shift: ShiftData) => {};

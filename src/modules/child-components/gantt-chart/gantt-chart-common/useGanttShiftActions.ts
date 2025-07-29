@@ -19,7 +19,7 @@ export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
   onShiftUpdate?: () => Promise<void> | void;
-  refreshPage?: () => void;
+  refreshPage?: () => void; // 互換性のため残すが使用しない
 }
 
 export function useGanttShiftActions({
@@ -53,9 +53,7 @@ export function useGanttShiftActions({
             ...newShiftData,
             updatedAt: serverTimestamp(),
           });
-          if (refreshPage) {
-            refreshPage();
-          }
+          // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
           return;
         }
 
@@ -127,9 +125,7 @@ export function useGanttShiftActions({
           userColor: userColor || "#4A90E2", // デフォルト青色
         });
       }
-      if (refreshPage) {
-        refreshPage();
-      }
+      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     },
     [user, users, refreshPage]
   );
@@ -166,9 +162,7 @@ export function useGanttShiftActions({
         }
       }
       
-      if (refreshPage) {
-        refreshPage();
-      }
+      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     },
     [refreshPage, user]
   );
@@ -189,9 +183,7 @@ export function useGanttShiftActions({
         await updateDoc(shiftRef, { status });
       }
 
-      if (refreshPage) {
-        refreshPage();
-      }
+      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     },
     [user, refreshPage]
   );

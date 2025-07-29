@@ -9,12 +9,12 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
-import { colors } from "@/common/common-constants/ColorConstants";
-import { typography } from "@/common/common-constants/TypographyConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
-import Button from "@/common/common-ui/ui-forms/FormButton";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import { colors } from "@constants/ColorConstants";
+import { typography } from "@constants/TypographyConstants";
+import { layout } from "@constants/LayoutConstants";
+import { shadows } from "@constants/ShadowConstants";
+import Button from "@components/ui-forms/FormButton";
+import Box from "@components/ui-base/BaseBox/BoxComponent";
 
 export const WelcomeScreen: React.FC = () => {
   const { width } = useWindowDimensions();

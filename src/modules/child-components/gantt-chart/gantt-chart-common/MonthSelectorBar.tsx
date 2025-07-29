@@ -5,6 +5,9 @@ import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign } from "@expo/vector-icons";
 import styles from "../gantt-chart-styles/GanttChartMonthView.styles";
 import { PrintButton } from "../print/PrintButton";
+import { ColorToggleButton } from "./ColorToggleButton";
+import { ViewToggleButton } from "./ViewToggleButton";
+import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./UnifiedButtonStyles";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -18,7 +21,12 @@ interface MonthSelectorBarProps {
   totalAmount?: number; // 追加：合計金額
   totalHours?: number; // 追加：合計時間
   shifts?: any[]; // 追加：シフトデータ
-  users?: Array<{ uid: string; nickname: string; color?: string }>; // 追加：ユーザーデータ
+  users?: Array<{ uid: string; nickname: string; color?: string; hourlyWage?: number }>; // 追加：ユーザーデータ
+  colorMode?: "status" | "user"; // 追加：色表示モード
+  onColorModeToggle?: () => void; // 追加：色モード切替
+  onPayrollPress?: () => void; // 追加：給与詳細モーダル表示
+  viewMode?: "gantt" | "calendar"; // 追加：ビューモード
+  onViewModeToggle?: () => void; // 追加：ビューモード切替
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -36,23 +44,30 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     totalHours = 0,
     shifts = [],
     users = [],
+    colorMode = "status", // デフォルトはステータス色
+    onColorModeToggle,
+    onPayrollPress,
+    viewMode = "gantt", // デフォルトはガントチャート
+    onViewModeToggle,
   } = props;
   return (
     <View style={styles.monthSelector}>
-      {/* 金額表示部分 - シフトがなくても表示 */}
-      <View
+      {/* 金額表示部分 - シフトがなくても表示（タップ可能） */}
+      <TouchableOpacity
         style={{
           position: "absolute",
           left: 10,
           top: "38%",
           transform: [{ translateY: -24 }],
-          backgroundColor: "#f0f8ff",
+          backgroundColor: onPayrollPress ? "#f0f8ff" : "#f0f8ff",
           padding: 5,
           borderRadius: 6,
           borderWidth: 1,
-          borderColor: "#4A90E2",
+          borderColor: onPayrollPress ? "#4A90E2" : "#ddd",
           zIndex: 10,
         }}
+        onPress={onPayrollPress}
+        disabled={!onPayrollPress}
       >
         <Text style={{ fontWeight: "bold", color: "#333" }}>
           合計: {totalAmount.toLocaleString()}円{" "}
@@ -71,6 +86,32 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         <Text style={{ fontSize: 10, color: "#888", fontStyle: "italic" }}>
           ※授業時間を除く
         </Text>
+      </TouchableOpacity>
+      
+      {/* 色切替ボタンとビュー切替ボタン - 金額表示の右側 */}
+      <View
+        style={{
+          position: "absolute",
+          left: 180, // 金額表示の右側
+          top: "38%",
+          transform: [{ translateY: -18 }], // 高さを統一
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        {onColorModeToggle && (
+          <ColorToggleButton
+            colorMode={colorMode}
+            onToggle={onColorModeToggle}
+          />
+        )}
+        {onViewModeToggle && (
+          <ViewToggleButton
+            viewMode={viewMode}
+            onToggle={onViewModeToggle}
+          />
+        )}
       </View>
       <View style={styles.monthNavigator}>
         <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
@@ -96,25 +137,25 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
             selectedDate={selectedDate}
           />
         )}
-        <TouchableOpacity style={styles.addShiftButton} onPress={onReload}>
-          <Ionicons name="add" size={20} color="#4A90E2" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={onReload}>
-          <Text style={styles.headerButtonText}>更新</Text>
+        <TouchableOpacity style={getButtonStyle("secondary")} onPress={onReload}>
+          <Ionicons name="refresh" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
+          <Text style={getButtonTextStyle("secondary")}>更新</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.headerButton, { backgroundColor: "#1976D2" }]}
+          style={getButtonStyle("primary")}
           onPress={onBatchApprove}
           disabled={isLoading}
         >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>一括承認</Text>
+          <Ionicons name="checkmark-circle" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+          <Text style={getButtonTextStyle("primary")}>一括承認</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.headerButton, { backgroundColor: "#F44336" }]}
+          style={getButtonStyle("danger")}
           onPress={onBatchDelete}
           disabled={isLoading}
         >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>完全削除</Text>
+          <Ionicons name="trash" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+          <Text style={getButtonTextStyle("danger")}>完全削除</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
-import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
+import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { useAuth } from "@/services/auth/useAuth";
@@ -67,7 +67,7 @@ const tabs: TabItem[] = [
  * - 月間予算設定機能
  *
  * データソース:
- * - シフトデータ: useShifts()から取得
+ * - シフトデータ: useShiftsRealtime()から取得
  * - ユーザーデータ: useUsers()から取得
  * - 集計処理: リアルタイムで現在月のデータを計算
  */
@@ -84,7 +84,7 @@ export const InfoDashboard: React.FC = () => {
 
   // 実際のデータを取得
   const { user } = useAuth();
-  const { shifts, loading: shiftsLoading } = useShifts(user?.storeId);
+  const { shifts, loading: shiftsLoading } = useShiftsRealtime(user?.storeId);
   const { users, loading: usersLoading } = useUsers();
 
   // 現在の月のデータを計算

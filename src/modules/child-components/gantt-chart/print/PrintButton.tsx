@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "./PrintButton.styles";
+import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "../gantt-chart-common/UnifiedButtonStyles";
 import { ShiftPrintModal } from "./ShiftPrintModal";
 
 interface PrintButtonProps {
@@ -23,9 +23,9 @@ export const PrintButton: React.FC<PrintButtonProps> = ({
 
   return (
     <>
-      <TouchableOpacity onPress={handlePrint} style={styles.printButton}>
-        <Ionicons name="print-outline" size={20} color="#fff" />
-        <Text style={styles.printButtonText}>印刷</Text>
+      <TouchableOpacity onPress={handlePrint} style={getButtonStyle("primary")}>
+        <Ionicons name="print-outline" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+        <Text style={getButtonTextStyle("primary")}>印刷</Text>
       </TouchableOpacity>
 
       <ShiftPrintModal

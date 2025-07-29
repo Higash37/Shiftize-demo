@@ -40,6 +40,7 @@ interface GanttChartRowProps {
   };
   isFirstInGroup?: boolean; // 同じ日付の最初の行かどうか
   groupSize?: number; // 同じ日付の総行数
+  colorMode?: "status" | "user"; // 色表示モード
 }
 
 export { GanttChartRowProps };
@@ -64,6 +65,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
   statusStyles,
   isFirstInGroup = true, // デフォルトは true
   groupSize = 1, // デフォルトは 1
+  colorMode = "status", // デフォルトはステータス色
 }) => {
   // 行の高さを動的に計算（デフォルト65px）
   const rowHeight = styles.shiftRow?.height || 65;
@@ -114,6 +116,7 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
             styles={styles}
             userColorsMap={userColorsMap}
             users={users}
+            colorMode={colorMode}
           />
         </View>
         <GanttChartInfo

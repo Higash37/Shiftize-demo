@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
+import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 
@@ -13,7 +13,7 @@ for (let h = 9; h <= 22; h++) {
 
 export function useHomeGanttState() {
   const { user } = useAuth();
-  const { shifts, loading, fetchShiftsByMonth } = useShifts(user?.storeId);
+  const { shifts, loading: _loading, fetchShiftsByMonth } = useShiftsRealtime(user?.storeId); // リアルタイムリスナーにより実質不要
   const { users } = useUsers();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -25,6 +25,7 @@ export function useHomeGanttState() {
   }));
 
   useEffect(() => {
+    // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
     fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
   }, [currentYearMonth.year, currentYearMonth.month, fetchShiftsByMonth]);
 
@@ -155,6 +156,6 @@ export function useHomeGanttState() {
       window.innerWidth >= 768 &&
       window.innerWidth <= 1024,
     isWide: typeof window !== "undefined" && window.innerWidth >= 768,
-    loading,
+    // loading: リアルタイムリスナーにより不要
   };
 }

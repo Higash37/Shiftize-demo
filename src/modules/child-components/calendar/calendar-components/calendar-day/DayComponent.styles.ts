@@ -54,6 +54,14 @@ export const styles = StyleSheet.create({
     marginTop: 2,
     zIndex: 1,
   },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    bottom: 2,
+    alignSelf: "center",
+  },
   selectedDay: {
     // 旧selectedDayは不要
   },

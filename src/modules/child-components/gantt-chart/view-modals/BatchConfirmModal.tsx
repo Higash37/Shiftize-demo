@@ -89,10 +89,7 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
     }
     setIsLoading(false);
     setBatchModal({ visible: false, type: null });
-    // バッチ操作後にページをリフレッシュ
-    if (refreshPage) {
-      refreshPage();
-    }
+    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 
   return (

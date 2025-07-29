@@ -4,7 +4,12 @@ import { shadows } from "@/common/common-constants/ThemeConstants";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fafbfc", // よりモダンな背景色
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   addShiftButtonRow: {
     // +ボタンは非表示にするが、行自体は表示
@@ -18,14 +23,18 @@ const styles = StyleSheet.create({
   },
   addShiftButton: {
     display: "none", // +ボタンのみ非表示
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 15,
-    padding: 3,
-    width: 30,
-    height: 30,
+    backgroundColor: "rgba(74, 144, 226, 0.9)", // ブランドカラーを使用
+    borderRadius: 20, // より丸みを帯びたデザイン
+    padding: 8,
+    width: 40,
+    height: 40,
     justifyContent: "center",
     alignItems: "center",
-    ...shadows.small,
+    shadowColor: "#4A90E2",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
   modalOverlay: {
     flex: 1,
@@ -36,11 +45,15 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "#fff",
     width: 320,
-    borderRadius: 14,
+    borderRadius: 16, // より丸みを帯びたデザイン
     padding: 24,
     ...shadows.modal,
-    borderWidth: 1,
-    borderColor: "#eee",
+    borderWidth: 0, // ボーダーを除去してクリーンに
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalTitle: {
     fontSize: 16,
