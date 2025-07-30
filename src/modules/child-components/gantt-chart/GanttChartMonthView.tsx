@@ -83,7 +83,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   classTimes = [],
   refreshPage,
 }) => {
-  // 簡略化されたステータス設定（承認済み、申請中、削除申請中、削除済み、完了のみ）
+  // 簡略化されたステータス設定（承認済み、申請中、却下、削除済み、完了のみ）
   const simplifiedStatusConfigs: ShiftStatusConfig[] = [
     {
       status: "approved",
@@ -100,11 +100,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       description: "新規申請されたシフト",
     },
     {
-      status: "deletion_requested",
-      label: "削除申請中",
-      color: "#FFA500",
-      canEdit: false,
-      description: "削除申請中のシフト",
+      status: "rejected",
+      label: "却下",
+      color: "#ffcdd2",
+      canEdit: true,
+      description: "却下されたシフト",
     },
     {
       status: "deleted",
@@ -359,9 +359,14 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         }
       } else {
         // 通常のシフト保存
-        await saveShift(editingShift, newShiftData);
+        // 編集モーダルが開いている場合のみeditingShiftを渡す
+        const shiftToUpdate = showEditModal ? editingShift : null;
+        await saveShift(shiftToUpdate, newShiftData);
       }
       
+      // 状態をクリア（順番を守る）
+      setShowEditModal(false);
+      setShowAddModal(false);
       setEditingShift(null);
       setNewShiftData({
         date: "",
@@ -373,8 +378,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         classes: [],
         extendedTasks: [], // 拡張タスクもリセット
       });
-      setShowEditModal(false);
-      setShowAddModal(false);
 
           
       // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
@@ -513,12 +516,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       const shiftYear = shiftDate.getFullYear();
       const shiftMonth = shiftDate.getMonth() + 1;
 
-      // 選択された月のシフトかつ承認済み、承認待ち、または完了済みシフトをフィルタリング
+      // 選択された月のシフトかつ承認済みまたは完了済みシフトをフィルタリング
       return (
         shiftYear === selectedYear &&
         shiftMonth === selectedMonth &&
         (shift.status === "approved" ||
-          shift.status === "pending" ||
           shift.status === "completed")
       );
     });

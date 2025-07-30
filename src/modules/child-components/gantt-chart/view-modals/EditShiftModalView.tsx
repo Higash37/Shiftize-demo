@@ -7,9 +7,11 @@ import {
   ActivityIndicator,
   ScrollView,
   TextInput,
+  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
+import { TimeInput } from "@/common/common-ui/ui-input/TimeInput";
 
 interface EditShiftModalViewProps {
   visible: boolean;
@@ -64,6 +66,44 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
     newShiftData.endTime
   );
   const [customTaskTitle, setCustomTaskTitle] = React.useState(""); // カスタムタスクのタイトル
+  const [isManualInput, setIsManualInput] = React.useState(false);
+  const [manualStartTime, setManualStartTime] = React.useState(newShiftData.startTime);
+  const [manualEndTime, setManualEndTime] = React.useState(newShiftData.endTime);
+
+  // 手動入力値をnewShiftDataに反映
+  React.useEffect(() => {
+    if (isManualInput) {
+      setManualStartTime(newShiftData.startTime);
+      setManualEndTime(newShiftData.endTime);
+    }
+  }, [isManualInput, newShiftData.startTime, newShiftData.endTime]);
+
+  // モーダルが閉じられたときに状態をリセット
+  React.useEffect(() => {
+    if (!visible) {
+      setIsManualInput(false);
+    }
+  }, [visible]);
+
+  // 時間のバリデーション
+  const validateTime = (time: string) => {
+    const regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return regex.test(time);
+  };
+
+  const handleTimeChange = (value: string, isStart: boolean) => {
+    if (isStart) {
+      setManualStartTime(value);
+      if (validateTime(value)) {
+        onChange("startTime", value);
+      }
+    } else {
+      setManualEndTime(value);
+      if (validateTime(value)) {
+        onChange("endTime", value);
+      }
+    }
+  };
 
   // 時間をminutes（分）に変換するヘルパー関数
   const timeToMinutes = (time: string): number => {
@@ -611,17 +651,30 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                 <View style={styles.timeInputGroup}>
                   <Text style={styles.timeInputLabel}>開始時間</Text>
                   <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={newShiftData.startTime}
-                      onValueChange={(itemValue) =>
-                        onChange("startTime", itemValue)
-                      }
-                      style={styles.picker}
-                    >
-                      {timeOptions.map((time) => (
-                        <Picker.Item key={time} label={time} value={time} />
-                      ))}
-                    </Picker>
+                    {isManualInput ? (
+                      <TimeInput
+                        style={[
+                          styles.picker,
+                          { paddingHorizontal: 10, textAlign: 'center' }
+                        ]}
+                        value={newShiftData.startTime}
+                        onChangeText={(value) => onChange("startTime", value)}
+                        placeholder="00:00"
+                        isError={false}
+                      />
+                    ) : (
+                      <Picker
+                        selectedValue={newShiftData.startTime}
+                        onValueChange={(itemValue) =>
+                          onChange("startTime", itemValue)
+                        }
+                        style={styles.picker}
+                      >
+                        {timeOptions.map((time) => (
+                          <Picker.Item key={time} label={time} value={time} />
+                        ))}
+                      </Picker>
+                    )}
                   </View>
                 </View>
 
@@ -630,20 +683,55 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                 <View style={styles.timeInputGroup}>
                   <Text style={styles.timeInputLabel}>終了時間</Text>
                   <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={newShiftData.endTime}
-                      onValueChange={(itemValue) =>
-                        onChange("endTime", itemValue)
-                      }
-                      style={styles.picker}
-                    >
-                      {timeOptions.map((time) => (
-                        <Picker.Item key={time} label={time} value={time} />
-                      ))}
-                    </Picker>
+                    {isManualInput ? (
+                      <TimeInput
+                        style={[
+                          styles.picker,
+                          { paddingHorizontal: 10, textAlign: 'center' }
+                        ]}
+                        value={newShiftData.endTime}
+                        onChangeText={(value) => onChange("endTime", value)}
+                        placeholder="00:00"
+                        isError={false}
+                      />
+                    ) : (
+                      <Picker
+                        selectedValue={newShiftData.endTime}
+                        onValueChange={(itemValue) =>
+                          onChange("endTime", itemValue)
+                        }
+                        style={styles.picker}
+                      >
+                        {timeOptions.map((time) => (
+                          <Picker.Item key={time} label={time} value={time} />
+                        ))}
+                      </Picker>
+                    )}
                   </View>
                 </View>
               </View>
+
+              {/* 手動入力切り替えボタン */}
+              <TouchableOpacity
+                style={{
+                  alignSelf: 'center',
+                  marginTop: 8,
+                  marginBottom: 16,
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  backgroundColor: isManualInput ? '#4A90E2' : '#f0f0f0',
+                  borderRadius: 20,
+                }}
+                onPress={() => setIsManualInput(!isManualInput)}
+              >
+                <Text style={{
+                  color: isManualInput ? '#fff' : '#4A90E2',
+                  fontWeight: 'bold',
+                  fontSize: 14,
+                }}>
+                  {isManualInput ? 'プルダウンに戻る' : '手動で入力'}
+                </Text>
+              </TouchableOpacity>
 
               {role === "master" && (
                 <View style={styles.formGroup}>

@@ -21,6 +21,19 @@ import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorag
 import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
 
+// 一時的なエラーかどうかを判定
+const isTemporaryError = (error: any): boolean => {
+  const temporaryErrors = [
+    'permission-denied',
+    'network-request-failed',
+    'unavailable',
+    'cancelled',
+    'aborted'
+  ];
+  const errorCode = error?.code?.toLowerCase() || '';
+  return temporaryErrors.some(e => errorCode.includes(e));
+};
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -246,57 +259,96 @@ export const useAuth = () => {
     }
   };
 
+  // ユーザー情報取得のリトライロジック
+  const fetchUserWithRetry = async (uid: string, email?: string | null, retries = 3): Promise<any> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        // 直接UIDで検索
+        const userDoc = await getDoc(doc(db, "users", uid));
+        const userData = userDoc.data();
+        if (userData) return userData;
+
+        // メールアドレスで検索
+        if (email) {
+          const { UserService } = await import("../firebase/firebase-user");
+          const userInfo = await UserService.findUserByEmail(email);
+          if (userInfo) return userInfo;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error(`ユーザー情報取得エラー (試行 ${i + 1}/${retries}):`, error);
+        
+        // 最後の試行または永続的なエラーの場合はエラーを投げる
+        if (i === retries - 1 || !isTemporaryError(error)) {
+          throw error;
+        }
+        
+        // リトライ前に待機（指数バックオフ）
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
       
       if (firebaseUser) {
-        
-        let userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        let userData = userDoc.data();
+        try {
+          // リトライ付きでユーザー情報を取得
+          const userData = await fetchUserWithRetry(firebaseUser.uid, firebaseUser.email);
 
+          if (userData) {
+            // 削除フラグを確認
+            if (userData.deleted) {
+              await getAuth().signOut();
+              setUser(null);
+              setRole(null);
+              setStoreId(null);
+              setAuthError("このユーザーは削除されています。");
+              setLoading(false);
+              return;
+            }
 
-        // 直接UIDで見つからない場合、メールアドレスで検索
-        if (!userData && firebaseUser.email) {
-          const { UserService } = await import("../firebase/firebase-user");
-          const userInfo = await UserService.findUserByEmail(firebaseUser.email);
-          
-          if (userInfo) {
-            userData = userInfo;
-          }
-        }
+            // storeIdが設定されている場合のみチェック（ログイン時のみ）
+            // 既に認証済みの場合は、再度チェックしない
+            const userStoreId = userData.storeId || storeId;
 
-        if (userData) {
-          // 削除フラグを確認
-          if (userData.deleted) {
+            setUser({
+              uid: userData.id || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
+              nickname: userData.nickname,
+              role: userData.role,
+              email: firebaseUser.email || undefined,
+              storeId: userStoreId,
+            });
+            setRole(userData.role);
+            setStoreId(userStoreId);
+            setAuthError(null); // 成功時はエラーをクリア
+          } else {
+            // リトライしても見つからない場合のみログアウト
+            console.error("ユーザー情報が見つかりません（リトライ後）");
             await getAuth().signOut();
             setUser(null);
             setRole(null);
             setStoreId(null);
-            setAuthError("このユーザーは削除されています。");
-            return;
+            setAuthError("ユーザー情報が見つかりません。");
           }
-
-          // storeIdが設定されている場合のみチェック（ログイン時のみ）
-          // 既に認証済みの場合は、再度チェックしない
-          const userStoreId = userData.storeId || storeId;
-
-          setUser({
-            uid: userData.id || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
-            nickname: userData.nickname,
-            role: userData.role,
-            email: firebaseUser.email || undefined,
-            storeId: userStoreId,
-          });
-          setRole(userData.role);
-          setStoreId(userStoreId);
-          setAuthError(null); // 成功時はエラーをクリア
-        } else {
-          // Firebase認証をログアウト
-          await getAuth().signOut();
-          setUser(null);
-          setRole(null);
-          setStoreId(null);
-          setAuthError("ユーザー情報が見つかりません。");
+        } catch (error) {
+          console.error("認証状態確認エラー:", error);
+          
+          // 一時的なエラーの場合は現在の状態を維持
+          if (isTemporaryError(error)) {
+            console.log("一時的なエラーのため、現在の認証状態を維持します");
+            // エラー表示はしない（ユーザー体験を損なわないため）
+          } else {
+            // 永続的なエラーの場合のみログアウト
+            await getAuth().signOut();
+            setUser(null);
+            setRole(null);
+            setStoreId(null);
+            setAuthError("認証エラーが発生しました。");
+          }
         }
       } else {
         setUser(null);

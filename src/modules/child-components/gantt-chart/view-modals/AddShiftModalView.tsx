@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  TextInput,
+  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { TimeInput } from "@/common/common-ui/ui-input/TimeInput";
 
 interface AddShiftModalViewProps {
   visible: boolean;
@@ -36,6 +39,64 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
   onClose,
   onSave,
 }) => {
+  const [showUserError, setShowUserError] = useState(false);
+  const [attemptedSave, setAttemptedSave] = useState(false);
+  const [isManualInput, setIsManualInput] = useState(false);
+  const [manualStartTime, setManualStartTime] = useState(newShiftData.startTime);
+  const [manualEndTime, setManualEndTime] = useState(newShiftData.endTime);
+
+  // ユーザー選択状態を監視
+  useEffect(() => {
+    if (newShiftData.userId && showUserError) {
+      setShowUserError(false);
+    }
+  }, [newShiftData.userId]);
+
+  // モーダルが閉じられたときにエラー状態をリセット
+  useEffect(() => {
+    if (!visible) {
+      setShowUserError(false);
+      setAttemptedSave(false);
+      setIsManualInput(false);
+    }
+  }, [visible]);
+
+  // 手動入力値をnewShiftDataに反映
+  useEffect(() => {
+    if (isManualInput) {
+      setManualStartTime(newShiftData.startTime);
+      setManualEndTime(newShiftData.endTime);
+    }
+  }, [isManualInput, newShiftData.startTime, newShiftData.endTime]);
+
+  // 時間のバリデーション
+  const validateTime = (time: string) => {
+    const regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return regex.test(time);
+  };
+
+  const handleTimeChange = (value: string, isStart: boolean) => {
+    if (isStart) {
+      setManualStartTime(value);
+      if (validateTime(value)) {
+        onChange("startTime", value);
+      }
+    } else {
+      setManualEndTime(value);
+      if (validateTime(value)) {
+        onChange("endTime", value);
+      }
+    }
+  };
+
+  const handleSave = () => {
+    setAttemptedSave(true);
+    if (!newShiftData.userId) {
+      setShowUserError(true);
+      return;
+    }
+    onSave();
+  };
   return (
     <Modal
       visible={visible}
@@ -58,8 +119,13 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
             <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>ユーザー</Text>
-              <View style={styles.pickerContainer}>
+              <Text style={[styles.formLabel, showUserError && { color: '#FF4444' }]}>
+                ユーザー {showUserError && '(必須)'}
+              </Text>
+              <View style={[
+                styles.pickerContainer,
+                showUserError && { borderColor: '#FF4444', borderWidth: 2 }
+              ]}>
                 <Picker
                   selectedValue={newShiftData.userId}
                   onValueChange={(itemValue) => {
@@ -101,17 +167,30 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>開始時間</Text>
                 <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.startTime}
-                    onValueChange={(itemValue) =>
-                      onChange("startTime", itemValue)
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
+                  {isManualInput ? (
+                    <TimeInput
+                      style={[
+                        styles.picker,
+                        { paddingHorizontal: 10, textAlign: 'center' }
+                      ]}
+                      value={newShiftData.startTime}
+                      onChangeText={(value) => onChange("startTime", value)}
+                      placeholder="00:00"
+                      isError={false}
+                    />
+                  ) : (
+                    <Picker
+                      selectedValue={newShiftData.startTime}
+                      onValueChange={(itemValue) =>
+                        onChange("startTime", itemValue)
+                      }
+                      style={styles.picker}
+                    >
+                      {timeOptions.map((time) => (
+                        <Picker.Item key={time} label={time} value={time} />
+                      ))}
+                    </Picker>
+                  )}
                 </View>
               </View>
 
@@ -120,20 +199,55 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
               <View style={styles.timeInputGroup}>
                 <Text style={styles.timeInputLabel}>終了時間</Text>
                 <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={newShiftData.endTime}
-                    onValueChange={(itemValue) =>
-                      onChange("endTime", itemValue)
-                    }
-                    style={styles.picker}
-                  >
-                    {timeOptions.map((time) => (
-                      <Picker.Item key={time} label={time} value={time} />
-                    ))}
-                  </Picker>
+                  {isManualInput ? (
+                    <TimeInput
+                      style={[
+                        styles.picker,
+                        { paddingHorizontal: 10, textAlign: 'center' }
+                      ]}
+                      value={newShiftData.endTime}
+                      onChangeText={(value) => onChange("endTime", value)}
+                      placeholder="00:00"
+                      isError={false}
+                    />
+                  ) : (
+                    <Picker
+                      selectedValue={newShiftData.endTime}
+                      onValueChange={(itemValue) =>
+                        onChange("endTime", itemValue)
+                      }
+                      style={styles.picker}
+                    >
+                      {timeOptions.map((time) => (
+                        <Picker.Item key={time} label={time} value={time} />
+                      ))}
+                    </Picker>
+                  )}
                 </View>
               </View>
             </View>
+
+            {/* 手動入力切り替えボタン */}
+            <TouchableOpacity
+              style={{
+                alignSelf: 'center',
+                marginTop: 8,
+                marginBottom: 16,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                backgroundColor: isManualInput ? '#4A90E2' : '#f0f0f0',
+                borderRadius: 20,
+              }}
+              onPress={() => setIsManualInput(!isManualInput)}
+            >
+              <Text style={{
+                color: isManualInput ? '#fff' : '#4A90E2',
+                fontWeight: 'bold',
+                fontSize: 14,
+              }}>
+                {isManualInput ? 'プルダウンに戻る' : '手動で入力'}
+              </Text>
+            </TouchableOpacity>
 
             {/* ステータス選択はマスター画面では非表示にする */}
             {/* <View style={styles.formGroup}>
@@ -245,8 +359,12 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={onSave}
+                style={[
+                  styles.modalButton,
+                  styles.saveButton,
+                  attemptedSave && !newShiftData.userId && { backgroundColor: '#FF4444' }
+                ]}
+                onPress={handleSave}
                 disabled={isLoading}
               >
                 {isLoading ? (

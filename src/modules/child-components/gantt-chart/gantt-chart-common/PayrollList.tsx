@@ -45,7 +45,6 @@ export const PayrollList: React.FC<PayrollListProps> = ({
         shiftYear === selectedYear &&
         shiftMonth === selectedMonth &&
         (shift.status === "approved" ||
-          shift.status === "pending" ||
           shift.status === "completed")
       );
     });
@@ -111,6 +110,9 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryText}>
           総計: {grandTotal.totalAmount.toLocaleString()}円 | {Math.floor(grandTotal.totalHours)}h{Math.round((grandTotal.totalHours % 1) * 60) > 0 && `${Math.round((grandTotal.totalHours % 1) * 60)}m`}{' '}| {grandTotal.shiftCount}件
+        </Text>
+        <Text style={styles.summaryNote}>
+          ※承認済み・完了のシフトのみ計算対象
         </Text>
       </View>
 
@@ -190,6 +192,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     textAlign: "center",
+  },
+  summaryNote: {
+    fontSize: 10,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 4,
+    fontStyle: "italic",
   },
   listContainer: {
     flex: 1,

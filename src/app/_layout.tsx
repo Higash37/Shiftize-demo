@@ -91,13 +91,22 @@ function RootLayoutNav() {
   }, [user, role, loading, segments]);
 
   useEffect(() => {
+    let timeoutId: any;
     const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active" && !user) {
-        router.replace("/(auth)/login");
+      if (nextAppState === "active" && !loading) {
+        // 認証状態を再確認する前に少し待つ
+        timeoutId = setTimeout(() => {
+          if (!user && !loading) {
+            router.replace("/(auth)/login");
+          }
+        }, 1000); // 1秒待機
       }
     });
-    return () => subscription.remove();
-  }, [user]);
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.remove();
+    };
+  }, [user, loading]);
 
   // シンプルなWeb/PWA対応 - CSSはindex.htmlに任せる
   const getLayoutStyle = () => {

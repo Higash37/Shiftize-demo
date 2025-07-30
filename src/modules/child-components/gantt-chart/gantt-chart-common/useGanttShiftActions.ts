@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import {
   doc,
   updateDoc,
@@ -28,6 +28,9 @@ export function useGanttShiftActions({
   onShiftUpdate,
   refreshPage,
 }: UseGanttShiftActionsProps) {
+  // 保存処理中のフラグ（重複防止）
+  const savingRef = useRef(false);
+
   // シフト保存（追加・編集）
   const saveShift = useCallback(
     async (
@@ -43,7 +46,16 @@ export function useGanttShiftActions({
         extendedTasks?: any[]; // 拡張タスク配列を追加
       }
     ) => {
-      if (editingShift) {
+      // 既に保存処理中の場合はスキップ
+      if (savingRef.current) {
+        console.log("保存処理中のためスキップ");
+        return;
+      }
+      
+      savingRef.current = true;
+      
+      try {
+        if (editingShift) {
         if (editingShift?.status === "deletion_requested") {
           newShiftData.status = "rejected"; // 削除申請中のシフトを却下状態に変更
         }
@@ -124,8 +136,14 @@ export function useGanttShiftActions({
           // ユーザーの色情報を保存
           userColor: userColor || "#4A90E2", // デフォルト青色
         });
+        }
+        // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
+      } finally {
+        // 処理完了後にフラグをリセット
+        setTimeout(() => {
+          savingRef.current = false;
+        }, 500); // 500msのデバウンス
       }
-      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     },
     [user, users, refreshPage]
   );

@@ -54,7 +54,6 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = ({
         shiftYear === selectedYear &&
         shiftMonth === selectedMonth &&
         (shift.status === "approved" ||
-          shift.status === "pending" ||
           shift.status === "completed")
       );
     });
@@ -157,6 +156,9 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = ({
             </View>
             <Text style={styles.summarySubtext}>
               総シフト数: {grandTotal.shiftCount}件 | ※授業時間を除く
+            </Text>
+            <Text style={styles.summaryNote}>
+              ※承認済み・完了のシフトのみ計算対象
             </Text>
           </View>
 
@@ -276,6 +278,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
     fontStyle: "italic",
+  },
+  summaryNote: {
+    fontSize: 11,
+    color: "#ff6b6b",
+    marginTop: 4,
+    fontWeight: "500",
   },
   listContainer: {
     flex: 1,
