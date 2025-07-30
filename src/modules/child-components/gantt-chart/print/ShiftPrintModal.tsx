@@ -709,10 +709,10 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-calendar-day {
             border: 1px solid #ccc;
-            height: 60px; /* 高さをより大きく（5行のシフトが入るように） */
+            height: 75px; /* 高さをさらに大きく（文字が切れないように） */
             width: 14.28%;
             vertical-align: top;
-            padding: 2px; /* パディングも少し大きく */
+            padding: 3px; /* パディングを大きく */
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
@@ -722,43 +722,50 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-empty-day {
             border: 1px solid #ccc;
-            height: 60px; /* 高さをより大きく */
+            height: 75px; /* 高さをより大きく */
             width: 14.28%;
             background-color: #f5f5f5;
             box-sizing: border-box;
           }
           .unified-day-number {
             font-weight: bold;
-            font-size: 14px; /* 1.5倍程度に調整 */
-            margin-bottom: 1px;
+            font-size: 16px; /* 日付番号をさらに大きく */
+            margin-bottom: 2px;
             line-height: 1;
           }
           .unified-shifts-container {
             display: flex;
             flex-direction: column;
-            height: calc(100% - 20px); /* 上下のマージン分を引いた高さ */
-            justify-content: flex-start; /* 上揃えに変更 */
+            height: calc(100% - 25px); /* 日付番号分のスペースを確保 */
+            justify-content: flex-start;
           }
           .unified-shift-item {
-            font-size: 9px; /* フォントサイズを少し小さく調整 */
-            line-height: 1.1; /* 行間を詰める */
+            font-size: 11px; /* フォントサイズを11pxに */
+            line-height: 1.2; /* 行間を少し狭く */
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 1px; /* 項目間に少し間隔 */
+            margin-bottom: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            white-space: nowrap; /* 文字の折り返しを防ぐ */
           }
           .unified-shift-name {
             font-weight: bold;
+            font-size: 11px; /* 名前のフォントサイズを11pxに */
             color: #333;
-            flex-shrink: 0;
-            margin-right: 4px;
+            flex-shrink: 1; /* 名前が長い場合は縮小可能に */
+            margin-right: 3px;
+            max-width: 60%; /* 名前の最大幅を制限 */
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .unified-shift-time {
             color: #666;
-            font-size: 8px;
+            font-size: 11px; /* 時間のフォントサイズを11pxに */
             flex-shrink: 0;
+            min-width: 40%; /* 時間表示の最小幅を確保 */
+            font-weight: 600; /* 時間も少し太く */
           }
         </style>
       </head>
@@ -1217,20 +1224,32 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           margin-bottom: 5px;
         }
         .unified-shift-item {
+          font-size: 11px;
+          line-height: 1.2;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: 1px;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          white-space: nowrap;
         }
         .unified-shift-name {
           font-weight: bold;
           color: #333;
-          flex-shrink: 0;
-          margin-right: 4px;
+          font-size: 11px;
+          flex-shrink: 1;
+          margin-right: 3px;
+          max-width: 60%;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .unified-shift-time {
           color: #666;
-          font-size: 8px;
+          font-size: 11px;
           flex-shrink: 0;
+          min-width: 40%;
+          font-weight: 600;
         }
       </style>
     `;
@@ -1507,10 +1526,10 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-calendar-day {
             border: 1px solid #ccc;
-            height: 60px; /* 高さをより大きく（5行のシフトが入るように） */
+            height: 75px; /* 高さをさらに大きく（文字が切れないように） */
             width: 14.28%;
             vertical-align: top;
-            padding: 2px; /* パディングも少し大きく */
+            padding: 3px; /* パディングを大きく */
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
@@ -1520,43 +1539,50 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
           }
           .unified-empty-day {
             border: 1px solid #ccc;
-            height: 60px; /* 高さをより大きく */
+            height: 75px; /* 高さをより大きく */
             width: 14.28%;
             background-color: #f5f5f5;
             box-sizing: border-box;
           }
           .unified-day-number {
             font-weight: bold;
-            font-size: 14px; /* 1.5倍程度に調整 */
-            margin-bottom: 1px;
+            font-size: 16px; /* 日付番号をさらに大きく */
+            margin-bottom: 2px;
             line-height: 1;
           }
           .unified-shifts-container {
             display: flex;
             flex-direction: column;
-            height: calc(100% - 20px); /* 上下のマージン分を引いた高さ */
-            justify-content: flex-start; /* 上揃えに変更 */
+            height: calc(100% - 25px); /* 日付番号分のスペースを確保 */
+            justify-content: flex-start;
           }
           .unified-shift-item {
-            font-size: 9px; /* フォントサイズを少し小さく調整 */
-            line-height: 1.1; /* 行間を詰める */
+            font-size: 11px; /* フォントサイズを11pxに */
+            line-height: 1.2; /* 行間を少し狭く */
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 1px; /* 項目間に少し間隔 */
+            margin-bottom: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            white-space: nowrap; /* 文字の折り返しを防ぐ */
           }
           .unified-shift-name {
             font-weight: bold;
+            font-size: 11px; /* 名前のフォントサイズを11pxに */
             color: #333;
-            flex-shrink: 0;
-            margin-right: 4px;
+            flex-shrink: 1; /* 名前が長い場合は縮小可能に */
+            margin-right: 3px;
+            max-width: 60%; /* 名前の最大幅を制限 */
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .unified-shift-time {
             color: #666;
-            font-size: 8px;
+            font-size: 13px; /* 時間のフォントサイズをさらに大きく */
             flex-shrink: 0;
+            min-width: 40%; /* 時間表示の最小幅を確保 */
+            font-weight: 600; /* 時間も少し太く */
           }
         </style>
       </head>
