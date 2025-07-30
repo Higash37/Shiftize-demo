@@ -24,6 +24,7 @@ export interface DayComponentProps {
     marked?: boolean;
     dotColor?: string;
     dotStyle?: any;
+    dots?: Array<{ key?: string; color: string }>;
   };
 }
 

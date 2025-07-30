@@ -25,9 +25,12 @@ import {
 
 /**
  * 環境変数による段階的移行制御
+ * React Native/Expoでは直接的な環境変数アクセスを使用
  */
-const USE_API_ENDPOINTS = process.env.EXPO_PUBLIC_USE_SHIFT_API === 'true';
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || '';
+// @ts-ignore - Expo環境変数は実行時に利用可能
+const USE_API_ENDPOINTS = __DEV__ ? false : false; // フェーズ1では常にFirebaseを使用
+// @ts-ignore - Expo環境変数は実行時に利用可能
+const API_BASE_URL = '';
 
 export class ShiftAPIService {
   

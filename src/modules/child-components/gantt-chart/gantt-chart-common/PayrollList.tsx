@@ -110,7 +110,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       {/* 総計表示 */}
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryText}>
-          総計: {grandTotal.totalAmount.toLocaleString()}円 | {Math.floor(grandTotal.totalHours)}h{Math.round((grandTotal.totalHours % 1) * 60) > 0 && `${Math.round((grandTotal.totalHours % 1) * 60)}m`} | {grandTotal.shiftCount}件
+          総計: {grandTotal.totalAmount.toLocaleString()}円 | {Math.floor(grandTotal.totalHours)}h{Math.round((grandTotal.totalHours % 1) * 60) > 0 && `${Math.round((grandTotal.totalHours % 1) * 60)}m`}{' '}| {grandTotal.shiftCount}件
         </Text>
       </View>
 
@@ -152,7 +152,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
                   <Text style={styles.userAmount}>
                     {user.totalAmount.toLocaleString()}円 | {Math.floor(user.totalHours)}h
                     {Math.round((user.totalHours % 1) * 60) > 0 &&
-                      `${Math.round((user.totalHours % 1) * 60)}m`} | {user.shiftCount}件
+                      `${Math.round((user.totalHours % 1) * 60)}m`}{' '}| {user.shiftCount}件
                   </Text>
                 </View>
               </TouchableOpacity>

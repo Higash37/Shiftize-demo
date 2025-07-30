@@ -27,6 +27,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   styles,
 }) => {
 
+  // ShiftItemからShiftへの変換
+  const convertedShifts = useMemo(() => {
+    return shifts.map(shift => ({
+      ...shift,
+      duration: typeof shift.duration === 'string' ? parseFloat(shift.duration) : shift.duration
+    }));
+  }, [shifts]);
+
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(
     format(selectedDate, "yyyy-MM-dd")
   );
@@ -187,7 +195,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 中央：カレンダー部分 */}
         <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 5 }}>
           <ShiftCalendar
-            shifts={shifts}
+            shifts={convertedShifts as any}
             selectedDate={selectedCalendarDate}
             currentMonth={currentMonth}
             currentUserStoreId={""} // マスター用なので空文字

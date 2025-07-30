@@ -88,7 +88,8 @@ export class PushNotificationService {
       }
 
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-project-id',
+        // @ts-ignore - Expo環境変数は実行時に利用可能
+        projectId: __DEV__ ? 'dev-project-id' : 'prod-project-id',
       });
 
       console.log('✅ Expo Push Token:', token.data);

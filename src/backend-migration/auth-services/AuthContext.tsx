@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth, signIn, signOutUser } from "../firebase/firebase";
+import { auth, signIn, signOutUser } from "../../services/firebase/firebase";
 import { User } from "firebase/auth";
 
 interface AuthContextType {
@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [role, setRole] = useState<"master" | "user" | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged((user: User | null) => {
       setUser(user);
       if (user) {
         // メールアドレスからロールを判定

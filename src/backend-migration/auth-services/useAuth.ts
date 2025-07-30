@@ -16,7 +16,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../firebase/firebase-core";
+import { db } from "../../services/firebase/firebase-core";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
@@ -96,7 +96,7 @@ export const useAuth = () => {
       }
 
       // Firestoreからユーザー情報を取得（自動生成メール + 実メール両方に対応）
-      const { UserService } = await import("../firebase/firebase-user");
+      const { UserService } = await import("../../services/firebase/firebase-user");
       const userInfo = await UserService.findUserByEmail(emailToUse);
       
       
@@ -257,7 +257,7 @@ export const useAuth = () => {
 
         // 直接UIDで見つからない場合、メールアドレスで検索
         if (!userData && firebaseUser.email) {
-          const { UserService } = await import("../firebase/firebase-user");
+          const { UserService } = await import("../../services/firebase/firebase-user");
           const userInfo = await UserService.findUserByEmail(firebaseUser.email);
           
           if (userInfo) {
