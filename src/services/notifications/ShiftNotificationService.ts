@@ -22,13 +22,11 @@ export class ShiftNotificationService {
    */
   static async notifyShiftCreated(shift: Shift, creatorNickname: string): Promise<void> {
     try {
-      console.log('🔔 Sending shift created notification:', shift.id);
 
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
       
       if (masters.length === 0) {
-        console.log('ℹ️ No masters found for store:', shift.storeId);
         return;
       }
 
@@ -48,7 +46,6 @@ export class ShiftNotificationService {
       const masterIds = masters.map(m => m.userId);
       await PushNotificationService.sendPushNotification(masterIds, notification);
 
-      console.log('✅ Shift created notification sent to masters:', masterIds);
 
     } catch (error) {
       console.error('❌ Failed to send shift created notification:', error);
@@ -65,11 +62,9 @@ export class ShiftNotificationService {
     reason?: string
   ): Promise<void> {
     try {
-      console.log('🔔 Sending shift deleted notification:', shift.id);
 
       // シフト作成者が削除実行者と同じ場合は通知しない（自分で削除した場合）
       if (shift.userId === shift.userId) {
-        console.log('ℹ️ User deleted their own shift, no notification needed');
         return;
       }
 
@@ -89,7 +84,6 @@ export class ShiftNotificationService {
       // シフト作成者に通知送信
       await PushNotificationService.sendPushNotification([shift.userId], notification);
 
-      console.log('✅ Shift deleted notification sent to user:', shift.userId);
 
     } catch (error) {
       console.error('❌ Failed to send shift deleted notification:', error);
@@ -106,7 +100,6 @@ export class ShiftNotificationService {
     userNickname: string
   ): Promise<void> {
     try {
-      console.log('🔔 Sending shift approved notification:', shift.id);
 
       const notification: NotificationData = {
         title: 'シフトが承認されました',
@@ -123,7 +116,6 @@ export class ShiftNotificationService {
       // シフト作成者に通知送信
       await PushNotificationService.sendPushNotification([shift.userId], notification);
 
-      console.log('✅ Shift approved notification sent to user:', shift.userId);
 
     } catch (error) {
       console.error('❌ Failed to send shift approved notification:', error);
@@ -140,13 +132,11 @@ export class ShiftNotificationService {
     changeReason: string
   ): Promise<void> {
     try {
-      console.log('🔔 Sending shift change request notification:', shift.id);
 
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
       
       if (masters.length === 0) {
-        console.log('ℹ️ No masters found for store:', shift.storeId);
         return;
       }
 
@@ -167,7 +157,6 @@ export class ShiftNotificationService {
       const masterIds = masters.map(m => m.userId);
       await PushNotificationService.sendPushNotification(masterIds, notification);
 
-      console.log('✅ Shift change request notification sent to masters:', masterIds);
 
     } catch (error) {
       console.error('❌ Failed to send shift change request notification:', error);
@@ -205,7 +194,6 @@ export class ShiftNotificationService {
         });
       });
 
-      console.log(`🔍 Found ${masters.length} masters for store ${storeId}`);
       return masters;
 
     } catch (error) {
@@ -247,7 +235,6 @@ export class ShiftNotificationService {
     recipients: string[]
   ): Promise<void> {
     try {
-      console.log('🚨 Sending urgent shift notification:', shift.id);
 
       const notification: NotificationData = {
         title: '🚨 緊急シフト通知',
@@ -263,7 +250,6 @@ export class ShiftNotificationService {
 
       await PushNotificationService.sendPushNotification(recipients, notification);
 
-      console.log('✅ Urgent shift notification sent to recipients:', recipients);
 
     } catch (error) {
       console.error('❌ Failed to send urgent shift notification:', error);
@@ -275,7 +261,6 @@ export class ShiftNotificationService {
    */
   static async sendWeeklyShiftReminder(storeId: string): Promise<void> {
     try {
-      console.log('📅 Sending weekly shift reminder for store:', storeId);
 
       // 店舗の全ユーザーを取得
       const usersRef = collection(db, 'users');
@@ -289,7 +274,6 @@ export class ShiftNotificationService {
       const userIds = snapshot.docs.map(doc => doc.id);
 
       if (userIds.length === 0) {
-        console.log('ℹ️ No users found for store:', storeId);
         return;
       }
 
@@ -304,7 +288,6 @@ export class ShiftNotificationService {
 
       await PushNotificationService.sendPushNotification(userIds, notification);
 
-      console.log('✅ Weekly shift reminder sent to store users:', userIds.length);
 
     } catch (error) {
       console.error('❌ Failed to send weekly shift reminder:', error);

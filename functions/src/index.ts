@@ -90,11 +90,6 @@ export const sendEmail = functions
       // メール送信
       const result = await transporter.sendMail(mailOptions);
       
-      console.log('✅ Email sent successfully:', {
-        messageId: result.messageId,
-        recipients: data.to,
-        subject: data.subject,
-      });
 
       return {
         success: true,
@@ -199,11 +194,6 @@ export const sendShiftNotification = functions
 
       const result = await transporter.sendMail(mailOptions);
       
-      console.log('✅ Shift notification sent successfully:', {
-        messageId: result.messageId,
-        type: data.type,
-        recipients: data.to,
-      });
 
       return {
         success: true,

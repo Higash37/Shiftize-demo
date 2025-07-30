@@ -83,7 +83,6 @@ function updateImportPaths(filePath) {
   // 変更があった場合のみファイルを上書き
   if (updated) {
     fs.writeFileSync(filePath, content, "utf8");
-    console.log(`Updated: ${filePath}`);
   }
 }
 
@@ -91,4 +90,3 @@ function updateImportPaths(filePath) {
 const srcDir = path.resolve("src");
 walkDir(srcDir, updateImportPaths);
 
-console.log("Import paths updated successfully!");

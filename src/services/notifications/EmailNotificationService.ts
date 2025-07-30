@@ -29,13 +29,11 @@ export class EmailNotificationService {
    */
   static async notifyShiftCreatedByEmail(shift: Shift, creatorNickname: string): Promise<void> {
     try {
-      console.log('📧 Sending shift created email notification:', shift.id);
 
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
       
       if (masters.length === 0) {
-        console.log('ℹ️ No masters found for email notification:', shift.storeId);
         return;
       }
 

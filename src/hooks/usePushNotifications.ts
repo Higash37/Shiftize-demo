@@ -26,12 +26,10 @@ export const usePushNotifications = () => {
    */
   const initializePushNotifications = async () => {
     try {
-      if (__DEV__) console.log('🔄 Initializing push notifications...');
       setError(null);
 
       // Web環境では初期化をスキップ
       if (Platform.OS === 'web') {
-        if (__DEV__) console.log('ℹ️ Push notifications skipped on web platform');
         setIsInitialized(true);
         return;
       }
@@ -55,7 +53,6 @@ export const usePushNotifications = () => {
       // ユーザーがログインしている場合、トークンをFirestoreに保存
       if (user && user.storeId) {
         await PushNotificationService.saveUserPushToken(user.uid, user.storeId);
-        if (__DEV__) console.log('✅ Push notifications initialized successfully');
       }
 
       setIsInitialized(true);
@@ -77,19 +74,16 @@ export const usePushNotifications = () => {
     if (isInitialized && Platform.OS !== 'web' && Notifications) {
       // 通知受信時のリスナー
       notificationListener = Notifications.addNotificationReceivedListener((notification: any) => {
-        if (__DEV__) console.log('📱 Notification received:', notification);
         
         // カスタム処理（必要に応じて）
         const data = notification.request.content.data;
         if (data?.type === 'urgent_shift_change') {
           // 緊急通知の場合の特別な処理
-          if (__DEV__) console.log('🚨 Urgent notification received');
         }
       });
 
       // 通知タップ時のリスナー
       responseListener = Notifications.addNotificationResponseReceivedListener((response: any) => {
-        if (__DEV__) console.log('👆 Notification tapped:', response);
         
         // 通知データから適切な画面に遷移
         const data = response.notification.request.content.data;
@@ -112,7 +106,6 @@ export const usePushNotifications = () => {
    */
   const handleNotificationTap = (data: any) => {
     try {
-      if (__DEV__) console.log('🔄 Handling notification tap:', data);
 
       switch (data?.type) {
         case 'shift_created':
@@ -121,22 +114,18 @@ export const usePushNotifications = () => {
           // シフト詳細画面に遷移
           if (data.shiftId) {
             // ナビゲーション処理（必要に応じて実装）
-            if (__DEV__) console.log('📍 Navigate to shift:', data.shiftId);
           }
           break;
 
         case 'shift_change_requested':
           // 承認画面に遷移
-          if (__DEV__) console.log('📍 Navigate to approval screen');
           break;
 
         case 'urgent_shift_change':
           // 緊急通知の場合はシフト一覧に遷移
-          if (__DEV__) console.log('📍 Navigate to shift list');
           break;
 
         default:
-          if (__DEV__) console.log('📍 Default navigation to home');
       }
     } catch (error) {
       console.error('❌ Failed to handle notification tap:', error);
@@ -162,7 +151,6 @@ export const usePushNotifications = () => {
         body: 'プッシュ通知が正常に動作しています！',
         data: { type: 'test' },
       });
-      if (__DEV__) console.log('✅ Test notification sent');
     } catch (error) {
       console.error('❌ Failed to send test notification:', error);
       throw error;

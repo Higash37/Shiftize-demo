@@ -64,7 +64,6 @@ export class PushNotificationService {
         return false;
       }
 
-      console.log('✅ Push notification permission granted');
       return true;
     } catch (error) {
       console.error('❌ Failed to get push notification permissions:', error);
@@ -92,7 +91,6 @@ export class PushNotificationService {
         projectId: __DEV__ ? 'dev-project-id' : 'prod-project-id',
       });
 
-      console.log('✅ Expo Push Token:', token.data);
       return token.data;
     } catch (error) {
       console.error('❌ Failed to get Expo Push Token:', error);
@@ -154,7 +152,6 @@ export class PushNotificationService {
       };
 
       await setDoc(doc(db, 'pushTokens', userId), tokenData);
-      console.log('✅ Push token saved for user:', userId);
 
     } catch (error) {
       console.error('❌ Failed to save push token:', error);
@@ -187,7 +184,6 @@ export class PushNotificationService {
         trigger: null, // 即座に表示
       });
 
-      console.log('✅ Local notification shown:', notification.title);
     } catch (error) {
       console.error('❌ Failed to show local notification:', error);
       throw error;
@@ -252,7 +248,6 @@ export class PushNotificationService {
       });
 
       const result = await response.json();
-      console.log('✅ Push notification sent:', result);
 
     } catch (error) {
       console.error('❌ Failed to send push notification:', error);

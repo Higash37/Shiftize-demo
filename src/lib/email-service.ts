@@ -54,16 +54,11 @@ export class EmailService {
   static async sendEmail(message: EmailMessage): Promise<boolean> {
     try {
       if (__DEV__) {
-        console.log('📧 Email Service - Sending email:', {
-          to: message.to,
-          subject: message.subject,
-        });
       }
       
       // モック有効時のみシミュレート（開発環境では常にモック）
       // @ts-ignore - Expo環境変数は実行時に利用可能
       if (__DEV__) {
-        if (__DEV__) console.log('📧 [MOCK] Email content:', message.html);
         return true;
       }
 
@@ -83,7 +78,6 @@ export class EmailService {
         const data = result.data as { success: boolean; messageId?: string };
         
         if (data.success) {
-          if (__DEV__) console.log('📧 Email sent successfully via Cloud Functions:', data.messageId);
           return true;
         } else {
           console.error('❌ Cloud Function returned failure');
@@ -94,13 +88,7 @@ export class EmailService {
         
         // フォールバック: 開発環境では詳細ログを出力
         if (__DEV__) {
-          console.log('📧 Email fallback - Details:', {
-            to: message.to,
-            subject: message.subject,
-            html: message.html, // 開発環境では完全なHTMLを表示
-          });
           
-          console.log('💡 Note: In development, email sending failed due to CORS. In production, this should work correctly.');
         }
         
         // エラーでもアプリの動作を継続させるためtrueを返す

@@ -14,24 +14,18 @@ async function checkCollections() {
     const db = getFirestore(app);
     
     // filesコレクションを確認
-    console.log('filesコレクションをチェック中...');
     const filesRef = collection(db, 'files');
     const filesSnapshot = await getDocs(filesRef);
-    console.log(`filesコレクションに${filesSnapshot.size}個のドキュメントが見つかりました`);
     
     // foldersコレクションも確認
-    console.log('foldersコレクションをチェック中...');
     const foldersRef = collection(db, 'folders');
     const foldersSnapshot = await getDocs(foldersRef);
-    console.log(`foldersコレクションに${foldersSnapshot.size}個のドキュメントが見つかりました`);
     
     // 各ドキュメントの詳細を表示
     filesSnapshot.forEach((doc) => {
-      console.log('File:', doc.id, doc.data());
     });
     
     foldersSnapshot.forEach((doc) => {
-      console.log('Folder:', doc.id, doc.data());
     });
     
   } catch (error) {
