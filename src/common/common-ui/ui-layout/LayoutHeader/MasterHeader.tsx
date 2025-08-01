@@ -43,6 +43,7 @@ export function MasterHeader({
   const [currentStoreInfo, setCurrentStoreInfo] = useState<string>("1456"); // デフォルト値
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [recruitmentCount, setRecruitmentCount] = useState(0);
+  const [showServiceIntro, setShowServiceIntro] = useState(false);
 
   // ユーザーの店舗アクセス権限を取得
   useEffect(() => {
@@ -230,6 +231,14 @@ export function MasterHeader({
             size={16}
             color="#FFFFFF"
           />
+        </TouchableOpacity>
+
+        {/* サービス紹介ボタン */}
+        <TouchableOpacity 
+          onPress={() => setShowServiceIntro(true)} 
+          style={styles.serviceIntroButton}
+        >
+          <AntDesign name="questioncircleo" size={24} color={colors.primary} />
         </TouchableOpacity>
 
         {/* サインアウトボタン */}
