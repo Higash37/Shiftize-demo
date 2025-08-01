@@ -89,9 +89,20 @@ export function MasterHeader({
       where("status", "==", "open")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setRecruitmentCount(snapshot.size);
-    });
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        setRecruitmentCount(snapshot.size);
+      },
+      (error) => {
+        // 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === 'permission-denied') {
+          setRecruitmentCount(0);
+          return;
+        }
+        console.error("MasterHeader realtime error:", error);
+      }
+    );
 
     return () => unsubscribe();
   }, [user?.storeId]);

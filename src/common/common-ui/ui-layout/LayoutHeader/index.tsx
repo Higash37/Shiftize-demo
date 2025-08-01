@@ -35,19 +35,30 @@ export function Header({
       where("status", "==", "open")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const shifts: RecruitmentShift[] = [];
-      snapshot.forEach((doc) => {
-        shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
-      });
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const shifts: RecruitmentShift[] = [];
+        snapshot.forEach((doc) => {
+          shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
+        });
 
-      // 未応募のシフト数をカウント
-      const unappliedCount = shifts.filter(
-        (shift) => !shift.applications?.some((app) => app.userId === user.uid)
-      ).length;
-      
-      setUnreadCount(unappliedCount);
-    });
+        // 未応募のシフト数をカウント
+        const unappliedCount = shifts.filter(
+          (shift) => !shift.applications?.some((app) => app.userId === user.uid)
+        ).length;
+        
+        setUnreadCount(unappliedCount);
+      },
+      (error) => {
+        // 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === 'permission-denied') {
+          setUnreadCount(0);
+          return;
+        }
+        console.error("Header realtime error:", error);
+      }
+    );
 
     return () => unsubscribe();
   }, [user?.storeId, user?.uid]);

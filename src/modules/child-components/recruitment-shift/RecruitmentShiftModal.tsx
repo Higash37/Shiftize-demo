@@ -47,21 +47,32 @@ export function RecruitmentShiftModal({
       where("status", "==", "open")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const shifts: RecruitmentShift[] = [];
-      snapshot.forEach((doc) => {
-        shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
-      });
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const shifts: RecruitmentShift[] = [];
+        snapshot.forEach((doc) => {
+          shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
+        });
 
-      // 日付順にソート
-      shifts.sort((a, b) => {
-        const dateA = new Date(a.date + " " + a.startTime);
-        const dateB = new Date(b.date + " " + b.startTime);
-        return dateA.getTime() - dateB.getTime();
-      });
+        // 日付順にソート
+        shifts.sort((a, b) => {
+          const dateA = new Date(a.date + " " + a.startTime);
+          const dateB = new Date(b.date + " " + b.startTime);
+          return dateA.getTime() - dateB.getTime();
+        });
 
-      setRecruitmentShifts(shifts);
-    });
+        setRecruitmentShifts(shifts);
+      },
+      (error) => {
+        // 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === 'permission-denied') {
+          setRecruitmentShifts([]);
+          return;
+        }
+        console.error("RecruitmentShiftModal realtime error:", error);
+      }
+    );
 
     return () => unsubscribe();
   }, [user?.storeId]);

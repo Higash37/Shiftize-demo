@@ -200,12 +200,13 @@ export function FileManagerView({
         if (folderId) {
           const folderFiles = await FileService.getFilesByFolder(
             folderId,
+            user?.storeId || "",
             sortOptions
           );
           setFiles(folderFiles);
         } else {
           // ルートフォルダの場合はfolderIdが空文字のファイルのみを表示
-          const rootFiles = await FileService.getFilesByFolder("", sortOptions);
+          const rootFiles = await FileService.getFilesByFolder("", user?.storeId || "", sortOptions);
           setFiles(rootFiles);
         }
 

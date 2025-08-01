@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { View, useWindowDimensions } from "react-native";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { GanttChartMonthView } from "@/modules/child-components/gantt-chart/GanttChartMonthView";
 import { TaskCreateModal } from "@/modules/master-view/task-management/components/TaskCreateModal";
-import { ShiftCardView } from "./ShiftCardView";
 import { ganttViewViewStyles as styles } from "./GanttViewView.styles";
 import type { GanttViewViewProps } from "./GanttViewView.types";
 
@@ -17,8 +16,6 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
   onShiftUpdate,
   onShiftPress,
 }) => {
-  const { width } = useWindowDimensions();
-  const isTabletOrDesktop = width >= 768;
 
   // タスク作成モーダルの状態
   const [showTaskCreateModal, setShowTaskCreateModal] = useState(false);
@@ -66,34 +63,20 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
         }}
       />
 
-      {/* レスポンシブ表示切り替え */}
-      {isTabletOrDesktop ? (
-        // タブレット・デスクトップ: ガントチャート表示
-        <GanttChartMonthView
-          shifts={shifts}
-          days={days}
-          users={users}
-          onShiftPress={onShiftPress}
-          onShiftUpdate={onShiftUpdate}
-          onMonthChange={onMonthChange}
-          onTaskAdd={handleTaskAdd}
-          classTimes={[]}
-          selectedDate={
-            new Date(currentYearMonth.year, currentYearMonth.month, 1)
-          }
-        />
-      ) : (
-        // スマホ: カード表示
-        <ShiftCardView
-          shifts={shifts}
-          users={users}
-          days={days}
-          currentYearMonth={currentYearMonth}
-          onMonthChange={onMonthChange}
-          onShiftUpdate={onShiftUpdate}
-          onShiftPress={onShiftPress}
-        />
-      )}
+      {/* ガントチャート表示（スマホでは自動的にMobileVerticalViewに切り替わる） */}
+      <GanttChartMonthView
+        shifts={shifts}
+        days={days}
+        users={users}
+        onShiftPress={onShiftPress}
+        onShiftUpdate={onShiftUpdate}
+        onMonthChange={onMonthChange}
+        onTaskAdd={handleTaskAdd}
+        classTimes={[]}
+        selectedDate={
+          new Date(currentYearMonth.year, currentYearMonth.month, 1)
+        }
+      />
 
       {/* タスク作成モーダル */}
       <TaskCreateModal

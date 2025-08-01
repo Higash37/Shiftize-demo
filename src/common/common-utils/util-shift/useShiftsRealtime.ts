@@ -79,6 +79,12 @@ export const useShiftsRealtime = (storeId?: string) => {
             setLoading(false);
           },
           (err) => {
+            // 認証エラーの場合は無視（ログアウト時の正常な動作）
+            if (err.code === 'permission-denied') {
+              setShifts([]);
+              setLoading(false);
+              return;
+            }
             console.error("Firestore realtime error:", err);
             setError(err as Error);
             setLoading(false);

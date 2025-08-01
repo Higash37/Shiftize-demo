@@ -227,7 +227,7 @@ export { RateLimiter };
 
 // セキュリティイベントのログ
 export interface SecurityEvent {
-  type: 'csrf_violation' | 'xss_attempt' | 'rate_limit_exceeded' | 'invalid_input' | 'unauthorized_access';
+  type: 'csrf_violation' | 'xss_attempt' | 'rate_limit_exceeded' | 'invalid_input' | 'unauthorized_access' | 'user_logout';
   userId?: string;
   ip?: string;
   userAgent?: string;
@@ -252,9 +252,11 @@ class SecurityLogger {
       this.events.shift();
     }
     
-    // 重要なセキュリティイベントは即座にログ出力
+    // 重要なセキュリティイベントは即座にログ出力（ログアウトは除外）
     if (['csrf_violation', 'xss_attempt', 'unauthorized_access'].includes(event.type)) {
       console.error('🚨 Security Event:', fullEvent);
+    } else if (event.type === 'user_logout') {
+      console.info('ℹ️ User Action:', fullEvent);
     }
   }
   

@@ -426,6 +426,7 @@ export class FileService {
    */
   static async getFilesByFolder(
     folderId: string,
+    storeId: string,
     sortOptions?: FileSortOptions,
     limitCount?: number
   ): Promise<FileItem[]> {
@@ -434,6 +435,7 @@ export class FileService {
       const q = query(
         collection(db, FILES_COLLECTION),
         where("folderId", "==", folderId),
+        where("storeId", "==", storeId),
         where("isDeleted", "==", false)
       );
 

@@ -250,7 +250,7 @@ export const useAuth = () => {
 
       // セキュリティ: ログアウトログ
       SecurityLogger.logEvent({
-        type: 'unauthorized_access',
+        type: 'user_logout',
         details: 'User logged out',
         userAgent: navigator.userAgent,
       });

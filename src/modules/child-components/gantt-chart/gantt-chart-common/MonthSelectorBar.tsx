@@ -27,6 +27,10 @@ interface MonthSelectorBarProps {
   onPayrollPress?: () => void; // 追加：給与詳細モーダル表示
   viewMode?: "gantt" | "calendar"; // 追加：ビューモード
   onViewModeToggle?: () => void; // 追加：ビューモード切替
+  isMobileView?: boolean; // 追加：モバイルビューかどうか
+  deviceType?: "desktop" | "tablet" | "mobile"; // 追加：デバイスタイプ
+  useGoogleLayout?: boolean; // 追加：Googleレイアウトを使用するか
+  onToggleGoogleLayout?: () => void; // 追加：Googleレイアウト切替
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -49,23 +53,28 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     onPayrollPress,
     viewMode = "gantt", // デフォルトはガントチャート
     onViewModeToggle,
+    isMobileView = false,
+    deviceType = "desktop",
+    useGoogleLayout = false,
+    onToggleGoogleLayout,
   } = props;
   return (
     <View style={styles.monthSelector}>
       {/* 金額表示部分 - シフトがなくても表示（タップ可能） */}
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          left: 10,
-          top: "38%",
-          transform: [{ translateY: -24 }],
-          backgroundColor: onPayrollPress ? "#f0f8ff" : "#f0f8ff",
-          padding: 5,
-          borderRadius: 6,
-          borderWidth: 1,
-          borderColor: onPayrollPress ? "#4A90E2" : "#ddd",
-          zIndex: 10,
-        }}
+      {!isMobileView && (
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            left: 10,
+            top: "38%",
+            transform: [{ translateY: -24 }],
+            backgroundColor: onPayrollPress ? "#f0f8ff" : "#f0f8ff",
+            padding: 5,
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: onPayrollPress ? "#4A90E2" : "#ddd",
+            zIndex: 10,
+          }}
         onPress={onPayrollPress}
         disabled={!onPayrollPress}
       >
@@ -86,20 +95,22 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         <Text style={{ fontSize: 10, color: "#888", fontStyle: "italic" }}>
           ※授業時間を除く
         </Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      )}
       
       {/* 色切替ボタンとビュー切替ボタン - 金額表示の右側 */}
-      <View
-        style={{
-          position: "absolute",
-          left: 180, // 金額表示の右側
-          top: "38%",
-          transform: [{ translateY: -18 }], // 高さを統一
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
+      {!isMobileView && (
+        <View
+          style={{
+            position: "absolute",
+            left: 180, // 金額表示の右側
+            top: "38%",
+            transform: [{ translateY: -18 }], // 高さを統一
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
         {onColorModeToggle && (
           <ColorToggleButton
             colorMode={colorMode}
@@ -112,25 +123,30 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
             onToggle={onViewModeToggle}
           />
         )}
-      </View>
-      <View style={styles.monthNavigator}>
-        <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
-          <Text style={styles.monthNavButtonText}>＜</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.monthButton}
-          onPress={onShowYearMonthPicker}
-        >
-          <Text style={styles.monthText}>
-            {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
-          <Text style={styles.monthNavButtonText}>＞</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.addShiftButtonRow}>
-        {Platform.OS === "web" && (
+        </View>
+      )}
+      {/* タブレット表示時は年月表示を非表示 */}
+      {deviceType !== "tablet" && (
+        <View style={styles.monthNavigator}>
+          <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
+            <Text style={styles.monthNavButtonText}>＜</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.monthButton}
+            onPress={onShowYearMonthPicker}
+          >
+            <Text style={styles.monthText}>
+              {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
+            <Text style={styles.monthNavButtonText}>＞</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {!isMobileView && (
+        <View style={styles.addShiftButtonRow}>
+          {Platform.OS === "web" && (
           <PrintButton
             shifts={shifts}
             users={users}
@@ -157,7 +173,8 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           <Ionicons name="trash" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
           <Text style={getButtonTextStyle("danger")}>完全削除</Text>
         </TouchableOpacity>
-      </View>
+        </View>
+      )}
     </View>
   );
 };

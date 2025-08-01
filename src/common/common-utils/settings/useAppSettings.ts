@@ -451,31 +451,42 @@ export const useAppSettings = () => {
   // リアルタイム更新のリスナー設定
   useEffect(() => {
     const settingsRef = doc(db, "settings", "shiftApp");
-    const unsubscribe = onSnapshot(settingsRef, (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        // デフォルト設定と深いマージを実行
-        setSettings({
-          shiftRule: {
-            ...DEFAULT_SETTINGS.shiftRule,
-            ...(data.shiftRule || {}),
-          },
-          appearance: {
-            ...DEFAULT_SETTINGS.appearance,
-            ...(data.appearance || {}),
-          },
-          holidays: {
-            ...DEFAULT_SETTINGS.holidays,
-            ...(data.holidays || {}),
-            holidays:
-              data.holidays?.holidays || DEFAULT_SETTINGS.holidays.holidays,
-            specialDays:
-              data.holidays?.specialDays ||
-              DEFAULT_SETTINGS.holidays.specialDays,
-          },
-        });
+    const unsubscribe = onSnapshot(
+      settingsRef, 
+      (doc) => {
+        if (doc.exists()) {
+          const data = doc.data();
+          // デフォルト設定と深いマージを実行
+          setSettings({
+            shiftRule: {
+              ...DEFAULT_SETTINGS.shiftRule,
+              ...(data.shiftRule || {}),
+            },
+            appearance: {
+              ...DEFAULT_SETTINGS.appearance,
+              ...(data.appearance || {}),
+            },
+            holidays: {
+              ...DEFAULT_SETTINGS.holidays,
+              ...(data.holidays || {}),
+              holidays:
+                data.holidays?.holidays || DEFAULT_SETTINGS.holidays.holidays,
+              specialDays:
+                data.holidays?.specialDays ||
+                DEFAULT_SETTINGS.holidays.specialDays,
+            },
+          });
+        }
+      },
+      (error) => {
+        // 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === 'permission-denied') {
+          return;
+        }
+        console.error("Settings realtime error:", error);
+        setError(error.message);
       }
-    });
+    );
 
     return () => unsubscribe();
   }, []);

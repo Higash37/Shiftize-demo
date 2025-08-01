@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Firebase Storage Rules for File Management System - Security Hardened
+// Firebase Storage Rules for File Management System - Multi-Store Support
 service firebase.storage {
   match /b/{bucket}/o {
     
@@ -9,21 +9,22 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    function getUserData() {
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    function hasAccessToStore(storeId) {
+      let userStoreDoc = firestore.get(/databases/(default)/documents/userStoreAccess/$(request.auth.uid)).data;
+      return (userStoreDoc != null && 
+              storeId in userStoreDoc.storesAccess &&
+              userStoreDoc.storesAccess[storeId].isActive == true) ||
+             (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.storeId == storeId);
     }
     
-    function belongsToSameStore(storeId) {
-      return isAuthenticated() && getUserData().storeId == storeId;
-    }
-    
-    function isMaster() {
-      return isAuthenticated() && getUserData().role == "master";
+    function isMasterOfStore(storeId) {
+      return hasAccessToStore(storeId) &&
+        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "master");
     }
     
     function isValidFile() {
       // ファイル検証ルール
-      return request.resource.size <= 50 * 1024 * 1024  // 最大50MB
+      return request.resource.size <= 100 * 1024 * 1024  // 最大100MB（PDF用に拡張）
              && request.resource.size > 0                 // 空ファイル拒否
              && (
                request.resource.contentType.matches('image/.*')      // 画像
@@ -32,6 +33,8 @@ service firebase.storage {
                || request.resource.contentType.matches('application/msword.*') // Word
                || request.resource.contentType.matches('application/vnd.openxmlformats.*') // Office
                || request.resource.contentType.matches('text/.*')    // テキスト
+               || request.resource.contentType == 'application/zip'  // ZIP
+               || request.resource.contentType == 'application/x-zip-compressed' // ZIP
              )
              && !request.resource.contentType.matches('.*executable.*') // 実行ファイル拒否
              && !request.resource.contentType.matches('.*script.*');    // スクリプトファイル拒否
@@ -48,12 +51,31 @@ service firebase.storage {
              && !filename.matches(".*'.*");
     }
     
-    // 店舗別ファイルアクセス - 厳格な店舗分離
+    // 店舗別ファイルアクセス - 多店舗対応の店舗分離
     match /files/{storeId}/{allPaths=**} {
-      allow read: if isAuthenticated() && belongsToSameStore(storeId);
-      allow write: if isAuthenticated() && belongsToSameStore(storeId) 
+      allow read: if isAuthenticated() && hasAccessToStore(storeId);
+      allow write: if isAuthenticated() && hasAccessToStore(storeId) 
                       && isValidFile() && isValidFilename();
-      allow delete: if isAuthenticated() && belongsToSameStore(storeId) && isMaster();
+      allow delete: if isAuthenticated() && isMasterOfStore(storeId);
+    }
+    
+    // PDFエクスポート用一時ファイル（共有用）
+    match /exports/{storeId}/{filename} {
+      allow read: if isAuthenticated() && hasAccessToStore(storeId);
+      allow write: if isAuthenticated() && hasAccessToStore(storeId) 
+                      && request.resource.contentType == 'application/pdf'
+                      && isValidFilename();
+      allow delete: if isAuthenticated() && hasAccessToStore(storeId);
+    }
+    
+    // プロファイル画像（ユーザー個別）
+    match /profiles/{userId}/{filename} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId
+                      && request.resource.contentType.matches('image/.*')
+                      && request.resource.size <= 5 * 1024 * 1024  // 5MB制限
+                      && isValidFilename();
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
     
     // ルートファイルアクセス拒否

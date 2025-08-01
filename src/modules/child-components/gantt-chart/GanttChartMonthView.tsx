@@ -71,6 +71,9 @@ import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
 import { CalendarView } from "./gantt-chart-common/CalendarView";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
 import BatchConfirmModal from "./view-modals/BatchConfirmModal";
+import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
+import { TabletCompactView } from "./gantt-chart-common/TabletCompactView";
+import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -159,6 +162,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [colorMode, setColorMode] = useState<"status" | "user">("status"); // デフォルトはステータス色
   const [showPayrollModal, setShowPayrollModal] = useState(false); // 給与詳細モーダル表示状態
   const [viewMode, setViewMode] = useState<"gantt" | "calendar">("gantt"); // ビューモード（デフォルトはガントチャート）
+  const [deviceType, setDeviceType] = useState<"desktop" | "tablet" | "mobile">("desktop"); // デバイスタイプ
+  const [useGoogleLayout, setUseGoogleLayout] = useState(false); // Googleカレンダーレイアウトを使用するか
   const { user } = useAuth();
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
@@ -174,21 +179,52 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const dateColumnWidth = 50;
   const infoColumnWidth = Math.max(screenWidth * 0.18, 150);
   const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth;
+  
+  // デバイスタイプの判定
+  useEffect(() => {
+    const checkDeviceType = () => {
+      const width = Dimensions.get("window").width;
+      if (width <= 600) {
+        setDeviceType("mobile");
+      } else if (width <= 1024) {
+        setDeviceType("tablet");
+      } else {
+        setDeviceType("desktop");
+      }
+    };
+    
+    checkDeviceType();
+    
+    // ウィンドウサイズ変更の監視
+    const subscription = Dimensions.addEventListener('change', checkDeviceType);
+    
+    return () => subscription?.remove();
+  }, []);
 
   useEffect(() => {
     // Firestoreからステータス設定を取得
     const configRef = doc(db, "settings", "shiftStatus");
-    const unsubscribe = onSnapshot(configRef, (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        const updatedConfigs: ShiftStatusConfig[] =
-          DEFAULT_SHIFT_STATUS_CONFIG.map((config) => ({
-            ...config,
-            ...data[config.status],
-          }));
-        setStatusConfigs(updatedConfigs);
+    const unsubscribe = onSnapshot(
+      configRef, 
+      (doc) => {
+        if (doc.exists()) {
+          const data = doc.data();
+          const updatedConfigs: ShiftStatusConfig[] =
+            DEFAULT_SHIFT_STATUS_CONFIG.map((config) => ({
+              ...config,
+              ...data[config.status],
+            }));
+          setStatusConfigs(updatedConfigs);
+        }
+      },
+      (error) => {
+        // 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === 'permission-denied') {
+          return;
+        }
+        console.error("GanttChartMonthView settings realtime error:", error);
       }
-    });
+    );
 
     return () => unsubscribe();
   }, []);
@@ -571,44 +607,52 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // --- 本体 ---
   return (
     <View style={styles.container}>
-      {/* 月選択バー＋右上ボタン群 */}
-      <MonthSelectorBar
-        selectedDate={selectedDate}
-        onPrevMonth={handlePrevMonth}
-        onNextMonth={handleNextMonth}
-        onShowYearMonthPicker={() => setShowYearMonthPicker(true)}
-        onReload={() => {
-          if (typeof window !== "undefined" && window.location) {
-            window.location.reload();
-          } else if (Platform.OS !== "web") {
-            try {
-              const { AppRegistry } = require("react-native");
-              if (AppRegistry && AppRegistry.reload) {
-                AppRegistry.reload();
-              }
-            } catch (e) {}
-          }
-        }}
-        onBatchApprove={() => setBatchModal({ visible: true, type: "approve" })}
-        onBatchDelete={() => setBatchModal({ visible: true, type: "delete" })}
-        isLoading={isLoading}
-        totalAmount={totalWage.totalAmount}
-        totalHours={totalWage.totalHours}
-        shifts={shifts}
-        users={users}
-        colorMode={colorMode}
-        onColorModeToggle={handleColorModeToggle}
-        onPayrollPress={handlePayrollPress}
-        viewMode={viewMode}
-        onViewModeToggle={handleViewToggle}
-      />
-      {/* 年月ピッカーモーダル */}
-      <DatePickerModal
-        isVisible={showYearMonthPicker}
-        initialDate={selectedDate}
-        onClose={() => setShowYearMonthPicker(false)}
-        onSelect={handleDateSelect}
-      />
+      {/* 月選択バー＋右上ボタン群 - タブレット表示時は非表示 */}
+      {deviceType !== "tablet" && (
+        <MonthSelectorBar
+          selectedDate={selectedDate}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onShowYearMonthPicker={() => setShowYearMonthPicker(true)}
+          onReload={() => {
+            if (typeof window !== "undefined" && window.location) {
+              window.location.reload();
+            } else if (Platform.OS !== "web") {
+              try {
+                const { AppRegistry } = require("react-native");
+                if (AppRegistry && AppRegistry.reload) {
+                  AppRegistry.reload();
+                }
+              } catch (e) {}
+            }
+          }}
+          onBatchApprove={() => setBatchModal({ visible: true, type: "approve" })}
+          onBatchDelete={() => setBatchModal({ visible: true, type: "delete" })}
+          isLoading={isLoading}
+          totalAmount={totalWage.totalAmount}
+          totalHours={totalWage.totalHours}
+          shifts={shifts}
+          users={users}
+          colorMode={colorMode}
+          onColorModeToggle={handleColorModeToggle}
+          onPayrollPress={handlePayrollPress}
+          viewMode={viewMode}
+          onViewModeToggle={handleViewToggle}
+          isMobileView={deviceType === "mobile" || deviceType === "tablet"}
+          deviceType={deviceType}
+          useGoogleLayout={useGoogleLayout}
+          onToggleGoogleLayout={() => setUseGoogleLayout(!useGoogleLayout)}
+        />
+      )}
+      {/* 年月ピッカーモーダル - タブレット表示時は非表示 */}
+      {deviceType !== "tablet" && (
+        <DatePickerModal
+          isVisible={showYearMonthPicker}
+          initialDate={selectedDate}
+          onClose={() => setShowYearMonthPicker(false)}
+          onSelect={handleDateSelect}
+        />
+      )}
       {/* バッチ確認モーダル */}
       <BatchConfirmModal
         visible={batchModal.visible}
@@ -620,8 +664,103 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         setIsLoading={setIsLoading}
         refreshPage={refreshPage}
       />
-      {/* 本体 - ビューモードに応じて切り替え */}
-      {viewMode === "gantt" ? (
+      {/* 本体 - ビューモードとデバイスに応じて切り替え */}
+      {deviceType === "mobile" ? (
+        /* モバイル用縦型ビュー */
+        <MobileVerticalView
+          shifts={shifts}
+          users={users}
+          selectedDate={selectedDate}
+          onShiftPress={handleShiftPress}
+          onMonthChange={onMonthChange}
+          onEmptyCellClick={(date, time, userId) => {
+            const targetUser = users.find(u => u.uid === userId);
+            const startTime = time;
+            const [hour] = time.split(':').map(Number);
+            const endTime = `${hour + 1}:00`;
+            
+            setNewShiftData({
+              date,
+              startTime,
+              endTime,
+              userId,
+              nickname: targetUser?.nickname || "",
+              status: user?.role === "master" ? "approved" : "pending",
+              classes: [],
+              extendedTasks: [],
+            });
+            setShowAddModal(true);
+          }}
+          colorMode={colorMode}
+          styles={styles}
+        />
+      ) : deviceType === "tablet" ? (
+        /* タブレット用週間ビュー */
+        <TabletCompactView
+          shifts={shifts}
+          users={users}
+          selectedDate={selectedDate}
+          onShiftPress={handleShiftPress}
+          onMonthChange={onMonthChange}
+          onEmptyCellClick={(date, time, userId) => {
+            const startTime = time;
+            const [hour] = time.split(':').map(Number);
+            const endTime = `${hour + 1}:00`;
+            
+            // マスター権限の場合はユーザーIDをクリアして選択できるようにする
+            // 一般ユーザーの場合は自分自身のIDを設定
+            const isMaster = user?.role === "master";
+            const finalUserId = userId && userId !== "" ? userId : (isMaster ? "" : user?.uid || "");
+            const targetUser = finalUserId ? users.find(u => u.uid === finalUserId) : null;
+            const finalNickname = targetUser?.nickname || "";
+            
+            setNewShiftData({
+              date,
+              startTime,
+              endTime,
+              userId: finalUserId,
+              nickname: finalNickname,
+              status: user?.role === "master" ? "approved" : "pending",
+              classes: [],
+              extendedTasks: [],
+            });
+            setShowAddModal(true);
+          }}
+          onAddShift={handleAddShift}
+          colorMode={colorMode}
+          styles={styles}
+        />
+      ) : useGoogleLayout ? (
+        /* Googleカレンダー風レイアウト */
+        <GoogleCalendarView
+          shifts={shifts}
+          users={users}
+          selectedDate={selectedDate}
+          onShiftPress={handleShiftPress}
+          onMonthChange={onMonthChange}
+          onEmptyCellClick={(date, time, userId) => {
+            const targetUser = users.find(u => u.uid === userId);
+            const startTime = time;
+            const [hour] = time.split(':').map(Number);
+            const endTime = `${hour + 1}:00`;
+            
+            setNewShiftData({
+              date,
+              startTime,
+              endTime,
+              userId,
+              nickname: targetUser?.nickname || "",
+              status: user?.role === "master" ? "approved" : "pending",
+              classes: [],
+              extendedTasks: [],
+            });
+            setShowAddModal(true);
+          }}
+          onAddShift={handleAddShift}
+          colorMode={colorMode}
+          styles={styles}
+        />
+      ) : viewMode === "gantt" ? (
         /* 横スクロール全体をCustomScrollViewでラップ（ガントチャートのみ） */
         <CustomScrollView 
           horizontal 

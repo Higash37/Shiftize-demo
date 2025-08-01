@@ -6,85 +6,93 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+
+    function hasAccessToStore(storeId) {
+      let userStoreDoc = get(/databases/$(database)/documents/userStoreAccess/$(request.auth.uid));
+      return (userStoreDoc != null && 
+              userStoreDoc.data != null && 
+              storeId in userStoreDoc.data.storesAccess &&
+              userStoreDoc.data.storesAccess[storeId].isActive == true) ||
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == storeId);
     }
-    
-    function isMaster() {
-      return isAuthenticated() && getUserData().role == "master";
+
+    function isMasterOfStore(storeId) {
+      return hasAccessToStore(storeId) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master");
     }
-    
-    function belongsToSameStore(storeId) {
-      return isAuthenticated() && getUserData().storeId == storeId;
-    }
-    
-    function isOwnerOrMaster(userId) {
-      return isAuthenticated() && (request.auth.uid == userId || isMaster());
-    }
-    
-    // ユーザーコレクション - 認証されたユーザーのみアクセス可能
+
+    // ログイン用（全読み取り可能）
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwnerOrMaster(userId);
-      allow delete: if isMaster();
+      allow read: if true;
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
-    
+
+    match /userStoreAccess/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 店舗情報
+    match /stores/{storeId} {
+      allow read: if hasAccessToStore(storeId);
+      allow write: if isMasterOfStore(storeId);
+    }
+
     // シフトコレクション - 店舗分離 + 所有者/マスター制御
-    match /shifts/{shiftId} {
-      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
-      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.userId == request.auth.uid || isMaster());
-      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId)
-                       && (resource.data.userId == request.auth.uid || isMaster());
+    match /shifts/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
-    
+
     // 募集シフトコレクション - 店舗分離
-    match /recruitmentShifts/{shiftId} {
-      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
-      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) && isMaster();
+    match /recruitmentShifts/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
-    
+
     // タスクコレクション - 店舗分離
-    match /NormalTasks/{taskId} {
-      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
-      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    match /NormalTasks/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
-    
-    // タスクメモコレクション - 関連タスクの店舗に属する場合のみ
-    match /TaskMemos/{memoId} {
+
+    // タスクメモコレクション - タスクの店舗に基づく
+    match /TaskMemos/{docId} {
       allow read, write: if isAuthenticated() && 
-        belongsToSameStore(get(/databases/$(database)/documents/NormalTasks/$(resource.data.taskId)).data.storeId);
+        hasAccessToStore(get(/databases/$(database)/documents/NormalTasks/$(resource.data.taskId)).data.storeId);
     }
-    
+
+    // 拡張タスクコレクション - 店舗分離
+    match /extendedTasks/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+    }
+
     // ファイルコレクション - 店舗分離
-    match /files/{fileId} {
-      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
-      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.createdBy == request.auth.uid || isMaster());
-      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    match /files/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
-    
+
     // フォルダコレクション - 店舗分離
-    match /folders/{folderId} {
-      allow read: if isAuthenticated() && belongsToSameStore(resource.data.storeId);
-      allow create: if isAuthenticated() && belongsToSameStore(request.resource.data.storeId);
-      allow update: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.createdBy == request.auth.uid || isMaster());
-      allow delete: if isAuthenticated() && belongsToSameStore(resource.data.storeId) 
-                       && (resource.data.createdBy == request.auth.uid || isMaster());
+    match /folders/{docId} {
+      allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
+      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
-    
-    // その他のコレクションは明示的に拒否
+
+    // 設定コレクション - 全認証ユーザー読み取り可能、マスターのみ書き込み可能
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
+    }
+
+    // 未定義のパスは拒否
     match /{document=**} {
       allow read, write: if false;
     }
