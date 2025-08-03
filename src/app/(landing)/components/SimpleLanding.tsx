@@ -14,10 +14,11 @@ import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import SimpleHeader from "./SimpleHeader";
 import { DemoModal } from "./DemoModal";
 
-// 画像インポート（プロジェクトルートからの相対パス）
-const desktopGanttFull = require("../../../../assets/images/landing/screenshots/desktop-gantt-full.png");
-const mobileHomeCards = require("../../../../assets/images/landing/screenshots/mobile-home-cards.png");
-const mobileCalendarMonth = require("../../../../assets/images/landing/screenshots/mobile-calendar-month.png");
+// 画像パス（静的アセット）
+const desktopGanttFull = "/images/landing/screenshots/desktop-gantt-full.png";
+const mobileHomeCards = "/images/landing/screenshots/mobile-home-cards.png";
+const mobileCalendarMonth =
+  "/images/landing/screenshots/mobile-calendar-month.png";
 
 const SimpleLanding = () => {
   const router = useRouter();
@@ -266,7 +267,7 @@ const SimpleLanding = () => {
           return (
             <View style={styles.demoMockupDesktop}>
               <Image
-                source={desktopGanttFull}
+                source={{ uri: desktopGanttFull }}
                 style={styles.demoScreenshot}
                 resizeMode="contain"
               />
@@ -298,7 +299,7 @@ const SimpleLanding = () => {
           return (
             <View style={styles.demoMockupMobile}>
               <Image
-                source={mobileHomeCards}
+                source={{ uri: mobileHomeCards }}
                 style={styles.demoScreenshot}
                 resizeMode="contain"
               />
@@ -308,7 +309,7 @@ const SimpleLanding = () => {
           return (
             <View style={styles.demoMockupCalendar}>
               <Image
-                source={mobileCalendarMonth}
+                source={{ uri: mobileCalendarMonth }}
                 style={styles.demoScreenshot}
                 resizeMode="contain"
               />
@@ -678,7 +679,7 @@ const SimpleLanding = () => {
                       ]}
                     >
                       <Image
-                        source={mobileHomeCards}
+                        source={{ uri: mobileHomeCards }}
                         style={styles.heroPhoneScreenImage}
                         resizeMode="contain"
                       />
