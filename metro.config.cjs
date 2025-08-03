@@ -5,13 +5,36 @@ const {
 
 const config = getDefaultConfig(__dirname);
 
-// Shadow警告を抑制
+// WSL最適化設定
+config.resolver = {
+  ...config.resolver,
+  // キャッシュ最適化
+  hasteImplModulePath: undefined,
+};
+
+// ファイル監視最適化
+config.watchFolders = [];
 config.transformer = {
   ...config.transformer,
-  // Web環境でのshadow非推奨警告を抑制
+  // 並列処理最適化
   minifierConfig: {
-    // 抑制設定は将来的にここに追加可能
-  }
+    keep_fnames: true,
+    mangle: {
+      keep_fnames: true,
+    },
+  },
+};
+
+// WSL用ファイルシステム最適化
+config.server = {
+  ...config.server,
+  enhanceMiddleware: (middleware) => {
+    return (req, res, next) => {
+      // CORS最適化
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return middleware(req, res, next);
+    };
+  },
 };
 
 module.exports = config;

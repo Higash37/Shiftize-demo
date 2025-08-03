@@ -9,8 +9,11 @@ import {
   useWindowDimensions,
   StyleSheet,
   TextStyle,
+  Modal,
+  Pressable,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { loginFormStyles } from "./LoginForm.styles";
 import type { LoginFormProps } from "./LoginForm.types";
 import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
@@ -20,7 +23,12 @@ import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ 
+  onLogin, 
+  loading, 
+  showDemoModal: externalShowDemoModal, 
+  setShowDemoModal: externalSetShowDemoModal 
+}) => {
   useAutoReloadOnLayoutBug();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +38,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
   const [storeIdAndUsername, setStoreIdAndUsername] = useState(""); // 店舗ID+ニックネーム
   const [loginMode, setLoginMode] = useState<'storeId' | 'email'>('storeId'); // ログイン方式
   const [emailInput, setEmailInput] = useState(""); // メールアドレス入力
+  const [demoRoleModalVisible, setDemoRoleModalVisible] = useState(externalShowDemoModal || false); // デモ役割選択モーダル
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isTablet = width >= 768 && width < 1024; // タブレットサイズ
@@ -58,6 +67,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
 
     loadSavedStoreId();
   }, []);
+
+  // 外部からのデモモーダル制御
+  useEffect(() => {
+    if (externalShowDemoModal !== undefined) {
+      setDemoRoleModalVisible(externalShowDemoModal);
+    }
+  }, [externalShowDemoModal]);
 
   // 入力文字列から店舗IDとニックネームを分離
   const parseStoreIdAndUsername = (input: string) => {
@@ -310,7 +326,204 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, loading }) => {
               {loading ? "ログイン中..." : "ログイン"}
             </Text>
           </TouchableOpacity>
+
         </Box>
+
+        {/* デモリンク - ボックス外 */}
+        <TouchableOpacity
+          style={{
+            marginTop: 20,
+            alignItems: 'center',
+            paddingHorizontal: 16,
+          }}
+          onPress={() => {
+            const newState = true;
+            setDemoRoleModalVisible(newState);
+            if (externalSetShowDemoModal) {
+              externalSetShowDemoModal(newState);
+            }
+          }}
+        >
+          <Text style={{
+            color: '#007bff',
+            fontSize: 14,
+            fontWeight: '500',
+            textDecorationLine: 'underline',
+            textAlign: 'center',
+          }}>
+            デモを体験する
+          </Text>
+        </TouchableOpacity>
+
+        {/* デモ役割選択モーダル */}
+        <Modal
+          visible={demoRoleModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            setDemoRoleModalVisible(false);
+            if (externalSetShowDemoModal) {
+              externalSetShowDemoModal(false);
+            }
+          }}
+        >
+          <Pressable 
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 16,
+            }}
+            onPress={() => {
+              setDemoRoleModalVisible(false);
+              if (externalSetShowDemoModal) {
+                externalSetShowDemoModal(false);
+              }
+            }}
+          >
+            <Pressable 
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: 16,
+                padding: 24,
+                width: '100%',
+                maxWidth: 400,
+              }}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* ヘッダー */}
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 20,
+              }}>
+                <MaterialIcons name="person" size={24} color="#3b82f6" />
+                <Text style={{
+                  flex: 1,
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  color: '#1f2937',
+                  marginLeft: 12,
+                }}>
+                  デモアカウントを選択
+                </Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setDemoRoleModalVisible(false);
+                    if (externalSetShowDemoModal) {
+                      externalSetShowDemoModal(false);
+                    }
+                  }}
+                  style={{ padding: 4 }}
+                >
+                  <MaterialIcons name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* 説明 */}
+              <Text style={{
+                fontSize: 14,
+                color: '#6b7280',
+                marginBottom: 24,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}>
+                体験したい役割を選択してください。{'\n'}
+                自動でログイン情報が入力されます。
+              </Text>
+
+              {/* 役割選択ボタン */}
+              <View style={{ gap: 12 }}>
+                {/* 教室長用 */}
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#f8faff',
+                    borderWidth: 2,
+                    borderColor: '#3b82f6',
+                    borderRadius: 12,
+                    padding: 16,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => {
+                    setStoreIdAndUsername('0000佐藤');
+                    setPassword('123456');
+                    setLoginMode('storeId');
+                    setDemoRoleModalVisible(false);
+                    if (externalSetShowDemoModal) {
+                      externalSetShowDemoModal(false);
+                    }
+                  }}
+                >
+                  <Text style={{
+                    color: '#3b82f6',
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    marginBottom: 4,
+                  }}>
+                    🏫 教室長として体験
+                  </Text>
+                  <Text style={{
+                    color: '#6b7280',
+                    fontSize: 12,
+                  }}>
+                    ID: 0000佐藤 / Pass: 123456
+                  </Text>
+                  <Text style={{
+                    color: '#6b7280',
+                    fontSize: 11,
+                    marginTop: 4,
+                  }}>
+                    全機能・管理者権限でお試し
+                  </Text>
+                </TouchableOpacity>
+
+                {/* 講師用 */}
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#f0fdf4',
+                    borderWidth: 2,
+                    borderColor: '#10b981',
+                    borderRadius: 12,
+                    padding: 16,
+                    alignItems: 'center',
+                  }}
+                  onPress={() => {
+                    setStoreIdAndUsername('0000町田');
+                    setPassword('123456');
+                    setLoginMode('storeId');
+                    setDemoRoleModalVisible(false);
+                    if (externalSetShowDemoModal) {
+                      externalSetShowDemoModal(false);
+                    }
+                  }}
+                >
+                  <Text style={{
+                    color: '#10b981',
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    marginBottom: 4,
+                  }}>
+                    👨‍🏫 講師として体験
+                  </Text>
+                  <Text style={{
+                    color: '#6b7280',
+                    fontSize: 12,
+                  }}>
+                    ID: 0000町田 / Pass: 123456
+                  </Text>
+                  <Text style={{
+                    color: '#6b7280',
+                    fontSize: 11,
+                    marginTop: 4,
+                  }}>
+                    講師権限でお試し
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </View>
     </View>
   );

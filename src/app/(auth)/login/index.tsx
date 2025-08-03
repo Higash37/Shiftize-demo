@@ -1,34 +1,55 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Platform, useWindowDimensions, SafeAreaView, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  useWindowDimensions,
+  SafeAreaView,
+  StyleSheet,
+} from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import { ServiceIntroModal } from "@/modules/child-components/service-intro/ServiceIntroModal";
 
 export default function Login() {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showServiceIntro, setShowServiceIntro] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const { width } = useWindowDimensions();
+  const params = useLocalSearchParams();
   const isWeb = Platform.OS === "web";
   const isDesktop = isWeb && width > 1024; // PC判定
   const isMobile = width <= 768; // スマホ判定
+
+  // URLパラメータをチェックしてデモモーダルを自動表示
+  useEffect(() => {
+    if (params.demo === 'true') {
+      setShowDemoModal(true);
+      // URLからパラメータを削除
+      router.replace('/(auth)/login');
+    }
+  }, [params]);
 
   const handleLogin = async (
     emailOrUsername: string,
     password: string,
     storeId?: string
   ) => {
-    
     setLoading(true);
     setErrorMessage("");
     try {
-      // メールアドレス形式かどうかを判定
+      // 通常のFirebaseログイン
       const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsername);
-      
+
       if (isEmailFormat) {
         // 実メールアドレスの場合はそのまま使用
         await signIn(emailOrUsername, password);
@@ -40,12 +61,13 @@ export default function Login() {
         const email = `${storeId}${emailOrUsername}@example.com`;
         await signIn(email, password, storeId);
       }
-      
+
       // ナビゲーション処理を待つために少し待機
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
-      setErrorMessage("ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います");
+      setErrorMessage(
+        "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
+      );
     } finally {
       setLoading(false);
     }
@@ -108,32 +130,86 @@ export default function Login() {
     <SafeAreaView style={designSystem.page.safeContainer}>
       {/* Header */}
       <Box variant="primary" style={getHeaderStyle()}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.push("/(main)")}
-        >
-          <Text style={getHeaderTextStyle()}>Shiftize</Text>
-          <Text style={getSubtitleTextStyle()}>ログイン</Text>
-        </TouchableOpacity>
+        <View style={styles.headerContainer}>
+          {/* Left: Spacer */}
+          <View style={styles.headerSpacer} />
+
+          {/* Center: Title */}
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.push("/(main)")}
+          >
+            <Text style={getHeaderTextStyle()}>Shiftize</Text>
+            <Text style={getSubtitleTextStyle()}>シフト管理システム</Text>
+          </TouchableOpacity>
+
+          {/* Right: Icons */}
+          <View style={styles.headerIcons}>
+            {/* Help/Support Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setShowServiceIntro(true)}
+            >
+              <AntDesign name="questioncircleo" size={24} color="white" />
+            </TouchableOpacity>
+
+            {/* Landing Page Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.push("/(landing)")}
+            >
+              <AntDesign name="home" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </Box>
 
       {/* Content */}
       <View style={designSystem.page.content}>
-        <LoginForm onLogin={handleLogin} loading={loading} />
+        <LoginForm 
+          onLogin={handleLogin} 
+          loading={loading} 
+          showDemoModal={showDemoModal}
+          setShowDemoModal={setShowDemoModal}
+        />
         {errorMessage ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
         ) : null}
       </View>
+
+      {/* サービス紹介モーダル */}
+      <ServiceIntroModal
+        visible={showServiceIntro}
+        onClose={() => setShowServiceIntro(false)}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
   headerButton: {
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerSpacer: {
+    width: 80, // アイコン2つ分の幅 + gap + padding (24 * 2 + 12 + 8 * 2)
+  },
+  iconButton: {
+    padding: 8,
   },
   errorContainer: {
     ...designSystem.card.outlineCard,

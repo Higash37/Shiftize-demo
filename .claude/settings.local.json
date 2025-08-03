@@ -33,8 +33,29 @@
       "Bash(sed:*)",
       "Bash(awk:*)",
       "Bash(rg:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(ss:*)",
+      "Bash(kill:*)",
+      "Bash(npx playwright-cli screenshot:*)",
+      "Bash(npx:*)",
+      "Bash(export NODE_OPTIONS=\"--max-old-space-size=4096\")",
+      "Bash(claude mcp add:*)",
+      "Bash(pwsh:*)",
+      "Bash(powershell.exe:*)",
+      "mcp__filesystem__read_text_file",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_screenshot",
+      "mcp__puppeteer__puppeteer_navigate"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "firebase",
+    "filesystem",
+    "git",
+    "puppeteer"
+  ]
 }

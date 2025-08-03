@@ -85,7 +85,7 @@ export const InfoDashboard: React.FC = () => {
   // 実際のデータを取得
   const { user } = useAuth();
   const { shifts, loading: shiftsLoading } = useShiftsRealtime(user?.storeId);
-  const { users, loading: usersLoading } = useUsers();
+  const { users, loading: usersLoading } = useUsers(user?.storeId);
 
   // 現在の月のデータを計算
   const currentDate = new Date();

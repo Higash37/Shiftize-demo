@@ -7,6 +7,7 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "./styles";
 import { HeaderProps } from "./types";
 import { RecruitmentShiftModal } from "@/modules/child-components/recruitment-shift/RecruitmentShiftModal";
+import { ServiceIntroModal } from "@/modules/child-components/service-intro/ServiceIntroModal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
@@ -24,6 +25,7 @@ export function Header({
 }: HeaderProps) {
   const { signOut, user } = useAuth();
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
+  const [showServiceIntro, setShowServiceIntro] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -102,6 +104,15 @@ export function Header({
             </View>
           )}
         </TouchableOpacity>
+        
+        {/* サービス紹介ボタン */}
+        <TouchableOpacity
+          onPress={() => setShowServiceIntro(true)}
+          style={styles.signOutButton}
+        >
+          <AntDesign name="questioncircleo" size={24} color={colors.text.primary} />
+        </TouchableOpacity>
+        
         {onPressSettings && (
           <TouchableOpacity
             onPress={onPressSettings}
@@ -119,6 +130,12 @@ export function Header({
         visible={showRecruitmentModal}
         onClose={() => setShowRecruitmentModal(false)}
         userRole="teacher"
+      />
+
+      {/* サービス紹介モーダル */}
+      <ServiceIntroModal
+        visible={showServiceIntro}
+        onClose={() => setShowServiceIntro(false)}
       />
     </View>
   );

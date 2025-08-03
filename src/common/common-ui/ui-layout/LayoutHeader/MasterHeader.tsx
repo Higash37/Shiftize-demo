@@ -20,6 +20,7 @@ import { styles } from "./styles";
 import { MasterHeaderProps } from "./types";
 import { useAuth } from "@/services/auth/useAuth";
 import { RecruitmentShiftModal } from "@/modules/child-components/recruitment-shift/RecruitmentShiftModal";
+import { ServiceIntroModal } from "@/modules/child-components/service-intro/ServiceIntroModal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
@@ -40,7 +41,7 @@ export function MasterHeader({
     useState<UserStoreAccess | null>(null);
   const [showStoreSelector, setShowStoreSelector] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
-  const [currentStoreInfo, setCurrentStoreInfo] = useState<string>("1456"); // デフォルト値
+  const [currentStoreInfo, setCurrentStoreInfo] = useState<string>(""); // デフォルト値
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [recruitmentCount, setRecruitmentCount] = useState(0);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
@@ -69,11 +70,11 @@ export function MasterHeader({
 
           setUserStoreAccess(migratedAccess);
           setCurrentStoreInfo(
-            migratedAccess?.currentStoreId || user.storeId || "1456"
+            migratedAccess?.currentStoreId || user.storeId || ""
           );
         }
       } catch (error) {
-        setCurrentStoreInfo(user?.storeId || "1456");
+        setCurrentStoreInfo(user?.storeId || "");
       }
     };
 
@@ -332,6 +333,12 @@ export function MasterHeader({
         visible={showRecruitmentModal}
         onClose={() => setShowRecruitmentModal(false)}
         userRole="master"
+      />
+
+      {/* サービス紹介モーダル */}
+      <ServiceIntroModal
+        visible={showServiceIntro}
+        onClose={() => setShowServiceIntro(false)}
       />
     </View>
   );

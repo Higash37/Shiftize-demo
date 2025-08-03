@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,17 +9,20 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
+import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@constants/ColorConstants";
 import { typography } from "@constants/TypographyConstants";
 import { layout } from "@constants/LayoutConstants";
 import { shadows } from "@constants/ShadowConstants";
 import Button from "@components/ui-forms/FormButton";
 import Box from "@components/ui-base/BaseBox/BoxComponent";
+import { ServiceIntroModal } from "@/modules/child-components/service-intro/ServiceIntroModal";
 
 export const WelcomeScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isDesktop = isWeb && width > 768; // PC画面の判定
+  const [showServiceIntro, setShowServiceIntro] = useState(false);
   const handleCreateGroup = () => {
     // 新規グループ作成画面に遷移
     router.push("/(auth)/create-group");
@@ -34,8 +37,35 @@ export const WelcomeScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <Box variant="primary" padding="large" style={styles.header}>
-        <Text style={styles.logo}>Shiftize</Text>
-        <Text style={styles.subtitle}>シフト管理をもっと簡単に</Text>
+        <View style={styles.headerContainer}>
+          {/* Left: Spacer */}
+          <View style={styles.headerSpacer} />
+          
+          {/* Center: Title */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.logo}>Shiftize</Text>
+            <Text style={styles.subtitle}>シフト管理をもっと簡単に</Text>
+          </View>
+          
+          {/* Right: Icons */}
+          <View style={styles.headerIcons}>
+            {/* Help/Support Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setShowServiceIntro(true)}
+            >
+              <AntDesign name="questioncircleo" size={24} color="white" />
+            </TouchableOpacity>
+            
+            {/* Landing Page Icon */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.push("/(landing)")}
+            >
+              <AntDesign name="home" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </Box>
 
       {/* Content */}
@@ -80,6 +110,12 @@ export const WelcomeScreen: React.FC = () => {
           「グループに参加」からログインしてください
         </Text>
       </Box>
+
+      {/* サービス紹介モーダル */}
+      <ServiceIntroModal
+        visible={showServiceIntro}
+        onClose={() => setShowServiceIntro(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -91,12 +127,32 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.primary,
-    alignItems: "center",
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderBottomLeftRadius: layout.borderRadius.large,
     borderBottomRightRadius: layout.borderRadius.large,
     minHeight: Platform.OS === "web" ? 120 : undefined, // PWA時の固定高さ
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  titleContainer: {
+    alignItems: "center",
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 80, // アイコン2つ分の幅 + gap + padding (24 * 2 + 12 + 8 * 2)
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  iconButton: {
+    padding: 8,
   },
   logo: {
     fontSize: typography.fontSize.xxlarge + 8, // 32px equivalent
@@ -146,5 +202,6 @@ const styles = StyleSheet.create({
     color: colors.text.disabled,
     textAlign: "center",
     lineHeight: 20,
+    marginBottom: 16,
   },
 });

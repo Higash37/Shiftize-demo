@@ -5,4 +5,6 @@ export interface LoginFormProps {
     storeId: string
   ) => Promise<void>;
   loading?: boolean;
+  showDemoModal?: boolean;
+  setShowDemoModal?: (show: boolean) => void;
 }

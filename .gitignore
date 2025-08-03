@@ -7,6 +7,16 @@ node_modules/
 .expo/
 web-build/
 
+# MCP / Cursor
+.cursor/
+.mcp.json
+
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/
+
 # Native
 *.orig.*
 *.jks
@@ -22,10 +32,14 @@ web-build/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+firebase-debug.log
 
 # macOS
 .DS_Store
 *.pem
+
+# Windows
+nul
 
 # local env files
 .env*.local
@@ -55,3 +69,12 @@ ios/
 # Firebase
 serviceAccountKey.json
 *serviceAccountKey.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Development screenshots
+screenshots/

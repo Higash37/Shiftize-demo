@@ -13,19 +13,16 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "locale": "ja"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "locale": "ja"
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "manifest": "public/manifest.json",
+      "favicon": "./public/favicon.ico",
       "name": "Shiftize",
       "shortName": "シフト管理",
       "lang": "ja",
@@ -40,8 +37,7 @@
     "scheme": "shiftize",
     "plugins": ["expo-router"],
     "experiments": {
-      "tsconfigPaths": true,
-      "rootDir": "src"
+      "tsconfigPaths": true
     }
   }
 }

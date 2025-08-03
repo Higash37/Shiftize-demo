@@ -77,9 +77,24 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading) return;
     const inAuthGroup = segments[0] === "(auth)";
+    const inLandingGroup = segments[0] === "(landing)";
+    const inMainGroup = segments[0] === "(main)";
+    
+    // ランディングページは認証不要でアクセス可能
+    if (inLandingGroup) {
+      return;
+    }
+    
+    // メインアプリは認証が必要
+    if (inMainGroup && !user) {
+      router.replace("/(auth)/login");
+      return;
+    }
+    
     if (!user) {
       if (!inAuthGroup) {
-        router.replace("/(auth)/login");
+        // 未認証で他のページにアクセスした場合はランディングページへ
+        router.replace("/(landing)");
       }
     } else if (inAuthGroup) {
       if (role === "master") {
@@ -94,6 +109,12 @@ function RootLayoutNav() {
     let timeoutId: any;
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active" && !loading) {
+        // ランディングページにいる場合は認証チェックをスキップ
+        const inLandingGroup = segments[0] === "(landing)";
+        if (inLandingGroup) {
+          return;
+        }
+        
         // 認証状態を再確認する前に少し待つ
         timeoutId = setTimeout(() => {
           if (!user && !loading) {
@@ -106,7 +127,7 @@ function RootLayoutNav() {
       clearTimeout(timeoutId);
       subscription.remove();
     };
-  }, [user, loading]);
+  }, [user, loading, segments]);
 
   // シンプルなWeb/PWA対応 - CSSはindex.htmlに任せる
   const getLayoutStyle = () => {
