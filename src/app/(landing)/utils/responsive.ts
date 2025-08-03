@@ -78,17 +78,33 @@ export const responsiveStyles = {
     default: '100%',
   }),
   
-  // コンテナの最大幅
-  maxWidth: () => responsive({
-    mobile: '100%',
+  // コンテナの最大幅（数値版）
+  maxWidthValue: () => responsive({
+    mobile: undefined, // 100% はここでは undefined として扱い、別途 '100%' を使用
     tablet: 720,
     desktop: 1024,
     wide: 1280,
-    default: '100%',
+    default: undefined,
   }),
   
+  // コンテナの最大幅（文字列版）
+  maxWidth: () => {
+    const deviceType = getDeviceType();
+    if (deviceType === 'tablet' || deviceType === 'desktop' || deviceType === 'wide') {
+      const numValue = responsive({
+        mobile: undefined,
+        tablet: 720,
+        desktop: 1024,
+        wide: 1280,
+        default: undefined,
+      });
+      return numValue as number;
+    }
+    return '100%' as const;
+  },
+  
   // PC用の幅（70%）
-  pcWidth: () => responsive({
+  pcWidth: (): string => responsive({
     mobile: '100%',
     tablet: '90%',
     desktop: '70%',

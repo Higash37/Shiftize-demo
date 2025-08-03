@@ -169,7 +169,7 @@ const Features = () => {
           
           <div className="flex flex-wrap justify-center items-center gap-4">
             {statusFlow.map((item, index) => {
-              const colorClasses = {
+              const colorClasses: Record<string, string> = {
                 yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
                 blue: 'bg-blue-100 text-blue-700 border-blue-200',
                 red: 'bg-red-100 text-red-700 border-red-200',

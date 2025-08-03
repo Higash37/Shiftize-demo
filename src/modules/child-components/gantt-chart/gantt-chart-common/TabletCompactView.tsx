@@ -246,7 +246,6 @@ export const TabletCompactView: React.FC<TabletCompactViewProps> = ({
                 onDayPress={handleDayPress}
                 onMonthChange={handleCalendarMonthChange}
                 markedDates={markedDates}
-                hideHeader={true}
               />
             </View>
           </View>

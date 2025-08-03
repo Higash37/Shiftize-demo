@@ -36,6 +36,9 @@ export const styles = StyleSheet.create({
   signOutButton: {
     padding: 8,
   },
+  serviceIntroButton: {
+    padding: 8,
+  },
   // 店舗切り替え関連のスタイル
   storeButton: {
     flexDirection: "row",

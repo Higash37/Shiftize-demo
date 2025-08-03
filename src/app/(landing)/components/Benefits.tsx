@@ -137,7 +137,7 @@ const Benefits = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
           {benefits.map((benefit, index) => {
-            const colorClasses = {
+            const colorClasses: Record<string, string> = {
               blue: "from-blue-500 to-blue-600 bg-blue-50 text-blue-600",
               green: "from-green-500 to-green-600 bg-green-50 text-green-600",
               indigo:

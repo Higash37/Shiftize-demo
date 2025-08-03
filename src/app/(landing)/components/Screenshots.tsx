@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 const Screenshots = () => {
   const [activeView, setActiveView] = useState('gantt');
 
-  const screenshots = {
+  const screenshots: Record<string, {title: string, description: string, image: string, features: string[]}> = {
     gantt: {
       title: "ガントチャート編集",
       description: "ドラッグ&ドロップで直感的にシフトを作成・編集",

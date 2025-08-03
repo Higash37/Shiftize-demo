@@ -300,10 +300,10 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     maxWidth: responsive({
       mobile: '100%',
-      tablet: 600,
-      desktop: 800,
+      tablet: '600px',
+      desktop: '800px',
       default: '100%',
-    }),
+    }) as any,
   },
 
   timelineSection: {

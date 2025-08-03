@@ -638,7 +638,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           onPayrollPress={handlePayrollPress}
           viewMode={viewMode}
           onViewModeToggle={handleViewToggle}
-          isMobileView={deviceType === "mobile" || deviceType === "tablet"}
+          isMobileView={deviceType !== "desktop"}
           deviceType={deviceType}
           useGoogleLayout={useGoogleLayout}
           onToggleGoogleLayout={() => setUseGoogleLayout(!useGoogleLayout)}

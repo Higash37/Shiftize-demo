@@ -7,7 +7,7 @@
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": [],
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["src/common/common-ui/*"],

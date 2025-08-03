@@ -144,13 +144,13 @@ const Pricing = () => {
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {plans.map((plan, index) => {
-            const colorClasses = {
+            const colorClasses: Record<string, string> = {
               gray: 'border-gray-200 hover:border-gray-300',
               blue: 'border-blue-500 ring-2 ring-blue-500 ring-opacity-20',
               indigo: 'border-indigo-500 hover:border-indigo-600'
             };
 
-            const buttonClasses = {
+            const buttonClasses: Record<string, string> = {
               gray: 'btn-secondary',
               blue: 'btn-primary',
               indigo: 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl'

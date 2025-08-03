@@ -270,21 +270,6 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                 onDayPress={handleDayPress}
                 onMonthChange={handleMonthChangeCalendar}
                 markedDates={markedDates}
-                theme={{
-                  calendarBackground: '#ffffff',
-                  textSectionTitleColor: '#5f6368',
-                  selectedDayBackgroundColor: '#1a73e8',
-                  selectedDayTextColor: '#ffffff',
-                  todayTextColor: '#1a73e8',
-                  dayTextColor: '#3c4043',
-                  textDisabledColor: '#9aa0a6',
-                  monthTextColor: '#3c4043',
-                  textMonthFontWeight: '500',
-                  textDayFontSize: 14,
-                  textMonthFontSize: 16,
-                  textDayHeaderFontSize: 12,
-                }}
-                style={{ height: 280 }}
               />
             </View>
 
@@ -387,7 +372,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                 {displayDates.map((date, dateIndex) => {
                   const dateShifts = getShiftsForDate(date);
                   const timeShifts = time === "終日" 
-                    ? dateShifts.filter(shift => shift.isAllDay)
+                    ? [] // Remove isAllDay filter since property doesn't exist
                     : dateShifts.filter(shift => {
                         const [shiftStartHour] = shift.startTime.split(':').map(Number);
                         const [timeHour] = time.split(':').map(Number);
