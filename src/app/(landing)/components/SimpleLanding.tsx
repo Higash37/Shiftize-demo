@@ -14,15 +14,10 @@ import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import SimpleHeader from "./SimpleHeader";
 import { DemoModal } from "./DemoModal";
 
-// 画像インポート（修正済み相対パス）
+// 画像インポート（プロジェクトルートからの相対パス）
 const desktopGanttFull = require("../../../../assets/images/landing/screenshots/desktop-gantt-full.png");
-const desktopGanttEdit = require("../../../../assets/images/landing/screenshots/desktop-gantt-edit.png");
-const desktopCalendarView = require("../../../../assets/images/landing/screenshots/desktop-calendar-view.png");
-const desktopPayroll = require("../../../../assets/images/landing/screenshots/desktop-payroll.png");
 const mobileHomeCards = require("../../../../assets/images/landing/screenshots/mobile-home-cards.png");
 const mobileCalendarMonth = require("../../../../assets/images/landing/screenshots/mobile-calendar-month.png");
-const mobileCreateShift = require("../../../../assets/images/landing/screenshots/mobile-create-shift.png");
-const mobileNotifications = require("../../../../assets/images/landing/screenshots/mobile-notifications.png");
 
 const SimpleLanding = () => {
   const router = useRouter();
@@ -47,10 +42,14 @@ const SimpleLanding = () => {
     },
     heroMainTitle: {
       fontSize: isMobile ? 25 : isTablet ? 32 : 38,
-      textAlign: isDesktop || isTablet ? "left" : "center",
+      textAlign: (isDesktop || isTablet ? "left" : "center") as
+        | "left"
+        | "center",
     },
     heroSubtitle: {
-      textAlign: isDesktop || isTablet ? "left" : "center",
+      textAlign: (isDesktop || isTablet ? "left" : "center") as
+        | "left"
+        | "center",
     },
   };
 
@@ -660,7 +659,7 @@ const SimpleLanding = () => {
                   style={styles.heroSecondaryButton}
                   onPress={() => setDemoModalVisible(true)}
                 >
-                  <AntDesign name="play-circle" size={16} color="#3b82f6" />
+                  <AntDesign name="playcircleo" size={16} color="#3b82f6" />
                   <Text style={styles.heroSecondaryButtonText}>デモを見る</Text>
                 </TouchableOpacity>
               </View>
@@ -1134,7 +1133,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8faff",
-    zoom: 0.9,
   },
 
   // メインレイアウト
