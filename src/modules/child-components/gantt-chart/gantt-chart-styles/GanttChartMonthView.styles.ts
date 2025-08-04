@@ -45,8 +45,9 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "#fff",
     width: 320,
+    maxHeight: "100%", // 画面の80%以下に制限
     borderRadius: 16, // より丸みを帯びたデザイン
-    padding: 24,
+    padding: 8, // 12から8にさらに減らす
     ...shadows.modal,
     borderWidth: 0, // ボーダーを除去してクリーンに
     shadowColor: "#000",
@@ -58,20 +59,20 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 2, // 4から2に減らす
     textAlign: "center",
   },
   modalSubtitle: {
     fontSize: 12,
     color: "#666",
-    marginBottom: 14,
+    marginBottom: 4, // 8から4に減らす
     textAlign: "center",
   },
   timeInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: 4, // 8から4に減らす
   },
   timeInputGroup: {
     flex: 1,
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   formGroup: {
-    marginBottom: 12,
+    marginBottom: 6,
   },
   formLabel: {
     fontSize: 12,
