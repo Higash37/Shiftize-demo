@@ -42,6 +42,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(
     format(selectedDate, "yyyy-MM-dd")
   );
+  const [calendarDisplayMonth, setCalendarDisplayMonth] = useState(
+    format(selectedDate, "yyyy-MM-dd")
+  );
   const [hideEarlyHours, setHideEarlyHours] = useState(false);
 
   // 画面サイズを取得
@@ -163,6 +166,8 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   // カレンダーの日付選択ハンドラー
   const handleDayPress = (day: any) => {
     const targetDate = day.dateString;
+    const selectedDateObj = new Date(targetDate);
+    const currentDisplayMonth = new Date(calendarDisplayMonth);
 
     // 同じ日付をもう一度押したときに選択を解除
     if (selectedCalendarDate === targetDate) {
@@ -171,6 +176,15 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     }
 
     setSelectedCalendarDate(targetDate);
+
+    // 選択した日付が現在表示中の月と異なる場合、カレンダーとガントチャートも更新
+    if (selectedDateObj.getMonth() !== currentDisplayMonth.getMonth() || 
+        selectedDateObj.getFullYear() !== currentDisplayMonth.getFullYear()) {
+      setCalendarDisplayMonth(format(selectedDateObj, "yyyy-MM-dd"));
+      if (onMonthChange) {
+        onMonthChange(selectedDateObj.getFullYear(), selectedDateObj.getMonth());
+      }
+    }
   };
 
   // カレンダーの月変更ハンドラー
@@ -179,6 +193,14 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());
     }
+    
+    // カレンダー表示月を更新
+    setCalendarDisplayMonth(format(date, "yyyy-MM-dd"));
+    
+    // 右側のガントチャートをその月の1日に変更
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstDayStr = format(firstDayOfMonth, "yyyy-MM-dd");
+    setSelectedCalendarDate(firstDayStr);
   };
 
   // 前日・翌日移動ハンドラー
@@ -188,6 +210,14 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       const prevDate = subDays(currentDate, 1);
       const prevDateStr = format(prevDate, "yyyy-MM-dd");
       setSelectedCalendarDate(prevDateStr);
+      
+      // 月が変わった場合、カレンダー表示月とガントチャート全体も更新
+      if (currentDate.getMonth() !== prevDate.getMonth()) {
+        setCalendarDisplayMonth(format(prevDate, "yyyy-MM-dd"));
+        if (onMonthChange) {
+          onMonthChange(prevDate.getFullYear(), prevDate.getMonth());
+        }
+      }
     }
   };
 
@@ -197,6 +227,14 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       const nextDate = addDays(currentDate, 1);
       const nextDateStr = format(nextDate, "yyyy-MM-dd");
       setSelectedCalendarDate(nextDateStr);
+      
+      // 月が変わった場合、カレンダー表示月とガントチャート全体も更新
+      if (currentDate.getMonth() !== nextDate.getMonth()) {
+        setCalendarDisplayMonth(format(nextDate, "yyyy-MM-dd"));
+        if (onMonthChange) {
+          onMonthChange(nextDate.getFullYear(), nextDate.getMonth());
+        }
+      }
     }
   };
 
@@ -223,9 +261,10 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
               }}
             >
               <ShiftCalendar
+                key={calendarDisplayMonth}
                 shifts={convertedShifts as any}
                 selectedDate={selectedCalendarDate}
-                currentMonth={format(selectedDate, "yyyy-MM-dd")}
+                currentMonth={calendarDisplayMonth}
                 currentUserStoreId={""}
                 onDayPress={handleDayPress}
                 onMonthChange={handleCalendarMonthChange}
