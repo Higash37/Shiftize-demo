@@ -8,6 +8,14 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "types": ["node"],
+    // 追加の厳密な型チェックオプション
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["src/common/common-ui/*"],
