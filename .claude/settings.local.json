@@ -47,7 +47,9 @@
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_screenshot",
       "mcp__puppeteer__puppeteer_navigate",
-      "Bash(snyk test:*)"
+      "Bash(snyk test:*)",
+      "Bash(claude mcp get:*)",
+      "Bash(claude mcp:*)"
     ],
     "deny": []
   },
@@ -56,7 +58,6 @@
     "playwright",
     "firebase",
     "filesystem",
-    "git",
-    "puppeteer"
+    "git"
   ]
 }
