@@ -49,7 +49,8 @@
       "mcp__puppeteer__puppeteer_navigate",
       "Bash(snyk test:*)",
       "Bash(claude mcp get:*)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   },
