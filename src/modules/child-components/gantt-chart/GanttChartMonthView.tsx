@@ -698,7 +698,23 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             });
             setShowAddModal(true);
           }}
+          onClassAdd={(shift) => {
+            // 授業追加モーダルを開く
+            setEditingShift(shift);
+            setNewShiftData({
+              date: shift.date,
+              startTime: shift.startTime,
+              endTime: shift.endTime,
+              userId: shift.userId,
+              nickname: shift.nickname,
+              status: shift.status,
+              classes: shift.classes || [],
+              extendedTasks: shift.extendedTasks || [],
+            });
+            setShowEditModal(true);
+          }}
           colorMode={colorMode}
+          getStatusConfig={getStatusConfig}
           styles={styles}
         />
       ) : deviceType === "tablet" ? (
@@ -727,7 +743,23 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             });
             setShowAddModal(true);
           }}
+          onClassAdd={(shift) => {
+            // 授業追加モーダルを開く
+            setEditingShift(shift);
+            setNewShiftData({
+              date: shift.date,
+              startTime: shift.startTime,
+              endTime: shift.endTime,
+              userId: shift.userId,
+              nickname: shift.nickname,
+              status: shift.status,
+              classes: shift.classes || [],
+              extendedTasks: shift.extendedTasks || [],
+            });
+            setShowEditModal(true);
+          }}
           colorMode={colorMode}
+          getStatusConfig={getStatusConfig}
           styles={styles}
         />
       ) : useGoogleLayout ? (
@@ -786,7 +818,23 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             });
             setShowAddModal(true);
           }}
+          onClassAdd={(shift) => {
+            // 授業追加モーダルを開く
+            setEditingShift(shift);
+            setNewShiftData({
+              date: shift.date,
+              startTime: shift.startTime,
+              endTime: shift.endTime,
+              userId: shift.userId,
+              nickname: shift.nickname,
+              status: shift.status,
+              classes: shift.classes || [],
+              extendedTasks: shift.extendedTasks || [],
+            });
+            setShowEditModal(true);
+          }}
           colorMode={colorMode}
+          getStatusConfig={getStatusConfig}
           styles={styles}
         />
       ) : viewMode === "gantt" ? (
