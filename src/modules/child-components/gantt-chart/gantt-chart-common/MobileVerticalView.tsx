@@ -25,7 +25,9 @@ interface MobileVerticalViewProps {
   onShiftPress?: (shift: ShiftItem) => void;
   onMonthChange?: (year: number, month: number) => void;
   onEmptyCellClick?: (date: string, time: string, userId: string) => void;
+  onClassAdd?: (shift: ShiftItem) => void;
   colorMode: "status" | "user";
+  getStatusConfig?: (status: string) => { color: string };
   styles: any;
 }
 
@@ -36,7 +38,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   onShiftPress,
   onMonthChange,
   onEmptyCellClick,
+  onClassAdd,
   colorMode,
+  getStatusConfig,
   styles,
 }) => {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(
@@ -45,7 +49,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   const [calendarDisplayMonth, setCalendarDisplayMonth] = useState(
     format(selectedDate, "yyyy-MM-dd")
   );
-  const [hideEarlyHours, setHideEarlyHours] = useState(false);
+  const [hideEarlyHours, setHideEarlyHours] = useState(true); // デフォルトを13:00-22:00に変更
 
   // 画面サイズを取得
   const screenWidth = Dimensions.get("window").width;
@@ -449,25 +453,119 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
 
                             {/* 時間スロット */}
                             <View style={{ position: "relative" }}>
-                              {timeLabels.map((time, timeIndex) => (
-                                <TouchableOpacity
-                                  key={time}
-                                  style={{
-                                    height: 20,
-                                    borderRightWidth: 1,
-                                    borderRightColor: "#f0f0f0",
-                                    borderBottomWidth: 1,
-                                    borderBottomColor:
-                                      timeIndex % 2 === 0
-                                        ? "#f0f0f0"
-                                        : "#f5f5f5",
-                                    zIndex: 1, // シフトバーより下に配置
-                                  }}
-                                  onPress={() =>
-                                    onEmptyCellClick?.(displayDate, time, "")
+                              {timeLabels.map((time, timeIndex) => {
+                                // この時間がユーザーの授業時間に含まれるかチェック
+                                const isClassTime = userShift && userShift.classes && userShift.classes.some(classTime => {
+                                  const [classStartHour, classStartMin] = classTime.startTime.split(":").map(Number);
+                                  const [classEndHour, classEndMin] = classTime.endTime.split(":").map(Number);
+                                  const [timeHour, timeMin] = time.split(":").map(Number);
+                                  
+                                  const classStartMinutes = classStartHour * 60 + classStartMin;
+                                  const classEndMinutes = classEndHour * 60 + classEndMin;
+                                  const currentTimeMinutes = timeHour * 60 + timeMin;
+                                  
+                                  return currentTimeMinutes >= classStartMinutes && currentTimeMinutes < classEndMinutes;
+                                });
+
+                                // この時間がシフト時間に含まれるかチェック
+                                const isShiftTime = userShift && (() => {
+                                  const [shiftStartHour, shiftStartMin] = userShift.startTime.split(":").map(Number);
+                                  const [shiftEndHour, shiftEndMin] = userShift.endTime.split(":").map(Number);
+                                  const [timeHour, timeMin] = time.split(":").map(Number);
+                                  
+                                  const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin;
+                                  const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin;
+                                  const currentTimeMinutes = timeHour * 60 + timeMin;
+                                  
+                                  return currentTimeMinutes >= shiftStartMinutes && currentTimeMinutes < shiftEndMinutes;
+                                })();
+
+                                // ステータス色を取得
+                                let backgroundColor = "transparent";
+                                if (isShiftTime && userShift) {
+                                  let statusColor = "#90caf9"; // デフォルト色（承認済み青）
+                                  
+                                  if (getStatusConfig) {
+                                    statusColor = getStatusConfig(userShift.status)?.color || statusColor;
+                                  } else {
+                                    // フォールバック用の色マッピング
+                                    switch (userShift.status) {
+                                      case "approved":
+                                        statusColor = "#90caf9"; // 青
+                                        break;
+                                      case "pending":
+                                        statusColor = "#FFD700"; // 黄色
+                                        break;
+                                      case "rejected":
+                                        statusColor = "#ffcdd2"; // 赤
+                                        break;
+                                      case "completed":
+                                        statusColor = "#4CAF50"; // 緑
+                                        break;
+                                      case "deleted":
+                                        statusColor = "#9e9e9e"; // グレー
+                                        break;
+                                      default:
+                                        statusColor = "#90caf9";
+                                    }
                                   }
-                                />
-                              ))}
+                                  
+                                  console.log('Status:', userShift.status, 'Color:', statusColor);
+                                  backgroundColor = statusColor + "30"; // 薄く表示
+                                }
+                                
+                                return (
+                                  <View key={time} style={{ position: "relative" }}>
+                                    <TouchableOpacity
+                                      style={{
+                                        height: 20,
+                                        borderRightWidth: 1,
+                                        borderRightColor: "#f0f0f0",
+                                        borderBottomWidth: 1,
+                                        borderBottomColor:
+                                          timeIndex % 2 === 0
+                                            ? "#f0f0f0"
+                                            : "#f5f5f5",
+                                        backgroundColor,
+                                        zIndex: 1, // シフトバーより下に配置
+                                      }}
+                                      onPress={() =>
+                                        onEmptyCellClick?.(displayDate, time, "")
+                                      }
+                                    />
+                                    {/* 授業時間のオーバーレイ */}
+                                    {isClassTime && userShift && (() => {
+                                      let statusColor = "#90caf9";
+                                      if (getStatusConfig) {
+                                        statusColor = getStatusConfig(userShift.status)?.color || statusColor;
+                                      } else {
+                                        switch (userShift.status) {
+                                          case "approved": statusColor = "#90caf9"; break;
+                                          case "pending": statusColor = "#FFD700"; break;
+                                          case "rejected": statusColor = "#ffcdd2"; break;
+                                          case "completed": statusColor = "#4CAF50"; break;
+                                          case "deleted": statusColor = "#9e9e9e"; break;
+                                          default: statusColor = "#90caf9";
+                                        }
+                                      }
+                                      
+                                      return (
+                                        <View
+                                          style={{
+                                            position: "absolute",
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: statusColor + "60", // ステータス色をより濃く
+                                            zIndex: 2,
+                                          }}
+                                        />
+                                      );
+                                    })()}
+                                  </View>
+                                );
+                              })}
 
                               {/* シフトバー */}
                               {userShift &&
@@ -541,6 +639,28 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                       >
                                         {userShift.endTime}
                                       </Text>
+                                      
+                                      
+                                      {/* 授業追加ボタン */}
+                                      <TouchableOpacity
+                                        style={{
+                                          position: 'absolute',
+                                          top: 2,
+                                          right: 2,
+                                          backgroundColor: 'rgba(255,255,255,0.8)',
+                                          borderRadius: 8,
+                                          width: 16,
+                                          height: 16,
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                        }}
+                                        onPress={(e) => {
+                                          e.stopPropagation();
+                                          onClassAdd?.(userShift);
+                                        }}
+                                      >
+                                        <Text style={{ fontSize: 10, color: '#007AFF', fontWeight: 'bold' }}>+</Text>
+                                      </TouchableOpacity>
                                     </TouchableOpacity>
                                   );
                                 })()}
