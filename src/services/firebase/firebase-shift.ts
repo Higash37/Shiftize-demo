@@ -143,7 +143,6 @@ export const ShiftService = {
   markShiftAsDeleted: async (id: string, deletedBy?: { nickname: string; userId: string }, reason?: string): Promise<void> => {
     try {
       if (__DEV__) {
-        console.log('🔍 DEBUG - markShiftAsDeleted called with:', { id, deletedBy, reason });
       }
       
       const shiftRef = doc(db, "shifts", id);
@@ -166,7 +165,6 @@ export const ShiftService = {
             );
           } else {
             // モバイル環境: プッシュ通知
-            if (__DEV__) console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftDeleted');
             await ShiftNotificationService.notifyShiftDeleted(
               shift,
               deletedBy.nickname,
@@ -190,7 +188,6 @@ export const ShiftService = {
   approveShiftChanges: async (id: string, approver?: { nickname: string; userId: string }): Promise<void> => {
     try {
       if (__DEV__) {
-        console.log('🔍 DEBUG - approveShiftChanges called with:', { id, approver });
       }
       
       const shiftRef = doc(db, "shifts", id);
@@ -230,7 +227,6 @@ export const ShiftService = {
             );
           } else {
             // モバイル環境: プッシュ通知
-            if (__DEV__) console.log('🔍 DEBUG - Calling ShiftNotificationService.notifyShiftApproved');
             await ShiftNotificationService.notifyShiftApproved(
               shift,
               approver.nickname,

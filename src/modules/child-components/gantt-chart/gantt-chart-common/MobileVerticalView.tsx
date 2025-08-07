@@ -510,7 +510,6 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                     }
                                   }
                                   
-                                  console.log('Status:', userShift.status, 'Color:', statusColor);
                                   backgroundColor = statusColor + "30"; // 薄く表示
                                 }
                                 

@@ -62,7 +62,6 @@ export class EmailNotificationService {
       // メール送信（実装方法は後で選択）
       await this.sendEmail(emailData);
 
-      console.log('✅ Shift created email sent to masters:', masters.map(m => m.email));
 
     } catch (error) {
       console.error('❌ Failed to send shift created email:', error);
@@ -79,12 +78,10 @@ export class EmailNotificationService {
     reason?: string
   ): Promise<void> {
     try {
-      console.log('📧 Sending shift deleted email notification:', shift.id);
 
       // シフト作成者の情報を取得
       const userInfo = await this.getUserInfo(shift.userId);
       if (!userInfo) {
-        console.log('ℹ️ User not found for email notification:', shift.userId);
         return;
       }
 
@@ -114,7 +111,6 @@ export class EmailNotificationService {
 
       await this.sendEmail(emailData);
 
-      console.log('✅ Shift deleted email sent to user:', userInfo.email);
 
     } catch (error) {
       console.error('❌ Failed to send shift deleted email:', error);
@@ -130,12 +126,10 @@ export class EmailNotificationService {
     approverNickname: string
   ): Promise<void> {
     try {
-      console.log('📧 Sending shift approved email notification:', shift.id);
 
       // シフト作成者の情報を取得
       const userInfo = await this.getUserInfo(shift.userId);
       if (!userInfo) {
-        console.log('ℹ️ User not found for email notification:', shift.userId);
         return;
       }
 
@@ -165,7 +159,6 @@ export class EmailNotificationService {
 
       await this.sendEmail(emailData);
 
-      console.log('✅ Shift approved email sent to user:', userInfo.email);
 
     } catch (error) {
       console.error('❌ Failed to send shift approved email:', error);
@@ -191,11 +184,9 @@ export class EmailNotificationService {
       const snapshot = await getDocs(mastersQuery);
       const masters: NotificationRecipient[] = [];
 
-      console.log(`🔍 EmailNotificationService - Query result: ${snapshot.docs.length} users found for storeId: ${storeId}`);
 
       snapshot.docs.forEach(doc => {
         const data = doc.data();
-        console.log(`🔍 EmailNotificationService - User ${doc.id}:`, {
           storeId: data.storeId,
           role: data.role,
           deleted: data.deleted,
@@ -205,18 +196,15 @@ export class EmailNotificationService {
         
         // 削除されたユーザーをスキップ
         if (data.deleted === true) {
-          console.log(`🔍 EmailNotificationService - Skipping deleted user: ${doc.id}`);
           return;
         }
 
         // 除外ユーザーをスキップ
         if (excludeUserId && doc.id === excludeUserId) {
-          console.log(`🔍 EmailNotificationService - Skipping excluded user: ${doc.id}`);
           return;
         }
 
         if (data.email) {
-          console.log(`🔍 EmailNotificationService - Adding master to notification list: ${data.nickname} (${data.email})`);
           masters.push({
             userId: doc.id,
             email: data.email,
@@ -226,7 +214,6 @@ export class EmailNotificationService {
         }
       });
 
-      console.log(`🔍 Found ${masters.length} masters with email for store ${storeId}`);
       return masters;
 
     } catch (error) {
@@ -281,13 +268,11 @@ export class EmailNotificationService {
         throw new Error('EmailService returned false');
       }
 
-      console.log('✅ Email sent successfully via EmailService');
 
     } catch (error) {
       console.error('❌ Failed to send email via EmailService:', error);
       
       // フォールバック: コンソールログ（開発時）
-      console.log('📧 Email fallback - would be sent:', {
         to: emailData.to,
         subject: emailData.subject,
         text: emailData.text,

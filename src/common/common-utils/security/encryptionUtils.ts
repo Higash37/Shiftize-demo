@@ -366,11 +366,9 @@ export const encryptionExample = {
 
     // 暗号化
     const encrypted = await PersonalInfoEncryption.encryptPersonalInfo(personalInfo);
-    console.log('暗号化後:', encrypted);
 
     // 復号化
     const decrypted = await PersonalInfoEncryption.decryptPersonalInfo(encrypted);
-    console.log('復号化後:', decrypted);
 
     return decrypted.realName === personalInfo.realName;
   },
@@ -380,15 +378,12 @@ export const encryptionExample = {
     const testData = '田中太郎';
     const key = AESEncryption.generateKey();
     
-    console.log('🔑 Generated Key:', key);
     
     // 暗号化
     const encrypted = AESEncryption.encrypt(testData, key);
-    console.log('🔒 Encrypted:', encrypted);
     
     // 復号化
     const decrypted = AESEncryption.decrypt(encrypted, key);
-    console.log('🔓 Decrypted:', decrypted);
     
     return testData === decrypted;
   },
@@ -401,8 +396,6 @@ export const encryptionExample = {
     const derivedKey1 = AESEncryption.deriveKeyFromPassword(password, salt);
     const derivedKey2 = AESEncryption.deriveKeyFromPassword(password, salt);
     
-    console.log('🔐 PBKDF2 Key 1:', derivedKey1);
-    console.log('🔐 PBKDF2 Key 2:', derivedKey2);
     
     // 同じパスワード・ソルトからは同じキーが生成される
     return derivedKey1 === derivedKey2;
