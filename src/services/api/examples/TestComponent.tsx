@@ -22,16 +22,16 @@ const TestComponent: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      addTestResult(`✅ ユーザー認証済み: ${user.email} (${role})`);
+      addTestResult(`ユーザー認証済み: ${user.email} (${role})`);
       addTestResult(`🔄 デバッグ情報: ${JSON.stringify(debugInfo)}`);
     } else {
-      addTestResult('❌ ユーザー未認証');
+      addTestResult('ユーザー未認証');
     }
   }, [user, role, debugInfo]);
 
   useEffect(() => {
     if (shifts.length > 0) {
-      addTestResult(`✅ シフト取得成功: ${shifts.length}件`);
+      addTestResult(`シフト取得成功: ${shifts.length}件`);
     } else if (!loading && shifts.length === 0) {
       addTestResult('ℹ️ シフトが0件、または取得中');
     }
@@ -39,7 +39,7 @@ const TestComponent: React.FC = () => {
 
   useEffect(() => {
     if (error) {
-      addTestResult(`❌ エラー発生: ${error}`);
+      addTestResult(`エラー発生: ${error}`);
     }
   }, [error]);
 
@@ -47,9 +47,9 @@ const TestComponent: React.FC = () => {
     addTestResult('🔄 シフト再取得開始...');
     try {
       await fetchShifts();
-      addTestResult('✅ シフト再取得完了');
+      addTestResult('シフト再取得完了');
     } catch (err: any) {
-      addTestResult(`❌ シフト再取得失敗: ${err.message}`);
+      addTestResult(`シフト再取得失敗: ${err.message}`);
     }
   };
 

@@ -102,7 +102,7 @@ export function MasterHeader({
           setRecruitmentCount(0);
           return;
         }
-        console.error("MasterHeader realtime error:", error);
+        // console.error("MasterHeader realtime error:", error);
       }
     );
 

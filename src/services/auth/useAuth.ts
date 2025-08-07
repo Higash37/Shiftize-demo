@@ -277,7 +277,7 @@ export const useAuth = () => {
         
         return null;
       } catch (error) {
-        console.error(`ユーザー情報取得エラー (試行 ${i + 1}/${retries}):`, error);
+        // console.error(`ユーザー情報取得エラー (試行 ${i + 1}/${retries}):`, error);
         
         // 最後の試行または永続的なエラーの場合はエラーを投げる
         if (i === retries - 1 || !isTemporaryError(error)) {
@@ -327,7 +327,7 @@ export const useAuth = () => {
             setAuthError(null); // 成功時はエラーをクリア
           } else {
             // リトライしても見つからない場合のみログアウト
-            console.error("ユーザー情報が見つかりません（リトライ後）");
+            // console.error("ユーザー情報が見つかりません（リトライ後）");
             await getAuth().signOut();
             setUser(null);
             setRole(null);
@@ -335,7 +335,7 @@ export const useAuth = () => {
             setAuthError("ユーザー情報が見つかりません。");
           }
         } catch (error) {
-          console.error("認証状態確認エラー:", error);
+          // console.error("認証状態確認エラー:", error);
           
           // 一時的なエラーの場合は現在の状態を維持
           if (isTemporaryError(error)) {

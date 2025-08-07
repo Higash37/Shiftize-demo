@@ -167,7 +167,7 @@ export function FileUploadModal({
                 downloadCount: 0,
               });
             } catch (error) {
-              console.error("ファイル情報の保存に失敗しました:", error);
+              // console.error("ファイル情報の保存に失敗しました:", error);
             }
           }
 
@@ -180,7 +180,7 @@ export function FileUploadModal({
           Alert.alert("エラー", "ファイルのアップロードに失敗しました。");
         }
       } catch (error) {
-        console.error("アップロードエラー:", error);
+        // console.error("アップロードエラー:", error);
         Alert.alert("エラー", "ファイルのアップロードに失敗しました。");
       } finally {
         setIsUploading(false);

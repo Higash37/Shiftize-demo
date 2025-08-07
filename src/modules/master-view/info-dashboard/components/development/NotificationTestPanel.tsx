@@ -69,17 +69,17 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
       <View style={styles.statusContainer}>
         <StatusItem 
           label="初期化状態" 
-          value={isInitialized ? '✅ 完了' : '❌ 未完了'}
+          value={isInitialized ? '完了' : '未完了'}
           isGood={isInitialized}
         />
         <StatusItem 
           label="権限状態" 
-          value={hasPermission ? '✅ 許可済み' : '❌ 未許可'}
+          value={hasPermission ? '許可済み' : '未許可'}
           isGood={hasPermission}
         />
         <StatusItem 
           label="プッシュトークン" 
-          value={pushToken ? '✅ 取得済み' : '❌ 未取得'}
+          value={pushToken ? '取得済み' : '未取得'}
           isGood={!!pushToken}
         />
         {error && (

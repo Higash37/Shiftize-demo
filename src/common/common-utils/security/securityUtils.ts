@@ -122,7 +122,7 @@ export const secureFetch = async (
   
   // レスポンスヘッダーのセキュリティチェック
   if (!__DEV__ && !response.headers.get('X-Content-Type-Options')) {
-    console.warn('Response missing security headers');
+    // console.warn('Response missing security headers');
   }
 
   return response;
@@ -227,7 +227,7 @@ export { RateLimiter };
 
 // セキュリティイベントのログ
 export interface SecurityEvent {
-  type: 'csrf_violation' | 'xss_attempt' | 'rate_limit_exceeded' | 'invalid_input' | 'unauthorized_access' | 'user_logout';
+  type: 'csrf_violation' | 'xss_attempt' | 'rate_limit_exceeded' | 'invalid_input' | 'unauthorized_access' | 'user_logout' | 'encryption_error' | 'encryption_warning' | 'system_event' | 'system_error';
   userId?: string;
   ip?: string;
   userAgent?: string;
@@ -254,9 +254,9 @@ class SecurityLogger {
     
     // 重要なセキュリティイベントは即座にログ出力（ログアウトは除外）
     if (['csrf_violation', 'xss_attempt', 'unauthorized_access'].includes(event.type)) {
-      console.error('🚨 Security Event:', fullEvent);
+      // console.error('🚨 Security Event:', fullEvent);
     } else if (event.type === 'user_logout') {
-      console.info('ℹ️ User Action:', fullEvent);
+      // console.info('ℹ️ User Action:', fullEvent);
     }
   }
   

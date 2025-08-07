@@ -3,7 +3,7 @@
  * Firebase Cloud Functionsを使用したメール通知基盤
  */
 
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 export interface EmailConfig {
   host: string;
@@ -36,15 +36,13 @@ export interface ShiftNotificationData {
  * メール送信サービスクラス
  */
 export class EmailService {
-  private static config: EmailConfig = {
-    host: 'smtp.gmail.com',
+  private static readonly config: EmailConfig = {
+    host: "smtp.gmail.com",
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      // @ts-ignore - Expo環境変数は実行時に利用可能
-      user: __DEV__ ? 'dev-email@example.com' : 'prod-email@example.com',
-      // @ts-ignore - Expo環境変数は実行時に利用可能
-      pass: __DEV__ ? 'dev-password' : 'prod-password', // Gmail App Password
+      user: process.env["SMTP_USER"] || "placeholder@example.com",
+      pass: process.env["SMTP_PASSWORD"] || "placeholder-password",
     },
   };
 
@@ -53,9 +51,8 @@ export class EmailService {
    */
   static async sendEmail(message: EmailMessage): Promise<boolean> {
     try {
-      if (__DEV__) {
-      }
-      
+      // Development mode check removed for security
+
       // モック有効時のみシミュレート（開発環境では常にモック）
       // @ts-ignore - Expo環境変数は実行時に利用可能
       if (__DEV__) {
@@ -64,38 +61,66 @@ export class EmailService {
 
       // Firebase Cloud Functionsを使用してメール送信
       try {
-        const { app } = await import('@/services/firebase/firebase-core');
-        const functions = getFunctions(app, 'asia-northeast1'); // 東京リージョン
-        const sendEmailFunction = httpsCallable(functions, 'sendEmail');
-        
+        const { app } = await import("@/services/firebase/firebase-core");
+        const functions = getFunctions(app, "asia-northeast1"); // 東京リージョン
+        const sendEmailFunction = httpsCallable(functions, "sendEmail");
+
         const result = await sendEmailFunction({
           to: message.to,
           subject: message.subject,
           html: message.html,
           text: message.text,
         });
-        
+
         const data = result.data as { success: boolean; messageId?: string };
-        
+
         if (data.success) {
           return true;
         } else {
-          console.error('❌ Cloud Function returned failure');
           return false;
         }
       } catch (cloudFunctionError) {
-        console.error('❌ Cloud Function error:', cloudFunctionError);
-        
-        // フォールバック: 開発環境では詳細ログを出力
-        if (__DEV__) {
-          
+        // Cloud function error - continuing app operation
+        const errorMessage =
+          cloudFunctionError instanceof Error
+            ? cloudFunctionError.message
+            : "Unknown error";
+
+        // Log to security system if available
+        try {
+          const { SecurityLogger } = await import(
+            "@/common/common-utils/security/securityUtils"
+          );
+          SecurityLogger.logEvent({
+            type: "system_error",
+            userId: "system",
+            details: `Cloud Function error: ${errorMessage}`,
+          });
+        } catch {
+          // SecurityLogger not available, continue silently
         }
-        
-        // エラーでもアプリの動作を継続させるためtrueを返す
+
+        // Return true to continue app operation
         return true;
       }
     } catch (error) {
-      console.error('❌ Email Service - Failed to send email:', error);
+      // Email service error handling
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      try {
+        const { SecurityLogger } = await import(
+          "@/common/common-utils/security/securityUtils"
+        );
+        SecurityLogger.logEvent({
+          type: "system_error",
+          userId: "system",
+          details: `Email service failed: ${errorMessage}`,
+        });
+      } catch {
+        // SecurityLogger not available, continue silently
+      }
+
       return false;
     }
   }
@@ -109,6 +134,8 @@ export class EmailService {
     content: string,
     shiftData?: ShiftNotificationData
   ): string {
+    const shiftDetailsSection = this.generateShiftDetailsSection(shiftData);
+
     return `
 <!DOCTYPE html>
 <html>
@@ -202,9 +229,29 @@ export class EmailService {
             ${content}
         </div>
         
-        ${shiftData ? `
-        <div class="shift-details">
-            <h3>シフト詳細</h3>
+        ${shiftDetailsSection}
+        
+        <div class="footer">
+            <p>このメールは <span class="app-name">Shiftize</span> から自動送信されています。</p>
+            <p>アプリで詳細を確認し、必要に応じて対応を行ってください。</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+  }
+
+  /**
+   * シフト詳細セクションを生成
+   */
+  private static generateShiftDetailsSection(
+    shiftData?: ShiftNotificationData
+  ): string {
+    if (!shiftData) {
+      return "";
+    }
+
+    let detailRows = `
             <div class="detail-row">
                 <span class="detail-label">日付:</span>
                 <span>${shiftData.shiftDate}</span>
@@ -216,36 +263,36 @@ export class EmailService {
             <div class="detail-row">
                 <span class="detail-label">担当者:</span>
                 <span>${shiftData.userNickname}</span>
-            </div>
-            ${shiftData.masterNickname ? `
+            </div>`;
+
+    if (shiftData.masterNickname) {
+      detailRows += `
             <div class="detail-row">
                 <span class="detail-label">操作者:</span>
                 <span>${shiftData.masterNickname}</span>
-            </div>
-            ` : ''}
-            ${shiftData.status ? `
+            </div>`;
+    }
+
+    if (shiftData.status) {
+      detailRows += `
             <div class="detail-row">
                 <span class="detail-label">状態:</span>
                 <span>${shiftData.status}</span>
-            </div>
-            ` : ''}
-            ${shiftData.reason ? `
+            </div>`;
+    }
+
+    if (shiftData.reason) {
+      detailRows += `
             <div class="detail-row">
                 <span class="detail-label">理由:</span>
                 <span>${shiftData.reason}</span>
-            </div>
-            ` : ''}
-        </div>
-        ` : ''}
-        
-        <div class="footer">
-            <p>このメールは <span class="app-name">Shiftize</span> から自動送信されています。</p>
-            <p>アプリで詳細を確認し、必要に応じて対応を行ってください。</p>
-        </div>
-    </div>
-</body>
-</html>
-    `;
+            </div>`;
+    }
+
+    return `
+        <div class="shift-details">
+            <h3>シフト詳細</h3>${detailRows}
+        </div>`;
   }
 }
 
@@ -267,8 +314,8 @@ export class ShiftEmailNotificationService {
     `;
 
     const html = EmailService.generateEmailTemplate(
-      '新しいシフトが追加されました',
-      '📅',
+      "新しいシフトが追加されました",
+      "📅",
       content,
       shiftData
     );
@@ -295,8 +342,8 @@ export class ShiftEmailNotificationService {
     `;
 
     const html = EmailService.generateEmailTemplate(
-      'シフトが削除されました',
-      '🗑️',
+      "シフトが削除されました",
+      "🗑️",
       content,
       shiftData
     );
@@ -323,10 +370,10 @@ export class ShiftEmailNotificationService {
     `;
 
     const html = EmailService.generateEmailTemplate(
-      'シフトが承認されました',
-      '✅',
+      "シフトが承認されました",
+      "Check",
       content,
-      { ...shiftData, status: '承認済み' }
+      { ...shiftData, status: "承認済み" }
     );
 
     return EmailService.sendEmail({

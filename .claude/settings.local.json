@@ -50,7 +50,8 @@
       "Bash(snyk test:*)",
       "Bash(claude mcp get:*)",
       "Bash(claude mcp:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(gh pr view:*)"
     ],
     "deny": []
   },

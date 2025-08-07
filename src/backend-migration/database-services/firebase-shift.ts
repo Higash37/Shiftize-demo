@@ -172,7 +172,7 @@ export const ShiftService = {
             );
           }
         } catch (notificationError) {
-          console.error('❌ Email notification failed:', notificationError);
+          // console.error('Email notification failed:', notificationError);
         }
       }
       
@@ -234,7 +234,7 @@ export const ShiftService = {
             );
           }
         } catch (notificationError) {
-          console.error('❌ Approval notification failed:', notificationError);
+          // console.error('Approval notification failed:', notificationError);
         }
       }
     } catch (error) {

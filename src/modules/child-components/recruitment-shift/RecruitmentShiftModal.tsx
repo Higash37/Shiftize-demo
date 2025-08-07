@@ -70,7 +70,7 @@ export function RecruitmentShiftModal({
           setRecruitmentShifts([]);
           return;
         }
-        console.error("RecruitmentShiftModal realtime error:", error);
+        // console.error("RecruitmentShiftModal realtime error:", error);
       }
     );
 
@@ -118,7 +118,7 @@ export function RecruitmentShiftModal({
       setShiftToDelete(null);
       Alert.alert("成功", "募集シフトを削除しました");
     } catch (error) {
-      console.error("削除エラー:", error);
+      // console.error("削除エラー:", error);
       Alert.alert("エラー", "削除に失敗しました");
     }
   };
@@ -314,7 +314,7 @@ export function RecruitmentShiftModal({
               setSelectedShift(null);
             } catch (error) {
               Alert.alert("エラー", "応募に失敗しました。");
-              console.error("応募エラー:", error);
+              // console.error("応募エラー:", error);
             }
           }}
         />

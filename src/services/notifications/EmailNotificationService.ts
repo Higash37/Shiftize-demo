@@ -64,7 +64,7 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift created email:', error);
+      // // console.error('Failed to send shift created email:', error);
     }
   }
 
@@ -113,7 +113,7 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift deleted email:', error);
+      // // console.error('Failed to send shift deleted email:', error);
     }
   }
 
@@ -150,7 +150,7 @@ export class EmailNotificationService {
         subject: `シフトが承認されました - ${shift.date}`,
         html: EmailService.generateEmailTemplate(
           'シフトが承認されました',
-          '✅',
+          'Check',
           `<p>こんにちは、<strong>${userInfo.nickname}</strong>さん</p><p><strong>${approverNickname}</strong>さんがあなたのシフトを承認しました！</p><p>シフトが確定しました。当日の勤務をよろしくお願いします。</p>`,
           shiftData
         ),
@@ -161,7 +161,7 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift approved email:', error);
+      // // console.error('Failed to send shift approved email:', error);
     }
   }
 
@@ -187,12 +187,13 @@ export class EmailNotificationService {
 
       snapshot.docs.forEach(doc => {
         const data = doc.data();
+        const user = {
           storeId: data.storeId,
           role: data.role,
           deleted: data.deleted,
           email: data.email,
           nickname: data.nickname
-        });
+        };
         
         // 削除されたユーザーをスキップ
         if (data.deleted === true) {
@@ -217,7 +218,7 @@ export class EmailNotificationService {
       return masters;
 
     } catch (error) {
-      console.error('❌ Failed to get store masters:', error);
+      // // console.error('Failed to get store masters:', error);
       return [];
     }
   }
@@ -244,7 +245,7 @@ export class EmailNotificationService {
 
       return null;
     } catch (error) {
-      console.error('❌ Failed to get user info:', error);
+      // // console.error('Failed to get user info:', error);
       return null;
     }
   }
@@ -270,13 +271,14 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send email via EmailService:', error);
+      // // console.error('Failed to send email via EmailService:', error);
       
       // フォールバック: コンソールログ（開発時）
-        to: emailData.to,
-        subject: emailData.subject,
-        text: emailData.text,
-      });
+      // // console.error('Email notification (fallback):', {
+      //   to: emailData.to,
+      //   subject: emailData.subject,
+      //   text: emailData.text,
+      // });
     }
   }
 

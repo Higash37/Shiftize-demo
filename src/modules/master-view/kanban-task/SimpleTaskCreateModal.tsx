@@ -109,10 +109,10 @@ export const SimpleTaskCreateModal: React.FC<SimpleTaskCreateModalProps> = ({
       onTaskCreated();
       onClose();
     } catch (error) {
-      console.error(
-        isEditMode ? "タスク更新エラー:" : "タスク作成エラー:",
-        error
-      );
+      // console.error(
+      //   isEditMode ? "タスク更新エラー:" : "タスク作成エラー:",
+      //   error
+      // );
       Alert.alert(
         "エラー",
         isEditMode ? "タスクの更新に失敗しました" : "タスクの作成に失敗しました"

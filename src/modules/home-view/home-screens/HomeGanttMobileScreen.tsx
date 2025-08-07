@@ -197,7 +197,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
       setShowAddModal(false);
       // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     } catch (error) {
-      console.error("シフト保存エラー:", error);
+      // console.error("シフト保存エラー:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
     } finally {
       setIsLoading(false);
