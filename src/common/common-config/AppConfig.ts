@@ -231,7 +231,7 @@ const initializeAppConfig = (): AppConfigType => {
       userId: 'system',
       details: `App configuration initialized successfully for ${environment} environment on ${Platform.OS}`,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(console.error);
+    }).catch(() => {});
 
     return config;
   } catch (error) {
@@ -241,7 +241,7 @@ const initializeAppConfig = (): AppConfigType => {
       userId: 'system',
       details: `App configuration initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(console.error);
+    }).catch(() => {});
 
     throw error;
   }

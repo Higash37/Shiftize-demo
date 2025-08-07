@@ -483,7 +483,7 @@ export const useAppSettings = () => {
         if (error.code === 'permission-denied') {
           return;
         }
-        console.error("Settings realtime error:", error);
+        // console.error("Settings realtime error:", error);
         setError(error.message);
       }
     );

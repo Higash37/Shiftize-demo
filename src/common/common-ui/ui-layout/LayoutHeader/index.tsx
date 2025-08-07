@@ -58,7 +58,7 @@ export function Header({
           setUnreadCount(0);
           return;
         }
-        console.error("Header realtime error:", error);
+        // console.error("Header realtime error:", error);
       }
     );
 

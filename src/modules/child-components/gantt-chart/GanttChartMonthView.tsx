@@ -229,7 +229,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         if (error.code === 'permission-denied') {
           return;
         }
-        console.error("GanttChartMonthView settings realtime error:", error);
+        // console.error("GanttChartMonthView settings realtime error:", error);
       }
     );
 
@@ -387,9 +387,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           const shiftId = await RecruitmentShiftService.createRecruitmentShift(recruitmentShiftData);
           Alert.alert("成功", "募集シフトを作成しました。");
         } catch (recruitmentError: any) {
-          console.error("募集シフト作成エラー詳細:", recruitmentError);
-          console.error("エラーメッセージ:", recruitmentError?.message);
-          console.error("エラーコード:", recruitmentError?.code);
+          // console.error("募集シフト作成エラー詳細:", recruitmentError);
+          // console.error("エラーメッセージ:", recruitmentError?.message);
+          // console.error("エラーコード:", recruitmentError?.code);
           
           // Firebase エラーの詳細を表示
           if (recruitmentError?.code) {
@@ -426,7 +426,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
       
     } catch (error) {
-      console.error("シフト保存エラー:", error);
+      // console.error("シフト保存エラー:", error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
     }
   }, [editingShift, newShiftData, saveShift, user]);

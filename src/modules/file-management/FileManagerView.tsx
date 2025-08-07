@@ -475,7 +475,7 @@ export function FileManagerView({
           printedCount++;
         }
       } catch (error) {
-        console.error(`印刷エラー: ${file.name}`, error);
+        // console.error(`印刷エラー: ${file.name}`, error);
       }
     }
 

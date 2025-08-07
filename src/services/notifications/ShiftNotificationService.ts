@@ -48,7 +48,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift created notification:', error);
+      // console.error('Failed to send shift created notification:', error);
     }
   }
 
@@ -86,7 +86,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift deleted notification:', error);
+      // console.error('Failed to send shift deleted notification:', error);
     }
   }
 
@@ -118,7 +118,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift approved notification:', error);
+      // console.error('Failed to send shift approved notification:', error);
     }
   }
 
@@ -159,7 +159,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send shift change request notification:', error);
+      // console.error('Failed to send shift change request notification:', error);
     }
   }
 
@@ -197,7 +197,7 @@ export class ShiftNotificationService {
       return masters;
 
     } catch (error) {
-      console.error('❌ Failed to get store masters:', error);
+      // console.error('Failed to get store masters:', error);
       return [];
     }
   }
@@ -221,7 +221,7 @@ export class ShiftNotificationService {
 
       return null;
     } catch (error) {
-      console.error('❌ Failed to get user info:', error);
+      // console.error('Failed to get user info:', error);
       return null;
     }
   }
@@ -252,7 +252,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send urgent shift notification:', error);
+      // console.error('Failed to send urgent shift notification:', error);
     }
   }
 
@@ -290,7 +290,7 @@ export class ShiftNotificationService {
 
 
     } catch (error) {
-      console.error('❌ Failed to send weekly shift reminder:', error);
+      // console.error('Failed to send weekly shift reminder:', error);
     }
   }
 }

@@ -85,7 +85,7 @@ export const useShiftsRealtime = (storeId?: string) => {
               setLoading(false);
               return;
             }
-            console.error("Firestore realtime error:", err);
+            // console.error("Firestore realtime error:", err);
             setError(err as Error);
             setLoading(false);
           }
@@ -158,7 +158,7 @@ export const useShiftsRealtime = (storeId?: string) => {
         setLoading(false);
       },
       (err) => {
-        console.error("Firestore realtime error:", err);
+        // console.error("Firestore realtime error:", err);
         setError(err as Error);
         setLoading(false);
       }

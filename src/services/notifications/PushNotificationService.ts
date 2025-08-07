@@ -42,12 +42,12 @@ export class PushNotificationService {
     try {
       // Web環境では通知をサポートしない
       if (Platform.OS === 'web') {
-        console.warn('⚠️ Push notifications not supported on web');
+        // console.warn('Warning: Push notifications not supported on web');
         return false;
       }
 
       if (!Device || !Device.isDevice) {
-        console.warn('⚠️ Push notifications only work on physical devices');
+        // console.warn('Warning: Push notifications only work on physical devices');
         return false;
       }
 
@@ -60,13 +60,13 @@ export class PushNotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.warn('⚠️ Push notification permission denied');
+        // console.warn('Warning: Push notification permission denied');
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('❌ Failed to get push notification permissions:', error);
+      // console.error('Failed to get push notification permissions:', error);
       return false;
     }
   }
@@ -77,12 +77,12 @@ export class PushNotificationService {
   static async getExpoPushToken(): Promise<string | null> {
     try {
       if (Platform.OS === 'web') {
-        console.warn('⚠️ Push tokens not available on web');
+        // console.warn('Warning: Push tokens not available on web');
         return null;
       }
 
       if (!Device || !Device.isDevice) {
-        console.warn('⚠️ Must use physical device for push notifications');
+        // console.warn('Warning: Must use physical device for push notifications');
         return null;
       }
 
@@ -93,7 +93,7 @@ export class PushNotificationService {
 
       return token.data;
     } catch (error) {
-      console.error('❌ Failed to get Expo Push Token:', error);
+      // console.error('Failed to get Expo Push Token:', error);
       return null;
     }
   }
@@ -113,7 +113,7 @@ export class PushNotificationService {
       // @react-native-firebase/messaging が必要
       return null;
     } catch (error) {
-      console.error('❌ Failed to get FCM token:', error);
+      // console.error('Failed to get FCM token:', error);
       return null;
     }
   }
@@ -154,7 +154,7 @@ export class PushNotificationService {
       await setDoc(doc(db, 'pushTokens', userId), tokenData);
 
     } catch (error) {
-      console.error('❌ Failed to save push token:', error);
+      // console.error('Failed to save push token:', error);
       throw error;
     }
   }
@@ -165,12 +165,12 @@ export class PushNotificationService {
   static async showLocalNotification(notification: NotificationData): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        console.warn('⚠️ Local notifications not supported on web');
+        // console.warn('Warning: Local notifications not supported on web');
         return;
       }
 
       if (!Notifications) {
-        console.warn('⚠️ Notifications not available');
+        // console.warn('Warning: Notifications not available');
         return;
       }
 
@@ -185,7 +185,7 @@ export class PushNotificationService {
       });
 
     } catch (error) {
-      console.error('❌ Failed to show local notification:', error);
+      // console.error('Failed to show local notification:', error);
       throw error;
     }
   }
@@ -202,7 +202,7 @@ export class PushNotificationService {
       }
       return null;
     } catch (error) {
-      console.error('❌ Failed to get user push token:', error);
+      // console.error('Failed to get user push token:', error);
       return null;
     }
   }
@@ -232,7 +232,7 @@ export class PushNotificationService {
       }
 
       if (messages.length === 0) {
-        console.warn('⚠️ No valid push tokens found for users:', userIds);
+        // console.warn('Warning: No valid push tokens found for users:', userIds);
         return;
       }
 
@@ -250,7 +250,7 @@ export class PushNotificationService {
       const result = await response.json();
 
     } catch (error) {
-      console.error('❌ Failed to send push notification:', error);
+      // console.error('Failed to send push notification:', error);
       throw error;
     }
   }
@@ -284,7 +284,7 @@ export class PushNotificationService {
         platform: Platform.OS,
       };
     } catch (error) {
-      console.error('❌ Failed to get debug info:', error);
+      // console.error('Failed to get debug info:', error);
       return {
         isDevice: false,
         permissions: null,

@@ -165,7 +165,7 @@ export class CollectionRecoveryService {
 == 推奨アクション ==
 ${!filesCheck.exists && storageFileCount > 0 
   ? "⚠️ Storage内にファイルが存在しますが、filesコレクションが空です。復旧をお勧めします。"
-  : "✅ 問題は検出されませんでした。"
+  : "問題は検出されませんでした。"
 }
 
 == ファイル一覧 ==

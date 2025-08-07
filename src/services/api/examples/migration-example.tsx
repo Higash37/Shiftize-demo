@@ -23,7 +23,7 @@ const ShiftListComponentBefore: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // ❌ 直接Firebase呼び出し
+        // 直接Firebase呼び出し
         const { ShiftService } = await import('@/services/firebase/firebase-shift');
         const fetchedShifts = await ShiftService.getShifts('store123');
         setShifts(fetchedShifts);
@@ -64,7 +64,7 @@ const ShiftListComponentAfter: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // ✅ APIサービス抽象化層を使用
+        // APIサービス抽象化層を使用
         const fetchedShifts = await ShiftAPIService.getShifts({ 
           storeId: 'store123' 
         });
@@ -111,7 +111,7 @@ const MultiStoreShiftListComponent: React.FC<{
       setLoading(true);
       setError(null);
       try {
-        // ✅ 複数店舗対応APIを使用
+        // 複数店舗対応APIを使用
         const fetchedShifts = await ShiftAPIService.getUserAccessibleShifts(userData);
         setShifts(fetchedShifts);
       } catch (err: any) {
@@ -154,7 +154,7 @@ const ShiftCreateComponent: React.FC = () => {
     setCreating(true);
     setError(null);
     try {
-      // ✅ APIサービスを使用してシフト作成
+      // APIサービスを使用してシフト作成
       const newShiftId = await ShiftAPIService.createShift({
         userId: 'user123',
         storeId: 'store123',
