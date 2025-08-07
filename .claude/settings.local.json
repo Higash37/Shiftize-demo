@@ -51,7 +51,10 @@
       "Bash(claude mcp get:*)",
       "Bash(claude mcp:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr:*)"
     ],
     "deny": []
   },
