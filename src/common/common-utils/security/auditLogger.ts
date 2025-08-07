@@ -72,7 +72,6 @@ class AuditLogger {
 
     // 開発環境でのデバッグ出力
     if (__DEV__) {
-      console.log('🔍 Audit Log:', logEntry);
     }
   }
 

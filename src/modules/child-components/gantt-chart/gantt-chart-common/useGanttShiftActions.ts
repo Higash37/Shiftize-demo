@@ -48,7 +48,6 @@ export function useGanttShiftActions({
     ) => {
       // 既に保存処理中の場合はスキップ
       if (savingRef.current) {
-        console.log("保存処理中のためスキップ");
         return;
       }
       

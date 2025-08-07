@@ -339,7 +339,6 @@ export const useAuth = () => {
           
           // 一時的なエラーの場合は現在の状態を維持
           if (isTemporaryError(error)) {
-            console.log("一時的なエラーのため、現在の認証状態を維持します");
             // エラー表示はしない（ユーザー体験を損なわないため）
           } else {
             // 永続的なエラーの場合のみログアウト

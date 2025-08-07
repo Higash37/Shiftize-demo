@@ -53,7 +53,6 @@ export default function GanttEditScreen() {
   // 互換性のためダミー関数を用意
   const refreshPage = () => {
     // リアルタイムリスナーで自動更新されるため何もしない
-    console.log("リアルタイム更新中...");
   };
 
   // シフト時間のドラッグ変更ハンドラー

@@ -60,7 +60,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       };
     }
 
-    console.log('CalendarView shifts in markedDates:', shifts?.length || 0);
     
     // 日付ごとにシフトをグループ化（選択されたユーザーでフィルタリング）
     const shiftsByDate: Record<string, any[]> = {};
@@ -79,7 +78,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       }
     });
 
-    console.log('CalendarView shiftsByDate:', Object.keys(shiftsByDate).length, 'dates with shifts');
 
     // 各日付にマークを設定（複数シフトの場合は複数ドットで表示）
     Object.entries(shiftsByDate).forEach(([date, dayShifts]) => {
@@ -92,7 +90,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         selectedDotColor: getStatusColor(shift.status),
       }));
       
-      console.log(`CalendarView ${date}: ${dayShifts.length} shifts, dots:`, shiftDots);
 
       marks[date] = {
         ...existingMark,
@@ -103,8 +100,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       };
     });
 
-    console.log('CalendarView markedDates generated:', Object.keys(marks).length, 'dates');
-    console.log('CalendarView sample markedDate:', marks[Object.keys(marks)[0]]);
     return marks;
   }, [shifts, selectedCalendarDate, selectedUserId]);
 

@@ -22,7 +22,6 @@ export class RecruitmentShiftService {
   static async createRecruitmentShift(
     shift: Omit<RecruitmentShift, "id" | "createdAt" | "updatedAt" | "applications">
   ): Promise<string> {
-    console.log("RecruitmentShiftService.createRecruitmentShift called with:", shift);
     
     const newShift = {
       ...shift,
@@ -32,14 +31,11 @@ export class RecruitmentShiftService {
       status: "open" as const, // statusフィールドを明示的に追加
     };
 
-    console.log("作成する募集シフト:", newShift);
 
     try {
       const docRef = doc(collection(db, RECRUITMENT_SHIFTS_COLLECTION));
-      console.log("Firestore document reference:", docRef.id);
       
       await setDoc(docRef, newShift);
-      console.log("Firestore setDoc 完了:", docRef.id);
 
       return docRef.id;
     } catch (error) {

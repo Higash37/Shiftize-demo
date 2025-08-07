@@ -91,18 +91,14 @@ export function RecruitmentShiftModal({
   };
 
   const handleMasterAction = (shift: RecruitmentShift) => {
-    console.log("handleMasterAction called - userRole:", userRole);
     if (userRole === "master") {
-      console.log("Showing master action modal");
       setSelectedMasterShift(shift);
       setShowMasterActionModal(true);
     } else {
-      console.log("Not master role, no action");
     }
   };
 
   const handleDeleteShift = (shift: RecruitmentShift) => {
-    console.log("handleDeleteShift called for shift:", shift.id);
     setShiftToDelete(shift);
     setShowDeleteConfirmModal(true);
   };
@@ -111,7 +107,6 @@ export function RecruitmentShiftModal({
     if (!shiftToDelete) return;
     
     try {
-      console.log("Deleting recruitment shift:", shiftToDelete.id);
       await RecruitmentShiftService.deleteRecruitmentShift(shiftToDelete.id);
       
       // ローカル状態からも削除
@@ -129,7 +124,6 @@ export function RecruitmentShiftModal({
   };
 
   const handleEditShift = (shift: RecruitmentShift) => {
-    console.log("handleEditShift called for shift:", shift.id);
     Alert.alert("開発中", "編集機能は準備中です");
   };
 
@@ -151,12 +145,9 @@ export function RecruitmentShiftModal({
           userRole === "master" && styles.masterCard
         ]}
         onPress={() => {
-          console.log("カードタップ - ユーザー役割:", userRole, "シフト:", item.id);
           if (userRole === "master") {
-            console.log("マスターアクション実行");
             handleMasterAction(item);
           } else {
-            console.log("講師申請実行");
             handleApplyShift(item);
           }
         }}
@@ -368,7 +359,6 @@ export function RecruitmentShiftModal({
                     alignItems: "center"
                   }}
                   onPress={() => {
-                    console.log("Edit button pressed");
                     setShowMasterActionModal(false);
                     setSelectedMasterShift(null);
                     handleEditShift(selectedMasterShift!);
@@ -386,7 +376,6 @@ export function RecruitmentShiftModal({
                     alignItems: "center"
                   }}
                   onPress={() => {
-                    console.log("Delete button pressed");
                     setShowMasterActionModal(false);
                     setSelectedMasterShift(null);
                     handleDeleteShift(selectedMasterShift!);
