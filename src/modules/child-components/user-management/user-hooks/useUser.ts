@@ -75,10 +75,13 @@ export const useUser = (storeId?: string) => {
       }
 
       // 実際のメールアドレスが提供された場合はそれを使用、なければ自動生成
+      // メールアドレスを正規化（安全な文字のみ使用）
+      const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      
       const userEmail = email || (
         role === "master"
-          ? "master@example.com"
-          : `${storeId}${nickname}@example.com`
+          ? `${sanitizeForEmail(storeId || 'store')}master@example.com`
+          : `${sanitizeForEmail(storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`
       );
       
       
@@ -100,11 +103,28 @@ export const useUser = (storeId?: string) => {
       await fetchUsers();
       return newUser;
     } catch (err: any) {
+      // 詳細なエラー情報をデバッグ出力
+      if (__DEV__) {
+        console.error('🚨 useUser addUser Error:', {
+          code: err.code,
+          message: err.message,
+          generatedEmail: email,
+          storeId,
+          nickname,
+          role,
+          fullError: err
+        });
+      }
+      
       const errorMessage =
         err.code === "auth/weak-password"
           ? "パスワードは6文字以上で入力してください"
           : err.code === "auth/email-already-in-use"
-          ? "このニックネームは既に使用されています"
+          ? "このメールアドレス・ニックネームは既に使用されています"
+          : err.code === "auth/invalid-email"
+          ? "メールアドレスの形式が無効です"
+          : err.code === "auth/operation-not-allowed"
+          ? "このプロジェクトでメール認証が無効になっています"
           : err.message || "ユーザーの作成に失敗しました";
 
       setError(errorMessage);

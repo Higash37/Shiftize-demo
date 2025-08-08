@@ -9,7 +9,7 @@ import {
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
-import { checkMasterExists } from "@/services/firebase/firebase";
+import { checkMasterExists } from "@/services/firebase/firebase-user";
 import { styles } from "./UserForm.styles";
 import { UserFormProps } from "../user-types/components";
 import ColorPicker from "@/common/common-ui/ui-forms/FormColorPicker";
@@ -105,8 +105,12 @@ export const UserForm: React.FC<UserFormProps> = ({
     try {
       setError(null);
       
+      // メールアドレスを安全に生成
+      const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const autoEmail = email || `${sanitizeForEmail(currentUser.storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`;
+      
       const formData = {
-        email: email || `${currentUser.storeId}${nickname}@example.com`, // 入力があればそれを使用、なければ自動生成
+        email: autoEmail,
         password: password || undefined,
         nickname,
         role: isMasterEdit ? "master" : role,
@@ -173,7 +177,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         {!email && (
           <View style={styles.infoContainer}>
             <Text style={styles.infoText}>
-              メールアドレスを入力しない場合、自動生成されます：{currentUser?.storeId}{nickname}@example.com
+              メールアドレスを入力しない場合、安全な形式で自動生成されます
             </Text>
           </View>
         )}

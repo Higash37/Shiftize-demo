@@ -21,10 +21,34 @@ service cloud.firestore {
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master");
     }
 
-    // ログイン用（全読み取り可能）
+    // ユーザー管理 - 店舗分離 + 権限制御
     match /users/{userId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      // 読み取り: 認証されたユーザー（ログイン画面で必要）または同一店舗のユーザー
+      allow read: if true;  // ログイン時に必要なため全読み取り可能
+      
+      // 作成: 認証されたマスターユーザーが作成可能
+      allow create: if isAuthenticated() && 
+        request.resource.data.storeId != null &&
+        (
+          // マスターが作成
+          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master" &&
+           hasAccessToStore(request.resource.data.storeId))
+          ||
+          // 初回マスター作成（usersコレクションが空の場合）
+          (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           request.resource.data.role == "master")
+        );
+      
+      // 更新: 本人またはマスター（同一店舗）
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == userId || 
+         (hasAccessToStore(resource.data.storeId) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master"));
+      
+      // 削除: マスターのみ（同一店舗）
+      allow delete: if isAuthenticated() && 
+        hasAccessToStore(resource.data.storeId) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
     }
 
     match /userStoreAccess/{userId} {

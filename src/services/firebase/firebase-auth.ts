@@ -109,6 +109,20 @@ export const AuthService = {
       const tempAuth = getAuth(tempApp);
 
       try {
+        // デバッグ情報（開発環境のみ）
+        if (__DEV__) {
+          console.log('🔍 Firebase Auth Debug Info:', {
+            email,
+            passwordLength: password?.length,
+            emailValid: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+            firebaseConfig: {
+              apiKey: firebaseConfig.apiKey ? '✅' : '❌',
+              authDomain: firebaseConfig.authDomain ? '✅' : '❌',
+              projectId: firebaseConfig.projectId ? '✅' : '❌',
+            }
+          });
+        }
+        
         // 1. 一時的なインスタンスでユーザーを作成
         const userCredential = await createUserWithEmailAndPassword(
           tempAuth,
@@ -138,8 +152,35 @@ export const AuthService = {
         if (color) userData.color = color;
         if (storeId) userData.storeId = storeId;
 
-
-        await setDoc(userRef, userData);
+        try {
+          if (__DEV__) {
+            console.log('📝 Attempting to save user to Firestore:', {
+              uid: firebaseUser.uid,
+              userData,
+              currentAuthUser: auth.currentUser?.uid,
+            });
+          }
+          await setDoc(userRef, userData);
+          if (__DEV__) {
+            console.log('✅ User saved to Firestore successfully');
+          }
+        } catch (firestoreError: any) {
+          if (__DEV__) {
+            console.error('🚨 Firestore Save Error:', {
+              code: firestoreError.code,
+              message: firestoreError.message,
+              details: firestoreError,
+              attemptedData: userData,
+            });
+          }
+          // Firebase Authからユーザーを削除（ロールバック）
+          try {
+            await firebaseUser.delete();
+          } catch (deleteError) {
+            // 削除エラーは無視
+          }
+          throw new Error(`ユーザー情報の保存に失敗しました: ${firestoreError.message}`);
+        }
 
         // 4. 一時的なアプリを削除
         await deleteApp(tempApp);
@@ -152,7 +193,18 @@ export const AuthService = {
           color: color,
           storeId: storeId,
         };
-      } catch (error) {
+      } catch (error: any) {
+        // 詳細エラー情報をデバッグ出力
+        if (__DEV__) {
+          console.error('🚨 Firebase Auth Error Details:', {
+            code: error.code,
+            message: error.message,
+            details: error,
+            email,
+            passwordLength: password?.length,
+          });
+        }
+        
         // エラーが発生した場合は一時的なアプリを削除
         try {
           await deleteApp(tempApp);
@@ -161,8 +213,13 @@ export const AuthService = {
         }
         throw error;
       }
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      // より詳細なエラーメッセージ
+      const errorMessage = `ユーザー作成に失敗しました: ${error.code || 'UNKNOWN'} - ${error.message}`;
+      if (__DEV__) {
+        console.error('🚨 CreateUser Final Error:', errorMessage);
+      }
+      throw new Error(errorMessage);
     }
   },
 
