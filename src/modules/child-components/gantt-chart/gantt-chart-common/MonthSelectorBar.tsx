@@ -31,6 +31,7 @@ interface MonthSelectorBarProps {
   deviceType?: "desktop" | "tablet" | "mobile"; // 追加：デバイスタイプ
   useGoogleLayout?: boolean; // 追加：Googleレイアウトを使用するか
   onToggleGoogleLayout?: () => void; // 追加：Googleレイアウト切替
+  onOpenHistory?: () => void; // 追加：履歴モーダル表示
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -173,6 +174,15 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           <Ionicons name="trash" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
           <Text style={getButtonTextStyle("danger")}>完全削除</Text>
         </TouchableOpacity>
+        {props.onOpenHistory && (
+          <TouchableOpacity
+            style={getButtonStyle("secondary")}
+            onPress={props.onOpenHistory}
+          >
+            <Ionicons name="time-outline" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("secondary")}>履歴</Text>
+          </TouchableOpacity>
+        )}
         </View>
       )}
     </View>
