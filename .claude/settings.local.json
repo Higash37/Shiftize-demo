@@ -57,7 +57,8 @@
       "Bash(gh pr:*)",
       "Bash(gh issue create:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   },

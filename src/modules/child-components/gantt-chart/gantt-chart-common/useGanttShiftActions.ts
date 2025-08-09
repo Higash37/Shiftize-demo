@@ -6,6 +6,7 @@ import {
   addDoc,
   collection,
   serverTimestamp,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import {
@@ -14,9 +15,10 @@ import {
   ClassTimeSlot,
 } from "@/common/common-models/ModelIndex";
 import { ShiftService } from "@/services/firebase/firebase-shift";
+import { logShiftChange, determineActionType } from "@/services/shift-history/shiftHistoryLogger";
 
 export interface UseGanttShiftActionsProps {
-  user: { uid: string; storeId?: string } | null;
+  user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
   onShiftUpdate?: () => Promise<void> | void;
   refreshPage?: () => void; // 互換性のため残すが使用しない
@@ -54,6 +56,15 @@ export function useGanttShiftActions({
       savingRef.current = true;
       
       try {
+        // 変更前のシフトデータを取得（ログ用）
+        let prevShiftData: ShiftItem | null = null;
+        if (editingShift) {
+          const shiftDoc = await getDoc(doc(db, "shifts", editingShift.id));
+          if (shiftDoc.exists()) {
+            prevShiftData = { id: shiftDoc.id, ...shiftDoc.data() } as ShiftItem;
+          }
+        }
+        
         if (editingShift) {
         if (editingShift?.status === "deletion_requested") {
           newShiftData.status = "rejected"; // 削除申請中のシフトを却下状態に変更
@@ -97,6 +108,28 @@ export function useGanttShiftActions({
               updatedAt: serverTimestamp(),
             });
           }
+          
+          // 変更ログを記録
+          if (user && user.storeId) {
+            const nextShiftData: ShiftItem = { ...editingShift, ...newShiftData };
+            const actionType = determineActionType(prevShiftData, nextShiftData, {
+              userId: user.uid,
+              nickname: user.nickname || "教室長",
+              role: (user.role as "master" | "teacher") || "master"
+            });
+            
+            await logShiftChange(
+              actionType,
+              {
+                userId: user.uid,
+                nickname: user.nickname || "教室長",
+                role: (user.role as "master" | "teacher") || "master"
+              },
+              user.storeId,
+              nextShiftData,
+              prevShiftData
+            );
+          }
         } else {
           // その他の変更は直接更新
           await updateDoc(doc(db, "shifts", editingShift.id), {
@@ -104,6 +137,28 @@ export function useGanttShiftActions({
             userColor: userColor || "#4A90E2", // ユーザーカラー情報も更新
             updatedAt: serverTimestamp(),
           });
+          
+          // 変更ログを記録
+          if (user && user.storeId) {
+            const nextShiftData: ShiftItem = { ...editingShift, ...newShiftData };
+            const actionType = determineActionType(prevShiftData, nextShiftData, {
+              userId: user.uid,
+              nickname: user.nickname || "教室長",
+              role: (user.role as "master" | "teacher") || "master"
+            });
+            
+            await logShiftChange(
+              actionType,
+              {
+                userId: user.uid,
+                nickname: user.nickname || "教室長",
+                role: (user.role as "master" | "teacher") || "master"
+              },
+              user.storeId,
+              nextShiftData,
+              prevShiftData
+            );
+          }
         }
       } else {
         if (newShiftData.status === "deleted") {
@@ -124,7 +179,7 @@ export function useGanttShiftActions({
         } catch (error) {
         }
 
-        await addDoc(collection(db, "shifts"), {
+        const docRef = await addDoc(collection(db, "shifts"), {
           ...newShiftData,
           storeId: user?.storeId || "",
           status: newShiftData.status, // newShiftData.statusを尊重
@@ -135,6 +190,27 @@ export function useGanttShiftActions({
           // ユーザーの色情報を保存
           userColor: userColor || "#4A90E2", // デフォルト青色
         });
+        
+        // 新規作成ログを記録
+        if (user && user.storeId) {
+          const nextShiftData: ShiftItem = {
+            id: docRef.id,
+            ...newShiftData,
+            storeId: user.storeId,
+          };
+          
+          await logShiftChange(
+            user.role === "teacher" ? "teacher_create" : "create",
+            {
+              userId: user.uid,
+              nickname: user.nickname || "教室長",
+              role: (user.role as "master" | "teacher") || "master"
+            },
+            user.storeId,
+            nextShiftData,
+            null
+          );
+        }
         }
         // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
       } finally {
@@ -150,6 +226,16 @@ export function useGanttShiftActions({
   // シフト削除
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
+      // 削除前のシフトデータを取得（ログ用）
+      let prevShiftData: ShiftItem | null = null;
+      try {
+        const shiftDoc = await getDoc(doc(db, "shifts", shift.id));
+        if (shiftDoc.exists()) {
+          prevShiftData = { id: shiftDoc.id, ...shiftDoc.data() } as ShiftItem;
+        }
+      } catch (error) {
+        // エラーを無視
+      }
       
       try {
         // 通知付き削除を使用
@@ -177,6 +263,21 @@ export function useGanttShiftActions({
             updatedAt: serverTimestamp(),
           });
         }
+      }
+      
+      // 削除ログを記録
+      if (user && user.storeId && prevShiftData) {
+        await logShiftChange(
+          "delete",
+          {
+            userId: user.uid,
+            nickname: user.nickname || "教室長",
+            role: (user.role as "master" | "teacher") || "master"
+          },
+          user.storeId,
+          null,
+          prevShiftData
+        );
       }
       
       // リアルタイムリスナーで自動更新されるため、リフレッシュ不要

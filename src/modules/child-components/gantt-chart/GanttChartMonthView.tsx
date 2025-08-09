@@ -74,6 +74,7 @@ import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions"
 import BatchConfirmModal from "./view-modals/BatchConfirmModal";
 import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
+import { ShiftHistoryModal } from "./view-modals/ShiftHistoryModal";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -164,6 +165,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [viewMode, setViewMode] = useState<"gantt" | "calendar" | "compact">("gantt"); // ビューモード（デフォルトはガントチャート）
   const [deviceType, setDeviceType] = useState<"desktop" | "tablet" | "mobile">("desktop"); // デバイスタイプ
   const [useGoogleLayout, setUseGoogleLayout] = useState(false); // Googleカレンダーレイアウトを使用するか
+  const [showHistoryModal, setShowHistoryModal] = useState(false); // 履歴モーダル表示状態
   
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -649,6 +651,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           deviceType={deviceType}
           useGoogleLayout={useGoogleLayout}
           onToggleGoogleLayout={() => setUseGoogleLayout(!useGoogleLayout)}
+          onOpenHistory={() => setShowHistoryModal(true)}
         />
       )}
       {/* 年月ピッカーモーダル - タブレット表示時は非表示 */}
@@ -936,6 +939,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowPayrollModal(false)}
         shifts={shifts}
         users={users}
+        selectedDate={selectedDate}
+      />
+      {/* 履歴モーダル */}
+      <ShiftHistoryModal
+        visible={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        storeId={user?.storeId || ""}
         selectedDate={selectedDate}
       />
     </View>

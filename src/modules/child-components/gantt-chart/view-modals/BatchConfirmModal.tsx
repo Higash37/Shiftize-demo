@@ -10,6 +10,8 @@ import {
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { logBatchApprove } from "@/services/shift-history/shiftHistoryLogger";
+import { useAuth } from "@/services/auth/useAuth";
 
 interface BatchConfirmModalProps {
   visible: boolean;
@@ -37,6 +39,7 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
 }) => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { user } = useAuth();
 
   if (!visible) return null;
 
@@ -66,6 +69,24 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
             status: "approved",
             updatedAt: serverTimestamp(),
           });
+        }
+        
+        // 一括承認のログを記録
+        if (user && user.storeId && targets.length > 0) {
+          const yearMonth = shifts[0]?.date ? 
+            shifts[0].date.substring(0, 7) : 
+            new Date().toISOString().substring(0, 7);
+          
+          await logBatchApprove(
+            {
+              userId: user.uid,
+              nickname: user.nickname || "教室長",
+              role: (user.role as "master" | "teacher") || "master"
+            },
+            user.storeId,
+            yearMonth,
+            targets.length
+          );
         }
       } catch (error) {
         setIsLoading(false);
