@@ -117,23 +117,31 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={{
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "center",
-        alignItems: "center",
-      }}>
-        <View style={{
-          backgroundColor: "white",
-          borderRadius: 12,
-          width: Platform.OS === "web" ? 800 : "90%",
-          maxHeight: "80%",
-          padding: 20,
-        }}>
+      <TouchableOpacity
+        activeOpacity={1}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        onPress={onClose}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            width: Platform.OS === "web" ? 800 : "90%",
+            maxHeight: "80%",
+            padding: 20,
+          }}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* ヘッダー */}
           <View style={{
             flexDirection: "row",
@@ -367,8 +375,8 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
               <Text style={{ color: "white", fontWeight: "600" }}>閉じる</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
