@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Modal,
   View,
@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { useShiftHistory } from "./useShiftHistory";
+import { ShiftActionType } from "@/services/shift-history/shiftHistoryLogger";
 
 interface ShiftHistoryModalProps {
   visible: boolean;
@@ -19,32 +21,7 @@ interface ShiftHistoryModalProps {
   selectedDate: Date;
 }
 
-type ActionType = 
-  | "all"
-  | "create"
-  | "update_time"
-  | "update_user"
-  | "update_status"
-  | "delete"
-  | "teacher_create"
-  | "teacher_update"
-  | "batch_approve";
-
-interface HistoryEntry {
-  id: string;
-  action: ActionType;
-  actor: {
-    userId: string;
-    nickname: string;
-    role: "master" | "teacher" | "system";
-  };
-  timestamp: Date;
-  date: string;
-  summary: string;
-  prev?: any;
-  next?: any;
-  notes?: string;
-}
+type ActionType = ShiftActionType | "all";
 
 export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
   visible,
@@ -55,13 +32,28 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
   const [filterAction, setFilterAction] = useState<ActionType>("all");
   const [filterUser, setFilterUser] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
   
-  // 仮のデータ（実装時は削除）
-  const historyEntries: HistoryEntry[] = [];
+  // 当月の開始日と終了日を計算
+  const { startDate, endDate } = useMemo(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const start = new Date(year, month, 1);
+    const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+    return { startDate: start, endDate: end };
+  }, [selectedDate]);
+  
+  // 履歴データを取得
+  const { entries: historyEntries, isLoading, error } = useShiftHistory({
+    storeId,
+    startDate,
+    endDate,
+    actionFilter: filterAction,
+    userFilter: filterUser,
+    searchQuery: searchQuery,
+  });
 
-  const getActionIcon = (action: ActionType) => {
+  const getActionIcon = (action: ShiftActionType | "all") => {
     switch (action) {
       case "create":
       case "teacher_create":
@@ -81,7 +73,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
     }
   };
 
-  const getActionColor = (action: ActionType) => {
+  const getActionColor = (action: ShiftActionType | "all") => {
     switch (action) {
       case "create":
       case "teacher_create":
@@ -100,9 +92,11 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimestamp = (timestamp: any) => {
+    // Firestore TimestampをDateオブジェクトに変換
+    const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -112,7 +106,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
     if (hours < 24) return `${hours}時間前`;
     if (days < 7) return `${days}日前`;
     
-    return timestamp.toLocaleDateString("ja-JP", {
+    return date.toLocaleDateString("ja-JP", {
       month: "numeric",
       day: "numeric",
       hour: "2-digit",
@@ -244,6 +238,11 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
                 <ActivityIndicator size="large" color="#4A90E2" />
                 <Text style={{ marginTop: 10, color: "#666" }}>読み込み中...</Text>
               </View>
+            ) : error ? (
+              <View style={{ padding: 40, alignItems: "center" }}>
+                <Ionicons name="alert-circle-outline" size={48} color="#F44336" />
+                <Text style={{ marginTop: 10, color: "#F44336" }}>{error}</Text>
+              </View>
             ) : historyEntries.length === 0 ? (
               <View style={{ padding: 40, alignItems: "center" }}>
                 <Ionicons name="document-text-outline" size={48} color="#CCC" />
@@ -318,7 +317,9 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
                   <View style={{ flexDirection: "row" }}>
                     <Text style={{ width: 80, color: "#666", fontSize: 12 }}>日時:</Text>
                     <Text style={{ flex: 1, fontSize: 12 }}>
-                      {selectedEntry.timestamp.toLocaleString("ja-JP")}
+                      {selectedEntry.timestamp?.toDate 
+                        ? selectedEntry.timestamp.toDate().toLocaleString("ja-JP")
+                        : new Date(selectedEntry.timestamp).toLocaleString("ja-JP")}
                     </Text>
                   </View>
                   {selectedEntry.prev && (
