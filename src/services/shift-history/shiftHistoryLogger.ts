@@ -120,7 +120,7 @@ export const logShiftChange = async (
       actor,
       date: shift?.date || prevShift?.date || new Date().toISOString().split("T")[0],
       summary: "",
-      notes: metadata?.notes,
+      ...(metadata?.notes && { notes: metadata.notes }), // undefinedの場合はフィールドを除外
     };
 
     // 変更前後のデータを設定
@@ -154,11 +154,20 @@ export const logShiftChange = async (
       metadata
     );
 
-    // Firestoreに保存
-    await addDoc(collection(db, "shiftChangeLogs"), {
+    // Firestoreに保存（undefinedフィールドを除外）
+    const dataToSave = {
       ...entry,
       timestamp: serverTimestamp(),
+    };
+    
+    // undefinedフィールドを除外
+    Object.keys(dataToSave).forEach(key => {
+      if (dataToSave[key as keyof typeof dataToSave] === undefined) {
+        delete dataToSave[key as keyof typeof dataToSave];
+      }
     });
+    
+    await addDoc(collection(db, "shiftChangeLogs"), dataToSave);
   } catch (error) {
     // ログ記録の失敗は通常の操作を妨げないようにする
     if (__DEV__) {

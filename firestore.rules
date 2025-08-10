@@ -116,6 +116,15 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
     }
 
+    // シフト変更ログコレクション - 店舗分離、マスターのみアクセス可能
+    match /shiftChangeLogs/{docId} {
+      allow read: if isAuthenticated() && 
+        isMasterOfStore(resource.data.storeId);
+      allow create: if isAuthenticated() && 
+        hasAccessToStore(request.resource.data.storeId);
+      allow update, delete: if false; // 追記専用
+    }
+
     // 未定義のパスは拒否
     match /{document=**} {
       allow read, write: if false;
