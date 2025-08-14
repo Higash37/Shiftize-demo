@@ -12,7 +12,7 @@ export * from "./util-date";
 export * from "./util-style";
 
 // 型チェック関連ユーティリティ
-export * from "./util-types";
+export * from "./utility-interfaces";
 
 // バリデーション関連ユーティリティ
 export * from "./util-validation";

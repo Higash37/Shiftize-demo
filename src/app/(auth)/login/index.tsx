@@ -15,8 +15,8 @@ import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
-import { ServiceIntroModal } from "@/modules/child-components/service-intro/ServiceIntroModal";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
+import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
 
 export default function Login() {
   const { signIn } = useAuth();

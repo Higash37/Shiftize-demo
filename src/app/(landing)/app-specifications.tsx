@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
-import SimpleHeader from './components/SimpleHeader';
+import SimpleHeader from './_marketing-widgets/SimpleHeader';
 import { responsive, responsiveStyles } from './utils/responsive';
 
 const AppSpecifications = () => {

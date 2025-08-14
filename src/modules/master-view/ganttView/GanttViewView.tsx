@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import { GanttChartMonthView } from "@/modules/child-components/gantt-chart/GanttChartMonthView";
-import { TaskCreateModal } from "@/modules/master-view/task-management/components/TaskCreateModal";
+import { GanttChartMonthView } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView";
+import { TaskCreateModal } from "@/modules/master-view/shift-tasks/shift-task-modals/TaskCreateModal";
 import { ganttViewViewStyles as styles } from "./GanttViewView.styles";
 import type { GanttViewViewProps } from "./GanttViewView.types";
 
@@ -16,7 +16,6 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
   onShiftUpdate,
   onShiftPress,
 }) => {
-
   // タスク作成モーダルの状態
   const [showTaskCreateModal, setShowTaskCreateModal] = useState(false);
   const [selectedShiftIdForTask, setSelectedShiftIdForTask] =

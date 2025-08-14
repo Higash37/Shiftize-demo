@@ -13,7 +13,7 @@ import {
   UpdateShiftRequest,
   BatchShiftRequest,
   RequestShiftChangeRequest
-} from './types/api-requests';
+} from './api-contracts/api-requests';
 import {
   GetShiftsResponse,
   GetShiftResponse,
@@ -21,7 +21,7 @@ import {
   UpdateShiftResponse,
   DeleteShiftResponse,
   APIErrorResponse
-} from './types/api-responses';
+} from './api-contracts/api-responses';
 
 /**
  * 環境変数による段階的移行制御

@@ -4,9 +4,9 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { useUser } from "@/modules/child-components/user-management/user-hooks/useUser";
-import { UserForm } from "@/modules/child-components/user-management/user-props/UserForm";
-import { UserList } from "@/modules/child-components/user-management/user-props/UserList";
+import { useUser } from "@/modules/reusable-widgets/user-management/user-hooks/useUser";
+import { UserForm } from "@/modules/reusable-widgets/user-management/user-props/UserForm";
+import { UserList } from "@/modules/reusable-widgets/user-management/user-props/UserList";
 
 import { User } from "@/common/common-models/model-user/UserModel";
 import { colors } from "@/common/common-constants/ColorConstants";

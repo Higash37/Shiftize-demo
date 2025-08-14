@@ -21,7 +21,7 @@ import { useAutoReloadOnLayoutBug } from "@/common/common-ui/ui-loading/useAutoR
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
 
 export const LoginForm: React.FC<LoginFormProps> = ({ 
   onLogin, 

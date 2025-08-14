@@ -13,7 +13,7 @@ import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
 import type { GanttViewViewProps } from "./GanttViewView.types";
 
 interface ShiftCardViewProps extends GanttViewViewProps {

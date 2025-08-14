@@ -7,7 +7,7 @@ import { View, useWindowDimensions, Modal } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
-import { DatePickerModal } from "@/modules/child-components/calendar/calendar-components/calendar-modal/datePickerModal/DatePickerModal";
+import { DatePickerModal } from "@/modules/reusable-widgets/calendar/modals/DatePickerModal";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
 import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
@@ -16,9 +16,9 @@ import { UserDayGanttModal } from "../home-components/home-gantt/UserDayGanttMod
 import { useHomeGanttState } from "../home-components/home-hooks/useHomeGanttState";
 // import { GanttSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader"; // リアルタイムリスナーにより不要
 // import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
-// import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+// import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/home-nav/DateNavBar";
-import ChangePassword from "@/modules/child-components/user-management/user-props/ChangePassword";
+import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 // import "./home-common-screen.css"; // CSS インポートを削除
 
 export default function HomeCommonScreen() {

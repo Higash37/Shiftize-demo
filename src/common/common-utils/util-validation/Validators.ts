@@ -1,7 +1,7 @@
 /**
  * バリデーション用ユーティリティ関数
  */
-import { isNumeric, isEmpty, isValidDate } from "../util-types/TypeChecker";
+import { isNumeric, isEmpty, isValidDate } from "../utility-interfaces/TypeChecker";
 
 /**
  * 必須項目のチェック

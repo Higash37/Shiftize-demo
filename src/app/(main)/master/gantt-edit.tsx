@@ -1,6 +1,6 @@
 import React from "react";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
-import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import {
   addShift,
@@ -8,7 +8,7 @@ import {
   markShiftAsDeleted,
 } from "@/services/firebase/firebase-shift";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
-import { ShiftData } from "@/modules/master-view/ganttView/components/ShiftModal";
+import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 

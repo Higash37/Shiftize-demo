@@ -15,7 +15,7 @@ import { typography } from "@/common/common-constants/TypographyConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
 import { useAuth } from "@/services/auth/useAuth";
 import { UserService } from "@/services/firebase/firebase-user";
 

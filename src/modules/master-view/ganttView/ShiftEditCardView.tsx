@@ -14,9 +14,9 @@ import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
-import { ShiftModal, ShiftData } from "./components/ShiftModal";
+import { ShiftModal, ShiftData } from "./gantt-modals/ShiftModal";
 
 interface ShiftEditCardViewProps {
   shifts: any[];

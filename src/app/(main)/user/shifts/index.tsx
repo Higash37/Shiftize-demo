@@ -1,5 +1,5 @@
 import React from "react";
-import { UserShiftList } from "../../../../modules/user-view/shift-ui-components/shiftList/ShiftListView";
+import { UserShiftList } from "../../../../modules/user-view/user-shift-forms/user-shift-list/ShiftListView";
 
 
 export default function UserShiftsScreen() {
