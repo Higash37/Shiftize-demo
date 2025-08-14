@@ -236,8 +236,8 @@ export default function ChangelogPage() {
                 <View style={styles.changelogHeader}>
                   <View style={styles.versionInfo}>
                     <Text style={styles.version}>{item.version}</Text>
-                    <View style={[styles.categoryBadge, { backgroundColor: categoryInfo.color }]}>
-                      <Text style={styles.categoryBadgeText}>{categoryInfo.label}</Text>
+                    <View style={[styles.categoryBadge, { backgroundColor: categoryInfo?.color || '#6b7280' }]}>
+                      <Text style={styles.categoryBadgeText}>{categoryInfo?.label || 'その他'}</Text>
                     </View>
                   </View>
                   <View style={styles.statusInfo}>
@@ -260,7 +260,7 @@ export default function ChangelogPage() {
                   <Text style={styles.changesTitle}>変更内容:</Text>
                   {item.changes.map((change, changeIndex) => (
                     <View key={changeIndex} style={styles.changeItem}>
-                      <View style={[styles.changeDot, { backgroundColor: categoryInfo.color }]} />
+                      <View style={[styles.changeDot, { backgroundColor: categoryInfo?.color || '#6b7280' }]} />
                       <Text style={styles.changeText}>{change}</Text>
                     </View>
                   ))}

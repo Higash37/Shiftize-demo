@@ -105,5 +105,10 @@
     "ios/": true
   },
   "problems.decorations.enabled": false,
-  "terminal.integrated.showExitAlert": false
+  "terminal.integrated.showExitAlert": false,
+  "snyk.enable": false,
+  "snyk.showEnableButton": false,
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "npm-intellisense.scanDevDependencies": false,
+  "extensions.ignoreRecommendations": true
 }

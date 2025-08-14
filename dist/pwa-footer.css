@@ -1,5 +1,0 @@
-.pwa-footer-safearea {
-  height: calc(15px + env(safe-area-inset-bottom));
-  width: 100%;
-  background-color: #f2f2f7;
-}

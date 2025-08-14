@@ -1,5 +1,5 @@
 import React from "react";
-import { MasterShiftCreate } from "../../child-components/master-shift-management/MasterShiftCreate";
+import { MasterShiftCreate } from "../../reusable-widgets/master-shift-management/MasterShiftCreate";
 import type { MasterShiftCreateViewProps } from "./MasterShiftCreateView.types";
 
 export const MasterShiftCreateView: React.FC<MasterShiftCreateViewProps> = ({

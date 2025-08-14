@@ -1,4 +1,4 @@
-import { HOLIDAYS } from "@/modules/child-components/calendar/calendar-constants/constants";
+import { HOLIDAYS } from "@/modules/reusable-widgets/calendar/constants";
 
 /**
  * 日曜日かどうかを判定

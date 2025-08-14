@@ -10,7 +10,7 @@
 export { ShiftAPIService } from './ShiftAPIService';
 
 // 型定義
-export * from './types';
+export * from './api-adapter-types';
 
 // 将来追加予定のサービス（フェーズ1完了後に段階的に実装）
 // export { AuthAPIService } from './AuthAPIService';

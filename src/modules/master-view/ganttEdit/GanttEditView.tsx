@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import { GanttChartMonthView } from "@/modules/child-components/gantt-chart/GanttChartMonthView";
+import { GanttChartMonthView } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView";
 import { ganttEditViewStyles as styles } from "./GanttEditView.styles";
 import type { GanttEditViewProps } from "./GanttEditView.types";
 

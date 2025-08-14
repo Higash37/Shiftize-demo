@@ -1,7 +1,7 @@
 import React from "react";
-import { ShiftData } from "@/modules/master-view/ganttView/components/ShiftModal";
+import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
-import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { GanttViewView } from "@/modules/master-view/ganttView/GanttViewView";
 

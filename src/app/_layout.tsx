@@ -79,28 +79,44 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const inLandingGroup = segments[0] === "(landing)";
     const inMainGroup = segments[0] === "(main)";
+    const atRoot = segments.length === 0;
     
-    // ランディングページは認証不要でアクセス可能
-    if (inLandingGroup) {
+    // デバッグ用ログ
+    console.log('Navigation Debug:', {
+      segments,
+      user: !!user,
+      role,
+      loading,
+      inAuthGroup,
+      inLandingGroup,
+      inMainGroup,
+      atRoot
+    });
+    
+    // ルートページまたはランディングページは認証に関係なく常にアクセス可能
+    if (inLandingGroup || atRoot) {
+      console.log('At root or landing - no redirect');
       return;
     }
     
-    // メインアプリは認証が必要
-    if (inMainGroup && !user) {
-      router.replace("/(auth)/login");
-      return;
-    }
-    
+    // 認証が必要なページのチェック
     if (!user) {
-      if (!inAuthGroup) {
-        // 未認証で他のページにアクセスした場合はランディングページへ
-        router.replace("/(landing)");
+      // 未認証ユーザーの場合
+      if (inMainGroup) {
+        // メインアプリにアクセスしようとした場合はログインページへ
+        router.replace("/(auth)/login");
+        return;
       }
-    } else if (inAuthGroup) {
-      if (role === "master") {
-        router.replace("/(main)/master/home");
-      } else if (role === "user") {
-        router.replace("/(main)/user/home");
+      // 認証グループでもない場合は何もしない（index.tsxがランディングを表示する）
+    } else {
+      // 認証済みユーザーの場合
+      if (inAuthGroup) {
+        // 認証済みユーザーが認証画面にいる場合はメインアプリへリダイレクト
+        if (role === "master") {
+          router.replace("/(main)/master/home");
+        } else if (role === "user") {
+          router.replace("/(main)/user/home");
+        }
       }
     }
   }, [user, role, loading, segments]);

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { ShiftCreateForm } from "@/modules/user-view/shift-ui-components/shiftCreate/ShiftCreateForm";
+import { ShiftCreateForm } from "@/modules/user-view/user-shift-forms/shiftCreate/ShiftCreateForm";
 import { colors } from "@/common/common-constants/ThemeConstants";
 
 export default function ShiftCreateScreen() {

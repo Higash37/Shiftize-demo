@@ -14,7 +14,7 @@ import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
-import { useUsers } from "@/modules/child-components/user-management/user-hooks/useUserList";
+import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { useAuth } from "@/services/auth/useAuth";
 
@@ -25,9 +25,9 @@ import {
   ShiftMetricsTab,
   ProductivityTab,
   TrendAnalysisTab,
-} from "./components";
-import { TaskManagementIntegratedTab } from "./components/TaskManagementIntegratedTab";
-import Box from "@/common/common-ui/ui-base/BaseBox/BoxComponent";
+} from "./analytics-widgets";
+import { TaskManagementIntegratedTab } from "./analytics-widgets/TaskManagementIntegratedTab";
+import Box from "@/common/common-ui/ui-base/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
 type TabType =

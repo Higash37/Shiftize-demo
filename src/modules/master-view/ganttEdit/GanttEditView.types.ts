@@ -1,5 +1,5 @@
 import { ShiftItem } from "@/common/common-models/ModelIndex";
-import { ShiftData } from "../ganttView/components/ShiftModal";
+import { ShiftData } from "../ganttView/gantt-modals/ShiftModal";
 
 export interface GanttEditViewProps {
   shifts: ShiftItem[];

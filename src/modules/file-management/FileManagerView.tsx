@@ -12,9 +12,9 @@ import {
 import { FolderService, FileService } from "@/services/file/fileService";
 import { StorageService } from "@/services/file/storageService";
 import { CollectionRecoveryService } from "@/services/file/collectionRecovery";
-import { FileExplorer } from "./components/FileExplorer/FileExplorer";
-import { FileUploadModal } from "./components/FileUploadModal/FileUploadModal";
-import { CreateFolderModal } from "./components/CreateFolderModal/CreateFolderModal";
+import { FileExplorer } from "./file-browser-ui/FileExplorer/FileExplorer";
+import { FileUploadModal } from "./file-browser-ui/FileUploadModal/FileUploadModal";
+import { CreateFolderModal } from "./file-browser-ui/CreateFolderModal/CreateFolderModal";
 
 interface FileManagerViewProps {
   hideHeader?: boolean;

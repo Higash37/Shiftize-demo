@@ -8,11 +8,11 @@ import { GanttRowMobile } from "../home-components/home-gantt/GanttRowMobile";
 import { ShiftItem, ShiftStatus, ClassTimeSlot, ShiftTaskSlot } from "@/common/common-models/model-shift/shiftTypes";
 import { User } from "@/common/common-models/model-user/UserModel";
 import { useAuth } from "@/services/auth/useAuth";
-import { MobileShiftModal } from "@/modules/child-components/gantt-chart/view-modals/MobileShiftModal";
-import { useGanttShiftActions } from "@/modules/child-components/gantt-chart/gantt-chart-common/useGanttShiftActions";
-import { generateTimeOptions } from "@/modules/child-components/gantt-chart/gantt-chart-common/utils";
+import { MobileShiftModal } from "@/modules/reusable-widgets/gantt-chart/view-modals/MobileShiftModal";
+import { useGanttShiftActions } from "@/modules/reusable-widgets/gantt-chart/gantt-chart-common/useGanttShiftActions";
+import { generateTimeOptions } from "@/modules/reusable-widgets/gantt-chart/gantt-chart-common/utils";
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
-import BatchConfirmModal from "@/modules/child-components/gantt-chart/view-modals/BatchConfirmModal";
+import BatchConfirmModal from "@/modules/reusable-widgets/gantt-chart/view-modals/BatchConfirmModal";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 
