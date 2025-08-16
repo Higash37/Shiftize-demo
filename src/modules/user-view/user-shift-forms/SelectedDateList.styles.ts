@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { SelectedDateListStyles } from "./types";
+import { SelectedDateListStyles } from "./SelectedDateList.types";
 
 export const styles = StyleSheet.create<SelectedDateListStyles>({
   container: {

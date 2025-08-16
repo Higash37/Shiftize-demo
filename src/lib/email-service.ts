@@ -68,6 +68,15 @@ export class EmailService {
   }
 
   /**
+   * メール件名のサニタイズ
+   * セキュリティ対策とメール配信確実性のため
+   */
+  private sanitizeSubject(subject: string): string {
+    // 改行文字を除去
+    return subject.replace(/[\r\n]/g, ' ').trim();
+  }
+
+  /**
    * シフト作成通知メールのテンプレート
    */
   createShiftNotificationEmail(data: {

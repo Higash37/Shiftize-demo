@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./styles";
-import { SelectedDateListProps } from "./types";
+import { styles } from "./SelectedDateList.styles";
+import { SelectedDateListProps } from "./SelectedDateList.types";
 
 /**
  * SelectedDateList - 選択された日付のリスト表示コンポーネント
@@ -29,7 +29,7 @@ const SelectedDateList: React.FC<SelectedDateListProps> = ({
       {selectedDates.length === 0 && (
         <Text style={styles.noneText}>まだ日付が選択されていません</Text>
       )}
-      {selectedDates.map((date) => (
+      {selectedDates.map((date: string) => (
         <View key={date} style={styles.item}>
           <Text style={styles.dateText}>{formatDateWithWeekday(date)}</Text>
           <TouchableOpacity onPress={() => onRemove(date)}>

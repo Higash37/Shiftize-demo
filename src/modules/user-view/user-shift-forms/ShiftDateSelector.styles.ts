@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { ShiftDateSelectorStyles } from "./types";
+import { ShiftDateSelectorStyles } from "./ShiftDateSelector.types";
 
 export const styles = StyleSheet.create<ShiftDateSelectorStyles>({
   container: {

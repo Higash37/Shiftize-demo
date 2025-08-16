@@ -1,6 +1,6 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { TimeSelectStyles } from "./types";
+import { TimeSelectStyles } from "./TimeSelect.types";
 import {
   shiftUIConstants,
   shiftUIStyles,

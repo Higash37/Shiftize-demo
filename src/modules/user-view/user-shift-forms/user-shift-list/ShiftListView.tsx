@@ -326,7 +326,11 @@ export const UserShiftList = () => {
                 return (
                   <View
                     key={shift.id}
-                    ref={(ref) => (shiftRefs[shift.id] = ref)}
+                    ref={(ref) => {
+                      if (ref) {
+                        shiftRefs[shift.id] = ref;
+                      }
+                    }}
                     style={{ width: "100%" }} // 親Viewの幅を100%に設定
                   >
                     <ShiftListItem

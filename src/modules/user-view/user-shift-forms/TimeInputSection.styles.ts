@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
-import { TimeInputSectionStyles } from "./types";
+import { TimeInputSectionStyles } from "./TimeInputSection.types";
 import {
   shiftUIConstants,
   shiftUIStyles,

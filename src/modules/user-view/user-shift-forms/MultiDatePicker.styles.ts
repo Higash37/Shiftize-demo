@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { MultiDatePickerStyles } from "./types";
+import { MultiDatePickerStyles } from "./MultiDatePicker.types";
 
 export const styles = StyleSheet.create<MultiDatePickerStyles>({
   container: {
@@ -28,5 +28,5 @@ export const calendarTheme = {
   todayTextColor: "#CC0033",
   selectedDayBackgroundColor: "#4A90E2",
   selectedDayTextColor: "#fff",
-  textDayFontWeight: "bold",
+  textDayFontWeight: "700" as any,
 };

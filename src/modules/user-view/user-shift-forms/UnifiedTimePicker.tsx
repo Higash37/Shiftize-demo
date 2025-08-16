@@ -1,133 +1,125 @@
 import React, { useState } from "react";
-import { View, Platform } from "react-native";
-import { Button, Portal, Modal } from "react-native-paper";
+import { View, Platform, TouchableOpacity, Text, Modal as RNModal, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { UnifiedTimePickerProps } from "./types";
+import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";
 
 /**
  * UnifiedTimePicker - 統一された時間選択コンポーネント
  *
- * React Native Paper と native date pickerを使用した時間選択コンポーネントです。
- * iOS、Android、Web環境で動作します。
+ * プラットフォームに応じて最適な時間選択UIを提供します。
+ * iOSではモーダル表示、Androidでは直接ピッカーを表示します。
  */
-export default function UnifiedTimePicker({
+const UnifiedTimePicker: React.FC<UnifiedTimePickerProps> = ({
   value,
   onChange,
-}: Readonly<UnifiedTimePickerProps>) {
+  placeholder = "時間を選択",
+}) => {
   const [showPicker, setShowPicker] = useState(false);
 
-  const handleTimeChange = (event: any, selectedDate?: Date) => {
+  const openPicker = () => setShowPicker(true);
+  const closePicker = () => setShowPicker(false);
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
     if (Platform.OS === "android") {
       setShowPicker(false);
     }
-    if (selectedDate) {
-      onChange(selectedDate);
+    
+    if (selectedTime) {
+      onChange(selectedTime);
     }
-  };
-
-  const openPicker = () => {
-    setShowPicker(true);
-  };
-
-  const closePicker = () => {
-    setShowPicker(false);
   };
 
   return (
     <View
       style={{
-        backgroundColor: "#F4F6FA",
+        borderWidth: 1,
+        borderColor: "#E1E8ED",
         borderRadius: 12,
         padding: 8,
         marginBottom: 8,
       }}
     >
-      <Button
-        mode="outlined"
+      <TouchableOpacity
         onPress={openPicker}
-        style={{
-          backgroundColor: "white",
-        }}
+        style={styles.button}
       >
-        {format(value, "HH:mm")}
-      </Button>
+        <Text style={styles.buttonText}>
+          {value ? format(value, "HH:mm") : placeholder}
+        </Text>
+      </TouchableOpacity>
 
       {Platform.OS === "ios" && (
-        <Portal>
-          <Modal
-            visible={showPicker}
-            onDismiss={closePicker}
-            contentContainerStyle={{
-              backgroundColor: "white",
-              margin: 20,
-              borderRadius: 12,
-              padding: 20,
-            }}
-          >
-            <DateTimePicker
-              value={value}
-              mode="time"
-              display="spinner"
-              onChange={handleTimeChange}
-            />
-            <Button onPress={closePicker} style={{ marginTop: 16 }}>
-              完了
-            </Button>
-          </Modal>
-        </Portal>
+        <RNModal
+          visible={showPicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={closePicker}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <DateTimePicker
+                value={value || new Date()}
+                mode="time"
+                display="spinner"
+                onChange={handleTimeChange}
+              />
+              <TouchableOpacity onPress={closePicker} style={styles.doneButton}>
+                <Text style={styles.doneButtonText}>完了</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </RNModal>
       )}
 
       {Platform.OS === "android" && showPicker && (
         <DateTimePicker
-          value={value}
+          value={value || new Date()}
           mode="time"
           display="default"
           onChange={handleTimeChange}
         />
       )}
-
-      {Platform.OS === "web" && showPicker && (
-        <Portal>
-          <Modal
-            visible={showPicker}
-            onDismiss={closePicker}
-            contentContainerStyle={{
-              backgroundColor: "white",
-              margin: 20,
-              borderRadius: 12,
-              padding: 20,
-            }}
-          >
-            <input
-              type="time"
-              value={format(value, "HH:mm")}
-              onChange={(e) => {
-                const timeValue = e.target.value;
-                if (timeValue) {
-                  const [hoursStr, minutesStr] = timeValue.split(":");
-                  if (hoursStr && minutesStr) {
-                    const newDate = new Date(value);
-                    newDate.setHours(parseInt(hoursStr, 10), parseInt(minutesStr, 10));
-                    onChange(newDate);
-                  }
-                }
-              }}
-              aria-label="時刻を選択"
-              placeholder="00:00"
-              style={{
-                width: "100%",
-                padding: "12px",
-                fontSize: "16px",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                marginBottom: "16px",
-              }}
-            />
-            <Button onPress={closePicker}>完了</Button>
-          </Modal>
-        </Portal>
-      )}
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
+    minWidth: 300,
+  },
+  doneButton: {
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: "center",
+  },
+  doneButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
+
+export default UnifiedTimePicker;

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { styles } from "./styles";
-import { TimeInputSectionProps, TimeSlot } from "./types";
+import { styles } from "./TimeInputSection.styles";
+import { TimeInputSectionProps, TimeSlot } from "./TimeInputSection.types";
 import { generateTimeOptions } from "../user-shift-utils/ui-utils";
 
 /**

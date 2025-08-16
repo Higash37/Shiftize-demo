@@ -19,8 +19,9 @@ const styles = StyleSheet.create({
     ...shadows.medium,
   },
   headerTitle: {
-    ...typography.h2,
-    color: colors.text.onPrimary,
+    fontSize: typography.fontSize.xlarge,
+    fontWeight: "700" as any,
+    color: colors.text.white,
     textAlign: "center",
   },
 });

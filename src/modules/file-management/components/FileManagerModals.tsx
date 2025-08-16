@@ -28,7 +28,7 @@ export const FileManagerModals: React.FC<FileManagerModalsProps> = ({
       <FileUploadModal
         visible={showUploadModal}
         onClose={() => setShowUploadModal(false)}
-        folderId={uploadModalFolderId || currentFolderId}
+        folderId={uploadModalFolderId || currentFolderId || ""}
         onUploadComplete={onUploadComplete}
       />
 

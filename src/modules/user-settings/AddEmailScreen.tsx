@@ -123,7 +123,7 @@ export const AddEmailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background,
   },
   header: {
     paddingVertical: 16,
@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border.primary,
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     color: colors.text.primary,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surface,
   },
   addButton: {
     backgroundColor: colors.primary,

@@ -42,7 +42,7 @@ export const useShift = (storeId?: string) => {
         // });
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user?.uid || ""));
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -131,7 +131,7 @@ export const useShift = (storeId?: string) => {
       // TODO: ShiftAPIService not implemented yet
       throw new Error("ShiftAPIService not implemented");
       // 🔄 新APIサービス使用（通知付き削除）
-      const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
+      const deletedBy = user && user.nickname && user.uid ? { nickname: user.nickname, userId: user.uid } : undefined;
       // await ShiftAPIService.deleteShift(shiftId, deletedBy, reason);
       await fetchShifts();
     } catch (error) {

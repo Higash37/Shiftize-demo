@@ -5,15 +5,13 @@ import { StoreIdState } from "./types";
 export const useStoreIdHandlers = (
   setStoreId: React.Dispatch<React.SetStateAction<StoreIdState>>
 ) => {
-  const generateStoreId = async () => {
+  const generateStoreId = async (): Promise<void> => {
     try {
       const storeIdValue = await GroupService.generateUniqueStoreId();
       setStoreId(prev => ({ ...prev, generatedStoreId: storeIdValue }));
-      return storeIdValue;
     } catch (error) {
       const fallbackId = Math.floor(1000 + Math.random() * 9000).toString();
       setStoreId(prev => ({ ...prev, generatedStoreId: fallbackId }));
-      return fallbackId;
     }
   };
 
