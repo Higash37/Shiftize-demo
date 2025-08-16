@@ -1,17 +1,12 @@
 const { getDefaultConfig } = require("expo/metro-config");
-const {
-  resolver: { sourceExts, assetExts },
-} = getDefaultConfig(__dirname);
 
 const config = getDefaultConfig(__dirname);
 
-// WSL最適化設定 + Firebase互換性対策
+// Firebase互換性対策
 config.resolver = {
   ...config.resolver,
-  // キャッシュ最適化
-  hasteImplModulePath: undefined,
   // Firebase JS SDK互換性修正 (Expo SDK 53対応)
-  sourceExts: [...sourceExts, 'cjs'],
+  sourceExts: [...config.resolver.sourceExts, 'cjs'],
   unstable_enablePackageExports: false,
 };
 
