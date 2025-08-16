@@ -1,0 +1,43 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "src/app/**/_layout.tsx",
+    "src/app/**/index.tsx",
+    "src/app/**/*.tsx"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,js,jsx}",
+    "!**/*.test.{ts,tsx,js,jsx}",
+    "!**/*.spec.{ts,tsx,js,jsx}",
+    "!**/*.old.{ts,tsx}",
+    "!**/*Refactored.{ts,tsx}",
+    "!**/backup/**"
+  ],
+  "ignore": [
+    "dist/**",
+    "node_modules/**",
+    "**/*.old.{ts,tsx}",
+    "**/*Refactored.{ts,tsx}",
+    "**/*.backup.{ts,tsx}",
+    "src/app/(landing)/_marketing-widgets/SimpleLanding.old.tsx",
+    "src/app/(landing)/_marketing-widgets/SimpleLandingRefactored.tsx",
+    "src/app/(landing)/app-specifications.old.tsx",
+    "src/app/(landing)/app-specifications-refactored.tsx"
+  ],
+  "ignoreDependencies": [
+    "@babel/core",
+    "@expo/metro-config",
+    "metro",
+    "react-dom",
+    "react-native-web"
+  ],
+  "include": [
+    "dependencies",
+    "devDependencies",
+    "exports",
+    "types"
+  ],
+  "exclude": [
+    "duplicates"
+  ]
+}

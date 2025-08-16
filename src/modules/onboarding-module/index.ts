@@ -1,1 +1,0 @@
-export { OnboardingScreen } from "./OnboardingScreen";
