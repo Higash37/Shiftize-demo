@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "build": "expo export -p web",
     "vercel-build": "expo export -p web --output-dir dist",
-    "knip": "knip",
+    "knip:check": "knip",
     "knip:production": "knip --production"
   },
   "dependencies": {

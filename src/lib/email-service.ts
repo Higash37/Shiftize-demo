@@ -73,6 +73,9 @@ export class EmailService {
    */
   private sanitizeSubject(subject: string): string {
     // 改行文字を除去
+    if (typeof subject !== 'string') {
+      return '';
+    }
     return subject.replace(/[\r\n]/g, ' ').trim();
   }
 

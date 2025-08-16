@@ -64,7 +64,7 @@ export const validatePassword = (password: string): { isValid: boolean; error?: 
 
 // テキスト入力のサニタイゼーション
 export const sanitizeText = (input: string): string => {
-  if (!input || typeof input !== 'string') {
+  if (!input || typeof input !== 'string' || input === null || input === undefined) {
     return '';
   }
 
@@ -80,7 +80,7 @@ export const sanitizeText = (input: string): string => {
 
 // HTML安全な文字列への変換
 export const escapeHtml = (text: string): string => {
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== 'string' || text === null || text === undefined) {
     return '';
   }
 

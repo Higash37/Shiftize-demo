@@ -486,7 +486,10 @@ class UserFormValidator {
    */
   static sanitizeHourlyWage(wage: string): string {
     // Allow only numbers and decimal point
-    return (wage || "").replace(/[^0-9.]/g, "");
+    if (typeof wage !== 'string') {
+      return "";
+    }
+    return wage.replace(/[^0-9.]/g, "");
   }
 
   /**

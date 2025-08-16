@@ -369,7 +369,7 @@ export class ErrorHandler {
   ): string {
     const { allowDecimals = true, maxDigits } = options;
 
-    if (typeof input !== 'string') {
+    if (typeof input !== 'string' || input === null || input === undefined) {
       return '';
     }
 

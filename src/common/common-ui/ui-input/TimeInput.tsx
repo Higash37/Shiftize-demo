@@ -98,6 +98,13 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   }, [displayValue]);
 
   const handleDeletion = useCallback((text: string) => {
+    // Guard against undefined/null text
+    if (typeof text !== 'string') {
+      setDisplayValue("");
+      onChangeText("");
+      return;
+    }
+
     // Special case: removing colon ("9:" → "9")
     if (displayValue.endsWith(":") && text === displayValue.slice(0, -1)) {
       setDisplayValue(text);
@@ -229,7 +236,7 @@ class TimeInputValidator {
       return "";
     }
 
-    // Extract numbers only
+    // Extract numbers only with null safety
     const numbers = input.replace(/\D/g, "");
 
     if (numbers === "") {

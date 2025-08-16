@@ -22,17 +22,7 @@
       }
     },
     "web": {
-      "favicon": "./public/favicon.ico",
-      "name": "Shiftize",
-      "shortName": "シフト管理",
-      "lang": "ja",
-      "scope": "/",
-      "themeColor": "#1565C0",
-      "backgroundColor": "#ffffff",
-      "display": "standalone",
-      "startUrl": "/",
-      "orientation": "portrait",
-      "appleTouchIcon": "./public/PWAIcon180x180.png"
+      "favicon": "./assets/icon.png"
     },
     "scheme": "shiftize",
     "plugins": ["expo-router"],
