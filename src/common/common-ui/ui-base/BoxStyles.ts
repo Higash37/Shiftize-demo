@@ -64,4 +64,16 @@ export const styles = StyleSheet.create({
   margin_none: {
     margin: 0,
   },
+  accent: {
+    backgroundColor: theme.colors.primary,
+  },
+  ghost: {
+    backgroundColor: "transparent",
+  },
+  padding_xl: {
+    padding: layout.padding.large * 1.5,
+  },
+  margin_xl: {
+    margin: layout.padding.large * 1.5,
+  },
 }) as Record<BoxStyleName, ViewStyle>;

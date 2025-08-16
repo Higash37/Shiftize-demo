@@ -3,7 +3,7 @@ import { Alert, Animated } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+// RecruitmentShiftService has been removed during cleanup
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import type { ExtendedUser } from "@/modules/reusable-widgets/user-management/user-types/components";
 import { ShiftData } from "./types";

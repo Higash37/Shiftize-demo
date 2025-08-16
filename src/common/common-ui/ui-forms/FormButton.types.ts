@@ -56,4 +56,14 @@ export interface ButtonProps extends BaseComponentProps {
    * 親要素の幅いっぱいに広がるかどうか
    */
   fullWidth?: boolean;
+
+  /**
+   * カスタムスタイル
+   */
+  style?: ViewStyle;
+
+  /**
+   * テストID
+   */
+  testID?: string;
 }

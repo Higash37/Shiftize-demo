@@ -242,24 +242,24 @@ export const AuthService = {
       const updateData: { [key: string]: any } = {};
 
       if (updates.nickname) {
-        updateData.nickname = updates.nickname;
-        updateData.displayName = updates.nickname;
+        updateData['nickname'] = updates.nickname;
+        updateData['displayName'] = updates.nickname;
       }
       if (updates.email) {
         // 実メールアドレスは別フィールドに保存（元のemailフィールドは変更しない）
-        updateData.realEmail = updates.email;
+        updateData['realEmail'] = updates.email;
         
         // 現在のユーザーデータを取得してパスワードを確認
         const currentUserData = await getDoc(userRef);
         if (currentUserData.exists()) {
           const userData = currentUserData.data();
-          const passwordToUse = updates.password || userData.currentPassword;
+          const passwordToUse = updates.password || userData['currentPassword'];
           
           // Firebase Authに実メールアドレスでの新しいアカウントを作成
           await AuthService.createSecondaryEmailAccount(user, updates.email, passwordToUse);
         }
       }
-      if (updates.role) updateData.role = updates.role;
+      if (updates.role) updateData['role'] = updates.role;
       if (updates.password) updateData.currentPassword = updates.password;
       if (updates.color) updateData.color = updates.color;
       if (updates.storeId) updateData.storeId = updates.storeId;

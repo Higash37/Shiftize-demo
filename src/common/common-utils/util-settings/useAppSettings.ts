@@ -198,19 +198,19 @@ export const useAppSettings = () => {
         setSettings({
           shiftRule: {
             ...DEFAULT_SETTINGS.shiftRule,
-            ...(data.shiftRule || {}),
+            ...(data['shiftRule'] || {}),
           },
           appearance: {
             ...DEFAULT_SETTINGS.appearance,
-            ...(data.appearance || {}),
+            ...(data['appearance'] || {}),
           },
           holidays: {
             ...DEFAULT_SETTINGS.holidays,
-            ...(data.holidays || {}),
+            ...(data['holidays'] || {}),
             holidays:
-              data.holidays?.holidays || DEFAULT_SETTINGS.holidays.holidays,
+              data['holidays']?.['holidays'] || DEFAULT_SETTINGS.holidays.holidays,
             specialDays:
-              data.holidays?.specialDays ||
+              data['holidays']?.['specialDays'] ||
               DEFAULT_SETTINGS.holidays.specialDays,
           },
         });
@@ -374,9 +374,9 @@ export const useAppSettings = () => {
       return {
         isHoliday: !!holiday,
         isSpecialDay: !!specialDay,
-        holidayName: holiday?.name,
-        specialDayName: specialDay?.name,
-        isWorkingDay: specialDay?.workingDay,
+        ...(holiday?.name && { holidayName: holiday.name }),
+        ...(specialDay?.name && { specialDayName: specialDay.name }),
+        ...(specialDay?.workingDay !== undefined && { isWorkingDay: specialDay.workingDay }),
       };
     },
     [settings.holidays]
@@ -460,19 +460,19 @@ export const useAppSettings = () => {
           setSettings({
             shiftRule: {
               ...DEFAULT_SETTINGS.shiftRule,
-              ...(data.shiftRule || {}),
+              ...(data['shiftRule'] || {}),
             },
             appearance: {
               ...DEFAULT_SETTINGS.appearance,
-              ...(data.appearance || {}),
+              ...(data['appearance'] || {}),
             },
             holidays: {
               ...DEFAULT_SETTINGS.holidays,
-              ...(data.holidays || {}),
+              ...(data['holidays'] || {}),
               holidays:
-                data.holidays?.holidays || DEFAULT_SETTINGS.holidays.holidays,
+                data['holidays']?.['holidays'] || DEFAULT_SETTINGS.holidays.holidays,
               specialDays:
-                data.holidays?.specialDays ||
+                data['holidays']?.['specialDays'] ||
                 DEFAULT_SETTINGS.holidays.specialDays,
             },
           });

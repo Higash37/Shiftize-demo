@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,28 +17,47 @@ interface BudgetSectionProps {
   onBudgetChange: (budget: number) => void;
 }
 
+/**
+ * Enhanced budget section component with robust numeric processing
+ * and production-ready validation
+ */
+
 export const BudgetSection: React.FC<BudgetSectionProps> = ({
   budget,
   onBudgetChange,
 }) => {
-  const [inputValue, setInputValue] = useState(budget.toString());
+  const [inputValue, setInputValue] = useState<string>(
+    BudgetSectionValidator.formatBudgetForDisplay(budget)
+  );
   const { width } = useWindowDimensions();
   const isTabletOrDesktop = width >= 768;
 
-  const handleBudgetChange = (value: string) => {
-    setInputValue(value);
-    const numericValue = parseInt(value.replace(/,/g, ""), 10);
-    if (!isNaN(numericValue)) {
-      onBudgetChange(numericValue);
+  const handleBudgetChange = useCallback((value: string) => {
+    const sanitizedValue = BudgetSectionValidator.sanitizeInput(value);
+    setInputValue(sanitizedValue);
+    
+    const validationResult = BudgetSectionValidator.validateAndParse(sanitizedValue);
+    if (validationResult.isValid && validationResult.value !== null) {
+      onBudgetChange(validationResult.value);
     }
-  };
+  }, [onBudgetChange]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ja-JP", {
-      style: "currency",
-      currency: "JPY",
-    }).format(amount);
-  };
+  const formatCurrency = useCallback((amount: number) => {
+    return BudgetSectionValidator.formatCurrency(amount);
+  }, []);
+
+  // Update input value when budget prop changes
+  React.useEffect(() => {
+    const formattedBudget = BudgetSectionValidator.formatBudgetForDisplay(budget);
+    if (formattedBudget !== inputValue) {
+      setInputValue(formattedBudget);
+    }
+  }, [budget, inputValue]);
+
+  // Memoized validation status
+  const validationStatus = useMemo(() => {
+    return BudgetSectionValidator.validateDisplayValue(inputValue);
+  }, [inputValue]);
 
   return (
     <Box
@@ -67,12 +86,19 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
           >
             <Text style={styles.currencySymbol}>¥</Text>
             <TextInput
-              style={[styles.input, isTabletOrDesktop && styles.inputCompact]}
+              style={[
+                styles.input, 
+                isTabletOrDesktop && styles.inputCompact,
+                !validationStatus.isValid && styles.inputError
+              ]}
               value={inputValue}
               onChangeText={handleBudgetChange}
               keyboardType="numeric"
               placeholder="500000"
               placeholderTextColor="#999"
+              maxLength={10}
+              accessibilityLabel="月間予算入力"
+              accessibilityHint="数字のみ入力可能"
             />
           </View>
           <Text
@@ -182,4 +208,99 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: layout.padding.small,
   },
+  inputError: {
+    borderColor: "#FF4444",
+    borderWidth: 1,
+  },
 });
+
+/**
+ * Budget section validation and formatting utility class
+ */
+class BudgetSectionValidator {
+  /**
+   * Sanitize input to allow only numbers
+   */
+  static sanitizeInput(input: string): string {
+    if (!input || typeof input !== 'string') {
+      return "";
+    }
+    // Allow only digits, remove any other characters
+    return input.replace(/[^\d]/g, "");
+  }
+
+  /**
+   * Validate and parse budget input
+   */
+  static validateAndParse(input: string): { isValid: boolean; value: number | null; error?: string } {
+    if (!input || input.trim() === "") {
+      return { isValid: true, value: 0 }; // Empty input is valid, defaults to 0
+    }
+
+    const sanitized = this.sanitizeInput(input);
+    const numericValue = parseInt(sanitized, 10);
+
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      return { 
+        isValid: false, 
+        value: null, 
+        error: "有効な予算を入力してください" 
+      };
+    }
+
+    if (numericValue > 100000000) { // 1億円制限
+      return { 
+        isValid: false, 
+        value: null, 
+        error: "予算は1億円以下で入力してください" 
+      };
+    }
+
+    return { isValid: true, value: numericValue };
+  }
+
+  /**
+   * Validate display value for styling purposes
+   */
+  static validateDisplayValue(input: string): { isValid: boolean; error?: string } {
+    if (!input || input.trim() === "") {
+      return { isValid: true }; // Empty is valid
+    }
+
+    const validation = this.validateAndParse(input);
+    return {
+      isValid: validation.isValid,
+      error: validation.error
+    };
+  }
+
+  /**
+   * Format budget for display in input field
+   */
+  static formatBudgetForDisplay(budget: number): string {
+    if (!Number.isFinite(budget) || budget < 0) {
+      return "";
+    }
+    return budget.toString();
+  }
+
+  /**
+   * Format currency with proper validation and fallback
+   */
+  static formatCurrency(amount: number): string {
+    if (!Number.isFinite(amount)) {
+      return "¥0";
+    }
+
+    try {
+      return new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+      }).format(Math.round(Math.max(0, amount)));
+    } catch (error) {
+      // Fallback formatting if Intl fails
+      const roundedAmount = Math.round(Math.max(0, amount));
+      return `¥${roundedAmount.toLocaleString()}`;
+    }
+  }
+}

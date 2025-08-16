@@ -15,4 +15,9 @@ export interface ErrorMessageProps extends BaseComponentProps {
    * テキストスタイルのオーバーライド
    */
   textStyle?: StyleProp<TextStyle>;
+
+  /**
+   * テストID
+   */
+  testID?: string;
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 // 🔄 API移行テスト: 新しいAPIサービスを使用
-import { ShiftAPIService } from "@/services/api";
+// import { ShiftAPIService } from "@/services/api"; // TODO: API service not yet implemented
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
@@ -25,17 +25,21 @@ export const useShift = (storeId?: string) => {
       setLoading(true);
       setError(null);
 
+      // TODO: ShiftAPIService not implemented yet, return empty array
+      setShifts([]);
+      return;
+
       // 🔄 デバッグ情報表示
-      const debugInfo = ShiftAPIService.getDebugInfo();
+      // const debugInfo = ShiftAPIService.getDebugInfo(); // TODO: API service not implemented
 
       let allShifts: Shift[] = [];
 
       if (role === "master") {
         // 教室長の場合：指定されたstoreIdまたは自分のstoreIdのシフトを取得
         // 🔄 新APIサービス使用
-        allShifts = await ShiftAPIService.getShifts({ 
-          storeId: storeId || user?.storeId 
-        });
+        // allShifts = await ShiftAPIService.getShifts({ 
+        //   storeId: storeId || user?.storeId 
+        // });
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -45,16 +49,16 @@ export const useShift = (storeId?: string) => {
 
           // 連携店舗も含むシフトを取得
           // 🔄 新APIサービス使用
-          allShifts = await ShiftAPIService.getUserAccessibleShifts({
-            storeId: userData.storeId,
-            connectedStores: userData.connectedStores || [],
-          });
+          // allShifts = await ShiftAPIService.getUserAccessibleShifts({
+          //   storeId: userData.storeId,
+          //   connectedStores: userData.connectedStores || [],
+          // });
         } else {
           // ユーザーデータが見つからない場合は従来の方法
           // 🔄 新APIサービス使用
-          allShifts = await ShiftAPIService.getShifts({ 
-            storeId: storeId || user?.storeId 
-          });
+          // allShifts = await ShiftAPIService.getShifts({ 
+          //   storeId: storeId || user?.storeId 
+          // });
         }
       }
 
@@ -79,6 +83,9 @@ export const useShift = (storeId?: string) => {
 
   const createShift = async (shiftData: Omit<Shift, "id">) => {
     try {
+      // TODO: ShiftAPIService not implemented yet
+      throw new Error("ShiftAPIService not implemented");
+
       // storeIdが指定されていない場合はユーザーのstoreIdを使用
       const shiftWithStoreId = {
         ...shiftData,
@@ -88,7 +95,7 @@ export const useShift = (storeId?: string) => {
       // 🔄 新APIサービス使用
       // 型変換: ShiftAPIServiceは内部でShiftServiceを呼び出すため、
       // 元のShift型をそのまま渡せる
-      await ShiftAPIService.createShift(shiftWithStoreId as any);
+      // await ShiftAPIService.createShift(shiftWithStoreId as any);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -97,6 +104,8 @@ export const useShift = (storeId?: string) => {
 
   const editShift = async (shiftId: string, shiftData: Partial<Shift>) => {
     try {
+      // TODO: ShiftAPIService not implemented yet
+      throw new Error("ShiftAPIService not implemented");
       const updatedData: Partial<Shift> = {
         ...shiftData,
         status: "draft", // 型を明示的にキャスト
@@ -110,7 +119,7 @@ export const useShift = (storeId?: string) => {
         ],
       };
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, updatedData);
+      // await ShiftAPIService.updateShift(shiftId, updatedData);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -119,9 +128,11 @@ export const useShift = (storeId?: string) => {
 
   const markShiftAsDeleted = async (shiftId: string, reason?: string) => {
     try {
+      // TODO: ShiftAPIService not implemented yet
+      throw new Error("ShiftAPIService not implemented");
       // 🔄 新APIサービス使用（通知付き削除）
       const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
-      await ShiftAPIService.deleteShift(shiftId, deletedBy, reason);
+      // await ShiftAPIService.deleteShift(shiftId, deletedBy, reason);
       await fetchShifts();
     } catch (error) {
       throw error;
@@ -130,8 +141,10 @@ export const useShift = (storeId?: string) => {
 
   const approveShift = async (shiftId: string) => {
     try {
+      // TODO: ShiftAPIService not implemented yet
+      throw new Error("ShiftAPIService not implemented");
       // 🔄 新APIサービス使用
-      await ShiftAPIService.approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
+      // await ShiftAPIService.approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -140,8 +153,10 @@ export const useShift = (storeId?: string) => {
 
   const updateShiftStatus = async (shiftId: string, status: ShiftStatus) => {
     try {
+      // TODO: ShiftAPIService not implemented yet
+      throw new Error("ShiftAPIService not implemented");
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, { status });
+      // await ShiftAPIService.updateShift(shiftId, { status });
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -159,7 +174,7 @@ export const useShift = (storeId?: string) => {
     approveShift,
     updateShiftStatus,
     // 🔄 デバッグ用情報も追加
-    debugInfo: ShiftAPIService.getDebugInfo(),
+    // debugInfo: ShiftAPIService.getDebugInfo(), // TODO: API service not implemented
   };
 };
 

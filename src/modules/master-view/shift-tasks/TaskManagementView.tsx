@@ -154,7 +154,12 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
         <Text style={styles.headerTitle}>タスク管理</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setShowCreateModal(true)}
+          onPress={() => setState(prev => ({ ...prev, showCreateModal: true }))}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="新しいタスクを作成"
+          testID={`${testID}-add-button`}
+          activeOpacity={0.8}
         >
           <Ionicons name="add" size={24} color="white" />
           <Text style={styles.addButtonText}>新規作成</Text>
@@ -168,21 +173,51 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
       <ScrollView
         style={styles.taskList}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={state.refreshing} 
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            title="タスクを更新中..."
+          />
         }
       >
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>読み込み中...</Text>
+        {hasError ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="warning-outline" size={48} color={colors.error} />
+            <Text style={styles.errorText}>{state.error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => {
+                setState(prev => ({ ...prev, error: null }));
+                loadTasks();
+              }}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel="再試行"
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+              <Text style={styles.retryButtonText}>再試行</Text>
+            </TouchableOpacity>
           </View>
-        ) : filteredTasks.length === 0 ? (
+        ) : state.loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>読み込み中...</Text>
+            {state.lastUpdated && (
+              <Text style={styles.lastUpdatedText}>
+                最終更新: {state.lastUpdated.toLocaleTimeString()}
+              </Text>
+            )}
+          </View>
+        ) : state.filteredTasks.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="clipboard-outline" size={48} color="#ccc" />
             <Text style={styles.emptyText}>
               {filters.type !== "all" ||
               filters.tag !== "all" ||
               filters.searchText
-                ? "フィルター条件に一致するタスクがありません"
+                ? `フィルター条件に一致するタスクがありません\n（全${taskCounts.total}件中）`
                 : "タスクがありません"}
             </Text>
             {filters.type === "all" &&
@@ -190,20 +225,24 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
               !filters.searchText && (
                 <TouchableOpacity
                   style={styles.emptyButton}
-                  onPress={() => setShowCreateModal(true)}
+                  onPress={() => setState(prev => ({ ...prev, showCreateModal: true }))}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="最初のタスクを作成"
                 >
                   <Text style={styles.emptyButtonText}>最初のタスクを作成</Text>
                 </TouchableOpacity>
               )}
           </View>
         ) : (
-          filteredTasks.map((task) => (
+          state.filteredTasks.map((task) => (
             <TaskListItem
               key={task.id}
               task={task}
-              onEdit={() => setEditingTask(task)}
+              onEdit={() => setState(prev => ({ ...prev, editingTask: task }))}
               onDelete={() => handleDeleteTask(task.id)}
               onToggleStatus={() => handleToggleTaskStatus(task)}
+              testID={`${testID}-task-${task.id}`}
             />
           ))
         )}
@@ -211,19 +250,21 @@ export const TaskManagementView: React.FC<TaskManagementViewProps> = ({
 
       {/* タスク作成モーダル */}
       <TaskCreateModal
-        visible={showCreateModal}
+        visible={state.showCreateModal}
         storeId={storeId}
-        onClose={() => setShowCreateModal(false)}
-        onTaskCreated={loadTasks}
+        onClose={() => setState(prev => ({ ...prev, showCreateModal: false }))}
+        onTaskCreated={handleTaskCreated}
+        testID={`${testID}-create-modal`}
       />
 
       {/* タスク編集モーダル */}
-      {editingTask && (
+      {state.editingTask && (
         <TaskEditModal
           visible={true}
-          task={editingTask}
-          onClose={() => setEditingTask(null)}
-          onTaskUpdated={loadTasks}
+          task={state.editingTask}
+          onClose={() => setState(prev => ({ ...prev, editingTask: null }))}
+          onTaskUpdated={handleTaskUpdated}
+          testID={`${testID}-edit-modal`}
         />
       )}
     </View>

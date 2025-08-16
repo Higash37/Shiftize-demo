@@ -198,7 +198,7 @@ export class PushNotificationService {
       const tokenDoc = await getDoc(doc(db, 'pushTokens', userId));
       if (tokenDoc.exists()) {
         const data = tokenDoc.data();
-        return data.expoPushToken || null;
+        return data['expoPushToken'] || null;
       }
       return null;
     } catch (error) {

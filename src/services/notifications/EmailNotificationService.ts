@@ -47,16 +47,13 @@ export class EmailNotificationService {
         userNickname: creatorNickname,
       };
 
+      const template = EmailService.generateEmailTemplate(shiftData);
+      
       const emailData: EmailNotificationData = {
         to: masters.map(m => m.email),
-        subject: `新しいシフトが追加されました - ${shift.date}`,
-        html: EmailService.generateEmailTemplate(
-          '新しいシフトが追加されました',
-          '📅',
-          `<p><strong>${creatorNickname}</strong>さんが新しいシフトを作成しました。</p><p>アプリで詳細を確認し、必要に応じて承認を行ってください。</p>`,
-          shiftData
-        ),
-        text: `${creatorNickname}さんが${shift.date}のシフトを作成しました。詳細はアプリで確認してください。`,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
       };
 
       // メール送信（実装方法は後で選択）
@@ -97,16 +94,13 @@ export class EmailNotificationService {
         reason,
       };
 
+      const template = EmailService.getInstance().createShiftDeletionNotificationEmail(shiftData);
+      
       const emailData: EmailNotificationData = {
         to: [userInfo.email],
-        subject: `シフトが削除されました - ${shift.date}`,
-        html: EmailService.generateEmailTemplate(
-          'シフトが削除されました',
-          '🗑️',
-          `<p>こんにちは、<strong>${userInfo.nickname}</strong>さん</p><p><strong>${deletedByNickname}</strong>さんがあなたの以下のシフトを削除しました。</p><p>ご質問がある場合は、${deletedByNickname}さんまたは管理者にお問い合わせください。</p>`,
-          shiftData
-        ),
-        text: `${deletedByNickname}さんがあなたの${shift.date}のシフトを削除しました。${reason ? `理由: ${reason}` : ''}`,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
       };
 
       await this.sendEmail(emailData);
@@ -145,15 +139,12 @@ export class EmailNotificationService {
         status: '承認済み',
       };
 
+      const template = EmailService.getInstance().createShiftUpdateNotificationEmail(shiftData);
+      
       const emailData: EmailNotificationData = {
         to: [userInfo.email],
         subject: `シフトが承認されました - ${shift.date}`,
-        html: EmailService.generateEmailTemplate(
-          'シフトが承認されました',
-          'Check',
-          `<p>こんにちは、<strong>${userInfo.nickname}</strong>さん</p><p><strong>${approverNickname}</strong>さんがあなたのシフトを承認しました！</p><p>シフトが確定しました。当日の勤務をよろしくお願いします。</p>`,
-          shiftData
-        ),
+        html: template.html,
         text: `${approverNickname}さんがあなたの${shift.date}のシフトを承認しました。`,
       };
 
@@ -188,15 +179,15 @@ export class EmailNotificationService {
       snapshot.docs.forEach(doc => {
         const data = doc.data();
         const user = {
-          storeId: data.storeId,
-          role: data.role,
-          deleted: data.deleted,
-          email: data.email,
-          nickname: data.nickname
+          storeId: data['storeId'],
+          role: data['role'],
+          deleted: data['deleted'],
+          email: data['email'],
+          nickname: data['nickname']
         };
         
         // 削除されたユーザーをスキップ
-        if (data.deleted === true) {
+        if (data['deleted'] === true) {
           return;
         }
 
@@ -205,12 +196,12 @@ export class EmailNotificationService {
           return;
         }
 
-        if (data.email) {
+        if (data['email']) {
           masters.push({
             userId: doc.id,
-            email: data.email,
-            nickname: data.nickname || 'Unknown',
-            role: data.role,
+            email: data['email'],
+            nickname: data['nickname'] || 'Unknown',
+            role: data['role'],
           });
         }
       });
@@ -233,12 +224,12 @@ export class EmailNotificationService {
 
       if (userSnap.exists()) {
         const data = userSnap.data();
-        if (data.email) {
+        if (data['email']) {
           return {
             userId,
-            email: data.email,
-            nickname: data.nickname || 'Unknown',
-            role: data.role || 'user',
+            email: data['email'],
+            nickname: data['nickname'] || 'Unknown',
+            role: data['role'] || 'user',
           };
         }
       }
@@ -258,15 +249,15 @@ export class EmailNotificationService {
       // 新しいEmailServiceを使用
       const { EmailService } = await import('@/lib/email-service');
       
-      const success = await EmailService.sendEmail({
+      const result = await EmailService.sendEmail({
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,
-        text: emailData.text,
+        text: emailData.text || '',
       });
 
-      if (!success) {
-        throw new Error('EmailService returned false');
+      if (!result.success) {
+        throw new Error(`EmailService failed: ${result.error || 'Unknown error'}`);
       }
 
 

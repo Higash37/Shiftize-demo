@@ -16,7 +16,7 @@ export default function MainLayout() {
 
     // 未認証の場合は何もしない（ルートレイアウトで処理）
     if (!user) return; // 認証済みユーザーがauthグループにいる場合のみリダイレクト
-    const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments && segments[0] === "(auth)";
     if (inAuthGroup) {
       if (role === "master") {
         router.replace("/(main)/master/home");

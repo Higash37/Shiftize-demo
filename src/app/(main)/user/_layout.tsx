@@ -31,7 +31,7 @@ export default function userLayout() {
     }
 
     // 認証済みユーザーがauthグループにいる場合はメインページへリダイレクト
-    const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments && segments[0] === "(auth)";
     if (inAuthGroup) {
       router.replace("/(main)/user/home");
     }

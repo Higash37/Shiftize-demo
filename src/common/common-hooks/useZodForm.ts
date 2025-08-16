@@ -25,7 +25,7 @@ export function useZodForm<T extends z.ZodSchema>(schema: T) {
       return true;
     } else {
       const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(error => {
+      result.error.issues.forEach(error => {
         const path = error.path.join('.');
         newErrors[path] = error.message;
       });
@@ -61,7 +61,7 @@ export function useZodForm<T extends z.ZodSchema>(schema: T) {
       const testData = { ...formData, [field]: value };
       const result = schema.safeParse(testData);
       
-      if (result.success || !result.error.errors.find(e => e.path.includes(field as string))) {
+      if (result.success || !result.error.issues.find(e => e.path.includes(field as string))) {
         setErrors(prev => {
           const newErrors = { ...prev };
           delete newErrors[field as string];
@@ -101,8 +101,8 @@ export function useUserForm() {
     nickname: z.string().min(1, 'ニックネームは必須です'),
     email: z.string().email('有効なメールアドレスを入力してください'),
     password: z.string().min(6, 'パスワードは6文字以上です'),
-    role: z.enum(['master', 'user'], { 
-      errorMap: () => ({ message: 'ロールを選択してください' }) 
+    role: z.enum(['master', 'user']).refine((val) => val, {
+      message: 'ロールを選択してください'
     }),
     color: z.string().optional(),
     hourlyWage: z.number().positive('時給は正の数値です').optional(),

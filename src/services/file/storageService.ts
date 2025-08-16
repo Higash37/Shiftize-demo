@@ -13,36 +13,61 @@ import {
   FileUploadProgress,
   Folder,
 } from "@/common/common-models/ModelIndex";
+import { ErrorHandler, FirebaseErrorHandler } from "@/common/common-utils/error-handling/ErrorHandler";
 
 /**
  * Firebase Storage ファイル管理サービス
+ * Production-ready file upload validation and error handling
  */
 export class StorageService {
   /**
    * ファイルタイプを判定
+   * @param mimeType - MIME type string
+   * @returns FileType enum value
    */
   static getFileType(mimeType: string): FileType {
-    if (mimeType.includes("pdf")) return "pdf";
-    if (mimeType.startsWith("image/")) return "image";
+    if (!mimeType || typeof mimeType !== 'string') {
+      return "other";
+    }
+    
+    const normalizedType = mimeType.toLowerCase().trim();
+    
+    if (normalizedType.includes("pdf")) return "pdf";
+    if (normalizedType.startsWith("image/")) return "image";
     if (
-      mimeType.includes("document") ||
-      mimeType.includes("word") ||
-      mimeType.includes("text")
-    )
+      normalizedType.includes("document") ||
+      normalizedType.includes("word") ||
+      normalizedType.includes("text")
+    ) {
       return "document";
-    if (mimeType.startsWith("video/")) return "video";
-    if (mimeType.startsWith("audio/")) return "audio";
+    }
+    if (normalizedType.startsWith("video/")) return "video";
+    if (normalizedType.startsWith("audio/")) return "audio";
+    
     return "other";
   }
 
   /**
    * ファイルサイズをフォーマット
+   * @param bytes - File size in bytes
+   * @returns Formatted file size string
    */
   static formatFileSize(bytes: number): string {
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    if (!Number.isFinite(bytes) || bytes < 0) {
+      return "0 Bytes";
+    }
+    
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"] as const;
+    
     if (bytes === 0) return "0 Bytes";
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+    
+    const i = Math.min(
+      Math.floor(Math.log(bytes) / Math.log(1024)),
+      sizes.length - 1
+    );
+    
+    const formattedSize = Math.round((bytes / Math.pow(1024, i)) * 100) / 100;
+    return `${formattedSize} ${sizes[i]}`;
   }
 
   /**
@@ -61,8 +86,11 @@ export class StorageService {
     type: FileType;
   }> {
     try {
-      // ファイル名をサニタイズ
-      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      // 包括的なファイル検証
+      this.validateFileObject(file);
+      
+      // ファイル名を安全にサニタイズ
+      const sanitizedFileName = this.sanitizeFileName(file.name);
       const timestamp = Date.now();
       const fileName = `${timestamp}_${sanitizedFileName}`;
 
@@ -70,12 +98,13 @@ export class StorageService {
       const { FolderService } = await import("./fileService");
       let folderPath = "root";
       
-      
-      if (folderId && folderId !== "root" && folderId !== "") {
+      if (this.isValidFolderId(folderId)) {
         try {
           const folders = await FolderService.getFoldersByStore(storeId);
           folderPath = this.buildStoragePath(folderId, folders);
         } catch (error) {
+          console.warn(`Failed to build folder path for ${folderId}:`, error);
+          // Continue with default "root" path
         }
       }
 
@@ -148,7 +177,11 @@ export class StorageService {
         );
       });
     } catch (error) {
-      throw error;
+      const errorMessage = FirebaseErrorHandler.getFirebaseErrorMessage(error);
+      if (__DEV__) {
+        console.error('StorageService uploadFile failed:', error);
+      }
+      throw new Error(errorMessage);
     }
   }
 
@@ -204,24 +237,34 @@ export class StorageService {
 
   /**
    * フォルダIDからStorage用のパスを構築
+   * @param folderId - Target folder ID
+   * @param folders - Array of all available folders
+   * @returns Sanitized storage path
    */
   private static buildStoragePath(folderId: string, folders: Folder[]): string {
+    if (!Array.isArray(folders) || folders.length === 0) {
+      return "root";
+    }
+    
     const pathParts: string[] = [];
     let currentFolderId: string | undefined = folderId;
+    const visitedIds = new Set<string>(); // Prevent infinite loops
     
     // 親フォルダを辿って階層パスを構築
-    while (currentFolderId) {
-      const folder = folders.find(f => f.id === currentFolderId);
-      if (folder) {
-        pathParts.unshift(folder.name); // 先頭に追加
+    while (currentFolderId && !visitedIds.has(currentFolderId)) {
+      visitedIds.add(currentFolderId);
+      
+      const folder = folders.find(f => f?.id === currentFolderId);
+      if (folder?.name) {
+        const sanitizedName = this.sanitizePathComponent(folder.name);
+        pathParts.unshift(sanitizedName); // 先頭に追加
         currentFolderId = folder.parentId;
       } else {
         break;
       }
     }
     
-    const result = pathParts.length > 0 ? pathParts.join("/") : "root";
-    return result;
+    return pathParts.length > 0 ? pathParts.join("/") : "root";
   }
 
   /**
@@ -426,6 +469,11 @@ export class StorageService {
     downloadUrl: string,
     size: "thumb" | "small" | "medium" = "thumb"
   ): string {
+    // URLの厳密な検証
+    if (!this.isValidUrl(downloadUrl)) {
+      return '';
+    }
+
     // Firebase Extensions Image Resizing を使用している場合の例
     // 実際の実装は使用している拡張機能によって異なります
     const sizeMap = {
@@ -455,18 +503,23 @@ export class StorageService {
   }
 
   /**
-   * ファイル検証
+   * ファイル検証（包括的なセキュリティチェック付き）
+   * @param file - File object to validate
+   * @returns Validation result with detailed error information
    */
   static validateFile(file: File): { isValid: boolean; error?: string } {
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    const allowedTypes = [
-      "image/",
-      "video/",
-      "application/pdf",
-      "application/",
-      "text/",
-    ];
+    // ファイルオブジェクトの基本検証
+    try {
+      this.validateFileObject(file);
+    } catch (error) {
+      return {
+        isValid: false,
+        error: error instanceof Error ? error.message : "無効なファイルです",
+      };
+    }
 
+    // ファイルサイズ制限（50MB）
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       return {
         isValid: false,
@@ -476,16 +529,155 @@ export class StorageService {
       };
     }
 
+    // 最小ファイルサイズチェック（1バイト以上）
+    if (file.size === 0) {
+      return {
+        isValid: false,
+        error: "空のファイルはアップロードできません。",
+      };
+    }
+
+    // 許可されたファイルタイプ
+    const allowedTypes = [
+      "image/",
+      "video/",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument",
+      "text/",
+    ] as const;
+
+    const normalizedType = file.type.toLowerCase();
     const isAllowedType = allowedTypes.some((type) =>
-      file.type.startsWith(type)
+      normalizedType.startsWith(type)
     );
+    
     if (!isAllowedType) {
       return {
         isValid: false,
-        error: "サポートされていないファイル形式です。",
+        error: "サポートされていないファイル形式です。画像、PDF、文書ファイルのみアップロード可能です。",
+      };
+    }
+
+    // 危険なファイル拡張子チェック
+    if (this.isDangerousFileExtension(file.name)) {
+      return {
+        isValid: false,
+        error: "セキュリティ上の理由により、このファイル形式はサポートされていません。",
       };
     }
 
     return { isValid: true };
+  }
+
+  /**
+   * ファイルオブジェクトの基本検証
+   * @private
+   */
+  private static validateFileObject(file: File): void {
+    if (!file) {
+      throw new Error("ファイルが選択されていません");
+    }
+    
+    if (!(file instanceof File)) {
+      throw new Error("無効なファイルオブジェクトです");
+    }
+    
+    if (!file.name || typeof file.name !== 'string') {
+      throw new Error("ファイル名が不正です");
+    }
+    
+    if (!Number.isFinite(file.size) || file.size < 0) {
+      throw new Error("ファイルサイズが不正です");
+    }
+    
+    if (typeof file.type !== 'string') {
+      throw new Error("ファイルタイプが不正です");
+    }
+  }
+
+  /**
+   * ファイル名の安全なサニタイズ
+   * @private
+   */
+  private static sanitizeFileName(fileName: string): string {
+    if (!fileName || typeof fileName !== 'string') {
+      return 'unknown_file';
+    }
+    
+    // 危険な文字を除去し、安全な文字のみを残す
+    const sanitized = fileName
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .replace(/_{2,}/g, '_') // 連続するアンダースコアを1つに
+      .replace(/^_+|_+$/g, '') // 先頭・末尾のアンダースコアを除去
+      .substring(0, 100); // 最大100文字に制限
+    
+    return sanitized || 'file';
+  }
+
+  /**
+   * パスコンポーネントのサニタイズ
+   * @private
+   */
+  private static sanitizePathComponent(pathComponent: string): string {
+    if (!pathComponent || typeof pathComponent !== 'string') {
+      return 'folder';
+    }
+    
+    return pathComponent
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .replace(/_{2,}/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .substring(0, 50) || 'folder';
+  }
+
+  /**
+   * 有効なフォルダIDかチェック
+   * @private
+   */
+  private static isValidFolderId(folderId?: string): boolean {
+    return Boolean(
+      folderId && 
+      typeof folderId === 'string' && 
+      folderId.trim() !== '' && 
+      folderId !== 'root'
+    );
+  }
+
+  /**
+   * 危険なファイル拡張子かチェック
+   * @private
+   */
+  private static isDangerousFileExtension(fileName: string): boolean {
+    if (!fileName || typeof fileName !== 'string') {
+      return true;
+    }
+    
+    const dangerousExtensions = [
+      '.exe', '.bat', '.cmd', '.scr', '.pif', '.com',
+      '.vbs', '.vbe', '.js', '.jse', '.ws', '.wsf',
+      '.msi', '.msp', '.reg', '.scf', '.lnk',
+      '.inf', '.dll', '.sys', '.ocx'
+    ];
+    
+    const lowerFileName = fileName.toLowerCase();
+    return dangerousExtensions.some(ext => lowerFileName.endsWith(ext));
+  }
+
+  /**
+   * 有効なURLかチェック
+   * @private
+   */
+  private static isValidUrl(url: string): boolean {
+    if (!url || typeof url !== 'string') {
+      return false;
+    }
+    
+    try {
+      new URL(url);
+      return url.startsWith('https://') || url.startsWith('http://');
+    } catch {
+      return false;
+    }
   }
 }

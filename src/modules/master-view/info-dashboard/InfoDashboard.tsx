@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -70,14 +70,20 @@ const tabs: TabItem[] = [
  * - シフトデータ: useShiftsRealtime()から取得
  * - ユーザーデータ: useUsers()から取得
  * - 集計処理: リアルタイムで現在月のデータを計算
+ *
+ * Enhanced Features:
+ * - Robust numeric processing with validation
+ * - Production-ready error handling
+ * - Type-safe data calculations
+ * - Optimized performance with memoization
  */
 
 export const InfoDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("efficiency");
-  const [monthlyBudget, setMonthlyBudget] = useState<number>(500000); // デフォルト予算
-  const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [budgetInputValue, setBudgetInputValue] = useState(
-    monthlyBudget.toString()
+  const [monthlyBudget, setMonthlyBudget] = useState<number>(500000);
+  const [showBudgetModal, setShowBudgetModal] = useState<boolean>(false);
+  const [budgetInputValue, setBudgetInputValue] = useState<string>(
+    BudgetCalculator.formatBudgetForInput(500000)
   );
   const { width } = useWindowDimensions();
   const isTabletOrDesktop = width >= 768;
@@ -87,102 +93,48 @@ export const InfoDashboard: React.FC = () => {
   const { shifts, loading: shiftsLoading } = useShiftsRealtime(user?.storeId);
   const { users, loading: usersLoading } = useUsers(user?.storeId);
 
-  // 現在の月のデータを計算
-  const currentDate = new Date();
-  const currentMonthShifts = shifts.filter((shift) => {
-    const shiftDate = new Date(shift.date);
-    return (
-      shiftDate.getMonth() === currentDate.getMonth() &&
-      shiftDate.getFullYear() === currentDate.getFullYear() &&
-      (shift.status === "approved" ||
-        shift.status === "pending" ||
-        shift.status === "completed")
-    );
-  });
+  // 現在の月のデータを計算（メモ化でパフォーマンス向上）
+  const currentMonthShifts = useMemo(() => {
+    return DashboardDataProcessor.getCurrentMonthShifts(shifts);
+  }, [shifts]);
 
-  // 実際の集計データを計算（ガントチャートと同じロジック）
-  const realData = {
-    totalHours: 0,
-    totalCost: 0,
-    budgetUsage: 0, // 後で計算
-    staffCount: users.length,
-    completedShifts: currentMonthShifts.filter(
-      (shift) => shift.status === "completed"
-    ).length,
-    totalShifts: currentMonthShifts.length,
-  };
+  // 実際の集計データを計算（メモ化でパフォーマンス向上）
+  const realData = useMemo(() => {
+    return DashboardDataProcessor.calculateRealData({
+      shifts: currentMonthShifts,
+      users,
+      monthlyBudget,
+    });
+  }, [currentMonthShifts, users, monthlyBudget]);
 
-  // 正確な時間とコスト計算
-  let totalMinutes = 0;
-  let totalAmount = 0;
+  // 予算ステータス関連のメモ化関数
+  const budgetStatusInfo = useMemo(() => {
+    return BudgetCalculator.getBudgetStatusInfo(realData.budgetUsage);
+  }, [realData.budgetUsage]);
 
-  currentMonthShifts.forEach((shift) => {
-    // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
-    const user = users.find((u) => u.uid === shift.userId);
-    const hourlyWage = user?.hourlyWage || 1100;
+  const formatCurrency = useCallback((amount: number) => {
+    return BudgetCalculator.formatCurrency(amount);
+  }, []);
 
-    // 授業時間を除外したシフト時間の計算
-    const { totalMinutes: workMinutes, totalWage: workWage } =
-      calculateTotalWage(
-        {
-          startTime: shift.startTime,
-          endTime: shift.endTime,
-          classes: shift.classes || [],
-        },
-        hourlyWage
-      );
-
-    totalMinutes += workMinutes;
-    totalAmount += workWage;
-  });
-
-  realData.totalHours = totalMinutes / 60;
-  realData.totalCost = Math.round(totalAmount);
-
-  // 予算使用率を計算
-  realData.budgetUsage = (realData.totalCost / monthlyBudget) * 100;
-
-  // 予算使用率の色を動的に決定
-  const getBudgetStatusColor = (usageRate: number) => {
-    if (usageRate >= 90) return "#E53E3E"; // 赤色：危険
-    if (usageRate >= 75) return "#FF9800"; // オレンジ色：注意
-    if (usageRate >= 50) return "#2196F3"; // 青色：適正
-    return "#4CAF50"; // 緑色：余裕あり
-  };
-
-  const getBudgetStatusIcon = (usageRate: number) => {
-    if (usageRate >= 90) return "warning";
-    if (usageRate >= 75) return "priority-high";
-    if (usageRate >= 50) return "info";
-    return "check-circle";
-  };
-
-  const getBudgetStatusText = (usageRate: number) => {
-    if (usageRate >= 90) return "予算超過危険";
-    if (usageRate >= 75) return "予算注意";
-    if (usageRate >= 50) return "予算適正";
-    return "予算余裕あり";
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ja-JP", {
-      style: "currency",
-      currency: "JPY",
-    }).format(amount);
-  };
-
-  const handleBudgetSave = () => {
-    const numericValue = parseInt(budgetInputValue.replace(/,/g, ""), 10);
-    if (!isNaN(numericValue)) {
-      setMonthlyBudget(numericValue);
+  const handleBudgetSave = useCallback(() => {
+    const validationResult = BudgetCalculator.validateAndParseBudget(budgetInputValue);
+    
+    if (validationResult.isValid && validationResult.value !== null) {
+      setMonthlyBudget(validationResult.value);
     }
+    
     setShowBudgetModal(false);
-  };
+  }, [budgetInputValue]);
 
-  const openBudgetModal = () => {
-    setBudgetInputValue(monthlyBudget.toString());
+  const openBudgetModal = useCallback(() => {
+    setBudgetInputValue(BudgetCalculator.formatBudgetForInput(monthlyBudget));
     setShowBudgetModal(true);
-  };
+  }, [monthlyBudget]);
+
+  const handleBudgetInputChange = useCallback((value: string) => {
+    const sanitizedValue = BudgetCalculator.sanitizeBudgetInput(value);
+    setBudgetInputValue(sanitizedValue);
+  }, []);
 
   const renderTabContent = () => {
     const commonProps = {
@@ -241,16 +193,16 @@ export const InfoDashboard: React.FC = () => {
                 styles.budgetTab,
                 isTabletOrDesktop && styles.budgetTabDesktop,
                 {
-                  borderLeftColor: getBudgetStatusColor(realData.budgetUsage),
+                  borderLeftColor: budgetStatusInfo.color,
                   borderLeftWidth: 4,
                 },
               ]}
               onPress={openBudgetModal}
             >
               <MaterialIcons
-                name={getBudgetStatusIcon(realData.budgetUsage) as any}
+                name={budgetStatusInfo.icon as any}
                 size={18}
-                color={getBudgetStatusColor(realData.budgetUsage)}
+                color={budgetStatusInfo.color}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.budgetTabText}>
@@ -259,11 +211,11 @@ export const InfoDashboard: React.FC = () => {
                 <Text
                   style={[
                     styles.budgetStatusText,
-                    { color: getBudgetStatusColor(realData.budgetUsage) },
+                    { color: budgetStatusInfo.color },
                   ]}
                 >
-                  {getBudgetStatusText(realData.budgetUsage)} (
-                  {realData.budgetUsage.toFixed(1)}%)
+                  {budgetStatusInfo.text} (
+                  {BudgetCalculator.formatPercentage(realData.budgetUsage)}%)
                 </Text>
               </View>
             </TouchableOpacity>
@@ -366,11 +318,12 @@ export const InfoDashboard: React.FC = () => {
                   <TextInput
                     style={styles.modalInput}
                     value={budgetInputValue}
-                    onChangeText={setBudgetInputValue}
+                    onChangeText={handleBudgetInputChange}
                     keyboardType="numeric"
                     placeholder="500000"
                     placeholderTextColor="#999"
                     autoFocus={true}
+                    maxLength={10}
                   />
                 </View>
               </View>
@@ -398,6 +351,231 @@ export const InfoDashboard: React.FC = () => {
     </View>
   );
 };
+
+/**
+ * Budget calculation and formatting utility class
+ */
+class BudgetCalculator {
+  /**
+   * Validate and parse budget input
+   */
+  static validateAndParseBudget(input: string): { isValid: boolean; value: number | null; error?: string } {
+    if (!input || typeof input !== 'string') {
+      return { isValid: false, value: null, error: "予算を入力してください" };
+    }
+
+    const sanitized = input.replace(/[^\d]/g, "");
+    
+    if (sanitized === "") {
+      return { isValid: false, value: null, error: "予算を入力してください" };
+    }
+
+    const numericValue = parseInt(sanitized, 10);
+
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      return { isValid: false, value: null, error: "有効な予算を入力してください" };
+    }
+
+    if (numericValue > 100000000) { // 1億円以上は制限
+      return { isValid: false, value: null, error: "予算は1億円以下で入力してください" };
+    }
+
+    return { isValid: true, value: numericValue };
+  }
+
+  /**
+   * Sanitize budget input to allow only numbers
+   */
+  static sanitizeBudgetInput(input: string): string {
+    if (!input || typeof input !== 'string') {
+      return "";
+    }
+    return input.replace(/[^\d]/g, "");
+  }
+
+  /**
+   * Format budget for input field
+   */
+  static formatBudgetForInput(budget: number): string {
+    if (!Number.isFinite(budget) || budget < 0) {
+      return "";
+    }
+    return budget.toString();
+  }
+
+  /**
+   * Format currency with proper validation
+   */
+  static formatCurrency(amount: number): string {
+    if (!Number.isFinite(amount)) {
+      return "¥0";
+    }
+
+    try {
+      return new Intl.NumberFormat("ja-JP", {
+        style: "currency",
+        currency: "JPY",
+      }).format(Math.round(amount));
+    } catch (error) {
+      // Fallback formatting
+      return `¥${Math.round(amount).toLocaleString()}`;
+    }
+  }
+
+  /**
+   * Format percentage with proper validation
+   */
+  static formatPercentage(percentage: number): string {
+    if (!Number.isFinite(percentage)) {
+      return "0.0";
+    }
+    return Math.max(0, percentage).toFixed(1);
+  }
+
+  /**
+   * Get budget status information
+   */
+  static getBudgetStatusInfo(usageRate: number): {
+    color: string;
+    icon: string;
+    text: string;
+  } {
+    const safeUsageRate = Number.isFinite(usageRate) ? Math.max(0, usageRate) : 0;
+
+    if (safeUsageRate >= 90) {
+      return {
+        color: "#E53E3E",
+        icon: "warning",
+        text: "予算超過危険"
+      };
+    }
+    if (safeUsageRate >= 75) {
+      return {
+        color: "#FF9800",
+        icon: "priority-high",
+        text: "予算注意"
+      };
+    }
+    if (safeUsageRate >= 50) {
+      return {
+        color: "#2196F3",
+        icon: "info",
+        text: "予算適正"
+      };
+    }
+    return {
+      color: "#4CAF50",
+      icon: "check-circle",
+      text: "予算余裕あり"
+    };
+  }
+}
+
+/**
+ * Dashboard data processing utility class
+ */
+class DashboardDataProcessor {
+  /**
+   * Get current month's shifts with validation
+   */
+  static getCurrentMonthShifts(shifts: any[]) {
+    if (!Array.isArray(shifts)) {
+      return [];
+    }
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    return shifts.filter((shift) => {
+      if (!shift || !shift.date) {
+        return false;
+      }
+
+      try {
+        const shiftDate = new Date(shift.date);
+        return (
+          shiftDate.getMonth() === currentMonth &&
+          shiftDate.getFullYear() === currentYear &&
+          (shift.status === "approved" ||
+            shift.status === "pending" ||
+            shift.status === "completed")
+        );
+      } catch (error) {
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Calculate real data with comprehensive validation
+   */
+  static calculateRealData(params: {
+    shifts: any[];
+    users: any[];
+    monthlyBudget: number;
+  }) {
+    const { shifts, users, monthlyBudget } = params;
+
+    const safeShifts = Array.isArray(shifts) ? shifts : [];
+    const safeUsers = Array.isArray(users) ? users : [];
+    const safeBudget = Number.isFinite(monthlyBudget) && monthlyBudget > 0 ? monthlyBudget : 1;
+
+    let totalMinutes = 0;
+    let totalAmount = 0;
+
+    safeShifts.forEach((shift) => {
+      if (!shift || !shift.userId) {
+        return;
+      }
+
+      try {
+        // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
+        const user = safeUsers.find((u) => u?.uid === shift.userId);
+        const hourlyWage = Number.isFinite(user?.hourlyWage) && user.hourlyWage > 0 
+          ? user.hourlyWage 
+          : 1100;
+
+        // 授業時間を除外したシフト時間の計算
+        const { totalMinutes: workMinutes, totalWage: workWage } =
+          calculateTotalWage(
+            {
+              startTime: shift.startTime || "",
+              endTime: shift.endTime || "",
+              classes: shift.classes || [],
+            },
+            hourlyWage
+          );
+
+        if (Number.isFinite(workMinutes) && workMinutes >= 0) {
+          totalMinutes += workMinutes;
+        }
+        if (Number.isFinite(workWage) && workWage >= 0) {
+          totalAmount += workWage;
+        }
+      } catch (error) {
+        console.warn("Error calculating shift data:", error);
+      }
+    });
+
+    const totalHours = totalMinutes > 0 ? totalMinutes / 60 : 0;
+    const totalCost = Math.round(Math.max(0, totalAmount));
+    const budgetUsage = safeBudget > 0 ? (totalCost / safeBudget) * 100 : 0;
+
+    const completedShifts = safeShifts.filter(
+      (shift) => shift?.status === "completed"
+    ).length;
+
+    return {
+      totalHours: Math.max(0, totalHours),
+      totalCost: Math.max(0, totalCost),
+      budgetUsage: Math.max(0, budgetUsage),
+      staffCount: Math.max(0, safeUsers.length),
+      completedShifts: Math.max(0, completedShifts),
+      totalShifts: Math.max(0, safeShifts.length),
+    };
+  }
+}
 
 const styles = StyleSheet.create({
   container: {

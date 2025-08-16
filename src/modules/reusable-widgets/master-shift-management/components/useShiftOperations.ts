@@ -14,7 +14,7 @@ import {
 import { db } from "@/services/firebase/firebase";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { MultiStoreService } from "@/services/firebase/firebase-multistore";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+// RecruitmentShiftService has been removed during cleanup
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import type { UserData } from "@/services/firebase/firebase";
 import { ConnectedStoreUser, ShiftData } from "./types";

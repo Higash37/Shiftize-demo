@@ -109,7 +109,7 @@ const getEnvVar = (
 /**
  * Firebase設定の取得と検証
  */
-const getFirebaseConfig = (): FirebaseConfigType => {
+const getFirebaseConfigInternal = (): FirebaseConfigType => {
   const apiKey = getEnvVar('EXPO_PUBLIC_FIREBASE_API_KEY');
   const authDomain = getEnvVar('EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN');
   const projectId = getEnvVar('EXPO_PUBLIC_FIREBASE_PROJECT_ID');
@@ -182,7 +182,7 @@ const getEmailConfig = (): EmailConfigType => {
  * 現在の環境の判定
  */
 const getCurrentEnvironment = (): Environment => {
-  const nodeEnv = process.env.NODE_ENV;
+  const nodeEnv = process.env['NODE_ENV'];
   
   if (nodeEnv === 'production') return 'production';
   if (nodeEnv === 'test') return 'test';
@@ -201,7 +201,7 @@ const initializeAppConfig = (): AppConfigType => {
       isDevelopment: environment === 'development',
       isProduction: environment === 'production',
       platform: Platform.OS,
-      firebase: getFirebaseConfig(),
+      firebase: getFirebaseConfigInternal(),
       expo: getExpoConfig(),
       email: getEmailConfig(),
       security: {
@@ -226,22 +226,32 @@ const initializeAppConfig = (): AppConfigType => {
     };
 
     // 設定の初期化成功をログに記録
-    SecurityLogger.logEvent({
-      type: 'system_event',
-      userId: 'system',
-      details: `App configuration initialized successfully for ${environment} environment on ${Platform.OS}`,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(() => {});
+    try {
+      SecurityLogger.logEvent({
+        type: 'system_event',
+        userId: 'system',
+        details: `App configuration initialized successfully for ${environment} environment on ${Platform.OS}`,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
+      });
+    } catch (logError) {
+      // Silent catch for logging errors
+      console.warn('Failed to log system event:', logError);
+    }
 
     return config;
   } catch (error) {
     // 設定の初期化失敗をログに記録
-    SecurityLogger.logEvent({
-      type: 'system_error',
-      userId: 'system',
-      details: `App configuration initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(() => {});
+    try {
+      SecurityLogger.logEvent({
+        type: 'system_error',
+        userId: 'system',
+        details: `App configuration initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
+      });
+    } catch (logError) {
+      // Silent catch for logging errors
+      console.warn('Failed to log system error:', logError);
+    }
 
     throw error;
   }

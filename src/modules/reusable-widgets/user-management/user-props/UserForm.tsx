@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,12 @@ import { useAuth } from "@/services/auth/useAuth";
 /**
  * ユーザー情報入力フォームコンポーネント
  * 新規ユーザー追加と既存ユーザー編集の両方に対応
+ * 
+ * Features:
+ * - Enhanced input validation and sanitization
+ * - Type-safe form handling
+ * - Consistent error management
+ * - Production-ready security measures
  */
 export const UserForm: React.FC<UserFormProps> = ({
   onSubmit,
@@ -31,19 +37,20 @@ export const UserForm: React.FC<UserFormProps> = ({
 }) => {
   const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
   const { width } = useWindowDimensions();
-  const [email, setEmail] = useState(initialData?.email || ""); // メールアドレス（任意）
-  const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState(initialData?.nickname ?? "");
+  // Enhanced state management with better type safety
+  const [email, setEmail] = useState<string>(initialData?.email ?? "");
+  const [password, setPassword] = useState<string>("");
+  const [nickname, setNickname] = useState<string>(initialData?.nickname ?? "");
   const [role, setRole] = useState<"master" | "user">(
-    initialData?.role || "user"
+    initialData?.role ?? "user"
   );
   const [errorMessage, setError] = useState<string | null>(null);
-  const [hasMaster, setHasMaster] = useState(false);
-  const [color, setColor] = useState(initialData?.color || PRESET_COLORS[0]);
+  const [hasMaster, setHasMaster] = useState<boolean>(false);
+  const [color, setColor] = useState<string>(initialData?.color ?? PRESET_COLORS[0]);
   const [hourlyWage, setHourlyWage] = useState<string>(
-    initialData?.hourlyWage?.toString() || ""
+    UserFormValidator.formatHourlyWage(initialData?.hourlyWage)
   );
-  const [colorPickerVisible, setColorPickerVisible] = useState(false);
+  const [colorPickerVisible, setColorPickerVisible] = useState<boolean>(false);
 
   // レスポンシブ設定
   const isTablet = width >= 768;
@@ -64,75 +71,75 @@ export const UserForm: React.FC<UserFormProps> = ({
       checkForMasterUser();
     }
   }, [mode]);
+  // Memoized validation results
+  const formValidation = useMemo(() => {
+    return UserFormValidator.validateForm({
+      email,
+      password,
+      nickname,
+      hourlyWage,
+      mode,
+      hasMaster,
+      role,
+      currentUserStoreId: currentUser?.storeId,
+    });
+  }, [email, password, nickname, hourlyWage, mode, hasMaster, role, currentUser?.storeId]);
+
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {
-      setEmail(initialData.email || "");
-      setNickname(initialData.nickname ?? "");
-      setRole(initialData.role);
+      setEmail(UserFormValidator.sanitizeEmail(initialData.email));
+      setNickname(UserFormValidator.sanitizeNickname(initialData.nickname));
+      setRole(initialData.role ?? "user");
       setPassword("");
-      setColor(initialData.color || PRESET_COLORS[0]);
-      setHourlyWage(initialData.hourlyWage?.toString() || "");
+      setColor(initialData.color ?? PRESET_COLORS[0]);
+      setHourlyWage(UserFormValidator.formatHourlyWage(initialData.hourlyWage));
     }
   }, [initialData]);
 
-  const handleSubmit = async () => {
-    // パスワードのバリデーション
-    if (mode === "add" || password) {
-      if (!password || password.length < 6) {
-        setError("パスワードは6文字以上で入力してください");
-        return;
-      }
-    }
-
-    if (!nickname) {
-      setError("ニックネームを入力してください");
-      return;
-    }
-
-    // 現在のユーザーのstoreIdが設定されているかチェック
-    if (!currentUser?.storeId) {
-      setError("店舗IDが設定されていません");
-      return;
-    }
-
-    // メールアドレスのバリデーション（入力されている場合のみ）
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("有効なメールアドレスを入力してください");
-      return;
-    }
-
+  // Enhanced submit handler with comprehensive validation
+  const handleSubmit = useCallback(async () => {
     try {
       setError(null);
       
-      // メールアドレスを安全に生成
-      const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const autoEmail = email || `${sanitizeForEmail(currentUser.storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`;
-      
-      const formData = {
-        email: autoEmail,
-        password: password || undefined,
-        nickname,
-        role: isMasterEdit ? "master" : role,
-        color,
-        storeId: currentUser.storeId, // 現在のユーザーのstoreIdを自動設定
-        hourlyWage: hourlyWage ? parseFloat(hourlyWage) : undefined,
-      };
-      
-      
-      await onSubmit(formData);
-
-      if (mode === "add") {
-        setEmail("");
-        setPassword("");
-        setNickname("");
-        setRole("user");
-        setColor(PRESET_COLORS[0]);
+      // Comprehensive form validation
+      if (!formValidation.isValid) {
+        setError(formValidation.error || "入力内容を確認してください");
+        return;
       }
-    } catch (err: any) {
-      setError(err.message || "エラーが発生しました");
+
+      // Prepare form data with sanitized values
+      const sanitizedData = UserFormValidator.prepareSanitizedFormData({
+        email,
+        password,
+        nickname,
+        role: isMasterEdit ? "master" as const : role,
+        color,
+        storeId: currentUser?.storeId ?? "",
+        hourlyWage,
+      });
+      
+      await onSubmit(sanitizedData);
+
+      // Reset form for add mode
+      if (mode === "add") {
+        resetForm();
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "エラーが発生しました";
+      setError(errorMessage);
     }
-  };
+  }, [formValidation, email, password, nickname, role, color, currentUser?.storeId, hourlyWage, isMasterEdit, onSubmit, mode]);
+
+  // Form reset helper
+  const resetForm = useCallback(() => {
+    setEmail("");
+    setPassword("");
+    setNickname("");
+    setRole("user");
+    setColor(PRESET_COLORS[0]);
+    setHourlyWage("");
+  }, []);
 
   return (
     <View
@@ -171,7 +178,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           placeholder="example@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
-          error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "有効なメールアドレスを入力してください" : undefined}
+          error={email ? UserFormValidator.validateEmail(email).error : undefined}
         />
 
         {!email && (
@@ -186,9 +193,8 @@ export const UserForm: React.FC<UserFormProps> = ({
           label="時給（円）"
           value={hourlyWage}
           onChangeText={(text) => {
-            // 数字のみ許可
-            const numericValue = text.replace(/[^0-9]/g, "");
-            setHourlyWage(numericValue);
+            const sanitizedValue = UserFormValidator.sanitizeHourlyWage(text);
+            setHourlyWage(sanitizedValue);
           }}
           placeholder="1000"
           keyboardType="numeric"
@@ -223,9 +229,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           placeholder="新しいパスワードを入力"
           secureTextEntry
           error={
-            mode === "add" && (!password || password.length < 6)
-              ? "パスワードは6文字以上で入力してください"
-              : undefined
+            password ? UserFormValidator.validatePassword(password, mode).error : undefined
           }
         />
 
@@ -284,11 +288,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           title={mode === "edit" ? "更新" : "追加"}
           onPress={handleSubmit}
           loading={loading}
-          disabled={
-            !nickname ||
-            (!password && mode === "add") ||
-            (role === "master" && hasMaster && role !== initialData?.role)
-          }
+          disabled={!formValidation.isValid || loading}
           size={isTablet ? "medium" : "small"}
           style={[
             styles.button,
@@ -307,3 +307,225 @@ export const UserForm: React.FC<UserFormProps> = ({
     </View>
   );
 };
+
+/**
+ * User form validation and sanitization utility class
+ */
+class UserFormValidator {
+  /**
+   * Validate email format
+   */
+  static validateEmail(email: string): { isValid: boolean; error?: string } {
+    if (!email || email.trim() === "") {
+      return { isValid: true }; // Email is optional
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(email.trim());
+
+    return {
+      isValid,
+      error: isValid ? undefined : "有効なメールアドレスを入力してください",
+    };
+  }
+
+  /**
+   * Validate password
+   */
+  static validatePassword(
+    password: string,
+    mode: "add" | "edit"
+  ): { isValid: boolean; error?: string } {
+    if (mode === "edit" && (!password || password.length === 0)) {
+      return { isValid: true }; // Password is optional for edit mode
+    }
+
+    if (!password || password.length < 6) {
+      return {
+        isValid: false,
+        error: "パスワードは6文字以上で入力してください",
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Validate nickname
+   */
+  static validateNickname(nickname: string): { isValid: boolean; error?: string } {
+    const trimmed = (nickname || "").trim();
+    
+    if (!trimmed) {
+      return {
+        isValid: false,
+        error: "ニックネームを入力してください",
+      };
+    }
+
+    if (trimmed.length > 50) {
+      return {
+        isValid: false,
+        error: "ニックネームは50文字以内で入力してください",
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Validate hourly wage
+   */
+  static validateHourlyWage(hourlyWage: string): { isValid: boolean; error?: string } {
+    if (!hourlyWage || hourlyWage.trim() === "") {
+      return { isValid: true }; // Hourly wage is optional
+    }
+
+    const numericValue = parseFloat(hourlyWage);
+    
+    if (isNaN(numericValue) || numericValue < 0) {
+      return {
+        isValid: false,
+        error: "有効な時給を入力してください",
+      };
+    }
+
+    if (numericValue > 10000) {
+      return {
+        isValid: false,
+        error: "時給は10,000円以下で入力してください",
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Comprehensive form validation
+   */
+  static validateForm(params: {
+    email: string;
+    password: string;
+    nickname: string;
+    hourlyWage: string;
+    mode: "add" | "edit";
+    hasMaster: boolean;
+    role: "master" | "user";
+    currentUserStoreId?: string;
+  }): { isValid: boolean; error?: string } {
+    const {
+      email,
+      password,
+      nickname,
+      hourlyWage,
+      mode,
+      hasMaster,
+      role,
+      currentUserStoreId,
+    } = params;
+
+    // Store ID validation
+    if (!currentUserStoreId) {
+      return {
+        isValid: false,
+        error: "店舗IDが設定されていません",
+      };
+    }
+
+    // Nickname validation
+    const nicknameValidation = this.validateNickname(nickname);
+    if (!nicknameValidation.isValid) {
+      return nicknameValidation;
+    }
+
+    // Email validation
+    const emailValidation = this.validateEmail(email);
+    if (!emailValidation.isValid) {
+      return emailValidation;
+    }
+
+    // Password validation
+    const passwordValidation = this.validatePassword(password, mode);
+    if (!passwordValidation.isValid) {
+      return passwordValidation;
+    }
+
+    // Hourly wage validation
+    const wageValidation = this.validateHourlyWage(hourlyWage);
+    if (!wageValidation.isValid) {
+      return wageValidation;
+    }
+
+    // Master role validation
+    if (role === "master" && hasMaster) {
+      return {
+        isValid: false,
+        error: "マスターユーザーは既に存在します",
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Sanitize email input
+   */
+  static sanitizeEmail(email?: string): string {
+    return (email || "").trim();
+  }
+
+  /**
+   * Sanitize nickname input
+   */
+  static sanitizeNickname(nickname?: string): string {
+    return (nickname || "").trim().substring(0, 50);
+  }
+
+  /**
+   * Sanitize hourly wage input
+   */
+  static sanitizeHourlyWage(wage: string): string {
+    // Allow only numbers and decimal point
+    return (wage || "").replace(/[^0-9.]/g, "");
+  }
+
+  /**
+   * Format hourly wage for display
+   */
+  static formatHourlyWage(wage?: number): string {
+    if (!wage || !Number.isFinite(wage)) {
+      return "";
+    }
+    return wage.toString();
+  }
+
+  /**
+   * Prepare sanitized form data for submission
+   */
+  static prepareSanitizedFormData(data: {
+    email: string;
+    password: string;
+    nickname: string;
+    role: "master" | "user";
+    color: string;
+    storeId: string;
+    hourlyWage: string;
+  }) {
+    const sanitizeForEmail = (str: string) =>
+      (str || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+    const autoEmail =
+      data.email.trim() ||
+      `${sanitizeForEmail(data.storeId)}${sanitizeForEmail(data.nickname)}@example.com`;
+
+    return {
+      email: autoEmail,
+      password: data.password || undefined,
+      nickname: this.sanitizeNickname(data.nickname),
+      role: data.role,
+      color: data.color,
+      storeId: data.storeId,
+      hourlyWage: data.hourlyWage ? parseFloat(data.hourlyWage) : undefined,
+    };
+  }
+}

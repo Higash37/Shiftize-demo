@@ -1,41 +1,32 @@
 /**
- * コンポーネント共通の型定義
+ * 統合コンポーネント型定義
+ * 全コンポーネント共通の型とインターフェースを定義
+ * 
+ * @deprecated このファイルは非推奨です。
+ * 代わりに @/common/component-interfaces/componentTypes.ts を使用してください。
+ * 後方互換性のために一時的に保持されています。
  */
 import { ViewStyle, TextStyle } from "react-native";
 
-/**
- * サイズバリエーション
- */
-export type Size = "small" | "medium" | "large" | "compact";
+// 新しい型定義ファイルから統合型をインポート
+export type {
+  Variant,
+  Padding,
+  Margin,
+  Shadow,
+  Size,
+  ButtonSize,
+  ButtonVariant,
+  InputVariant,
+  FlexContainerProps,
+  BaseComponentProps,
+  ErrorMessageProps,
+  LoadingProps,
+} from '@/common/component-interfaces/componentTypes';
 
 /**
- * スタイルバリエーション
- */
-export type Variant =
-  | "primary"
-  | "secondary"
-  | "outline"
-  | "outlined"
-  | "default"
-  | "card";
-
-/**
- * パディングサイズ
- */
-export type Padding = "small" | "medium" | "large" | "none";
-
-/**
- * マージンサイズ
- */
-export type Margin = "small" | "medium" | "large" | "none";
-
-/**
- * 影の強さ
- */
-export type Shadow = "none" | "small" | "medium" | "large";
-
-/**
- * 主軸方向の配置位置（justifyContent用）
+ * 後方互換性のための非推奨型
+ * @deprecated FlexContainerProps を使用してください
  */
 export type JustifyContent =
   | "start"
@@ -46,7 +37,8 @@ export type JustifyContent =
   | "evenly";
 
 /**
- * 交差軸方向の配置位置（alignItems用）
+ * 後方互換性のための非推奨型
+ * @deprecated FlexContainerProps を使用してください
  */
 export type AlignItems =
   | "start"
@@ -56,61 +48,23 @@ export type AlignItems =
   | "baseline";
 
 /**
- * 配置位置（後方互換性のため）
+ * 後方互換性のための非推奨型
+ * @deprecated JustifyContent を使用してください
  */
 export type Alignment = JustifyContent;
 
 /**
- * 方向
+ * 後方互換性のための非推奨型
+ * @deprecated FlexContainerProps の direction プロパティを使用してください
  */
 export type Direction = "row" | "column";
 
 /**
- * フレックスコンテナプロパティ
+ * マイグレーション警告を表示するヘルパー関数
  */
-export interface FlexContainerProps {
-  /**
-   * フレックスの方向
-   */
-  direction?: Direction;
-
-  /**
-   * 主軸方向の配置（justifyContent）
-   */
-  justify?: JustifyContent;
-
-  /**
-   * 交差軸方向の配置（alignItems）
-   */
-  align?: AlignItems;
-
-  /**
-   * フレックスラップ
-   */
-  wrap?: "wrap" | "nowrap" | "wrap-reverse";
-
-  /**
-   * フレックス値
-   */
-  flex?: number;
-
-  /**
-   * アイテム間のギャップ
-   */
-  gap?: number;
-}
-
-/**
- * 基本コンポーネントプロパティ
- */
-export interface BaseComponentProps {
-  /**
-   * スタイルのオーバーライド
-   */
-  style?: any;
-
-  /**
-   * テスト用ID
-   */
-  testID?: string;
+if (__DEV__) {
+  console.warn(
+    'componentTypes.ts (common-ui) は非推奨です。' +
+    '@/common/component-interfaces/componentTypes.ts を使用してください。'
+  );
 }

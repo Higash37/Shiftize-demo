@@ -41,7 +41,7 @@ const Box: React.FC<BoxProps> = ({
   return (
     <View
       style={[
-        styles.base,
+        styles['base'],
         styles[variant as BoxStyleName],
         styles[`padding_${padding}` as BoxStyleName],
         styles[`margin_${margin}` as BoxStyleName],

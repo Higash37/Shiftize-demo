@@ -126,8 +126,8 @@ class AuditLogger {
         acc[log.eventType] = (acc[log.eventType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      firstAccess: userLogs.length > 0 ? userLogs[0].timestamp : null,
-      lastAccess: userLogs.length > 0 ? userLogs[userLogs.length - 1].timestamp : null,
+      firstAccess: userLogs.length > 0 ? userLogs[0]?.timestamp : null,
+      lastAccess: userLogs.length > 0 ? userLogs[userLogs.length - 1]?.timestamp : null,
       dataFieldsAccessed: [...new Set(userLogs.flatMap(log => log.dataFields || []))],
     };
 
@@ -195,7 +195,7 @@ export class PersonalInfoAudit {
     AuditLogger.logEvent({
       eventType: 'personal_info_access',
       userId: params.userId,
-      targetUserId: params.targetUserId,
+      ...(params.targetUserId && { targetUserId: params.targetUserId }),
       storeId: params.storeId,
       dataFields: params.dataFields,
       purpose: params.purpose,

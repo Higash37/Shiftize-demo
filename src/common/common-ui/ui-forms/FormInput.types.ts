@@ -17,7 +17,7 @@ export type InputStyleName =
  * TextInputPropsのstyleプロパティを除外してからBaseComponentPropsを拡張
  */
 export interface InputProps
-  extends Omit<TextInputProps, "style">,
+  extends Omit<TextInputProps, "style" | "accessibilityRole" | "testID" | "accessibilityLabel" | "accessibilityHint" | "accessibilityState" | "accessibilityValue">,
     BaseComponentProps {
   /**
    * 入力フィールドのラベル
