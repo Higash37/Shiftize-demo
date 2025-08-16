@@ -1,88 +1,27 @@
 import React, { useEffect } from "react";
-import { Stack, Slot, useRouter, useSegments } from "expo-router";
+import { Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
-import { View, AppState, Platform } from "react-native";
+import { View, AppState } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
-
-// Web環境でのshadow警告を抑制
-if (Platform.OS === 'web' && __DEV__) {
-  // LogBox警告を無視
-  const { LogBox } = require('react-native');
-  LogBox.ignoreLogs([
-    'shadow* style props are deprecated', 
-    'Use "boxShadow"',
-    '"shadow*" style props are deprecated. Use "boxShadow".',
-    'Layout children must be of type Screen',
-    'props.pointerEvents is deprecated'
-  ]);
-
-  // console.warn/error も抑制 - 全てコメントアウト
-  // const originalWarn = console.warn;
-  // const originalError = console.error;
-  
-  // console.warn = (...args) => {
-  //   const message = String(args[0] || '');
-  //   if (message.includes('shadow') && (message.includes('deprecated') || message.includes('boxShadow'))) {
-  //     return;
-  //   }
-  //   if (message.includes('Layout children must be of type Screen')) {
-  //     return;
-  //   }
-  //   if (message.includes('props.pointerEvents is deprecated')) {
-  //     return;
-  //   }
-  //   if (message.includes('No route named') && message.includes('exists in nested children')) {
-  //     return;
-  //   }
-  //   if (message.includes('Unexpected text node') && message.includes('A text node cannot be a child of a')) {
-  //     return;
-  //   }
-  //   originalWarn.apply(console, args);
-  // };
-
-  // console.error = (...args) => {
-  //   const message = String(args[0] || '');
-  //   if (message.includes('shadow') && (message.includes('deprecated') || message.includes('boxShadow'))) {
-  //     return;
-  //   }
-  //   if (message.includes('Layout children must be of type Screen')) {
-  //     return;
-  //   }
-  //   if (message.includes('props.pointerEvents is deprecated')) {
-  //     return;
-  //   }
-  //   if (message.includes('No route named') && message.includes('exists in nested children')) {
-  //     return;
-  //   }
-  //   if (message.includes('Unexpected text node') && message.includes('A text node cannot be a child of a')) {
-  //     return;
-  //   }
-  //   originalError.apply(console, args);
-  // };
-}
 
 function RootLayoutNav() {
   const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  
-  // 🔔 プッシュ通知初期化
-  const { isInitialized, hasPermission, error } = usePushNotifications();
 
   useEffect(() => {
     if (loading) return;
-    const inAuthGroup = segments[0] === "(auth)";
-    const inLandingGroup = segments[0] === "(landing)";
-    const inMainGroup = segments[0] === "(main)";
-    const atRoot = segments.length === 0;
-    
+    const inAuthGroup = segments?.[0] === "(auth)";
+    const inLandingGroup = segments?.[0] === "(landing)";
+    const inMainGroup = segments?.[0] === "(main)";
+    const atRoot = !segments || segments.length === 0;
+
     // デバッグ用ログ
-    console.log('Navigation Debug:', {
+    console.log("Navigation Debug:", {
       segments,
       user: !!user,
       role,
@@ -90,15 +29,15 @@ function RootLayoutNav() {
       inAuthGroup,
       inLandingGroup,
       inMainGroup,
-      atRoot
+      atRoot,
     });
-    
+
     // ルートページまたはランディングページは認証に関係なく常にアクセス可能
     if (inLandingGroup || atRoot) {
-      console.log('At root or landing - no redirect');
+      console.log("At root or landing - no redirect");
       return;
     }
-    
+
     // 認証が必要なページのチェック
     if (!user) {
       // 未認証ユーザーの場合
@@ -126,11 +65,11 @@ function RootLayoutNav() {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active" && !loading) {
         // ランディングページにいる場合は認証チェックをスキップ
-        const inLandingGroup = segments[0] === "(landing)";
+        const inLandingGroup = segments?.[0] === "(landing)";
         if (inLandingGroup) {
           return;
         }
-        
+
         // 認証状態を再確認する前に少し待つ
         timeoutId = setTimeout(() => {
           if (!user && !loading) {
@@ -176,6 +115,12 @@ export default function RootLayout() {
             text: colors.text.primary,
             border: colors.border,
             notification: colors.primary,
+          },
+          fonts: {
+            regular: { fontFamily: 'System', fontWeight: '400' },
+            medium: { fontFamily: 'System', fontWeight: '500' },
+            bold: { fontFamily: 'System', fontWeight: '700' },
+            heavy: { fontFamily: 'System', fontWeight: '900' },
           },
         }}
       >

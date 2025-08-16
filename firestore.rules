@@ -8,12 +8,14 @@ service cloud.firestore {
     }
 
     function hasAccessToStore(storeId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
       let userStoreDoc = get(/databases/$(database)/documents/userStoreAccess/$(request.auth.uid));
-      return (userStoreDoc != null && 
+      
+      return (userDoc != null && userDoc.data.storeId == storeId) ||
+             (userStoreDoc != null && 
               userStoreDoc.data != null && 
               storeId in userStoreDoc.data.storesAccess &&
-              userStoreDoc.data.storesAccess[storeId].isActive == true) ||
-             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == storeId);
+              userStoreDoc.data.storesAccess[storeId].isActive == true);
     }
 
     function isMasterOfStore(storeId) {
@@ -21,22 +23,32 @@ service cloud.firestore {
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master");
     }
 
+    // 新規教室（store）作成の管理
+    function canCreateNewStore() {
+      // 認証されたユーザーで、まだどの店舗にも属していない
+      return isAuthenticated() && 
+             (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('storeId', null) == null);
+    }
+
     // ユーザー管理 - 店舗分離 + 権限制御
     match /users/{userId} {
       // 読み取り: 認証されたユーザー（ログイン画面で必要）または同一店舗のユーザー
       allow read: if true;  // ログイン時に必要なため全読み取り可能
       
-      // 作成: 認証されたマスターユーザーが作成可能
+      // 作成: 認証されたマスターユーザーが作成可能 OR 新規教室作成
       allow create: if isAuthenticated() && 
         request.resource.data.storeId != null &&
         (
-          // マスターが作成
-          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master" &&
+          // 既存マスターが作成
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master" &&
            hasAccessToStore(request.resource.data.storeId))
           ||
-          // 初回マスター作成（usersコレクションが空の場合）
-          (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-           request.resource.data.role == "master")
+          // 新規教室作成（マスターユーザー）
+          (request.auth.uid == userId && 
+           request.resource.data.role == "master" &&
+           canCreateNewStore())
         );
       
       // 更新: 本人またはマスター（同一店舗）
@@ -55,10 +67,12 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 店舗情報
+    // 店舗情報 - 新規作成を許可
     match /stores/{storeId} {
       allow read: if hasAccessToStore(storeId);
-      allow write: if isMasterOfStore(storeId);
+      allow create: if isAuthenticated() && 
+        (canCreateNewStore() || isMasterOfStore(storeId));
+      allow update, delete: if isMasterOfStore(storeId);
     }
 
     // シフトコレクション - 店舗分離 + 所有者/マスター制御
@@ -95,17 +109,27 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 
-    // ファイルコレクション - 店舗分離
+    // ファイルコレクション - 店舗分離（緩和版）
     match /files/{docId} {
       allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
-      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      // ファイル作成時のアクセス確認を緩和
+      allow create: if isAuthenticated() && 
+        (hasAccessToStore(request.resource.data.storeId) ||
+         // フォールバック: ユーザーの storeId と一致
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == request.resource.data.storeId));
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 
-    // フォルダコレクション - 店舗分離
+    // フォルダコレクション - 店舗分離（緩和版）
     match /folders/{docId} {
       allow read: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
-      allow create: if isAuthenticated() && hasAccessToStore(request.resource.data.storeId);
+      // フォルダ作成時のアクセス確認を緩和
+      allow create: if isAuthenticated() && 
+        (hasAccessToStore(request.resource.data.storeId) ||
+         // フォールバック: ユーザーの storeId と一致
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == request.resource.data.storeId));
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 

@@ -201,4 +201,47 @@ export const loginFormStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  // Additional styles for refactored LoginForm
+  containerTablet: {
+    backgroundColor: "#eef2f7",
+  },
+  formCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    width: "100%",
+    ...shadows.medium,
+  },
+  formCardTablet: {
+    borderRadius: 20,
+    padding: 56,
+    ...shadows.large,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  formCardPC: {
+    maxWidth: 700,
+    alignSelf: "center",
+  },
+  errorContainer: {
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#f44336",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  inputFocused: {
+    borderColor: "#1565C0",
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: "#f44336",
+    borderWidth: 2,
+  },
 });

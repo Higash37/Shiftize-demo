@@ -86,8 +86,8 @@ export default function UsersScreen() {
         email: data.email, // メールアドレス更新を追加
         role: data.role,
         ...(data.password ? { password: data.password } : {}),
-        color: data.color,
-        storeId: data.storeId,
+        ...(data.color && { color: data.color }),
+        ...(data.storeId && { storeId: data.storeId }),
       };
       
       
@@ -130,7 +130,7 @@ export default function UsersScreen() {
   const handleSelectUser = (user: User) => {
     setSelectedUser({
       ...user,
-      currentPassword: userPasswords[user.uid],
+      currentPassword: userPasswords[user.uid] || '',
     });
     setIsAddingUser(false);
   };
@@ -180,7 +180,7 @@ export default function UsersScreen() {
                 onSubmit={selectedUser ? handleEditUser : handleAddUser}
                 onCancel={handleCancel}
                 initialData={selectedUser}
-                currentPassword={selectedUser?.currentPassword}
+                currentPassword={selectedUser?.currentPassword || ''}
                 error={error}
                 loading={loading}
                 mode={selectedUser ? "edit" : "add"}

@@ -178,7 +178,7 @@ export default function GanttEditScreen() {
       users={users.map((user) => ({
         uid: user.uid,
         nickname: user.nickname,
-        color: user.color,
+        ...(user.color && { color: user.color }),
       }))}
       days={days}
       loading={shiftsLoading || usersLoading}
