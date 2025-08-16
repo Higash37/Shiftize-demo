@@ -12,12 +12,6 @@ export { ShiftAPIService } from './ShiftAPIService';
 // 型定義
 export * from './api-adapter-types';
 
-// 将来追加予定のサービス（フェーズ1完了後に段階的に実装）
-// export { AuthAPIService } from './AuthAPIService';
-// export { MultiStoreAPIService } from './MultiStoreAPIService';
-// export { TaskAPIService } from './TaskAPIService';
-// export { NotificationAPIService } from './NotificationAPIService';
-// export { WageAPIService } from './WageAPIService';
 
 /**
  * API設定とヘルパー関数

@@ -14,12 +14,8 @@ import { HomeGanttTabletScreen } from "./HomeGanttTabletScreen";
 import { GanttHalfSwitch } from "../home-components/home-gantt/GanttHalfSwitch"; // 追加
 import { UserDayGanttModal } from "../home-components/home-gantt/UserDayGanttModal";
 import { useHomeGanttState } from "../home-components/home-hooks/useHomeGanttState";
-// import { GanttSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader"; // リアルタイムリスナーにより不要
-// import { useShifts } from "@/common/common-utils/util-shift/useShiftQueries";
-// import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { DateNavBar } from "../home-components/home-nav/DateNavBar";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
-// import "./home-common-screen.css"; // CSS インポートを削除
 
 export default function HomeCommonScreen() {
   const gantt = useHomeGanttState();

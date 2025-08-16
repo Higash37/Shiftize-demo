@@ -39,7 +39,6 @@ export class RecruitmentShiftService {
 
       return docRef.id;
     } catch (error) {
-      // console.error("Firestore setDoc エラー:", error);
       throw error;
     }
   }
