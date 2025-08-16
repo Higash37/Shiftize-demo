@@ -1,0 +1,107 @@
+{
+  "name": "Shiftize",
+  "short_name": "Shiftize",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
+  "description": "Shiftize - あなたのシフト管理をスマートに。効率的で直感的なスケジューリング体験を提供します。",
+  "keywords": [
+    "シフト管理",
+    "スケジューリング",
+    "Shiftize",
+    "効率化",
+    "スマート",
+    "アプリ",
+    "シフト",
+    "シフト管理アプリ",
+    "シフトスケジュール",
+    "シフト表",
+    "シフト管理ツール",
+    "シフトアプリ",
+    "シフトスケジューラー",
+    "シフトカレンダー",
+    "シフト管理システム",
+    "シフト管理アプリケーション",
+    "シフト管理ソフトウェア",
+    "シフト管理プラットフォーム",
+    "シフト管理サービス",
+    "シフト管理アシスタント",
+    "シフト管理ツール",
+    "シフトスケジューリング",
+    "シフトスケジュール管理",
+    "shift",
+    "shift management",
+    "shift scheduling",
+    "shift schedule",
+    "shift planner",
+    "shift calendar",
+    "shift management app",
+    "shift management tool",
+    "shift management software",
+    "shift management system",
+    "shift management platform",
+    "shift management service",
+    "shift management assistant",
+    "shift management application",
+    "shift management solution",
+    "shift management assistant app",
+    "shift management assistant tool",
+    "shift management assistant software",
+    "shift management assistant system",
+    "shift management assistant platform",
+    "shift management assistant service",
+    "shift management assistant application",
+    "shift management assistant solution",
+    "シフト管理アシスタント",
+    "シフト表"
+  ],
+  "icons": [
+    {
+      "src": "PWAIcon60x60.png",
+      "sizes": "60x60",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon76x76.png",
+      "sizes": "76x76",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon120x120.png",
+      "sizes": "120x120",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon167x167.png",
+      "sizes": "167x167",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAImage512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "PWAIcon1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait"
+}

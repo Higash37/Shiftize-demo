@@ -1,0 +1,101 @@
+__d(function(g,r,i,a,m,e,d){Object.defineProperty(e,"__esModule",{value:!0}),e.ShiftEmailNotificationService=e.EmailService=void 0;var n=r(d[0]);class EmailService{static config={host:"smtp.gmail.com",port:587,secure:!1,auth:{user:process.env.SMTP_USER||"placeholder@example.com",pass:process.env.SMTP_PASSWORD||"placeholder-password"}};static async sendEmail(t){try{try{const{app:s}=await r(d[2])(d[1],d.paths,"../services/firebase/firebase-core"),o=(0,n.getFunctions)(s,"asia-northeast1"),l=(0,n.httpsCallable)(o,"sendEmail"),c=await l({to:t.to,subject:t.subject,html:t.html,text:t.text});return!!c.data.success}catch(n){const t=n instanceof Error?n.message:"Unknown error";try{const{SecurityLogger:n}=await r(d[2])(d[3],d.paths,"../common/common-utils/security/securityUtils");n.logEvent({type:"system_error",userId:"system",details:`Cloud Function error: ${t}`})}catch{}return!0}}catch(n){const t=n instanceof Error?n.message:"Unknown error";try{const{SecurityLogger:n}=await r(d[2])(d[3],d.paths,"../common/common-utils/security/securityUtils");n.logEvent({type:"system_error",userId:"system",details:`Email service failed: ${t}`})}catch{}return!1}}static generateEmailTemplate(n,t,s,o){return`\n<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${n}</title>\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            line-height: 1.6;\n            color: #333;\n            max-width: 600px;\n            margin: 0 auto;\n            padding: 20px;\n            background-color: #f5f5f5;\n        }\n        .email-container {\n            background-color: white;\n            border-radius: 8px;\n            padding: 30px;\n            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n        }\n        .header {\n            text-align: center;\n            margin-bottom: 30px;\n            padding-bottom: 20px;\n            border-bottom: 2px solid #007bff;\n        }\n        .emoji {\n            font-size: 48px;\n            margin-bottom: 10px;\n        }\n        .title {\n            color: #007bff;\n            font-size: 24px;\n            font-weight: bold;\n            margin: 0;\n        }\n        .content {\n            margin-bottom: 30px;\n            font-size: 16px;\n        }\n        .shift-details {\n            background-color: #f8f9fa;\n            padding: 20px;\n            border-radius: 5px;\n            border-left: 4px solid #007bff;\n            margin: 20px 0;\n        }\n        .shift-details h3 {\n            margin-top: 0;\n            color: #007bff;\n        }\n        .detail-row {\n            display: flex;\n            justify-content: space-between;\n            margin: 10px 0;\n            padding: 5px 0;\n            border-bottom: 1px solid #eee;\n        }\n        .detail-row:last-child {\n            border-bottom: none;\n        }\n        .detail-label {\n            font-weight: bold;\n            color: #666;\n        }\n        .footer {\n            text-align: center;\n            margin-top: 30px;\n            padding-top: 20px;\n            border-top: 1px solid #eee;\n            color: #666;\n            font-size: 14px;\n        }\n        .app-name {\n            color: #007bff;\n            font-weight: bold;\n        }\n    </style>\n</head>\n<body>\n    <div class="email-container">\n        <div class="header">\n            <div class="emoji">${t}</div>\n            <h1 class="title">${n}</h1>\n        </div>\n        \n        <div class="content">\n            ${s}\n        </div>\n        \n        ${this.generateShiftDetailsSection(o)}\n        \n        <div class="footer">\n            <p>このメールは <span class="app-name">Shiftize</span> から自動送信されています。</p>\n            <p>アプリで詳細を確認し、必要に応じて対応を行ってください。</p>\n        </div>\n    </div>\n</body>\n</html>\n    `}static generateShiftDetailsSection(n){if(!n)return"";let t=`\n            <div class="detail-row">\n                <span class="detail-label">日付:</span>\n                <span>${n.shiftDate}</span>\n            </div>\n            <div class="detail-row">\n                <span class="detail-label">時間:</span>\n                <span>${n.startTime} - ${n.endTime}</span>\n            </div>\n            <div class="detail-row">\n                <span class="detail-label">担当者:</span>\n                <span>${n.userNickname}</span>\n            </div>`;return n.masterNickname&&(t+=`\n            <div class="detail-row">\n                <span class="detail-label">操作者:</span>\n                <span>${n.masterNickname}</span>\n            </div>`),n.status&&(t+=`\n            <div class="detail-row">\n                <span class="detail-label">状態:</span>\n                <span>${n.status}</span>\n            </div>`),n.reason&&(t+=`\n            <div class="detail-row">\n                <span class="detail-label">理由:</span>\n                <span>${n.reason}</span>\n            </div>`),`\n        <div class="shift-details">\n            <h3>シフト詳細</h3>${t}\n        </div>`}}e.EmailService=EmailService;e.ShiftEmailNotificationService=class ShiftEmailNotificationService{static async notifyShiftCreated(n,t){const s=`新しいシフトが追加されました - ${t.shiftDate}`,o=`\n      <p><strong>${t.userNickname}</strong>さんが新しいシフトを作成しました。</p>\n      <p>アプリで詳細を確認し、必要に応じて承認を行ってください。</p>\n    `,l=EmailService.generateEmailTemplate("新しいシフトが追加されました","📅",o,t);return EmailService.sendEmail({to:n,subject:s,html:l})}static async notifyShiftDeleted(n,t){const s=`シフトが削除されました - ${t.shiftDate}`,o=`\n      <p>こんにちは、<strong>${t.userNickname}</strong>さん</p>\n      <p><strong>${t.masterNickname}</strong>さんがあなたの以下のシフトを削除しました。</p>\n      <p>ご質問がある場合は、${t.masterNickname}さんまたは管理者にお問い合わせください。</p>\n    `,l=EmailService.generateEmailTemplate("シフトが削除されました","🗑️",o,t);return EmailService.sendEmail({to:n,subject:s,html:l})}static async notifyShiftApproved(n,t){const s=`シフトが承認されました - ${t.shiftDate}`,o=`\n      <p>こんにちは、<strong>${t.userNickname}</strong>さん</p>\n      <p><strong>${t.masterNickname}</strong>さんがあなたのシフトを承認しました！</p>\n      <p>シフトが確定しました。当日の勤務をよろしくお願いします。</p>\n    `,l=EmailService.generateEmailTemplate("シフトが承認されました","Check",o,Object.assign({},t,{status:"承認済み"}));return EmailService.sendEmail({to:n,subject:s,html:l})}}},2300,{"0":2303,"1":638,"2":644,"3":643,"paths":{}});
+__d(function(g,r,i,a,m,e,d){Object.defineProperty(e,"__esModule",{value:!0});var n=r(d[0]);Object.keys(n).forEach(function(t){"default"!==t&&"__esModule"!==t&&(t in e&&e[t]===n[t]||Object.defineProperty(e,t,{enumerable:!0,get:function(){return n[t]}}))})},2303,[2304]);
+__d(function(g,r,i,a,m,_e,d){Object.defineProperty(_e,"__esModule",{value:!0}),_e.FunctionsError=void 0,_e.connectFunctionsEmulator=connectFunctionsEmulator,_e.getFunctions=
+/**
+   * @license
+   * Copyright 2020 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+function getFunctions(n=(0,e.getApp)(),o=l){const s=(0,e._getProvider)((0,t.getModularInstance)(n),c).getImmediate({identifier:o}),u=(0,t.getDefaultEmulatorHostnameAndPort)("functions");u&&connectFunctionsEmulator(s,...u);return s},_e.httpsCallable=function httpsCallable(e,n,o){return function httpsCallable$1(e,t,n){const callable=o=>function call(e,t,n,o){const s=e._url(t);return callAtURL(e,s,n,o)}(e,t,o,n||{});return callable.stream=(n,o)=>function stream(e,t,n,o){const s=e._url(t);return streamAtURL(e,s,n,o||{})}(e,t,n,o),callable}((0,t.getModularInstance)(e),n,o)},_e.httpsCallableFromURL=function httpsCallableFromURL(e,n,o){return function httpsCallableFromURL$1(e,t,n){const callable=o=>callAtURL(e,t,o,n||{});return callable.stream=(n,o)=>streamAtURL(e,t,n,o||{}),callable}((0,t.getModularInstance)(e),n,o)};var e=r(d[0]),t=r(d[1]),n=r(d[2]);
+/**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */
+const o="type.googleapis.com/google.protobuf.Int64Value",s="type.googleapis.com/google.protobuf.UInt64Value";function mapValues(e,t){const n={};for(const o in e)e.hasOwnProperty(o)&&(n[o]=t(e[o]));return n}function encode(e){if(null==e)return null;if(e instanceof Number&&(e=e.valueOf()),"number"==typeof e&&isFinite(e))return e;if(!0===e||!1===e)return e;if("[object String]"===Object.prototype.toString.call(e))return e;if(e instanceof Date)return e.toISOString();if(Array.isArray(e))return e.map(e=>encode(e));if("function"==typeof e||"object"==typeof e)return mapValues(e,e=>encode(e));throw new Error("Data cannot be encoded in JSON: "+e)}function decode(e){if(null==e)return e;if(e["@type"])switch(e["@type"]){case o:case s:{const t=Number(e.value);if(isNaN(t))throw new Error("Data cannot be decoded from JSON: "+e);return t}default:throw new Error("Data cannot be decoded from JSON: "+e)}return Array.isArray(e)?e.map(e=>decode(e)):"function"==typeof e||"object"==typeof e?mapValues(e,e=>decode(e)):e}
+/**
+   * @license
+   * Copyright 2020 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */const c="functions",u={OK:"ok",CANCELLED:"cancelled",UNKNOWN:"unknown",INVALID_ARGUMENT:"invalid-argument",DEADLINE_EXCEEDED:"deadline-exceeded",NOT_FOUND:"not-found",ALREADY_EXISTS:"already-exists",PERMISSION_DENIED:"permission-denied",UNAUTHENTICATED:"unauthenticated",RESOURCE_EXHAUSTED:"resource-exhausted",FAILED_PRECONDITION:"failed-precondition",ABORTED:"aborted",OUT_OF_RANGE:"out-of-range",UNIMPLEMENTED:"unimplemented",INTERNAL:"internal",UNAVAILABLE:"unavailable",DATA_LOSS:"data-loss"};
+/**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */class FunctionsError extends t.FirebaseError{constructor(e,t,n){super(`${c}/${e}`,t||""),this.details=n,Object.setPrototypeOf(this,FunctionsError.prototype)}}function _errorForResponse(e,t){let n,o=function codeForHTTPStatus(e){if(e>=200&&e<300)return"ok";switch(e){case 0:case 500:return"internal";case 400:return"invalid-argument";case 401:return"unauthenticated";case 403:return"permission-denied";case 404:return"not-found";case 409:return"aborted";case 429:return"resource-exhausted";case 499:return"cancelled";case 501:return"unimplemented";case 503:return"unavailable";case 504:return"deadline-exceeded"}return"unknown"}(e),s=o;try{const e=t&&t.error;if(e){const t=e.status;if("string"==typeof t){if(!u[t])return new FunctionsError("internal","internal");o=u[t],s=t}const c=e.message;"string"==typeof c&&(s=c),n=e.details,void 0!==n&&(n=decode(n))}}catch(e){}return"ok"===o?null:new FunctionsError(o,s,n)}
+/**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */_e.FunctionsError=FunctionsError;class ContextProvider{constructor(t,n,o,s){this.app=t,this.auth=null,this.messaging=null,this.appCheck=null,this.serverAppAppCheckToken=null,(0,e._isFirebaseServerApp)(t)&&t.settings.appCheckToken&&(this.serverAppAppCheckToken=t.settings.appCheckToken),this.auth=n.getImmediate({optional:!0}),this.messaging=o.getImmediate({optional:!0}),this.auth||n.get().then(e=>this.auth=e,()=>{}),this.messaging||o.get().then(e=>this.messaging=e,()=>{}),this.appCheck||null==s||s.get().then(e=>this.appCheck=e,()=>{})}async getAuthToken(){if(this.auth)try{const e=await this.auth.getToken();return null==e?void 0:e.accessToken}catch(e){return}}async getMessagingToken(){if(this.messaging&&"Notification"in self&&"granted"===Notification.permission)try{return await this.messaging.getToken()}catch(e){return}}async getAppCheckToken(e){if(this.serverAppAppCheckToken)return this.serverAppAppCheckToken;if(this.appCheck){const t=e?await this.appCheck.getLimitedUseToken():await this.appCheck.getToken();return t.error?null:t.token}return null}async getContext(e){return{authToken:await this.getAuthToken(),messagingToken:await this.getMessagingToken(),appCheckToken:await this.getAppCheckToken(e)}}}
+/**
+   * @license
+   * Copyright 2017 Google LLC
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   */const l="us-central1",p=/^data: (.*?)(?:\n|$)/;class FunctionsService{constructor(e,t,n,o,s=l,c=(...e)=>fetch(...e)){this.app=e,this.fetchImpl=c,this.emulatorOrigin=null,this.contextProvider=new ContextProvider(e,t,n,o),this.cancelAllRequests=new Promise(e=>{this.deleteService=()=>Promise.resolve(e())});try{const e=new URL(s);this.customDomain=e.origin+("/"===e.pathname?"":e.pathname),this.region=l}catch(e){this.customDomain=null,this.region=s}}_delete(){return this.deleteService()}_url(e){const t=this.app.options.projectId;if(null!==this.emulatorOrigin){return`${this.emulatorOrigin}/${t}/${this.region}/${e}`}return null!==this.customDomain?`${this.customDomain}/${e}`:`https://${this.region}-${t}.cloudfunctions.net/${e}`}}async function postJSON(e,t,n,o){let s;n["Content-Type"]="application/json";try{s=await o(e,{method:"POST",body:JSON.stringify(t),headers:n})}catch(e){return{status:0,json:null}}let c=null;try{c=await s.json()}catch(e){}return{status:s.status,json:c}}async function makeAuthHeaders(e,t){const n={},o=await e.contextProvider.getContext(t.limitedUseAppCheckTokens);return o.authToken&&(n.Authorization="Bearer "+o.authToken),o.messagingToken&&(n["Firebase-Instance-ID-Token"]=o.messagingToken),null!==o.appCheckToken&&(n["X-Firebase-AppCheck"]=o.appCheckToken),n}async function callAtURL(e,t,n,o){const s={data:n=encode(n)},c=await makeAuthHeaders(e,o),u=function failAfter(e){let t=null;return{promise:new Promise((n,o)=>{t=setTimeout(()=>{o(new FunctionsError("deadline-exceeded","deadline-exceeded"))},e)}),cancel:()=>{t&&clearTimeout(t)}}}(o.timeout||7e4),l=await Promise.race([postJSON(t,s,c,e.fetchImpl),u.promise,e.cancelAllRequests]);if(u.cancel(),!l)throw new FunctionsError("cancelled","Firebase Functions instance was deleted.");const p=_errorForResponse(l.status,l.json);if(p)throw p;if(!l.json)throw new FunctionsError("internal","Response is not valid JSON object.");let h=l.json.data;if(void 0===h&&(h=l.json.result),void 0===h)throw new FunctionsError("internal","Response is missing data field.");return{data:decode(h)}}async function streamAtURL(e,t,n,o){var s;const c={data:n=encode(n)},u=await makeAuthHeaders(e,o);let l,h,f;u["Content-Type"]="application/json",u.Accept="text/event-stream";try{l=await e.fetchImpl(t,{method:"POST",body:JSON.stringify(c),headers:u,signal:null==o?void 0:o.signal})}catch(e){if(e instanceof Error&&"AbortError"===e.name){const e=new FunctionsError("cancelled","Request was cancelled.");return{data:Promise.reject(e),stream:{[Symbol.asyncIterator]:()=>({next:()=>Promise.reject(e)})}}}const t=_errorForResponse(0,null);return{data:Promise.reject(t),stream:{[Symbol.asyncIterator]:()=>({next:()=>Promise.reject(t)})}}}const E=new Promise((e,t)=>{h=e,f=t});null===(s=null==o?void 0:o.signal)||void 0===s||s.addEventListener("abort",()=>{const e=new FunctionsError("cancelled","Request was cancelled.");f(e)});const k=function createResponseStream(e,t,n,o){const processLine=(e,o)=>{const s=e.match(p);if(!s)return;const c=s[1];try{const e=JSON.parse(c);if("result"in e)return void t(decode(e.result));if("message"in e)return void o.enqueue(decode(e.message));if("error"in e){const t=_errorForResponse(0,e);return o.error(t),void n(t)}}catch(e){if(e instanceof FunctionsError)return o.error(e),void n(e)}},s=new TextDecoder;return new ReadableStream({start(t){let c="";return pump();async function pump(){if(null==o?void 0:o.aborted){const e=new FunctionsError("cancelled","Request was cancelled");return t.error(e),n(e),Promise.resolve()}try{const{value:u,done:l}=await e.read();if(l)return c.trim()&&processLine(c.trim(),t),void t.close();if(null==o?void 0:o.aborted){const o=new FunctionsError("cancelled","Request was cancelled");return t.error(o),n(o),void await e.cancel()}c+=s.decode(u,{stream:!0});const p=c.split("\n");c=p.pop()||"";for(const e of p)e.trim()&&processLine(e.trim(),t);return pump()}catch(e){const o=e instanceof FunctionsError?e:_errorForResponse(0,null);t.error(o),n(o)}}},cancel:()=>e.cancel()})}(l.body.getReader(),h,f,null==o?void 0:o.signal);return{stream:{[Symbol.asyncIterator](){const e=k.getReader();return{async next(){const{value:t,done:n}=await e.read();return{value:t,done:n}},return:async()=>(await e.cancel(),{done:!0,value:void 0})}}},data:E}}const h="@firebase/functions",f="0.12.9";function connectFunctionsEmulator(e,n,o){!function connectFunctionsEmulator$1(e,n,o){const s=(0,t.isCloudWorkstation)(n);e.emulatorOrigin=`http${s?"s":""}://${n}:${o}`,s&&((0,t.pingServer)(e.emulatorOrigin),(0,t.updateEmulatorBanner)("Functions",!0))}((0,t.getModularInstance)(e),n,o)}!function registerFunctions(t){(0,e._registerComponent)(new n.Component(c,(e,{instanceIdentifier:t})=>{const n=e.getProvider("app").getImmediate(),o=e.getProvider("auth-internal"),s=e.getProvider("messaging-internal"),c=e.getProvider("app-check-internal");return new FunctionsService(n,o,s,c,t)},"PUBLIC").setMultipleInstances(!0)),(0,e.registerVersion)(h,f,t),(0,e.registerVersion)(h,f,"esm2017")}()},2304,[626,628,627]);
