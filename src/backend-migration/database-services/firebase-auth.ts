@@ -58,7 +58,7 @@ export const AuthService = {
       if (!firebaseUser) throw new Error("認証ユーザーが取得できませんでした");
       return {
         uid: firebaseUser.uid,
-        nickname: firebaseUser.displayName || email.split("@")[0],
+        nickname: (firebaseUser.displayName || email.split("@")[0]) as string,
         role: email.startsWith("master@") ? "master" : "user",
       };
     } catch (error) {
@@ -123,7 +123,7 @@ export const AuthService = {
 
         // 2. ユーザープロファイルを更新（一時的なインスタンス上で）
         await updateProfile(firebaseUser, {
-          displayName: displayName,
+          displayName: displayName || null,
         });
 
         // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
@@ -135,8 +135,8 @@ export const AuthService = {
           email: email,
           createdAt: new Date(),
         };
-        if (color) userData.color = color;
-        if (storeId) userData.storeId = storeId;
+        if (color) userData["color"] = color;
+        if (storeId) userData["storeId"] = storeId;
 
 
         await setDoc(userRef, userData);
@@ -147,7 +147,7 @@ export const AuthService = {
         // 5. 作成されたユーザー情報を返す
         return {
           uid: firebaseUser.uid,
-          nickname: displayName,
+          nickname: displayName as string,
           role: email.startsWith("master@") ? "master" : "user",
           color: color,
           storeId: storeId,
@@ -185,27 +185,27 @@ export const AuthService = {
       const updateData: { [key: string]: any } = {};
 
       if (updates.nickname) {
-        updateData.nickname = updates.nickname;
-        updateData.displayName = updates.nickname;
+        updateData["nickname"] = updates.nickname;
+        updateData["displayName"] = updates.nickname;
       }
       if (updates.email) {
         // 実メールアドレスは別フィールドに保存（元のemailフィールドは変更しない）
-        updateData.realEmail = updates.email;
+        updateData["realEmail"] = updates.email;
         
         // 現在のユーザーデータを取得してパスワードを確認
         const currentUserData = await getDoc(userRef);
         if (currentUserData.exists()) {
           const userData = currentUserData.data();
-          const passwordToUse = updates.password || userData.currentPassword;
+          const passwordToUse = updates.password || userData["currentPassword"];
           
           // Firebase Authに実メールアドレスでの新しいアカウントを作成
           await AuthService.createSecondaryEmailAccount(user, updates.email, passwordToUse);
         }
       }
-      if (updates.role) updateData.role = updates.role;
-      if (updates.password) updateData.currentPassword = updates.password;
-      if (updates.color) updateData.color = updates.color;
-      if (updates.storeId) updateData.storeId = updates.storeId;
+      if (updates.role) updateData["role"] = updates.role;
+      if (updates.password) updateData["currentPassword"] = updates.password;
+      if (updates.color) updateData["color"] = updates.color;
+      if (updates.storeId) updateData["storeId"] = updates.storeId;
 
       await updateDoc(userRef, updateData);
 
@@ -222,11 +222,11 @@ export const AuthService = {
           // 現在のパスワードで再認証
           const userDoc = await getDoc(userRef);
           const userData = userDoc.data();
-          if (userData?.currentPassword) {
+          if (userData?.["currentPassword"]) {
             try {
               const credential = EmailAuthProvider.credential(
                 currentUser.email!,
-                userData.currentPassword
+                userData["currentPassword"]
               );
               await reauthenticateWithCredential(currentUser, credential);
               await updatePassword(currentUser, updates.password);
@@ -246,11 +246,11 @@ export const AuthService = {
         const data = updatedDoc.data();
         return {
           uid: updatedDoc.id,
-          role: data.role as "master" | "user",
-          nickname: data.nickname || "",
-          email: data.email, // メールアドレスを追加
-          color: data.color,
-          storeId: data.storeId,
+          role: data["role"] as "master" | "user",
+          nickname: data["nickname"] || "",
+          email: data["email"], // メールアドレスを追加
+          color: data["color"],
+          storeId: data["storeId"],
         };
       }
       return undefined;
@@ -283,16 +283,16 @@ export const AuthService = {
 
         // プロフィール更新
         await updateProfile(userCredential.user, {
-          displayName: originalUser.nickname,
+          displayName: originalUser["nickname"],
         });
 
         // Firestoreに実メールアドレス用の新しいユーザードキュメント作成
         const realEmailUserRef = doc(db, 'users', userCredential.user.uid);
         const userData: any = {
           uid: userCredential.user.uid,
-          nickname: originalUser.nickname,
+          nickname: originalUser["nickname"],
           email: realEmail, // 実メールアドレス
-          role: originalUser.role,
+          role: originalUser["role"],
           currentPassword: password,
           isActive: true,
           createdAt: new Date(),
@@ -302,9 +302,9 @@ export const AuthService = {
         };
         
         // undefined値を除外して追加
-        if (originalUser.color !== undefined) userData.color = originalUser.color;
-        if (originalUser.storeId !== undefined) userData.storeId = originalUser.storeId;
-        if (originalUser.hourlyWage !== undefined) userData.hourlyWage = originalUser.hourlyWage;
+        if (originalUser["color"] !== undefined) userData["color"] = originalUser["color"];
+        if (originalUser["storeId"] !== undefined) userData["storeId"] = originalUser["storeId"];
+        if (originalUser["hourlyWage"] !== undefined) userData["hourlyWage"] = originalUser["hourlyWage"];
         
         await setDoc(realEmailUserRef, userData);
 

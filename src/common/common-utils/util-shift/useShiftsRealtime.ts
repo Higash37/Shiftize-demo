@@ -66,7 +66,7 @@ export const useShiftsRealtime = (storeId?: string) => {
                     : [],
                 } as ShiftItem;
               })
-              .filter((shift) => shift.storeId === storeId)
+              .filter((shift) => shift["storeId"] === storeId)
               .sort((a, b) => {
                 const dateCompare = a.date.localeCompare(b.date);
                 if (dateCompare === 0) {
@@ -145,7 +145,7 @@ export const useShiftsRealtime = (storeId?: string) => {
                 : [],
             } as ShiftItem;
           })
-          .filter((shift) => shift.storeId === storeId)
+          .filter((shift) => shift["storeId"] === storeId)
           .sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);
             if (dateCompare === 0) {

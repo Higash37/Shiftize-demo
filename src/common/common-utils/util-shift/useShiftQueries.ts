@@ -59,7 +59,7 @@ export const useShifts = (storeId?: string) => {
           } as ShiftItem;
         })
         // 追加の安全チェック: storeIdが一致することを再確認
-        .filter((shift) => shift.storeId === storeId);
+        .filter((shift) => shift["storeId"] === storeId);
 
       setShifts(shiftsData);
     } catch (err) {
@@ -134,7 +134,7 @@ export const useShifts = (storeId?: string) => {
             } as ShiftItem;
           })
           // 追加の安全チェック: storeIdが一致することを再確認
-          .filter((shift) => shift.storeId === storeId)
+          .filter((shift) => shift["storeId"] === storeId)
           // JavaScriptでソート
           .sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);

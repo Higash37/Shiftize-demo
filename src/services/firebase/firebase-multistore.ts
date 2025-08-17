@@ -85,11 +85,11 @@ export const MultiStoreService = {
 
       const data = userStoreDoc.data();
       return {
-        uid: data.uid,
-        email: data.email,
-        nickname: data.nickname,
-        storesAccess: data.storesAccess || {},
-        currentStoreId: data.currentStoreId || "",
+        uid: data["uid"],
+        email: data["email"],
+        nickname: data["nickname"],
+        storesAccess: data["storesAccess"] || {},
+        currentStoreId: data["currentStoreId"] || "",
       };
     } catch (error) {
       throw error;
@@ -145,7 +145,7 @@ export const MultiStoreService = {
 
       const storeAccess: StoreAccess = {
         storeId: inviterStoreId,
-        storeName: storeData.storeName,
+        storeName: storeData["storeName"],
         role,
         nickname,
         joinedAt: new Date(),
@@ -305,7 +305,7 @@ export const MultiStoreService = {
       const userData = userDoc.data();
 
       // 店舗情報を取得
-      const storeDoc = await getDoc(doc(db, "stores", userData.storeId));
+      const storeDoc = await getDoc(doc(db, "stores", userData["storeId"]));
       if (!storeDoc.exists()) {
         throw new Error("店舗が見つかりません");
       }
@@ -314,22 +314,22 @@ export const MultiStoreService = {
 
       // userStoreAccessコレクションに移行
       const storeAccess: StoreAccess = {
-        storeId: userData.storeId,
-        storeName: storeData.storeName,
-        role: userData.role,
-        nickname: userData.nickname,
+        storeId: userData["storeId"],
+        storeName: storeData["storeName"],
+        role: userData["role"],
+        nickname: userData["nickname"],
         joinedAt: userData.createdAt?.toDate() || new Date(),
         isActive: true,
       };
 
       await setDoc(doc(db, "userStoreAccess", userUid), {
         uid: userUid,
-        email: userData.email,
-        nickname: userData.nickname,
+        email: userData["email"],
+        nickname: userData["nickname"],
         storesAccess: {
-          [userData.storeId]: storeAccess,
+          [userData["storeId"]]: storeAccess,
         },
-        currentStoreId: userData.storeId,
+        currentStoreId: userData["storeId"],
         createdAt: userData.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -611,9 +611,9 @@ export const MultiStoreService = {
             const userData = userDoc.data();
             allUsers.push({
               uid: userDoc.id,
-              nickname: userData.nickname || "名前未設定",
-              email: userData.email || "",
-              role: userData.role || "user",
+              nickname: userData["nickname"] || "名前未設定",
+              email: userData["email"] || "",
+              role: userData["role"] || "user",
               storeId: connectedStoreId,
               storeName: connectedStoreData.storeName,
               isFromOtherStore: true,
@@ -656,11 +656,11 @@ export const MultiStoreService = {
             if (storeAccess.isActive) {
               connectedStores.push({
                 storeId: storeId,
-                storeName: storeData.storeName || storeAccess.storeName,
-                adminUid: storeData.adminUid || "",
-                adminNickname: storeData.adminNickname || "",
+                storeName: storeData["storeName"] || storeAccess.storeName,
+                adminUid: storeData["adminUid"] || "",
+                adminNickname: storeData["adminNickname"] || "",
                 isActive: true,
-                createdAt: storeData.createdAt || new Date(),
+                createdAt: storeData["createdAt"] || new Date(),
               });
             }
           }

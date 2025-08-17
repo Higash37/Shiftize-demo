@@ -93,7 +93,7 @@ export class EmailNotificationService {
         endTime: shift.endTime,
         userNickname: userInfo.nickname,
         masterNickname: deletedByNickname,
-        reason,
+        reason: reason || '',
       };
 
       const emailData: EmailNotificationData = {
@@ -257,7 +257,7 @@ export class EmailNotificationService {
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,
-        text: emailData.text,
+        ...(emailData.text ? { text: emailData.text } : {}),
       });
 
       if (!success) {

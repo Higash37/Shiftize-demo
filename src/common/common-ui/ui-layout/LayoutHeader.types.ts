@@ -1,4 +1,4 @@
-import { HeaderBaseProps } from "../types";
+import { HeaderBaseProps } from "./ui-layout-types";
 
 export interface HeaderProps extends HeaderBaseProps {
   // ここに追加のプロパティがあれば定義する

@@ -53,7 +53,7 @@ export default function GanttViewScreen() {
       users={users.map((user) => ({
         uid: user.uid,
         nickname: user.nickname,
-        color: user.color,
+        color: user.color || '#000000',
       }))}
       days={days}
       currentYearMonth={currentYearMonth}

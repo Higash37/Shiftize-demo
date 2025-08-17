@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Stack, Slot, useRouter, useSegments } from "expo-router";
+import { Slot, useRouter, useSegments } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { StatusBar } from "expo-status-bar";
@@ -29,14 +29,14 @@ function RootLayoutNav() {
   const router = useRouter();
   
   // 🔔 プッシュ通知初期化
-  const { isInitialized, hasPermission, error } = usePushNotifications();
+  usePushNotifications();
 
   useEffect(() => {
     if (loading) return;
     const inAuthGroup = segments[0] === "(auth)";
     const inLandingGroup = segments[0] === "(landing)";
     const inMainGroup = segments[0] === "(main)";
-    const atRoot = segments.length === 0;
+    const atRoot = segments.length < 1;
     
     // デバッグ用ログ
     console.log('Navigation Debug:', {
@@ -65,15 +65,12 @@ function RootLayoutNav() {
         return;
       }
       // 認証グループでもない場合は何もしない（index.tsxがランディングを表示する）
-    } else {
-      // 認証済みユーザーの場合
-      if (inAuthGroup) {
-        // 認証済みユーザーが認証画面にいる場合はメインアプリへリダイレクト
-        if (role === "master") {
-          router.replace("/(main)/master/home");
-        } else if (role === "user") {
-          router.replace("/(main)/user/home");
-        }
+    } else if (inAuthGroup) {
+      // 認証済みユーザーが認証画面にいる場合はメインアプリへリダイレクト
+      if (role === "master") {
+        router.replace("/(main)/master/home");
+      } else if (role === "user") {
+        router.replace("/(main)/user/home");
       }
     }
   }, [user, role, loading, segments]);
@@ -133,6 +130,12 @@ export default function RootLayout() {
             text: colors.text.primary,
             border: colors.border,
             notification: colors.primary,
+          },
+          fonts: {
+            regular: { fontFamily: 'System', fontWeight: '400' },
+            medium: { fontFamily: 'System', fontWeight: '500' },
+            bold: { fontFamily: 'System', fontWeight: '700' },
+            heavy: { fontFamily: 'System', fontWeight: '900' },
           },
         }}
       >

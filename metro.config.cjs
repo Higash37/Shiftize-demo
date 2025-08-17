@@ -26,6 +26,13 @@ config.transformer = {
       keep_fnames: true,
     },
   },
+  // ソースマップ生成の改善
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
 };
 
 // WSL用ファイルシステム最適化
