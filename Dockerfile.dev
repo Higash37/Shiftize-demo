@@ -1,0 +1,85 @@
+# Development Dockerfile for Shiftize
+FROM node:20-alpine AS development
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Install Expo CLI globally
+RUN npm install -g @expo/cli firebase-tools
+
+# Copy package files
+COPY package*.json ./
+COPY functions/package*.json ./functions/
+
+# Install dependencies
+RUN npm install
+RUN cd functions && npm install
+
+# Copy source code
+COPY . .
+
+# Expose Expo development ports
+EXPOSE 19000 19001 19002 19006
+
+# Expose Firebase emulator ports
+EXPOSE 4000 5001 8080 9099 9199
+
+# Set environment variables for development
+ENV NODE_ENV=development
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+
+# Create development startup script
+RUN cat > /app/start-dev.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🚀 Starting Shiftize Development Environment..."
+
+# Function to kill background processes on exit
+cleanup() {
+    echo "🛑 Shutting down development servers..."
+    kill $(jobs -p) 2>/dev/null || true
+    wait
+    exit 0
+}
+
+# Trap SIGTERM and SIGINT
+trap cleanup SIGTERM SIGINT
+
+echo "📦 Installing dependencies..."
+npm install --silent
+
+echo "🔥 Starting Firebase emulators..."
+firebase emulators:start --host 0.0.0.0 &
+
+# Wait for Firebase emulators to start
+sleep 5
+
+echo "⚡ Starting Expo development server..."
+expo start --web --host 0.0.0.0 --port 19006 &
+
+echo "✅ Development environment ready!"
+echo "🌐 Web: http://localhost:19006"
+echo "🔥 Firebase UI: http://localhost:4000"
+echo "📱 Expo DevTools: http://localhost:19002"
+
+# Wait for background processes
+wait
+EOF
+
+RUN chmod +x /app/start-dev.sh
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:19006/ || exit 1
+
+# Start development server
+CMD ["/app/start-dev.sh"]

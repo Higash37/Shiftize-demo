@@ -1,0 +1,137 @@
+# Docker Compose for Shiftize Development and Production
+version: '3.8'
+
+services:
+  # Main web application
+  shiftize-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: shiftize-web
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - EXPO_PUBLIC_FIREBASE_API_KEY=${EXPO_PUBLIC_FIREBASE_API_KEY}
+      - EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=${EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN}
+      - EXPO_PUBLIC_FIREBASE_PROJECT_ID=${EXPO_PUBLIC_FIREBASE_PROJECT_ID}
+      - EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=${EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET}
+      - EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+      - EXPO_PUBLIC_FIREBASE_APP_ID=${EXPO_PUBLIC_FIREBASE_APP_ID}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - shiftize-network
+
+  # Development service (for local development)
+  shiftize-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: shiftize-dev
+    ports:
+      - "19006:19006"  # Expo dev server
+      - "19001:19001"  # Expo dev tools
+    environment:
+      - NODE_ENV=development
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/functions/node_modules
+    restart: unless-stopped
+    networks:
+      - shiftize-network
+    profiles:
+      - dev
+
+  # Firebase Emulator (for local development)
+  firebase-emulator:
+    image: node:20-alpine
+    container_name: firebase-emulator
+    working_dir: /app
+    ports:
+      - "4000:4000"    # Emulator UI
+      - "5001:5001"    # Functions
+      - "8080:8080"    # Firestore
+      - "9099:9099"    # Auth
+      - "9199:9199"    # Storage
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        npm install -g firebase-tools &&
+        firebase emulators:start --host 0.0.0.0
+      "
+    restart: unless-stopped
+    networks:
+      - shiftize-network
+    profiles:
+      - dev
+
+  # Nginx reverse proxy (for production)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: shiftize-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - shiftize-web
+    restart: unless-stopped
+    networks:
+      - shiftize-network
+    profiles:
+      - production
+
+  # Redis for session management (optional)
+  redis:
+    image: redis:alpine
+    container_name: shiftize-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - shiftize-network
+    profiles:
+      - production
+      - cache
+
+networks:
+  shiftize-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+
+# Environment variables template
+# Create a .env file with these variables:
+#
+# # Firebase Configuration
+# EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+# EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+# EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+# EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+# EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+# EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+#
+# # Application Configuration
+# NODE_ENV=production
+# APP_PORT=3000
+# APP_HOST=0.0.0.0
