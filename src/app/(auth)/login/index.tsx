@@ -32,7 +32,7 @@ export default function Login() {
 
   // URLパラメータをチェックしてデモモーダルを自動表示
   useEffect(() => {
-    if (params.demo === 'true') {
+    if (params['demo'] === 'true') {
       setShowDemoModal(true);
       // URLからパラメータを削除
       router.replace('/(auth)/login');

@@ -1,8 +1,6 @@
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { db } from "@/services/firebase/firebase-core";
-
-const auth = getAuth();
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "@/services/firebase/firebase-core";
 
 export const handleLogin = async (
   email: string,

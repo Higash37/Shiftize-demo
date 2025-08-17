@@ -20,13 +20,20 @@ import { Platform } from "react-native";
 const FirebaseCore = (() => {
   // 環境変数から設定を取得
   const firebaseConfig = {
-    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    apiKey: process.env["EXPO_PUBLIC_FIREBASE_API_KEY"] || "",
+    authDomain: process.env["EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN"] || "",
+    projectId: process.env["EXPO_PUBLIC_FIREBASE_PROJECT_ID"] || "",
+    storageBucket: process.env["EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET"] || "",
+    messagingSenderId: process.env["EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"] || "",
+    appId: process.env["EXPO_PUBLIC_FIREBASE_APP_ID"] || "",
   };
+
+  // 必須環境変数の検証
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
+    console.error("Firebase configuration missing required environment variables");
+    console.error("Current config:", firebaseConfig);
+    throw new Error("Firebase configuration is incomplete");
+  }
 
   // アプリ初期化
   const app = initializeApp(firebaseConfig);

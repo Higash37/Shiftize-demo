@@ -85,10 +85,10 @@ export const ExtendedTaskService = {
         return {
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-          validFrom: data.validFrom?.toDate() || undefined,
-          validTo: data.validTo?.toDate() || undefined,
+          createdAt: data["createdAt"]?.toDate() || new Date(),
+          updatedAt: data["updatedAt"]?.toDate() || new Date(),
+          validFrom: data["validFrom"]?.toDate() || undefined,
+          validTo: data["validTo"]?.toDate() || undefined,
         } as ExtendedTask;
       });
 
@@ -142,10 +142,10 @@ export const ExtendedTaskService = {
         return {
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-          validFrom: data.validFrom?.toDate() || undefined,
-          validTo: data.validTo?.toDate() || undefined,
+          createdAt: data["createdAt"]?.toDate() || new Date(),
+          updatedAt: data["updatedAt"]?.toDate() || new Date(),
+          validFrom: data["validFrom"]?.toDate() || undefined,
+          validTo: data["validTo"]?.toDate() || undefined,
         } as ExtendedTask;
       });
     } catch (error) {
@@ -319,7 +319,7 @@ export const TaskPerformanceService = {
       // パフォーマンス指標を計算
       const totalExecutions = executions.length;
       const totalTime = executions.reduce(
-        (sum, exec) => sum + exec.actualTimeMinutes,
+        (sum, exec) => sum + exec["actualTimeMinutes"],
         0
       );
       const averageTime = totalTime / totalExecutions || 0;

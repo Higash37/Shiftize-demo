@@ -33,27 +33,27 @@ export const normalTaskService = {
         const data = doc.data();
         tasks.push({
           id: doc.id,
-          title: data.title,
-          description: data.description,
-          status: data.status,
-          priority: data.priority,
-          createdBy: data.createdBy,
-          createdByName: data.createdByName,
-          assignedTo: data.assignedTo,
-          assignedToName: data.assignedToName,
-          storeId: data.storeId,
-          dueDate: data.dueDate?.toDate(),
-          startDate: data.startDate?.toDate(),
-          completedDate: data.completedDate?.toDate(),
-          completedBy: data.completedBy,
-          completedByName: data.completedByName,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-          currentAssignedTo: data.currentAssignedTo,
-          currentAssignedToName: data.currentAssignedToName,
-          lastActionAt: data.lastActionAt?.toDate() || data.updatedAt.toDate(),
-          tags: data.tags || [],
-          isPublic: data.isPublic || false,
+          title: data["title"],
+          description: data["description"],
+          status: data["status"],
+          priority: data["priority"],
+          createdBy: data["createdBy"],
+          createdByName: data["createdByName"],
+          assignedTo: data["assignedTo"],
+          assignedToName: data["assignedToName"],
+          storeId: data["storeId"],
+          dueDate: data["dueDate"]?.toDate(),
+          startDate: data["startDate"]?.toDate(),
+          completedDate: data["completedDate"]?.toDate(),
+          completedBy: data["completedBy"],
+          completedByName: data["completedByName"],
+          createdAt: data["createdAt"].toDate(),
+          updatedAt: data["updatedAt"].toDate(),
+          currentAssignedTo: data["currentAssignedTo"],
+          currentAssignedToName: data["currentAssignedToName"],
+          lastActionAt: data["lastActionAt"]?.toDate() || data["updatedAt"].toDate(),
+          tags: data["tags"] || [],
+          isPublic: data["isPublic"] || false,
         });
       });
 
@@ -239,10 +239,10 @@ export const normalTaskService = {
 
             memos.push({
               id: doc.id,
-              text: data.content,
-              createdBy: data.authorId,
-              createdByName: data.authorName,
-              createdAt: data.createdAt.toDate(),
+              text: data["content"],
+              createdBy: data["authorId"],
+              createdByName: data["authorName"],
+              createdAt: data["createdAt"].toDate(),
             });
           });
 
@@ -334,28 +334,28 @@ export const normalTaskService = {
           const data = doc.data();
           tasks.push({
             id: doc.id,
-            title: data.title,
-            description: data.description,
-            status: data.status,
-            priority: data.priority,
-            createdBy: data.createdBy,
-            createdByName: data.createdByName,
-            assignedTo: data.assignedTo,
-            assignedToName: data.assignedToName,
-            storeId: data.storeId,
-            dueDate: data.dueDate?.toDate(),
-            startDate: data.startDate?.toDate(),
-            completedDate: data.completedDate?.toDate(),
-            completedBy: data.completedBy,
-            completedByName: data.completedByName,
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
-            currentAssignedTo: data.currentAssignedTo,
-            currentAssignedToName: data.currentAssignedToName,
+            title: data["title"],
+            description: data["description"],
+            status: data["status"],
+            priority: data["priority"],
+            createdBy: data["createdBy"],
+            createdByName: data["createdByName"],
+            assignedTo: data["assignedTo"],
+            assignedToName: data["assignedToName"],
+            storeId: data["storeId"],
+            dueDate: data["dueDate"]?.toDate(),
+            startDate: data["startDate"]?.toDate(),
+            completedDate: data["completedDate"]?.toDate(),
+            completedBy: data["completedBy"],
+            completedByName: data["completedByName"],
+            createdAt: data["createdAt"].toDate(),
+            updatedAt: data["updatedAt"].toDate(),
+            currentAssignedTo: data["currentAssignedTo"],
+            currentAssignedToName: data["currentAssignedToName"],
             lastActionAt:
-              data.lastActionAt?.toDate() || data.updatedAt.toDate(),
-            tags: data.tags || [],
-            isPublic: data.isPublic || false,
+              data["lastActionAt"]?.toDate() || data["updatedAt"].toDate(),
+            tags: data["tags"] || [],
+            isPublic: data["isPublic"] || false,
           });
         });
 
@@ -389,7 +389,7 @@ const getUserName = async (userId: string): Promise<string> => {
 
     if (!querySnapshot.empty) {
       const userData = querySnapshot.docs[0].data();
-      return userData.nickname || "Unknown User";
+      return userData["nickname"] || "Unknown User";
     }
 
     return "Unknown User";

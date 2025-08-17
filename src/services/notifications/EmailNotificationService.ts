@@ -64,7 +64,6 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      // // console.error('Failed to send shift created email:', error);
     }
   }
 
@@ -94,7 +93,7 @@ export class EmailNotificationService {
         endTime: shift.endTime,
         userNickname: userInfo.nickname,
         masterNickname: deletedByNickname,
-        reason,
+        reason: reason || '',
       };
 
       const emailData: EmailNotificationData = {
@@ -113,7 +112,6 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      // // console.error('Failed to send shift deleted email:', error);
     }
   }
 
@@ -161,7 +159,6 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      // // console.error('Failed to send shift approved email:', error);
     }
   }
 
@@ -218,7 +215,6 @@ export class EmailNotificationService {
       return masters;
 
     } catch (error) {
-      // // console.error('Failed to get store masters:', error);
       return [];
     }
   }
@@ -245,7 +241,6 @@ export class EmailNotificationService {
 
       return null;
     } catch (error) {
-      // // console.error('Failed to get user info:', error);
       return null;
     }
   }
@@ -262,7 +257,7 @@ export class EmailNotificationService {
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,
-        text: emailData.text,
+        ...(emailData.text ? { text: emailData.text } : {}),
       });
 
       if (!success) {
@@ -271,14 +266,8 @@ export class EmailNotificationService {
 
 
     } catch (error) {
-      // // console.error('Failed to send email via EmailService:', error);
       
       // フォールバック: コンソールログ（開発時）
-      // // console.error('Email notification (fallback):', {
-      //   to: emailData.to,
-      //   subject: emailData.subject,
-      //   text: emailData.text,
-      // });
     }
   }
 

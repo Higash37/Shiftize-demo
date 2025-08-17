@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  getAuth,
   onAuthStateChanged,
   User as FirebaseUser,
   signInWithEmailAndPassword,
@@ -16,7 +15,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../../services/firebase/firebase-core";
+import { auth, db } from "../../services/firebase/firebase-core";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
@@ -131,7 +130,7 @@ export const useAuth = () => {
       try {
         // 実メールアドレスの場合、入力されたパスワードでまず試行
         userCredential = await signInWithEmailAndPassword(
-          getAuth(),
+          auth,
           firebaseAuthEmail,
           password
         );
@@ -141,7 +140,7 @@ export const useAuth = () => {
         if (emailFormatCheck && userData.currentPassword && userData.currentPassword !== password) {
           try {
             userCredential = await signInWithEmailAndPassword(
-              getAuth(),
+              auth,
               firebaseAuthEmail,
               userData.currentPassword
             );
@@ -159,7 +158,7 @@ export const useAuth = () => {
             
             // Firebase Authアカウントを作成（Firestoreのパスワードを使用）
             const newUserCredential = await createUserWithEmailAndPassword(
-              getAuth(),
+              auth,
               firebaseAuthEmail,
               userData.currentPassword
             );
@@ -175,7 +174,7 @@ export const useAuth = () => {
               uid: newUserCredential.user.uid,
               nickname: userData.nickname,
               email: firebaseAuthEmail,
-              role: userData.role,
+              role: userData["role"],
               currentPassword: userData.currentPassword,
               color: userData.color,
               storeId: userData.storeId,
@@ -208,7 +207,7 @@ export const useAuth = () => {
         uid: userCredential.user.uid,
         nickname: userData.nickname,
         role: userData.role,
-        email: userCredential.user.email || undefined,
+        ...(userCredential.user.email ? { email: userCredential.user.email } : {}),
         storeId: userData.storeId,
       });
       setRole(userData.role);
@@ -228,7 +227,7 @@ export const useAuth = () => {
       // セキュリティ: ログアウト時にCSRFトークンをクリア
       CSRFTokenManager.clearToken();
       
-      await getAuth().signOut();
+      await auth.signOut();
       // ログアウト時は店舗IDを保持する（ユーザーが明示的にログアウトした場合のみクリア）
       setUser(null);
       setRole(null);
@@ -247,7 +246,7 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       
       if (firebaseUser) {
         
@@ -267,8 +266,8 @@ export const useAuth = () => {
 
         if (userData) {
           // 削除フラグを確認
-          if (userData.deleted) {
-            await getAuth().signOut();
+          if (userData["deleted"]) {
+            await auth.signOut();
             setUser(null);
             setRole(null);
             setStoreId(null);
@@ -278,21 +277,21 @@ export const useAuth = () => {
 
           // storeIdが設定されている場合のみチェック（ログイン時のみ）
           // 既に認証済みの場合は、再度チェックしない
-          const userStoreId = userData.storeId || storeId;
+          const userStoreId = userData["storeId"] || storeId;
 
           setUser({
-            uid: userData.id || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
-            nickname: userData.nickname,
-            role: userData.role,
-            email: firebaseUser.email || undefined,
+            uid: userData["id"] || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
+            nickname: userData["nickname"],
+            role: userData["role"],
+            ...(firebaseUser.email ? { email: firebaseUser.email } : {}),
             storeId: userStoreId,
           });
-          setRole(userData.role);
+          setRole(userData["role"]);
           setStoreId(userStoreId);
           setAuthError(null); // 成功時はエラーをクリア
         } else {
           // Firebase認証をログアウト
-          await getAuth().signOut();
+          await auth.signOut();
           setUser(null);
           setRole(null);
           setStoreId(null);
@@ -326,7 +325,6 @@ export const useAuth = () => {
  */
 export const getAuthToken = async (): Promise<string | null> => {
   try {
-    const auth = getAuth();
     const currentUser = auth.currentUser;
     
     if (!currentUser) {

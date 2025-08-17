@@ -12,12 +12,6 @@ export { ShiftAPIService } from './ShiftAPIService';
 // 型定義
 export * from './api-adapter-types';
 
-// 将来追加予定のサービス（フェーズ1完了後に段階的に実装）
-// export { AuthAPIService } from './AuthAPIService';
-// export { MultiStoreAPIService } from './MultiStoreAPIService';
-// export { TaskAPIService } from './TaskAPIService';
-// export { NotificationAPIService } from './NotificationAPIService';
-// export { WageAPIService } from './WageAPIService';
 
 /**
  * API設定とヘルパー関数
@@ -49,9 +43,9 @@ export function getDebugInfo(): Record<string, any> {
   // ShiftAPIService のデバッグ情報
   try {
     const { ShiftAPIService } = require('./ShiftAPIService');
-    debugInfo.ShiftAPIService = ShiftAPIService.getDebugInfo();
+    debugInfo["ShiftAPIService"] = ShiftAPIService["getDebugInfo"]();
   } catch (error) {
-    debugInfo.ShiftAPIService = { error: 'Failed to get debug info' };
+    debugInfo["ShiftAPIService"] = { error: 'Failed to get debug info' };
   }
   
   // 将来のサービスのデバッグ情報もここに追加

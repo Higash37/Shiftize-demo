@@ -58,7 +58,6 @@ export const usePushNotifications = () => {
       setIsInitialized(true);
 
     } catch (err: any) {
-      // console.error('Failed to initialize push notifications:', err);
       setError(err.message || 'Unknown error');
       setIsInitialized(false);
     }
@@ -128,7 +127,6 @@ export const usePushNotifications = () => {
         default:
       }
     } catch (error) {
-      // console.error('Failed to handle notification tap:', error);
     }
   };
 
@@ -152,7 +150,6 @@ export const usePushNotifications = () => {
         data: { type: 'test' },
       });
     } catch (error) {
-      // console.error('Failed to send test notification:', error);
       throw error;
     }
   };
@@ -172,7 +169,6 @@ export const usePushNotifications = () => {
         user: user ? { uid: user.uid, storeId: user.storeId } : null,
       };
     } catch (error) {
-      // console.error('Failed to get debug info:', error);
       return null;
     }
   };

@@ -216,7 +216,7 @@ function generateEmailTemplate(
   title: string,
   emoji: string,
   content: string,
-  shiftData?: any
+  shiftData?: Record<string, unknown>
 ): string {
   return `
 <!DOCTYPE html>

@@ -39,7 +39,7 @@ export interface UserFormProps extends BaseUserProps {
   error?: string | null;
   initialData?: User | null;
   mode?: "add" | "edit";
-  currentPassword?: string;
+  currentPassword: string;
   color?: string;
   onColorChange?: (color: string) => void;
 }

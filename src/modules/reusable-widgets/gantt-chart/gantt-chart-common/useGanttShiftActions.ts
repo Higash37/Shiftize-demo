@@ -238,20 +238,23 @@ export function useGanttShiftActions({
       }
       
       try {
-        // 通知付き削除を使用
-        // const { ShiftAPIService } = await import("@/services/api/ShiftAPIService");
+        // 直接Firebase操作で削除
         const deletedBy = user ? { nickname: (user as any).nickname, userId: user.uid } : undefined;
         
-        // ステータスに応じて仕様通りに分岐
+        // ステータスに応じて処理分岐
         if (shift.status === "deleted") {
-          // await ShiftAPIService.deleteShift(shift.id, deletedBy);
+          await deleteDoc(doc(db, "shifts", shift.id));
         } else if (shift.status === "pending" || shift.status === "rejected") {
-          // await ShiftAPIService.deleteShift(shift.id, deletedBy);
+          await deleteDoc(doc(db, "shifts", shift.id));
         } else if (shift.status === "approved") {
-          // マスターが承認済みシフトを削除する場合は直接削除（通知付き）
-          // await ShiftAPIService.deleteShift(shift.id, deletedBy);
+          // マスターが承認済みシフトを削除する場合
+          await updateDoc(doc(db, "shifts", shift.id), {
+            status: "deleted",
+            deletedAt: serverTimestamp(),
+            deletedBy,
+          });
         } else if (shift.status === "deletion_requested") {
-          // await ShiftAPIService.deleteShift(shift.id, deletedBy);
+          await deleteDoc(doc(db, "shifts", shift.id));
         }
       } catch (error) {
         // フォールバック: 直接Firebase操作

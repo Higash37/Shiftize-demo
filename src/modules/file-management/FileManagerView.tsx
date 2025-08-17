@@ -229,10 +229,6 @@ export function FileManagerView({
   // 初期データ読み込み
   useEffect(() => {
     const initializeData = async () => {
-      // Storage同期は無効化（手動でのみ実行）
-      // if (currentFolderId === null) {
-      //   await syncStorageFiles();
-      // }
       await loadData(currentFolderId);
     };
 
@@ -475,7 +471,6 @@ export function FileManagerView({
           printedCount++;
         }
       } catch (error) {
-        // console.error(`印刷エラー: ${file.name}`, error);
       }
     }
 

@@ -287,12 +287,10 @@ export class PersonalDataDeletion {
       await PersonalInfoEncryption.secureDelete();
 
       // 2. Firebase関連の削除（実装は認証システム側で行う）
-      const { getAuth, deleteUser } = await import("firebase/auth");
+      const { deleteUser } = await import("firebase/auth");
       const { doc, deleteDoc, collection, query, where, getDocs } =
         await import("firebase/firestore");
-      const { db } = await import("@/services/firebase/firebase-core");
-
-      const auth = getAuth();
+      const { auth, db } = await import("@/services/firebase/firebase-core");
 
       // 3. Firestoreからユーザーデータを削除
       const userRef = doc(db, "users", userId);
