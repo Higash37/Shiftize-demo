@@ -10,24 +10,21 @@ service firebase.storage {
     }
     
     function hasAccessToStore(storeId) {
-      // 🔒 レガシー互換性を保ちつつセキュリティ強化
-      let userDoc = firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
-      let userStoreDoc = firestore.get(/databases/(default)/documents/userStoreAccess/$(request.auth.uid)).data;
-      
-      return (userDoc != null && userDoc.storeId == storeId) ||
-             (userStoreDoc != null && 
-              storeId in userStoreDoc.storesAccess &&
-              userStoreDoc.storesAccess[storeId].isActive == true);
+      // 🔒 カスタムトークンベースのセキュア認証（firestore.get()使用禁止）
+      return request.auth.token.storeId == storeId ||
+             (request.auth.token.storesAccess != null && 
+              storeId in request.auth.token.storesAccess &&
+              request.auth.token.storesAccess[storeId].isActive == true);
     }
     
     function isMasterOfStore(storeId) {
       return hasAccessToStore(storeId) &&
-        (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "master");
+        (request.auth.token.role == "master");
     }
     
     function isValidFile() {
       // 🔒 ファイル検証ルール強化版
-      return request.resource.size <= 50 * 1024 * 1024   // 最大50MB（セキュリティ強化）
+      return request.resource.size <= 10 * 1024 * 1024   // 最大10MB（爆弾攻撃対策）
              && request.resource.size > 0                 // 空ファイル拒否
              && (
                request.resource.contentType.matches('image/(jpeg|jpg|png|gif|webp)')  // 許可された画像のみ
@@ -68,12 +65,14 @@ service firebase.storage {
       allow delete: if isAuthenticated() && hasAccessToStore(storeId);
     }
     
-    // プロファイル画像（ユーザー個別）
+    // プロファイル画像（ユーザー個別） - 🔒 プライバシー保護強化
     match /profiles/{userId}/{filename} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId ||  // 本人のみ
+         request.auth.token.role == "master");  // またはマスターのみ
       allow write: if isAuthenticated() && request.auth.uid == userId
-                      && request.resource.contentType.matches('image/.*')
-                      && request.resource.size <= 5 * 1024 * 1024  // 5MB制限
+                      && request.resource.contentType.matches('image/(jpeg|png)')  // JPEG/PNGのみ
+                      && request.resource.size <= 2 * 1024 * 1024  // 2MB制限（攻撃対策）
                       && isValidFilename();
       allow delete: if isAuthenticated() && request.auth.uid == userId;
     }

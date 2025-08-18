@@ -38,21 +38,8 @@ function RootLayoutNav() {
     const inMainGroup = segments[0] === "(main)";
     const atRoot = segments.length < 1;
     
-    // デバッグ用ログ
-    console.log('Navigation Debug:', {
-      segments,
-      user: !!user,
-      role,
-      loading,
-      inAuthGroup,
-      inLandingGroup,
-      inMainGroup,
-      atRoot
-    });
-    
     // ルートページまたはランディングページは認証に関係なく常にアクセス可能
     if (inLandingGroup || atRoot) {
-      console.log('At root or landing - no redirect');
       return;
     }
     
