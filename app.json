@@ -22,7 +22,7 @@
       }
     },
     "web": {
-      "favicon": "./public/favicon.ico",
+      "favicon": "./public/favicon.png",
       "name": "Shiftize",
       "shortName": "シフト管理",
       "lang": "ja",
