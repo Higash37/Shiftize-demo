@@ -1,5 +1,5 @@
 import { StyleProp, TextStyle } from "react-native";
-import { BaseComponentProps } from "../../component-interfaces/componentTypes";
+import { BaseComponentProps } from "../componentTypes";
 
 /**
  * ErrorMessageコンポーネントのプロパティ

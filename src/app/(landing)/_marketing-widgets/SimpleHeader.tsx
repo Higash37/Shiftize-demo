@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { AntDesign, MaterialIcons } from '@expo/vector-icons';
-import { responsive, responsiveStyles, deviceInfo } from '../utils/responsive';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { responsive, responsiveStyles, deviceInfo } from "../utils/responsive";
 
 const SimpleHeader = () => {
   const router = useRouter();
@@ -34,22 +34,30 @@ const SimpleHeader = () => {
               <Text style={styles.previewBadgeText}>開発中（プレビュー）</Text>
             </View>
             <View style={styles.versionBadge}>
-              <MaterialIcons name="code" size={14} color="rgba(255, 255, 255, 0.9)" />
+              <MaterialIcons
+                name="code"
+                size={14}
+                color="rgba(255, 255, 255, 0.9)"
+              />
               <Text style={styles.versionBadgeText}>v3.2.0</Text>
             </View>
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.demoButton}
-            onPress={() => router.push('/(auth)/login?demo=true')}
+            onPress={() => router.push("/(auth)/login?demo=true")}
           >
-            <MaterialIcons name="play-circle-outline" size={16} color="#ffffff" />
+            <MaterialIcons
+              name="play-circle-outline"
+              size={16}
+              color="#ffffff"
+            />
             <Text style={styles.demoButtonText}>デモを試す</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.appButton}
-            onPress={() => router.push('/(auth)')}
+            onPress={() => router.push("/(auth)")}
           >
             <MaterialIcons name="launch" size={16} color="#3b82f6" />
             <Text style={styles.appButtonText}>アプリを開く</Text>
@@ -62,7 +70,7 @@ const SimpleHeader = () => {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: "#3b82f6",
     paddingTop: responsive({
       mobile: 50,
       tablet: 50,
@@ -76,58 +84,58 @@ const styles = StyleSheet.create({
       default: 16,
     }),
     borderBottomWidth: 1,
-    borderBottomColor: '#2563eb',
+    borderBottomColor: "#2563eb",
   },
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: responsiveStyles.padding(20),
     maxWidth: responsiveStyles.maxWidth(),
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
   },
   leftContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   logoContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
   },
   logo: {
     width: 48,
     height: 48,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   logoAccent: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
     width: 20,
     height: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
   },
   titleContainer: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   title: {
     fontSize: responsive({
@@ -136,8 +144,8 @@ const styles = StyleSheet.create({
       desktop: 24,
       default: 20,
     }),
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: "bold",
+    color: "#ffffff",
     marginBottom: 2,
   },
   tagline: {
@@ -147,90 +155,90 @@ const styles = StyleSheet.create({
       desktop: 12,
       default: 11,
     }),
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '500',
+    color: "rgba(255, 255, 255, 0.8)",
+    fontWeight: "500",
   },
   rightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   headerInfo: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: 4,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   previewBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   previewBadgeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   versionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: "rgba(255, 255, 255, 0.25)",
   },
   versionBadgeText: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   demoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: "#ffffff",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   demoButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   appButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   appButtonText: {
-    color: '#3b82f6',
+    color: "#3b82f6",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

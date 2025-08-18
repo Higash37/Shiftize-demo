@@ -129,6 +129,9 @@ export const MultiStoreService = {
       }
 
       const userData = userSnapshot.docs[0];
+      if (!userData) {
+        throw new Error("ユーザーデータが見つかりません");
+      }
       const userUid = userData.id;
 
       // 店舗情報を取得
@@ -154,7 +157,10 @@ export const MultiStoreService = {
 
       if (userStoreDoc.exists()) {
         // 既存のアクセス権限を更新
-        const existingData = userStoreDoc.data() as UserStoreAccess;
+        const existingData = userStoreDoc.data();
+        if (!existingData) {
+          throw new Error("ユーザーストアデータが見つかりません");
+        }
         await updateDoc(userStoreDocRef, {
           [`storesAccess.${inviterStoreId}`]: storeAccess,
           updatedAt: serverTimestamp(),
@@ -234,11 +240,11 @@ export const MultiStoreService = {
 
       return storesSnapshot.docs.map((doc) => ({
         storeId: doc.id,
-        storeName: doc.data().storeName,
-        adminUid: doc.data().adminUid,
-        adminNickname: doc.data().adminNickname,
-        isActive: doc.data().isActive || true,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        storeName: doc.data()['storeName'],
+        adminUid: doc.data()['adminUid'],
+        adminNickname: doc.data()['adminNickname'],
+        isActive: doc.data()['isActive'] || true,
+        createdAt: doc.data()['createdAt']?.toDate() || new Date(),
       }));
     } catch (error) {
       throw error;
@@ -318,7 +324,7 @@ export const MultiStoreService = {
         storeName: storeData["storeName"],
         role: userData["role"],
         nickname: userData["nickname"],
-        joinedAt: userData.createdAt?.toDate() || new Date(),
+        joinedAt: userData['createdAt']?.toDate() || new Date(),
         isActive: true,
       };
 
@@ -330,7 +336,7 @@ export const MultiStoreService = {
           [userData["storeId"]]: storeAccess,
         },
         currentStoreId: userData["storeId"],
-        createdAt: userData.createdAt || serverTimestamp(),
+        createdAt: userData['createdAt'] || serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
@@ -384,14 +390,14 @@ export const MultiStoreService = {
 
       // パスワードの検証
       if (
-        !toStoreData.connectionPassword ||
-        toStoreData.connectionPassword !== connectionPassword
+        !toStoreData['connectionPassword'] ||
+        toStoreData['connectionPassword'] !== connectionPassword
       ) {
         throw new Error("連携パスワードが正しくありません");
       }
 
       // パスワードの有効期限チェック
-      const expiryDate = toStoreData.connectionPasswordExpiry?.toDate();
+      const expiryDate = toStoreData['connectionPasswordExpiry']?.toDate();
       if (!expiryDate || expiryDate < new Date()) {
         throw new Error("連携パスワードの有効期限が切れています");
       }
@@ -406,14 +412,14 @@ export const MultiStoreService = {
 
       // 両方の店舗に相手の店舗IDを追加
       await updateDoc(doc(db, "stores", toStoreId), {
-        connectedStores: [...(toStoreData.connectedStores || []), fromStoreId],
+        connectedStores: [...(toStoreData['connectedStores'] || []), fromStoreId],
         connectionPassword: null, // パスワードをクリア
         connectionPasswordExpiry: null,
         updatedAt: serverTimestamp(),
       });
 
       await updateDoc(doc(db, "stores", fromStoreId), {
-        connectedStores: [...(fromStoreData.connectedStores || []), toStoreId],
+        connectedStores: [...(fromStoreData['connectedStores'] || []), toStoreId],
         updatedAt: serverTimestamp(),
       });
 
@@ -477,8 +483,8 @@ export const MultiStoreService = {
       if (!updatedStoresAccess[storeId1]) {
         updatedStoresAccess[storeId1] = {
           storeId: storeId1,
-          storeName: store1Data.storeName,
-          role: userAccess.uid === store1Data.adminUid ? "master" : "master", // 連携は基本master権限
+          storeName: store1Data['storeName'],
+          role: userAccess.uid === store1Data['adminUid'] ? "master" : "master", // 連携は基本master権限
           nickname: userAccess.nickname,
           joinedAt: new Date(),
           isActive: true,
@@ -489,8 +495,8 @@ export const MultiStoreService = {
       if (!updatedStoresAccess[storeId2]) {
         updatedStoresAccess[storeId2] = {
           storeId: storeId2,
-          storeName: store2Data.storeName,
-          role: userAccess.uid === store2Data.adminUid ? "master" : "master", // 連携は基本master権限
+          storeName: store2Data['storeName'],
+          role: userAccess.uid === store2Data['adminUid'] ? "master" : "master", // 連携は基本master権限
           nickname: userAccess.nickname,
           joinedAt: new Date(),
           isActive: true,
@@ -525,7 +531,7 @@ export const MultiStoreService = {
       if (store1Doc.exists()) {
         const store1Data = store1Doc.data();
         const updatedConnectedStores = (
-          store1Data.connectedStores || []
+          store1Data['connectedStores'] || []
         ).filter((id: string) => id !== storeId2);
         await updateDoc(doc(db, "stores", storeId1), {
           connectedStores: updatedConnectedStores,
@@ -536,7 +542,7 @@ export const MultiStoreService = {
       if (store2Doc.exists()) {
         const store2Data = store2Doc.data();
         const updatedConnectedStores = (
-          store2Data.connectedStores || []
+          store2Data['connectedStores'] || []
         ).filter((id: string) => id !== storeId1);
         await updateDoc(doc(db, "stores", storeId2), {
           connectedStores: updatedConnectedStores,
@@ -577,7 +583,7 @@ export const MultiStoreService = {
       if (!storeDoc.exists()) return [];
 
       const storeData = storeDoc.data();
-      const connectedStoreIds = storeData.connectedStores || [];
+      const connectedStoreIds = storeData['connectedStores'] || [];
 
       const allUsers: Array<{
         uid: string;
@@ -615,7 +621,7 @@ export const MultiStoreService = {
               email: userData["email"] || "",
               role: userData["role"] || "user",
               storeId: connectedStoreId,
-              storeName: connectedStoreData.storeName,
+              storeName: connectedStoreData['storeName'],
               isFromOtherStore: true,
             });
           });
@@ -704,7 +710,7 @@ export const MultiStoreService = {
       // store1の講師のconnectedStoresにstore2を追加/削除
       store1UsersSnapshot.forEach((userDoc) => {
         const userData = userDoc.data();
-        const currentConnected = userData.connectedStores || [];
+        const currentConnected = userData['connectedStores'] || [];
 
         let newConnectedStores: string[];
         if (action === "connect") {
@@ -735,7 +741,7 @@ export const MultiStoreService = {
       // store2の講師のconnectedStoresにstore1を追加/削除
       store2UsersSnapshot.forEach((userDoc) => {
         const userData = userDoc.data();
-        const currentConnected = userData.connectedStores || [];
+        const currentConnected = userData['connectedStores'] || [];
 
         let newConnectedStores: string[];
         if (action === "connect") {

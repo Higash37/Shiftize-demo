@@ -194,8 +194,8 @@ export const ShiftService = {
       const shiftData = shiftDoc.data();
 
       // pendingからapprovedへの変更、またはrequestedChangesがある場合に通知
-      const isPendingToApproved = shiftData?.status === "pending";
-      const hasRequestedChanges = shiftData?.requestedChanges;
+      const isPendingToApproved = shiftData?.["status"] === "pending";
+      const hasRequestedChanges = shiftData?.["requestedChanges"];
 
       if (hasRequestedChanges) {
         // requestedChangesがある場合：変更内容を適用
@@ -229,7 +229,7 @@ export const ShiftService = {
             await ShiftNotificationService.notifyShiftApproved(
               shift,
               approver.nickname,
-              shiftData.nickname || 'Unknown User'
+              shiftData["nickname"] || 'Unknown User'
             );
           }
         } catch (notificationError) {

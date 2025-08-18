@@ -149,8 +149,7 @@ export const AuthService = {
           uid: firebaseUser.uid,
           nickname: displayName as string,
           role: email.startsWith("master@") ? "master" : "user",
-          color: color,
-          storeId: storeId,
+          ...(storeId && { storeId }),
         };
       } catch (error) {
         // エラーが発生した場合は一時的なアプリを削除

@@ -112,5 +112,5 @@ export interface BaseComponentProps {
   /**
    * テスト用ID
    */
-  testID?: string;
+  testID?: string | undefined;
 }

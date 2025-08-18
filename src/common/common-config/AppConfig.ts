@@ -182,7 +182,7 @@ const getEmailConfig = (): EmailConfigType => {
  * 現在の環境の判定
  */
 const getCurrentEnvironment = (): Environment => {
-  const nodeEnv = process.env.NODE_ENV;
+  const nodeEnv = process.env['NODE_ENV'];
   
   if (nodeEnv === 'production') return 'production';
   if (nodeEnv === 'test') return 'test';
@@ -226,22 +226,30 @@ const initializeAppConfig = (): AppConfigType => {
     };
 
     // 設定の初期化成功をログに記録
-    SecurityLogger.logEvent({
-      type: 'system_event',
-      userId: 'system',
-      details: `App configuration initialized successfully for ${environment} environment on ${Platform.OS}`,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(() => {});
+    try {
+      SecurityLogger.logEvent({
+        type: 'system_event',
+        userId: 'system',
+        details: `App configuration initialized successfully for ${environment} environment on ${Platform.OS}`,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
+      });
+    } catch (e) {
+      // ログ記録の失敗は無視
+    }
 
     return config;
   } catch (error) {
     // 設定の初期化失敗をログに記録
-    SecurityLogger.logEvent({
-      type: 'system_error',
-      userId: 'system',
-      details: `App configuration initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
-    }).catch(() => {});
+    try {
+      SecurityLogger.logEvent({
+        type: 'system_error',
+        userId: 'system',
+        details: `App configuration initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server-side',
+      });
+    } catch (e) {
+      // ログ記録の失敗は無視
+    }
 
     throw error;
   }
@@ -260,7 +268,7 @@ export const getConfig = (): AppConfigType => AppConfig;
 /**
  * Firebase設定の取得
  */
-export const getFirebaseConfig = (): FirebaseConfigType => AppConfig.firebase;
+export const getFirebaseConfigFromApp = (): FirebaseConfigType => AppConfig.firebase;
 
 /**
  * 現在のプロジェクトIDの取得

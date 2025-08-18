@@ -34,7 +34,7 @@ const Hero = () => {
 
           {/* Main Headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-shadow leading-tight">
-            シフト管理の
+            シフト管理の{" "}
             <span className="gradient-text block">煩雑さから解放</span>
           </h1>
 
@@ -45,7 +45,7 @@ const Hero = () => {
             <span className="font-semibold text-blue-600">
               Excelからの移行も簡単
             </span>
-            、
+            、{" "}
             <span className="font-semibold text-indigo-600">
               月間作業時間を80%削減
             </span>

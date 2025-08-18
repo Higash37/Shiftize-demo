@@ -3,7 +3,7 @@ import {
   Size,
   Variant,
   BaseComponentProps,
-} from "../../component-interfaces/componentTypes";
+} from "../componentTypes";
 
 /**
  * ボタンのスタイル名

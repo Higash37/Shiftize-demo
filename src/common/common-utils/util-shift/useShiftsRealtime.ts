@@ -41,28 +41,28 @@ export const useShiftsRealtime = (storeId?: string) => {
                 const data = doc.data();
                 return {
                   id: doc.id,
-                  userId: data.userId || "",
-                  storeId: data.storeId || "",
-                  nickname: data.nickname,
-                  date: data.date,
-                  startTime: data.startTime,
-                  endTime: data.endTime,
-                  type: data.type || "user",
-                  subject: data.subject,
-                  isCompleted: data.isCompleted || false,
-                  status: data.status as ShiftStatus,
-                  duration: data.duration?.toString() || "0",
-                  createdAt: data.createdAt?.toDate() || new Date(),
-                  updatedAt: data.updatedAt?.toDate() || new Date(),
-                  requestedChanges: data.requestedChanges?.map((change: any) => ({
+                  userId: data['userId'] || "",
+                  storeId: data['storeId'] || "",
+                  nickname: data['nickname'],
+                  date: data['date'],
+                  startTime: data['startTime'],
+                  endTime: data['endTime'],
+                  type: data['type'] || "user",
+                  subject: data['subject'],
+                  isCompleted: data['isCompleted'] || false,
+                  status: data['status'] as ShiftStatus,
+                  duration: data['duration']?.toString() || "0",
+                  createdAt: data['createdAt']?.toDate() || new Date(),
+                  updatedAt: data['updatedAt']?.toDate() || new Date(),
+                  requestedChanges: data['requestedChanges']?.map((change: any) => ({
                     startTime: change.startTime,
                     endTime: change.endTime,
-                    date: data.date,
-                    subject: data.subject,
+                    date: data['date'],
+                    subject: data['subject'],
                   })),
-                  classes: Array.isArray(data.classes) ? data.classes : [],
-                  extendedTasks: Array.isArray(data.extendedTasks)
-                    ? data.extendedTasks
+                  classes: Array.isArray(data['classes']) ? data['classes'] : [],
+                  extendedTasks: Array.isArray(data['extendedTasks'])
+                    ? data['extendedTasks']
                     : [],
                 } as ShiftItem;
               })
@@ -120,28 +120,28 @@ export const useShiftsRealtime = (storeId?: string) => {
             const data = doc.data();
             return {
               id: doc.id,
-              userId: data.userId || "",
-              storeId: data.storeId || "",
-              nickname: data.nickname,
-              date: data.date,
-              startTime: data.startTime,
-              endTime: data.endTime,
-              type: data.type || "user",
-              subject: data.subject,
-              isCompleted: data.isCompleted || false,
-              status: data.status as ShiftStatus,
-              duration: data.duration?.toString() || "0",
-              createdAt: data.createdAt?.toDate() || new Date(),
-              updatedAt: data.updatedAt?.toDate() || new Date(),
-              requestedChanges: data.requestedChanges?.map((change: any) => ({
+              userId: data['userId'] || "",
+              storeId: data['storeId'] || "",
+              nickname: data['nickname'],
+              date: data['date'],
+              startTime: data['startTime'],
+              endTime: data['endTime'],
+              type: data['type'] || "user",
+              subject: data['subject'],
+              isCompleted: data['isCompleted'] || false,
+              status: data['status'] as ShiftStatus,
+              duration: data['duration']?.toString() || "0",
+              createdAt: data['createdAt']?.toDate() || new Date(),
+              updatedAt: data['updatedAt']?.toDate() || new Date(),
+              requestedChanges: data['requestedChanges']?.map((change: any) => ({
                 startTime: change.startTime,
                 endTime: change.endTime,
-                date: data.date,
-                subject: data.subject,
+                date: data['date'],
+                subject: data['subject'],
               })),
-              classes: Array.isArray(data.classes) ? data.classes : [],
-              extendedTasks: Array.isArray(data.extendedTasks)
-                ? data.extendedTasks
+              classes: Array.isArray(data['classes']) ? data['classes'] : [],
+              extendedTasks: Array.isArray(data['extendedTasks'])
+                ? data['extendedTasks']
                 : [],
             } as ShiftItem;
           })

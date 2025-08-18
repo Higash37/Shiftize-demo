@@ -169,15 +169,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         isPC && styles.formCardPC
       ]}>
         <Box variant="card">
-          <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20}}>ログイン</Text>
-          
+          <View style={{marginBottom: 20}}>
+            <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center'}}>ログイン</Text>
+          </View>
           {/* エラーメッセージ */}
           {errorMessage && (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{errorMessage}</Text>
             </View>
           )}
-          
           {/* ログイン方式切り替えタブ */}
           <View style={{flexDirection: 'row', marginBottom: 20, backgroundColor: '#f0f0f0', borderRadius: 8}}>
             <TouchableOpacity
@@ -193,11 +193,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               }}
               onPress={() => setLoginMode('storeId')}
             >
-              <MaterialIcons 
-                name="store" 
-                size={18} 
-                color={loginMode === 'storeId' ? '#fff' : '#007bff'} 
-              />
+              <MaterialIcons name="store" size={18} color={loginMode === 'storeId' ? '#fff' : '#007bff'} />
               <Text style={{
                 fontSize: 14,
                 fontWeight: '500',
@@ -220,11 +216,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               }}
               onPress={() => setLoginMode('email')}
             >
-              <MaterialIcons 
-                name="email" 
-                size={18} 
-                color={loginMode === 'email' ? '#fff' : '#007bff'} 
-              />
+              <MaterialIcons name="email" size={18} color={loginMode === 'email' ? '#fff' : '#007bff'} />
               <Text style={{
                 fontSize: 14,
                 fontWeight: '500',
@@ -282,7 +274,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               />
             </View>
           )}
-
           {/* パスワード入力 */}
           <View style={{marginBottom: 20}}>
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8}}>
@@ -304,7 +295,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               secureTextEntry
             />
           </View>
-          
           {/* ログインボタン */}
           <TouchableOpacity
             style={{
@@ -326,7 +316,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               {loading ? "ログイン中..." : "ログイン"}
             </Text>
           </TouchableOpacity>
-
         </Box>
 
         {/* デモリンク - ボックス外 */}
@@ -429,8 +418,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 textAlign: 'center',
                 lineHeight: 20,
               }}>
-                体験したい役割を選択してください。{'\n'}
-                自動でログイン情報が入力されます。
+                体験したい役割を選択してください。{'\n'}自動でログイン情報が入力されます。
               </Text>
 
               {/* 役割選択ボタン */}

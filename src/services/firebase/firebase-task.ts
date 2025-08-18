@@ -30,11 +30,11 @@ export const TaskService = {
 
     let tasks = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      title: doc.data().title || "",
-      frequency: doc.data().frequency || "",
-      timePerTask: doc.data().timePerTask || "",
-      description: doc.data().description || "",
-      storeId: doc.data().storeId || "",
+      title: doc.data()["title"] || "",
+      frequency: doc.data()["frequency"] || "",
+      timePerTask: doc.data()["timePerTask"] || "",
+      description: doc.data()["description"] || "",
+      storeId: doc.data()["storeId"] || "",
     }));
 
     if (storeId) {

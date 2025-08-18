@@ -2,20 +2,15 @@ import { useState, useEffect } from "react";
 import {
   onAuthStateChanged,
   User as FirebaseUser,
-  signInWithEmailAndPassword,
+  signInWithCustomToken,
 } from "firebase/auth";
+import { httpsCallable } from "firebase/functions";
 import { User } from "./auth";
 import {
   doc,
   getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
 } from "firebase/firestore";
-import { auth, db } from "../firebase/firebase-core";
+import { auth, db, functions } from "../firebase/firebase-core";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
@@ -107,131 +102,66 @@ export const useAuth = () => {
         storeIdToUse = storeId;
       }
 
-      // Firestoreからユーザー情報を取得（自動生成メール + 実メール両方に対応）
-      const { UserService } = await import("../firebase/firebase-user");
-      const userInfo = await UserService.findUserByEmail(emailToUse);
+      // 🔒 セキュアログイン: Cloud Function経由でサーバーサイド認証
+      const secureLoginFunction = httpsCallable(functions, 'secureLogin');
       
+      const loginResult = await secureLoginFunction({
+        email: emailToUse,
+        password: password,
+        storeId: storeIdToUse
+      });
       
-      if (!userInfo) {
-        throw new Error("ユーザーが見つかりません");
-      }
-
-      const userData = userInfo;
-
-      // 削除フラグを確認
-      if (userData.deleted) {
-        throw new Error("このユーザーは削除されています");
-      }
-
-      // 店舗ID確認（実メールアドレスの場合はFirestoreのstoreIdを使用）
-      if (emailFormatCheck) {
-        storeIdToUse = userData.storeId;
-      } else if (userData.storeId !== storeIdToUse) {
-        throw new Error("店舗IDが一致しません");
-      }
-
-      // パスワード確認
-      if (userData.currentPassword !== password) {
-        throw new Error("パスワードが正しくありません");
-      }
-
-      // Firebase Authでのログイン
-      const firebaseAuthEmail = emailFormatCheck ? emailToUse : userData.email;
+      const { customToken, user: userData } = loginResult.data as any;
       
-      
-      let userCredential;
-      try {
-        // 実メールアドレスの場合、入力されたパスワードでまず試行
-        userCredential = await signInWithEmailAndPassword(
-          auth,
-          firebaseAuthEmail,
-          password
-        );
-      } catch (authError: any) {
-        
-        // 入力されたパスワードで失敗した場合、Firestoreのパスワードで試行
-        if (emailFormatCheck && userData.currentPassword && userData.currentPassword !== password) {
-          try {
-            userCredential = await signInWithEmailAndPassword(
-              auth,
-              firebaseAuthEmail,
-              userData.currentPassword
-            );
-          } catch (firestorePasswordError: any) {
-            authError = firestorePasswordError; // 最後のエラーを保持
-          }
-        }
-        
-        if (!userCredential) {
-          
-          // 実メールアドレスでログインしようとしてアカウントが見つからない場合、自動作成を試行
-          if (emailFormatCheck && authError.code === 'auth/user-not-found') {
-            try {
-            const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
-            
-            // Firebase Authアカウントを作成（Firestoreのパスワードを使用）
-            const newUserCredential = await createUserWithEmailAndPassword(
-              auth,
-              firebaseAuthEmail,
-              userData.currentPassword
-            );
-            
-            // プロフィール更新
-            await updateProfile(newUserCredential.user, {
-              displayName: userData.nickname,
-            });
-            
-            // Firestoreに実メールアドレス用のユーザードキュメントを作成
-            const realEmailUserRef = doc(db, 'users', newUserCredential.user.uid);
-            await setDoc(realEmailUserRef, {
-              uid: newUserCredential.user.uid,
-              nickname: userData.nickname,
-              email: firebaseAuthEmail,
-              role: userData.role,
-              currentPassword: userData.currentPassword,
-              color: userData.color,
-              storeId: userData.storeId,
-              hourlyWage: userData.hourlyWage,
-              isActive: userData.isActive,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              originalUserId: userData.id,
-            });
-            
-            // 元のFirestoreドキュメントに実メールアドレス情報を追加
-            const originalUserRef = doc(db, 'users', userData.id);
-            await updateDoc(originalUserRef, {
-              realEmail: firebaseAuthEmail,
-              realEmailUserId: newUserCredential.user.uid,
-              updatedAt: new Date(),
-            });
-            
-            userCredential = newUserCredential;
-          } catch (createError: any) {
-            throw new Error("Firebase認証アカウントの作成に失敗しました: " + createError.message);
-          }
-          } else {
-            throw new Error("Firebase認証に失敗しました: " + authError.message);
-          }
-        }
+      if (!customToken || !userData) {
+        throw new Error("認証に失敗しました");
       }
 
+      // Firebase Authカスタムトークンでサインイン  
+      const userCredential = await signInWithCustomToken(auth, customToken);
+
+      // ✅ 認証成功: ユーザー情報を設定
       setUser({
-        uid: userCredential.user.uid,
+        uid: userData.uid,
         nickname: userData.nickname,
+        email: userData.email,
         role: userData.role,
-        email: userCredential.user.email || undefined,
         storeId: userData.storeId,
+        deleted: false,
       });
       setRole(userData.role);
       setStoreId(userData.storeId);
-      setAuthError(null);
+
+      // 店舗IDを保存
+      await StoreIdStorage.saveStoreId(userData.storeId);
+
+      // セキュリティ: ログイン成功ログ
+      SecurityLogger.logEvent({
+        type: 'user_login_success',
+        details: `User ${userData.nickname} logged in successfully`,
+        userAgent: navigator.userAgent,
+      });
+
     } catch (error: any) {
+      console.error("ログインエラー:", error);
       setUser(null);
       setRole(null);
       setStoreId(null);
-      setAuthError(error.message || "認証に失敗しました");
-      throw error;
+      
+      // エラーメッセージの処理
+      let errorMessage = "ログインに失敗しました";
+      if (error.code === 'functions/not-found') {
+        errorMessage = "ユーザーが見つかりません";
+      } else if (error.code === 'functions/unauthenticated') {
+        errorMessage = "パスワードが正しくありません";
+      } else if (error.code === 'functions/invalid-argument') {
+        errorMessage = "入力内容を確認してください";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setAuthError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
@@ -258,36 +188,17 @@ export const useAuth = () => {
     }
   };
 
-  // ユーザー情報取得のリトライロジック
+  // 🔒 セキュア版: サーバーサイドでユーザー情報取得済み
   const fetchUserWithRetry = async (uid: string, email?: string | null, retries = 3): Promise<any> => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        // 直接UIDで検索
-        const userDoc = await getDoc(doc(db, "users", uid));
-        const userData = userDoc.data();
-        if (userData) return userData;
-
-        // メールアドレスで検索
-        if (email) {
-          const { UserService } = await import("../firebase/firebase-user");
-          const userInfo = await UserService.findUserByEmail(email);
-          if (userInfo) return userInfo;
-        }
-        
-        return null;
-      } catch (error) {
-        // console.error(`ユーザー情報取得エラー (試行 ${i + 1}/${retries}):`, error);
-        
-        // 最後の試行または永続的なエラーの場合はエラーを投げる
-        if (i === retries - 1 || !isTemporaryError(error)) {
-          throw error;
-        }
-        
-        // リトライ前に待機（指数バックオフ）
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-      }
+    try {
+      // 直接UIDで検索（カスタムトークンで認証済みなので安全）
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const userData = userDoc.data();
+      return userData || null;
+    } catch (error) {
+      console.error('User fetch error:', error);
+      return null;
     }
-    return null;
   };
 
   useEffect(() => {
@@ -295,7 +206,7 @@ export const useAuth = () => {
       
       if (firebaseUser) {
         try {
-          // リトライ付きでユーザー情報を取得
+          // 🔒 カスタムトークンで認証済みなのでユーザー情報を安全取得
           const userData = await fetchUserWithRetry(firebaseUser.uid, firebaseUser.email);
 
           if (userData) {
@@ -310,23 +221,22 @@ export const useAuth = () => {
               return;
             }
 
-            // storeIdが設定されている場合のみチェック（ログイン時のみ）
-            // 既に認証済みの場合は、再度チェックしない
-            const userStoreId = userData.storeId || storeId;
+            // カスタムトークンにstoreId情報が含まれている
+            const userStoreId = userData.storeId;
 
             setUser({
-              uid: userData.id || firebaseUser.uid, // メール検索で見つかった場合は元のIDを使用
+              uid: firebaseUser.uid,
               nickname: userData.nickname,
               role: userData.role,
               email: firebaseUser.email || undefined,
               storeId: userStoreId,
+              deleted: false,
             });
             setRole(userData.role);
             setStoreId(userStoreId);
-            setAuthError(null); // 成功時はエラーをクリア
+            setAuthError(null);
           } else {
-            // リトライしても見つからない場合のみログアウト
-            // console.error("ユーザー情報が見つかりません（リトライ後）");
+            // ユーザー情報が見つからない場合はログアウト
             await auth.signOut();
             setUser(null);
             setRole(null);
@@ -334,19 +244,14 @@ export const useAuth = () => {
             setAuthError("ユーザー情報が見つかりません。");
           }
         } catch (error) {
-          // console.error("認証状態確認エラー:", error);
+          console.error("認証状態確認エラー:", error);
           
-          // 一時的なエラーの場合は現在の状態を維持
-          if (isTemporaryError(error)) {
-            // エラー表示はしない（ユーザー体験を損なわないため）
-          } else {
-            // 永続的なエラーの場合のみログアウト
-            await auth.signOut();
-            setUser(null);
-            setRole(null);
-            setStoreId(null);
-            setAuthError("認証エラーが発生しました。");
-          }
+          // エラーの場合はログアウト
+          await auth.signOut();
+          setUser(null);
+          setRole(null);
+          setStoreId(null);
+          setAuthError("認証エラーが発生しました。");
         }
       } else {
         setUser(null);

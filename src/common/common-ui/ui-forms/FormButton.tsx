@@ -35,11 +35,11 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <TouchableOpacity
       style={[
-        styles.base,
+        styles['base'],
         styles[variant],
         styles[`size_${size}` as ButtonStyleName],
-        fullWidth && styles.fullWidth,
-        disabled && styles.disabled,
+        fullWidth && styles['fullWidth'],
+        disabled && styles['disabled'],
         style,
       ]}
       onPress={onPress}

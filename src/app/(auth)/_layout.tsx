@@ -1,7 +1,6 @@
-import { Stack, Slot } from "expo-router";
+import { Slot, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { useAuth } from "@/services/auth/useAuth";
-import { useRouter } from "expo-router";
 import { View } from "react-native";
 
 export default function AuthLayout() {
@@ -9,7 +8,6 @@ export default function AuthLayout() {
   const router = useRouter();
   useEffect(() => {
     const checkAuth = async () => {
-      
       if (loading) return;
 
       // 認証エラーがある場合は遷移しない
@@ -26,8 +24,9 @@ export default function AuthLayout() {
         }
         if (route) {
           try {
-            await router.replace(route);
+            router.replace(route);
           } catch (navError) {
+            console.error("Navigation error:", navError);
           }
         }
       }
