@@ -25,7 +25,7 @@ export const WelcomeScreen: React.FC = () => {
   const [showServiceIntro, setShowServiceIntro] = useState(false);
   const handleCreateGroup = () => {
     // 新規グループ作成画面に遷移
-    router.push("/(auth)/create-group");
+    router.push("/(auth)/auth-create-group");
   };
 
   const handleJoinGroup = () => {
@@ -72,8 +72,7 @@ export const WelcomeScreen: React.FC = () => {
       <Box variant="default" padding="large" style={styles.content}>
         <Text style={styles.welcomeText}>始めましょう</Text>
         <Text style={styles.description}>
-          新しいグループを作成するか、{"\n"}
-          既存のグループに参加してください
+          新しいグループを作成するか、{"\n"}既存のグループに参加してください
         </Text>
 
         {/* Buttons */}

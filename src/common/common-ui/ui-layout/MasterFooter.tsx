@@ -10,7 +10,7 @@ import {
 import { colors } from "@/common/common-constants/ThemeConstants";
 import Toast from "react-native-toast-message";
 import { styles } from "./LayoutFooter.styles";
-import { TabItem } from "../ui-layout-types";
+import { TabItem } from "./ui-layout-types";
 import { MasterFooterProps } from "./LayoutFooter.types";
 
 // 管理者用フッターのタブ設定
@@ -109,7 +109,7 @@ const MASTER_TABS: TabItem[] = [
   {
     name: "settings",
     label: "設定",
-    path: "/master/settings",
+    path: "/master/master-settings",
     icon: (active: boolean) => (
       <Ionicons
         name="settings"

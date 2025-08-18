@@ -10,11 +10,14 @@ service firebase.storage {
     }
     
     function hasAccessToStore(storeId) {
+      // 🔒 レガシー互換性を保ちつつセキュリティ強化
+      let userDoc = firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
       let userStoreDoc = firestore.get(/databases/(default)/documents/userStoreAccess/$(request.auth.uid)).data;
-      return (userStoreDoc != null && 
+      
+      return (userDoc != null && userDoc.storeId == storeId) ||
+             (userStoreDoc != null && 
               storeId in userStoreDoc.storesAccess &&
-              userStoreDoc.storesAccess[storeId].isActive == true) ||
-             (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.storeId == storeId);
+              userStoreDoc.storesAccess[storeId].isActive == true);
     }
     
     function isMasterOfStore(storeId) {
@@ -23,21 +26,18 @@ service firebase.storage {
     }
     
     function isValidFile() {
-      // ファイル検証ルール
-      return request.resource.size <= 100 * 1024 * 1024  // 最大100MB（PDF用に拡張）
+      // 🔒 ファイル検証ルール強化版
+      return request.resource.size <= 50 * 1024 * 1024   // 最大50MB（セキュリティ強化）
              && request.resource.size > 0                 // 空ファイル拒否
              && (
-               request.resource.contentType.matches('image/.*')      // 画像
-               || request.resource.contentType.matches('video/.*')   // 動画  
-               || request.resource.contentType == 'application/pdf'  // PDF
-               || request.resource.contentType.matches('application/msword.*') // Word
-               || request.resource.contentType.matches('application/vnd.openxmlformats.*') // Office
-               || request.resource.contentType.matches('text/.*')    // テキスト
-               || request.resource.contentType == 'application/zip'  // ZIP
-               || request.resource.contentType == 'application/x-zip-compressed' // ZIP
+               request.resource.contentType.matches('image/(jpeg|jpg|png|gif|webp)')  // 許可された画像のみ
+               || request.resource.contentType.matches('video/(mp4|mov|avi)')         // 許可された動画のみ
+               || request.resource.contentType == 'application/pdf'                   // PDF
+               || request.resource.contentType.matches('application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)') // Word
+               || request.resource.contentType.matches('text/(plain|csv)')           // テキスト限定
              )
-             && !request.resource.contentType.matches('.*executable.*') // 実行ファイル拒否
-             && !request.resource.contentType.matches('.*script.*');    // スクリプトファイル拒否
+             && !request.resource.contentType.matches('.*(executable|script|php|js|html|svg).*') // 危険ファイル完全拒否
+             && request.resource.name.size() <= 255;     // ファイル名長さ制限
     }
     
     function isValidFilename() {

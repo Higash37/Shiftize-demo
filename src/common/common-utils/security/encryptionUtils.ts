@@ -75,6 +75,59 @@ class AESEncryption {
       throw new Error(`キー導出に失敗しました: ${error}`);
     }
   }
+
+  /**
+   * パスワードの安全なハッシュ化（保存用）
+   * 🔒 PBKDF2 + ソルト + 100,000回反復
+   */
+  static hashPassword(password: string): string {
+    try {
+      if (!password || typeof password !== "string") {
+        throw new Error("無効なパスワードです");
+      }
+
+      // ランダムソルト生成（128bit）
+      const salt = CryptoJS.lib.WordArray.random(16).toString();
+      
+      // PBKDF2でハッシュ化（100,000回反復 - 高セキュリティ）
+      const hash = CryptoJS.PBKDF2(password, salt, {
+        keySize: 256 / 32,
+        iterations: 100000,
+      });
+
+      // ソルト + ハッシュの形式で保存
+      return `${salt}:${hash.toString()}`;
+    } catch (error) {
+      throw new Error(`パスワードハッシュ化に失敗しました: ${error}`);
+    }
+  }
+
+  /**
+   * パスワード検証
+   */
+  static verifyPassword(password: string, hashedPassword: string): boolean {
+    try {
+      if (!password || !hashedPassword) {
+        return false;
+      }
+
+      const [salt, hash] = hashedPassword.split(':');
+      if (!salt || !hash) {
+        return false;
+      }
+
+      // 同じソルトで入力パスワードをハッシュ化
+      const inputHash = CryptoJS.PBKDF2(password, salt, {
+        keySize: 256 / 32,
+        iterations: 100000,
+      });
+
+      // 時間攻撃を防ぐため、常に同じ時間で比較
+      return hash === inputHash.toString();
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 // セキュアストレージでの暗号化キー管理

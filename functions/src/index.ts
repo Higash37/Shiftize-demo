@@ -1,6 +1,6 @@
 /**
  * Firebase Cloud Functions
- * メール送信機能を提供
+ * メール送信機能 + セキュア認証機能を提供
  */
 
 import * as functions from 'firebase-functions';
@@ -57,11 +57,21 @@ const getEmailConfig = () => {
 export const sendEmail = functions
   .region('asia-northeast1') // 東京リージョン
   .https.onCall(async (data: EmailData, context) => {
-    // 認証チェック
+    // 🔒 認証 + 権限チェック強化
     if (!context.auth) {
       throw new functions.https.HttpsError(
         'unauthenticated',
         'The function must be called while authenticated.'
+      );
+    }
+
+    // 🔒 メール送信権限をマスターに限定
+    const db = admin.firestore();
+    const userDoc = await db.doc(`users/${context.auth.uid}`).get();
+    if (!userDoc.exists || userDoc.data()?.role !== 'master') {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Only master users can send emails'
       );
     }
 
@@ -207,6 +217,144 @@ export const sendShiftNotification = functions
         'Failed to send notification'
       );
     }
+  });
+
+/**
+ * 管理（マスター）用: 同一店舗の講師の認証情報・プロフィールを更新
+ * - パスワード更新は Admin SDK 経由でのみ許可
+ * - 表示名や氏名などのプロフィールは Firestore `users/{uid}` を更新
+ * - 呼び出しユーザーが master で、対象ユーザーと同一店舗であることを検証
+ */
+export const adminUpdateUserCredentials = functions
+  .region('asia-northeast1')
+  .https.onCall(async (
+    data: {
+      targetUserId: string;
+      password?: string;
+      displayName?: string;
+      profileUpdates?: Partial<{
+        realName: string;
+        nickname: string;
+        phoneNumber: string;
+        address: string;
+        notes: string;
+      }>;
+    },
+    context
+  ) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'The function must be called while authenticated.'
+      );
+    }
+
+    const callerUid = context.auth.uid;
+    const targetUserId = data?.targetUserId;
+    const newPassword = data?.password;
+    const newDisplayName = data?.displayName;
+    const profileUpdates = data?.profileUpdates ?? {};
+
+    if (!targetUserId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'targetUserId is required'
+      );
+    }
+
+    // Firestore 参照
+    const db = admin.firestore();
+
+    const [callerSnap, targetSnap, callerAccessSnap] = await Promise.all([
+      db.doc(`users/${callerUid}`).get(),
+      db.doc(`users/${targetUserId}`).get(),
+      db.doc(`userStoreAccess/${callerUid}`).get(),
+    ]);
+
+    if (!callerSnap.exists) {
+      throw new functions.https.HttpsError('permission-denied', 'Caller user not found');
+    }
+    if (!targetSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Target user not found');
+    }
+
+    const caller = callerSnap.data() as any;
+    const target = targetSnap.data() as any;
+
+    if (caller?.role !== 'master') {
+      throw new functions.https.HttpsError('permission-denied', 'Only master can perform this action');
+    }
+
+    const targetStoreId: string | undefined = target?.storeId;
+    if (!targetStoreId) {
+      throw new functions.https.HttpsError('failed-precondition', 'Target user has no storeId');
+    }
+
+    // マスターの店舗アクセス検証
+    const storesAccess = (callerAccessSnap.data() as any)?.storesAccess ?? {};
+    const hasAccess =
+      (caller?.storeId && caller.storeId === targetStoreId) ||
+      (storesAccess[targetStoreId]?.isActive === true);
+
+    if (!hasAccess) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Master does not have access to the target user\'s store'
+      );
+    }
+
+    // 認証情報の更新（セキュリティ強化版）
+    if (newPassword || newDisplayName) {
+      const authUpdate: admin.auth.UpdateRequest = {};
+      
+      if (newPassword) {
+        // 🔒 パスワード要件を強化
+        if (typeof newPassword !== 'string' || 
+            newPassword.length < 12 || 
+            !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(newPassword)) {
+          throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Password must be at least 12 characters with uppercase, lowercase, number, and special character'
+          );
+        }
+        authUpdate.password = newPassword;
+        
+        // 🔒 セキュリティログ記録
+        console.log(`🔒 Admin ${callerUid} updated password for user ${targetUserId} in store ${targetStoreId}`);
+      }
+      
+      if (newDisplayName) {
+        if (typeof newDisplayName !== 'string' || newDisplayName.trim().length === 0) {
+          throw new functions.https.HttpsError('invalid-argument', 'displayName must be a non-empty string');
+        }
+        authUpdate.displayName = newDisplayName.trim();
+      }
+
+      await admin.auth().updateUser(targetUserId, authUpdate);
+    }
+
+    // Firestore プロフィールの更新（許可フィールドのみ）
+    const allowedProfileKeys = new Set(['realName', 'nickname', 'phoneNumber', 'address', 'notes']);
+    const firestoreUpdates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(profileUpdates)) {
+      if (allowedProfileKeys.has(key) && value !== undefined) {
+        firestoreUpdates[key] = value;
+      }
+    }
+
+    if (newDisplayName && !('nickname' in firestoreUpdates)) {
+      // 表示名をニックネームに同期したい場合はここで反映
+      firestoreUpdates['nickname'] = newDisplayName;
+    }
+
+    if (Object.keys(firestoreUpdates).length > 0) {
+      // storeId / role は変更不可
+      firestoreUpdates['updatedAt'] = admin.firestore.FieldValue.serverTimestamp();
+      firestoreUpdates['updatedBy'] = callerUid;
+      await db.doc(`users/${targetUserId}`).set(firestoreUpdates, { merge: true });
+    }
+
+    return { success: true };
   });
 
 /**
@@ -356,3 +504,144 @@ function generateEmailTemplate(
 </html>
   `;
 }
+
+// ========================================
+// 🔒 セキュア認証機能
+// ========================================
+
+/**
+ * セキュアログイン：サーバーサイドでユーザー検索・認証
+ * Firestore Rules の allow read: if true 問題を解決
+ */
+export const secureLogin = functions
+  .region('asia-northeast1')
+  .https.onCall(async (data: {
+    email: string;
+    password: string;
+    storeId?: string;
+  }) => {
+    const { email, password, storeId } = data;
+
+    // 入力検証
+    if (!email || !password) {
+      throw new functions.https.HttpsError('invalid-argument', 'Email and password required');
+    }
+
+    const db = admin.firestore();
+
+    try {
+      console.log('🔐 Secure login attempt:', { email, hasStoreId: !!storeId });
+      
+      // 🔒 サーバーサイドでユーザー検索（クライアントから隠蔽）
+      let userQuery;
+      const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      
+      console.log('📧 Email format check:', { email, isEmailFormat });
+      
+      if (isEmailFormat) {
+        // 実メールアドレス検索
+        console.log('🔍 Searching by real email:', email);
+        userQuery = await db.collection('users').where('email', '==', email).get();
+      } else {
+        // 店舗ID + ニックネーム検索
+        if (!storeId) {
+          console.log('❌ Store ID missing for nickname login');
+          throw new functions.https.HttpsError('invalid-argument', 'Store ID required for nickname login');
+        }
+        const generatedEmail = `${storeId}${email}@example.com`;
+        console.log('🔍 Searching by generated email:', generatedEmail);
+        userQuery = await db.collection('users').where('email', '==', generatedEmail).get();
+      }
+      
+      console.log('📊 Query result:', { isEmpty: userQuery.empty, size: userQuery.size });
+
+      if (userQuery.empty) {
+        throw new functions.https.HttpsError('not-found', 'User not found');
+      }
+
+      const userDoc = userQuery.docs[0];
+      const userData = userDoc.data();
+
+      console.log('👤 Found user:', { 
+        uid: userDoc.id, 
+        email: userData.email, 
+        nickname: userData.nickname,
+        role: userData.role,
+        hasCurrentPassword: !!userData.currentPassword,
+        hasHashedPassword: !!userData.hashedPassword,
+        deleted: !!userData.deleted
+      });
+
+      // アカウント状態チェック
+      if (userData.deleted) {
+        console.log('❌ Account is deleted');
+        throw new functions.https.HttpsError('failed-precondition', 'Account deleted');
+      }
+
+      // 🔒 サーバーサイドでパスワード検証
+      let passwordValid = false;
+      
+      console.log('🔑 Starting password verification');
+      
+      if (userData.hashedPassword) {
+        // 新方式：ハッシュ化パスワード検証
+        console.log('🔐 Using hashed password verification');
+        try {
+          const crypto = require('crypto');
+          const [salt, hash] = userData.hashedPassword.split(':');
+          const testHash = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex');
+          passwordValid = hash === testHash;
+          console.log('🔐 Hashed password check result:', passwordValid);
+        } catch (hashError) {
+          console.error('❌ Hashed password verification error:', hashError);
+        }
+      } else if (userData.currentPassword) {
+        // レガシー：平文パスワード（移行期間のみ）
+        console.log('🔓 Using legacy password verification');
+        passwordValid = userData.currentPassword === password;
+        console.log('🔓 Legacy password check result:', passwordValid);
+      } else {
+        console.log('❌ No password found in user data');
+      }
+
+      if (!passwordValid) {
+        console.log('❌ Password validation failed');
+        throw new functions.https.HttpsError('unauthenticated', 'Invalid password');
+      }
+
+      console.log('✅ Password verified, generating custom token');
+
+      // Firebase Auth カスタムトークン生成
+      const customToken = await admin.auth().createCustomToken(userDoc.id, {
+        role: userData.role,
+        storeId: userData.storeId,
+        nickname: userData.nickname,
+      });
+
+      console.log('🎟️ Custom token generated successfully');
+
+      // 🔒 最小限のユーザー情報のみ返却
+      const result = {
+        customToken,
+        user: {
+          uid: userDoc.id,
+          email: userData.email,
+          nickname: userData.nickname,
+          role: userData.role,
+          storeId: userData.storeId,
+        }
+      };
+
+      console.log('✅ Login successful, returning user data');
+      return result;
+
+    } catch (error) {
+      console.error('Secure login error:', error);
+      
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      
+      throw new functions.https.HttpsError('internal', 'Login failed');
+    }
+  });
