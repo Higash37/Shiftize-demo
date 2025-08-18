@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
-  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
@@ -17,7 +16,6 @@ import { SocialProofSection } from "./components/social-proof-section";
 import { FeaturesSection } from "./components/features-section";
 import { SecuritySection } from "./components/security-section";
 import { InteractiveDemoSection } from "./components/interactive-demo-section";
-import { responsive, responsiveStyles } from "../utils/responsive";
 
 // 画像パス（静的アセット） - プレースホルダー対応済み
 
@@ -29,17 +27,6 @@ const SimpleLanding = () => {
   // デバイス判定
   const isDesktop = screenWidth >= 1024;
   const isTablet = screenWidth >= 768 && screenWidth < 1024;
-  const isMobile = screenWidth < 768;
-
-  // 動的スタイル
-  const dynamicStyles = {
-    featureBox: {
-      width: isMobile ? "100%" : isTablet ? "46%" : "43%",
-      minWidth: isMobile ? 280 : 300,
-    },
-  };
-
-
 
   // 更新履歴データ
   const updateHistory = [
@@ -138,7 +125,6 @@ const SimpleLanding = () => {
         return "#6B7280";
     }
   };
-
 
   // ナビゲーションメニュー
   const navigationMenu = [
@@ -259,14 +245,14 @@ const SimpleLanding = () => {
               style={styles.sidebarContent}
               showsVerticalScrollIndicator={false}
             >
-              {navigationMenu.map((category, categoryIndex) => (
-                <View key={categoryIndex} style={styles.navCategory}>
+              {navigationMenu.map((category) => (
+                <View key={category.category} style={styles.navCategory}>
                   <Text style={styles.navCategoryTitle}>
                     {category.category}
                   </Text>
-                  {category.items.map((item, itemIndex) => (
+                  {category.items.map((item) => (
                     <View
-                      key={itemIndex}
+                      key={item.title}
                       style={[styles.navItem, styles.navItemDisabled]}
                     >
                       <View style={styles.navItemIconContainer}>
@@ -396,7 +382,9 @@ const SimpleLanding = () => {
           <SecuritySection />
 
           {/* Interactive Demo Section */}
-          <InteractiveDemoSection onDemoClick={() => setDemoModalVisible(true)} />
+          <InteractiveDemoSection
+            onDemoClick={() => setDemoModalVisible(true)}
+          />
 
           {/* Final CTA - 最大級のインパクト */}
           <View style={styles.finalCTA}>
@@ -744,10 +732,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-
-
-
-
   // Final CTA
   finalCTA: {
     paddingVertical: 120,
@@ -965,8 +949,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-
-
   // 共通スタイル（分割されたコンポーネント用）
   sectionTitle: {
     fontSize: 32,
@@ -1002,7 +984,6 @@ const styles = StyleSheet.create({
     height: "100%",
     maxHeight: 400,
   },
-
 });
 
 export default SimpleLanding;

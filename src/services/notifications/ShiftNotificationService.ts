@@ -189,8 +189,8 @@ export class ShiftNotificationService {
 
         masters.push({
           userId: doc.id,
-          nickname: data.nickname || 'Unknown',
-          role: data.role,
+          nickname: data["nickname"] || 'Unknown',
+          role: data["role"],
         });
       });
 
@@ -213,8 +213,8 @@ export class ShiftNotificationService {
         const data = userSnap.data();
         return {
           userId,
-          nickname: data.nickname || 'Unknown',
-          role: data.role || 'user',
+          nickname: data["nickname"] || 'Unknown',
+          role: data["role"] || 'user',
         };
       }
 

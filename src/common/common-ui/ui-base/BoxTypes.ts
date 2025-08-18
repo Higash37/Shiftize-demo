@@ -5,7 +5,8 @@ import {
   Padding,
   Margin,
   FlexContainerProps,
-} from "../../component-interfaces/componentTypes";
+  BaseComponentProps,
+} from "../componentTypes";
 
 /**
  * Box コンポーネントのスタイル名
@@ -20,7 +21,7 @@ export type BoxStyleName =
 /**
  * Box コンポーネントのプロパティ
  */
-export interface BoxProps extends ViewProps, FlexContainerProps {
+export interface BoxProps extends Omit<ViewProps, 'style'>, FlexContainerProps, BaseComponentProps {
   /**
    * 表示バリアント
    */

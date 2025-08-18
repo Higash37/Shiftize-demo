@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
-import { responsive, responsiveStyles, deviceInfo } from './utils/responsive';
+import { responsive, responsiveStyles } from './utils/responsive';
 
 export default function DevelopmentStoryPage() {
   const router = useRouter();
@@ -132,7 +132,7 @@ export default function DevelopmentStoryPage() {
           <Text style={styles.sectionTitle}>開発タイムライン</Text>
           
           {developmentPhases.map((phase, index) => (
-            <View key={index} style={styles.timelineItem}>
+            <View key={phase.phase} style={styles.timelineItem}>
               {/* Phase Number & Icon */}
               <View style={styles.phaseHeader}>
                 <View style={[styles.phaseNumber, { backgroundColor: phase.color }]}>
@@ -155,8 +155,8 @@ export default function DevelopmentStoryPage() {
                 {/* Achievements */}
                 <View style={styles.achievementsSection}>
                   <Text style={styles.achievementsTitle}>主な成果</Text>
-                  {phase.achievements.map((achievement, i) => (
-                    <View key={i} style={styles.achievementItem}>
+                  {phase.achievements.map((achievement) => (
+                    <View key={achievement} style={styles.achievementItem}>
                       <View style={[styles.achievementDot, { backgroundColor: phase.color }]} />
                       <Text style={styles.achievementText}>{achievement}</Text>
                     </View>
@@ -186,8 +186,8 @@ export default function DevelopmentStoryPage() {
           </Text>
           
           <View style={styles.skillsContainer}>
-            {learningCurve.map((skill, index) => (
-              <View key={index} style={styles.skillItem}>
+            {learningCurve.map((skill) => (
+              <View key={skill.skill} style={styles.skillItem}>
                 <View style={styles.skillHeader}>
                   <Text style={styles.skillName}>{skill.skill}</Text>
                   <Text style={styles.skillGrowth}>
@@ -237,8 +237,8 @@ export default function DevelopmentStoryPage() {
                 title: '成長マインド',
                 description: '失敗を恐れず、改善を重ねる継続的な成長姿勢',
               },
-            ].map((insight, index) => (
-              <View key={index} style={styles.insightCard}>
+            ].map((insight) => (
+              <View key={insight.title} style={styles.insightCard}>
                 <MaterialIcons name={insight.icon as any} size={32} color="#3B82F6" />
                 <Text style={styles.insightTitle}>{insight.title}</Text>
                 <Text style={styles.insightDescription}>{insight.description}</Text>

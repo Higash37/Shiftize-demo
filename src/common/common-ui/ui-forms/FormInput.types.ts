@@ -1,5 +1,5 @@
 import { TextInputProps, StyleProp, TextStyle, ViewStyle } from "react-native";
-import { BaseComponentProps } from "../../component-interfaces/componentTypes";
+import { BaseComponentProps } from "../componentTypes";
 
 /**
  * Inputコンポーネントのスタイル名

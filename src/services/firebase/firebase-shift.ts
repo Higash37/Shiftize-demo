@@ -49,22 +49,22 @@ export const ShiftService = {
         const data = doc.data();
         return {
           id: doc.id,
-          userId: data.userId || "",
-          storeId: data.storeId || "",
-          nickname: data.nickname || "",
-          date: data.date || "",
-          startTime: data.startTime || "",
-          endTime: data.endTime || "",
-          type: data.type || "user",
-          subject: data.subject || "",
-          isCompleted: data.isCompleted || false,
-          status: data.status || "draft",
-          duration: data.duration || "",
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
-          classes: data.classes || [],
-          extendedTasks: data.extendedTasks || [],
-          requestedChanges: data.requestedChanges || undefined,
+          userId: data["userId"] || "",
+          storeId: data["storeId"] || "",
+          nickname: data["nickname"] || "",
+          date: data["date"] || "",
+          startTime: data["startTime"] || "",
+          endTime: data["endTime"] || "",
+          type: data["type"] || "user",
+          subject: data["subject"] || "",
+          isCompleted: data["isCompleted"] || false,
+          status: data["status"] || "draft",
+          duration: data["duration"] || "",
+          createdAt: data["createdAt"]?.toDate() || new Date(),
+          updatedAt: data["updatedAt"]?.toDate() || new Date(),
+          classes: data["classes"] || [],
+          extendedTasks: data["extendedTasks"] || [],
+          requestedChanges: data["requestedChanges"] || undefined,
         } as Shift;
       });
 
@@ -195,13 +195,13 @@ export const ShiftService = {
       const shiftData = shiftDoc.data();
 
       // pendingからapprovedへの変更、またはrequestedChangesがある場合に通知
-      const isPendingToApproved = shiftData?.status === "pending";
-      const hasRequestedChanges = shiftData?.requestedChanges;
+      const isPendingToApproved = shiftData?.["status"] === "pending";
+      const hasRequestedChanges = shiftData?.["requestedChanges"];
 
       if (hasRequestedChanges) {
         // requestedChangesがある場合：変更内容を適用
         await updateDoc(shiftRef, {
-          ...shiftData.requestedChanges,
+          ...shiftData["requestedChanges"],
           status: "approved",
           requestedChanges: null,
           updatedAt: serverTimestamp(),
@@ -230,7 +230,7 @@ export const ShiftService = {
             await ShiftNotificationService.notifyShiftApproved(
               shift,
               approver.nickname,
-              shiftData.nickname || 'Unknown User'
+              shiftData["nickname"] || 'Unknown User'
             );
           }
         } catch (notificationError) {
@@ -325,22 +325,22 @@ export const ShiftService = {
           const data = doc.data();
           return {
             id: doc.id,
-            userId: data.userId || "",
-            storeId: data.storeId || "",
-            nickname: data.nickname || "",
-            date: data.date || "",
-            startTime: data.startTime || "",
-            endTime: data.endTime || "",
-            type: data.type || "user",
-            subject: data.subject || "",
-            isCompleted: data.isCompleted || false,
-            status: data.status || "draft",
-            duration: data.duration || "",
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-            classes: data.classes || [],
-            extendedTasks: data.extendedTasks || [],
-            requestedChanges: data.requestedChanges || undefined,
+            userId: data["userId"] || "",
+            storeId: data["storeId"] || "",
+            nickname: data["nickname"] || "",
+            date: data["date"] || "",
+            startTime: data["startTime"] || "",
+            endTime: data["endTime"] || "",
+            type: data["type"] || "user",
+            subject: data["subject"] || "",
+            isCompleted: data["isCompleted"] || false,
+            status: data["status"] || "draft",
+            duration: data["duration"] || "",
+            createdAt: data["createdAt"]?.toDate() || new Date(),
+            updatedAt: data["updatedAt"]?.toDate() || new Date(),
+            classes: data["classes"] || [],
+            extendedTasks: data["extendedTasks"] || [],
+            requestedChanges: data["requestedChanges"] || undefined,
           } as Shift;
         });
 

@@ -12,6 +12,9 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
+import { getPerformance } from "firebase/performance";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { Platform } from "react-native";
 
 /**
@@ -40,6 +43,29 @@ const FirebaseCore = (() => {
   const auth = getAuth(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
+  const functions = getFunctions(app, 'asia-northeast1');
+
+  // Analytics・Performance（Web環境のみ）
+  let analytics = null;
+  let performance = null;
+  
+  if (Platform.OS === "web") {
+    // Analytics初期化（サポート確認後）
+    isSupported().then((supported) => {
+      if (supported) {
+        analytics = getAnalytics(app);
+      }
+    }).catch(() => {
+      // Analytics not supported in this environment
+    });
+    
+    // Performance監視初期化
+    try {
+      performance = getPerformance(app);
+    } catch (error) {
+      // Performance monitoring not available
+    }
+  }
 
   // Web環境での認証永続化設定
   if (Platform.OS === "web") {
@@ -53,6 +79,9 @@ const FirebaseCore = (() => {
     auth,
     db,
     storage,
+    functions,
+    analytics,
+    performance,
     firebaseConfig,
   };
 })();
@@ -61,5 +90,8 @@ const FirebaseCore = (() => {
 export const auth = FirebaseCore.auth;
 export const db = FirebaseCore.db;
 export const storage = FirebaseCore.storage;
+export const functions = FirebaseCore.functions;
+export const analytics = FirebaseCore.analytics;
+export const performance = FirebaseCore.performance;
 export const app = FirebaseCore.app;
 export const firebaseConfig = FirebaseCore.firebaseConfig;

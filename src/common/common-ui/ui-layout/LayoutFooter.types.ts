@@ -1,4 +1,4 @@
-import { TabItem } from "../types";
+import { TabItem } from "./ui-layout-types";
 
 export interface FooterProps {
   // 必要に応じてプロパティを追加

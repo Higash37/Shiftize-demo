@@ -62,13 +62,29 @@ export const getResponsiveStyles = (screenWidth: number) => {
   const isTablet = screenWidth >= 768 && screenWidth < 1024;
   const isMobile = screenWidth < 768;
 
+  // コンテナパディングの計算
+  let containerPadding = 40; // デスクトップデフォルト
+  if (isMobile) {
+    containerPadding = 16;
+  } else if (isTablet) {
+    containerPadding = 24;
+  }
+
+  // タイトルフォントサイズの計算
+  let titleFontSize = 32; // デスクトップデフォルト
+  if (isMobile) {
+    titleFontSize = 24;
+  } else if (isTablet) {
+    titleFontSize = 28;
+  }
+
   return {
     isDesktop,
     isTablet,
     isMobile,
-    containerPadding: isMobile ? 16 : isTablet ? 24 : 40,
+    containerPadding,
     sectionPadding: isMobile ? 60 : 80,
-    titleFontSize: isMobile ? 24 : isTablet ? 28 : 32,
+    titleFontSize,
     subtitleFontSize: isMobile ? 16 : 18,
   };
 };

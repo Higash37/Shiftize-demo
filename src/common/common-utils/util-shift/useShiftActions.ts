@@ -46,8 +46,8 @@ export const useShift = (storeId?: string) => {
           // 連携店舗も含むシフトを取得
           // 🔄 新APIサービス使用
           allShifts = await ShiftAPIService.getUserAccessibleShifts({
-            storeId: userData.storeId,
-            connectedStores: userData.connectedStores || [],
+            storeId: userData['storeId'],
+            connectedStores: userData['connectedStores'] || [],
           });
         } else {
           // ユーザーデータが見つからない場合は従来の方法

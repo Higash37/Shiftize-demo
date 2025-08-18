@@ -16,7 +16,7 @@ import {
 } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "./LayoutFooter.styles";
-import { TabItem } from "../ui-layout-types";
+import { TabItem } from "./ui-layout-types";
 import { FooterProps } from "./LayoutFooter.types";
 
 // レスポンシブデザイン用の定数
@@ -141,18 +141,15 @@ export function Footer({}: FooterProps) {
           );
         })}
       </View>
-      {isStandalonePWA() &&
-        (typeof window !== "undefined" && window.document ? (
-          <div className="pwa-footer-safearea" />
-        ) : (
-          <View
-            style={{
-              height: 10,
-              width: "100%",
-              backgroundColor: colors.background,
-            }}
-          />
-        ))}
+      {isStandalonePWA() && Platform.OS === 'web' && (
+        <View
+          style={{
+            height: 10,
+            width: "100%",
+            backgroundColor: colors.background,
+          }}
+        />
+      )}
     </>
   );
 }

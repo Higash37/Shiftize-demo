@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import SimpleHeader from './_marketing-widgets/SimpleHeader';
-import { responsive, responsiveStyles } from './utils/responsive';
+import { responsiveStyles } from './utils/responsive';
 
 const AppSpecifications = () => {
   const router = useRouter();
@@ -184,8 +184,8 @@ const AppSpecifications = () => {
       {Object.entries(architectureData).map(([key, section]) => (
         <View key={key} style={styles.architectureSection}>
           <Text style={styles.architectureSectionTitle}>{section.title}</Text>
-          {section.items.map((item, index) => (
-            <View key={index} style={styles.architectureItem}>
+          {section.items.map((item) => (
+            <View key={item.name} style={styles.architectureItem}>
               <View style={styles.architectureItemHeader}>
                 <Text style={styles.architectureItemName}>{item.name}</Text>
                 <Text style={styles.architectureItemVersion}>{item.version}</Text>
@@ -205,13 +205,13 @@ const AppSpecifications = () => {
         塾・学習塾に特化した機能設計により、実際の運用に即した機能を提供しています。
       </Text>
       
-      {featuresData.map((feature, index) => (
-        <View key={index} style={styles.featureSection}>
+      {featuresData.map((feature) => (
+        <View key={feature.category} style={styles.featureSection}>
           <Text style={styles.featureSectionTitle}>{feature.category}</Text>
           <Text style={styles.featureSectionDescription}>{feature.description}</Text>
           <View style={styles.specificationsList}>
-            {feature.specifications.map((spec, specIndex) => (
-              <View key={specIndex} style={styles.specificationItem}>
+            {feature.specifications.map((spec) => (
+              <View key={spec} style={styles.specificationItem}>
                 <View style={styles.specificationDot} />
                 <Text style={styles.specificationText}>{spec}</Text>
               </View>
@@ -229,21 +229,28 @@ const AppSpecifications = () => {
         GDPR準拠、AES-256暗号化、包括的な監査システムにより、最高水準のデータ保護を実現しています。
       </Text>
       
-      {securityData.map((security, index) => (
-        <View key={index} style={styles.securitySection}>
+      {securityData.map((security) => (
+        <View key={security.category} style={styles.securitySection}>
           <View style={styles.securityHeader}>
             <Text style={styles.securityTitle}>{security.category}</Text>
-            <View style={[styles.securityLevel, 
-              security.level === '最高レベル' ? { backgroundColor: '#DC2626' } :
-              security.level === '完全対応' ? { backgroundColor: '#10B981' } :
-              { backgroundColor: '#3B82F6' }
+            <View style={[
+              styles.securityLevel,
+              (() => {
+                if (security.level === '最高レベル') {
+                  return { backgroundColor: '#DC2626' };
+                } else if (security.level === '完全対応') {
+                  return { backgroundColor: '#10B981' };
+                } else {
+                  return { backgroundColor: '#3B82F6' };
+                }
+              })()
             ]}>
               <Text style={styles.securityLevelText}>{security.level}</Text>
             </View>
           </View>
           <View style={styles.securitySpecs}>
-            {security.specifications.map((spec, specIndex) => (
-              <View key={specIndex} style={styles.securitySpecItem}>
+            {security.specifications.map((spec) => (
+              <View key={spec} style={styles.securitySpecItem}>
                 <MaterialIcons name="verified" size={16} color="#10B981" />
                 <Text style={styles.securitySpecText}>{spec}</Text>
               </View>
@@ -261,13 +268,13 @@ const AppSpecifications = () => {
         保守性・拡張性・パフォーマンスを重視した設計思想をご紹介します。
       </Text>
       
-      {technicalData.map((tech, index) => (
-        <View key={index} style={styles.technicalSection}>
+      {technicalData.map((tech) => (
+        <View key={tech.category} style={styles.technicalSection}>
           <Text style={styles.technicalTitle}>{tech.category}</Text>
           <Text style={styles.technicalDescription}>{tech.description}</Text>
           <View style={styles.technicalDetails}>
-            {tech.details.map((detail, detailIndex) => (
-              <View key={detailIndex} style={styles.technicalDetailItem}>
+            {tech.details.map((detail) => (
+              <View key={detail} style={styles.technicalDetailItem}>
                 <View style={styles.technicalDetailDot} />
                 <Text style={styles.technicalDetailText}>{detail}</Text>
               </View>

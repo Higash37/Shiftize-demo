@@ -29,19 +29,19 @@ const Box: React.FC<BoxProps> = ({
   shadow = "none",
   style,
   children,
+  testID,
   direction = "column",
   align,
   justify,
   wrap,
   flex,
   gap,
-  testID,
   ...props
 }) => {
   return (
     <View
       style={[
-        styles.base,
+        styles['base'],
         styles[variant as BoxStyleName],
         styles[`padding_${padding}` as BoxStyleName],
         styles[`margin_${margin}` as BoxStyleName],

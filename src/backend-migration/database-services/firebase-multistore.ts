@@ -167,7 +167,7 @@ export const MultiStoreService = {
         });
       } else {
         // 新規作成
-        const userData = userSnapshot.docs[0].data();
+        const userDataSnapshot = userData.data();
         await setDoc(userStoreDocRef, {
           uid: userUid,
           email: userEmail,
@@ -285,7 +285,7 @@ export const MultiStoreService = {
       );
       if (userStoreAccess && userStoreAccess.currentStoreId === storeId) {
         const remainingStores = Object.keys(userStoreAccess.storesAccess);
-        if (remainingStores.length > 0) {
+        if (remainingStores.length > 0 && remainingStores[0]) {
           await MultiStoreService.switchCurrentStore(
             targetUserUid,
             remainingStores[0]
@@ -659,10 +659,10 @@ export const MultiStoreService = {
             const storeAccess = userAccess.storesAccess[storeId];
 
             // アクティブな店舗のみ追加
-            if (storeAccess.isActive) {
+            if (storeAccess && storeAccess.isActive) {
               connectedStores.push({
                 storeId: storeId,
-                storeName: storeData["storeName"] || storeAccess.storeName,
+                storeName: storeData["storeName"] || storeAccess?.storeName || "",
                 adminUid: storeData["adminUid"] || "",
                 adminNickname: storeData["adminNickname"] || "",
                 isActive: true,

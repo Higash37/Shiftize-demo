@@ -104,8 +104,11 @@ const Benefits = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-          {problems.map((problem, index) => (
-            <div key={index} className="card p-6 text-center border-red-100">
+          {problems.map((problem) => (
+            <div
+              key={problem.title}
+              className="card p-6 text-center border-red-100"
+            >
               <div className="text-4xl mb-4">{problem.icon}</div>
               <h3 className="font-bold text-gray-800 mb-3">{problem.title}</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -136,7 +139,7 @@ const Benefits = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {benefits.map((benefit, index) => {
+          {benefits.map((benefit) => {
             const colorClasses: Record<string, string> = {
               blue: "from-blue-500 to-blue-600 bg-blue-50 text-blue-600",
               green: "from-green-500 to-green-600 bg-green-50 text-green-600",
@@ -146,21 +149,22 @@ const Benefits = () => {
 
             return (
               <div
-                key={index}
+                key={benefit.title}
                 className="card p-8 text-center group hover:scale-105"
               >
                 <div
                   className={`w-16 h-16 bg-gradient-to-r ${
-                    colorClasses[benefit.color]?.split(" ")[0] || 'bg-blue-500'
+                    colorClasses[benefit.color]?.split(" ")[0] || "bg-blue-500"
                   } ${
-                    colorClasses[benefit.color]?.split(" ")[1] || 'bg-blue-600'
+                    colorClasses[benefit.color]?.split(" ")[1] || "bg-blue-600"
                   } rounded-2xl flex items-center justify-center text-white mx-auto mb-6 group-hover:scale-110 transition-transform`}
                 >
                   {benefit.icon}
                 </div>
                 <div
                   className={`inline-block px-4 py-2 ${
-                    colorClasses[benefit.color]?.split(" ")[2] || 'bg-blue-50 text-blue-600'
+                    colorClasses[benefit.color]?.split(" ")[2] ||
+                    "bg-blue-50 text-blue-600"
                   } rounded-full text-sm font-bold mb-4`}
                 >
                   {benefit.stat}

@@ -93,7 +93,11 @@ export class RecruitmentShiftService {
     const docSnap = await getDocs(query(collection(db, RECRUITMENT_SHIFTS_COLLECTION), where("__name__", "==", recruitmentShiftId)));
     
     if (!docSnap.empty) {
-      const recruitmentShift = docSnap.docs[0].data() as RecruitmentShift;
+      const recruitmentShiftData = docSnap.docs[0].data();
+      if (!recruitmentShiftData) {
+        throw new Error('募集シフトデータが見つかりません');
+      }
+      const recruitmentShift = recruitmentShiftData as RecruitmentShift;
       const updatedApplications = recruitmentShift.applications.map((app) =>
         app.userId === userId ? { ...app, status: "approved" as const } : app
       );
@@ -116,7 +120,11 @@ export class RecruitmentShiftService {
     const docSnap = await getDocs(query(collection(db, RECRUITMENT_SHIFTS_COLLECTION), where("__name__", "==", recruitmentShiftId)));
     
     if (!docSnap.empty) {
-      const recruitmentShift = docSnap.docs[0].data() as RecruitmentShift;
+      const recruitmentShiftData = docSnap.docs[0].data();
+      if (!recruitmentShiftData) {
+        throw new Error('募集シフトデータが見つかりません');
+      }
+      const recruitmentShift = recruitmentShiftData as RecruitmentShift;
       const updatedApplications = recruitmentShift.applications.map((app) =>
         app.userId === userId ? { ...app, status: "rejected" as const } : app
       );

@@ -185,15 +185,15 @@ export class EmailNotificationService {
       snapshot.docs.forEach(doc => {
         const data = doc.data();
         const user = {
-          storeId: data.storeId,
-          role: data.role,
-          deleted: data.deleted,
-          email: data.email,
-          nickname: data.nickname
+          storeId: data["storeId"],
+          role: data["role"],
+          deleted: data["deleted"],
+          email: data["email"],
+          nickname: data["nickname"]
         };
         
         // 削除されたユーザーをスキップ
-        if (data.deleted === true) {
+        if (data["deleted"] === true) {
           return;
         }
 
@@ -202,12 +202,12 @@ export class EmailNotificationService {
           return;
         }
 
-        if (data.email) {
+        if (data["email"]) {
           masters.push({
             userId: doc.id,
-            email: data.email,
-            nickname: data.nickname || 'Unknown',
-            role: data.role,
+            email: data["email"],
+            nickname: data["nickname"] || 'Unknown',
+            role: data["role"],
           });
         }
       });
@@ -229,12 +229,12 @@ export class EmailNotificationService {
 
       if (userSnap.exists()) {
         const data = userSnap.data();
-        if (data.email) {
+        if (data["email"]) {
           return {
             userId,
-            email: data.email,
-            nickname: data.nickname || 'Unknown',
-            role: data.role || 'user',
+            email: data["email"],
+            nickname: data["nickname"] || 'Unknown',
+            role: data["role"] || 'user',
           };
         }
       }

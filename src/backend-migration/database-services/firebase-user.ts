@@ -45,12 +45,12 @@ export const UserService = {
         const data = doc.data();
         const user = {
           uid: doc.id,
-          role: data.role || "user",
-          nickname: data.nickname || "",
-          email: data.email, // メールアドレスを追加
-          color: data.color, // 追加
-          storeId: data.storeId || "", // storeIdを追加
-          currentPassword: data.currentPassword,
+          role: data["role"] || "user",
+          nickname: data["nickname"] || "",
+          email: data["email"], // メールアドレスを追加
+          color: data["color"], // 追加
+          storeId: data["storeId"] || "", // storeIdを追加
+          currentPassword: data["currentPassword"],
         };
         
         
@@ -84,11 +84,11 @@ export const UserService = {
       if (userDoc.exists()) {
         const data = userDoc.data();
         return {
-          nickname: data.nickname,
-          role: data.role,
-          email: data.email,
-          currentPassword: data.currentPassword,
-          createdAt: data.createdAt.toDate(),
+          nickname: data["nickname"],
+          role: data["role"],
+          email: data["email"],
+          currentPassword: data["currentPassword"],
+          createdAt: data["createdAt"].toDate(),
         };
       }
       return null;
@@ -145,7 +145,7 @@ export const UserService = {
       const userData = userDoc.data();
 
       // 3. 既に実メールアドレスが設定されているかチェック
-      if (userData.realEmail) {
+      if (userData["realEmail"]) {
         throw new Error('実際のメールアドレスは既に設定されています');
       }
 
@@ -163,27 +163,27 @@ export const UserService = {
         const userCredential = await createUserWithEmailAndPassword(
           tempAuth,
           realEmail,
-          userData.currentPassword // 既存のパスワードを使用
+          userData["currentPassword"] // 既存のパスワードを使用
         );
 
         // プロフィール更新
         await updateProfile(userCredential.user, {
-          displayName: userData.nickname,
+          displayName: userData["nickname"],
         });
 
         // 5. Firestoreに実メールアドレス用の新しいユーザードキュメント作成
         const realEmailUserRef = doc(db, 'users', userCredential.user.uid);
         await setDoc(realEmailUserRef, {
           uid: userCredential.user.uid,
-          nickname: userData.nickname,
+          nickname: userData["nickname"],
           email: realEmail, // 実メールアドレスをemailフィールドに
-          role: userData.role,
-          currentPassword: userData.currentPassword,
-          color: userData.color,
-          storeId: userData.storeId,
-          hourlyWage: userData.hourlyWage,
-          isActive: userData.isActive,
-          createdAt: userData.createdAt,
+          role: userData["role"],
+          currentPassword: userData["currentPassword"],
+          color: userData["color"],
+          storeId: userData["storeId"],
+          hourlyWage: userData["hourlyWage"],
+          isActive: userData["isActive"],
+          createdAt: userData["createdAt"],
           updatedAt: new Date(),
           // 元のアカウントへの参照
           originalUserId: userId,
@@ -247,7 +247,14 @@ export const UserService = {
       
       if (!emailSnapshot.empty) {
         const userDoc = emailSnapshot.docs[0];
-        const userData = { id: userDoc.id, ...userDoc.data() };
+        if (!userDoc) {
+          return null;
+        }
+        const userDocData = userDoc.data();
+        if (!userDocData) {
+          return null;
+        }
+        const userData = { id: userDoc.id, ...userDocData };
         
         // 実メールアドレス用のアカウントの場合、元のアカウント情報を取得
         if ((userData as any).originalUserId) {
@@ -275,7 +282,14 @@ export const UserService = {
       
       if (!realEmailSnapshot.empty) {
         const userDoc = realEmailSnapshot.docs[0];
-        const userData = { id: userDoc.id, ...userDoc.data() };
+        if (!userDoc) {
+          return null;
+        }
+        const userDocData = userDoc.data();
+        if (!userDocData) {
+          return null;
+        }
+        const userData = { id: userDoc.id, ...userDocData };
         return userData;
       }
 
