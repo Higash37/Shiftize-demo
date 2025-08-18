@@ -136,30 +136,25 @@ class EncryptionKeyManager {
   private static cachedKey: string | null = null;
 
   static async getOrCreateKey(): Promise<string> {
+    // 🚨 セキュリティ警告: Web環境では真の暗号化は不可能
+    // クライアントサイド暗号化は無効化し、サーバーサイドに委譲
+    if (Platform.OS === "web") {
+      throw new Error("Web環境ではクライアントサイド暗号化は使用できません。サーバーサイド暗号化を使用してください。");
+    }
+
     if (this.cachedKey) {
       return this.cachedKey;
     }
 
     try {
-      // Web環境では localStorage、ネイティブではSecureStoreを使用
-      if (Platform.OS === "web") {
-        let key = localStorage.getItem(this.KEY_NAME);
-        if (!key) {
-          key = AESEncryption.generateKey();
-          localStorage.setItem(this.KEY_NAME, key);
-        }
-        this.cachedKey = key;
-        return key;
-      } else {
-        // React Native環境
-        let key = await SecureStore.getItemAsync(this.KEY_NAME);
-        if (!key) {
-          key = AESEncryption.generateKey();
-          await SecureStore.setItemAsync(this.KEY_NAME, key);
-        }
-        this.cachedKey = key;
-        return key;
+      // React Native環境のみ対応
+      let key = await SecureStore.getItemAsync(this.KEY_NAME);
+      if (!key) {
+        key = AESEncryption.generateKey();
+        await SecureStore.setItemAsync(this.KEY_NAME, key);
       }
+      this.cachedKey = key;
+      return key;
     } catch (error) {
       // フォールバック: セッション限定キー
       SecurityLogger.logEvent({
@@ -180,7 +175,8 @@ class EncryptionKeyManager {
     this.cachedKey = null;
     try {
       if (Platform.OS === "web") {
-        localStorage.removeItem(this.KEY_NAME);
+        // Web環境では暗号化キー操作を無効化
+        throw new Error("Web環境では暗号化キーの操作はできません");
       } else {
         await SecureStore.deleteItemAsync(this.KEY_NAME);
       }
@@ -217,6 +213,10 @@ export class PersonalInfoEncryption {
    * 個人情報を暗号化してFirestore保存用に変換
    */
   static async encryptPersonalInfo(data: EncryptedPersonalInfo): Promise<any> {
+    // 🔒 Web環境では暗号化機能そのものを使用禁止
+    if (Platform.OS === "web") {
+      throw new Error("Web環境では暗号化機能は利用できません");
+    }
     try {
       const key = await EncryptionKeyManager.getOrCreateKey();
       const result: any = {
@@ -264,6 +264,10 @@ export class PersonalInfoEncryption {
   static async decryptPersonalInfo(
     encryptedData: any
   ): Promise<EncryptedPersonalInfo> {
+    // 🔒 Web環境では暗号化機能そのものを使用禁止
+    if (Platform.OS === "web") {
+      throw new Error("Web環境では暗号化機能は利用できません");
+    }
     try {
       if (!encryptedData.isEncrypted) {
         // 暗号化されていないデータはそのまま返す
@@ -313,19 +317,11 @@ export class PersonalInfoEncryption {
    * 個人情報を安全に削除（暗号化キーごと削除）
    */
   static async secureDelete(): Promise<void> {
-    await EncryptionKeyManager.clearKey();
-    // 追加: ローカルキャッシュも削除
+    // 🔒 Web環境では暗号化機能そのものを使用禁止
     if (Platform.OS === "web") {
-      // WebのlocalStorageをクリア
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.includes("personal_info")) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      throw new Error("Web環境では暗号化機能は利用できません");
     }
+    await EncryptionKeyManager.clearKey();
   }
 }
 

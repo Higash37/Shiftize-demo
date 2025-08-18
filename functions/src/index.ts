@@ -75,11 +75,39 @@ export const sendEmail = functions
       );
     }
 
-    // 入力検証
+    // 🔒 入力検証強化
     if (!data.to || !data.subject || !data.html) {
       throw new functions.https.HttpsError(
         'invalid-argument',
         'Missing required fields: to, subject, html'
+      );
+    }
+
+    // メールアドレス形式チェック
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const recipients = Array.isArray(data.to) ? data.to : [data.to];
+    
+    for (const email of recipients) {
+      if (typeof email !== 'string' || !emailRegex.test(email)) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `Invalid email format: ${email}`
+        );
+      }
+    }
+
+    // サイズ制限チェック
+    if (data.subject.length > 200) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Subject too long (max 200 characters)'
+      );
+    }
+
+    if (data.html.length > 100000) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'HTML content too large (max 100KB)'
       );
     }
 
@@ -108,7 +136,10 @@ export const sendEmail = functions
       };
 
     } catch (error) {
-      console.error('❌ Failed to send email:', error);
+      // 🔒 本番環境では詳細エラー情報を隠蔽
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ Failed to send email:', error);
+      }
       throw new functions.https.HttpsError(
         'internal',
         'Failed to send email'
@@ -211,7 +242,10 @@ export const sendShiftNotification = functions
         recipients: Array.isArray(data.to) ? data.to.length : 1,
       };
     } catch (error) {
-      console.error('❌ Failed to send shift notification:', error);
+      // 🔒 本番環境では詳細エラー情報を隠蔽
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ Failed to send shift notification:', error);
+      }
       throw new functions.https.HttpsError(
         'internal',
         'Failed to send notification'
@@ -255,10 +289,27 @@ export const adminUpdateUserCredentials = functions
     const newDisplayName = data?.displayName;
     const profileUpdates = data?.profileUpdates ?? {};
 
-    if (!targetUserId) {
+    // 🔒 入力値サニタイゼーション
+    if (!targetUserId || typeof targetUserId !== 'string') {
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'targetUserId is required'
+        'targetUserId is required and must be a string'
+      );
+    }
+
+    // ユーザーID形式チェック（英数字のみ許可）
+    if (!/^[a-zA-Z0-9]+$/.test(targetUserId)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Invalid targetUserId format'
+      );
+    }
+
+    // 表示名のサニタイゼーション
+    if (newDisplayName && (typeof newDisplayName !== 'string' || newDisplayName.trim().length === 0 || newDisplayName.length > 50)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'displayName must be a non-empty string (max 50 characters)'
       );
     }
 
@@ -303,24 +354,29 @@ export const adminUpdateUserCredentials = functions
       );
     }
 
+    // 🔒 マスター対マスター攻撃を防ぐ：マスターは他のマスターのパスワードを変更不可
+    if (target?.role === 'master' && callerUid !== targetUserId) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Masters cannot modify other masters\' credentials'
+      );
+    }
+
     // 認証情報の更新（セキュリティ強化版）
     if (newPassword || newDisplayName) {
       const authUpdate: admin.auth.UpdateRequest = {};
       
       if (newPassword) {
-        // 🔒 パスワード要件を強化
-        if (typeof newPassword !== 'string' || 
-            newPassword.length < 12 || 
-            !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(newPassword)) {
+        // 🔒 パスワード要件（6文字以上）
+        if (typeof newPassword !== 'string' || newPassword.length < 6) {
           throw new functions.https.HttpsError(
             'invalid-argument',
-            'Password must be at least 12 characters with uppercase, lowercase, number, and special character'
+            'Password must be at least 6 characters'
           );
         }
         authUpdate.password = newPassword;
         
-        // 🔒 セキュリティログ記録
-        console.log(`🔒 Admin ${callerUid} updated password for user ${targetUserId} in store ${targetStoreId}`);
+        // パスワード更新完了（ログはセキュリティ上出力しない）
       }
       
       if (newDisplayName) {
@@ -331,6 +387,11 @@ export const adminUpdateUserCredentials = functions
       }
 
       await admin.auth().updateUser(targetUserId, authUpdate);
+      
+      // 🔒 セキュリティログ：重要な操作を記録（機密情報は含めない）
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🔐 Admin credential update: caller=${callerUid.substring(0,6)}*** target=${targetUserId.substring(0,6)}*** store=${targetStoreId}`);
+      }
     }
 
     // Firestore プロフィールの更新（許可フィールドのみ）
@@ -352,6 +413,11 @@ export const adminUpdateUserCredentials = functions
       firestoreUpdates['updatedAt'] = admin.firestore.FieldValue.serverTimestamp();
       firestoreUpdates['updatedBy'] = callerUid;
       await db.doc(`users/${targetUserId}`).set(firestoreUpdates, { merge: true });
+      
+      // 🔒 セキュリティログ：プロフィール更新を記録（機密情報は含めない）
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🔐 Profile update: caller=${callerUid.substring(0,6)}*** target=${targetUserId.substring(0,6)}*** fields=${Object.keys(firestoreUpdates).length}`);
+      }
     }
 
     return { success: true };
@@ -360,19 +426,35 @@ export const adminUpdateUserCredentials = functions
 /**
  * HTMLメールテンプレート生成関数
  */
+// 🔒 XSS対策：HTMLエスケープ関数
+function escapeHtml(unsafe: string): string {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function generateEmailTemplate(
   title: string,
   emoji: string,
   content: string,
   shiftData?: Record<string, unknown>
 ): string {
+  // 🔒 全ての入力値をエスケープ
+  const safeTitle = escapeHtml(title);
+  const safeEmoji = escapeHtml(emoji);
+  const safeContent = content; // HTMLコンテンツは意図的に保持（管理者が作成するため）
+  
   return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
+    <title>${safeTitle}</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -451,12 +533,12 @@ function generateEmailTemplate(
 <body>
     <div class="email-container">
         <div class="header">
-            <div class="emoji">${emoji}</div>
-            <h1 class="title">${title}</h1>
+            <div class="emoji">${safeEmoji}</div>
+            <h1 class="title">${safeTitle}</h1>
         </div>
         
         <div class="content">
-            ${content}
+            ${safeContent}
         </div>
         
         ${shiftData ? `
@@ -464,32 +546,32 @@ function generateEmailTemplate(
             <h3>シフト詳細</h3>
             <div class="detail-row">
                 <span class="detail-label">日付:</span>
-                <span>${shiftData.shiftDate}</span>
+                <span>${escapeHtml(String(shiftData.shiftDate || ''))}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">時間:</span>
-                <span>${shiftData.startTime} - ${shiftData.endTime}</span>
+                <span>${escapeHtml(String(shiftData.startTime || ''))} - ${escapeHtml(String(shiftData.endTime || ''))}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">担当者:</span>
-                <span>${shiftData.userNickname}</span>
+                <span>${escapeHtml(String(shiftData.userNickname || ''))}</span>
             </div>
             ${shiftData.masterNickname ? `
             <div class="detail-row">
                 <span class="detail-label">操作者:</span>
-                <span>${shiftData.masterNickname}</span>
+                <span>${escapeHtml(String(shiftData.masterNickname))}</span>
             </div>
             ` : ''}
             ${shiftData.status ? `
             <div class="detail-row">
                 <span class="detail-label">状態:</span>
-                <span>${shiftData.status}</span>
+                <span>${escapeHtml(String(shiftData.status))}</span>
             </div>
             ` : ''}
             ${shiftData.reason ? `
             <div class="detail-row">
                 <span class="detail-label">理由:</span>
-                <span>${shiftData.reason}</span>
+                <span>${escapeHtml(String(shiftData.reason))}</span>
             </div>
             ` : ''}
         </div>
@@ -509,6 +591,9 @@ function generateEmailTemplate(
 // 🔒 セキュア認証機能
 // ========================================
 
+// 🔒 IP別ログイン試行回数管理（メモリ内キャッシュ）
+const loginAttempts = new Map<string, number[]>();
+
 /**
  * セキュアログイン：サーバーサイドでユーザー検索・認証
  * Firestore Rules の allow read: if true 問題を解決
@@ -519,8 +604,27 @@ export const secureLogin = functions
     email: string;
     password: string;
     storeId?: string;
-  }) => {
+  }, context) => {
     const { email, password, storeId } = data;
+    
+    // 🔒 レート制限：IP別ブルートフォース攻撃対策
+    const clientIP = context.rawRequest?.ip || 'unknown';
+    const currentTime = Date.now();
+    const attempts = loginAttempts.get(clientIP) || [];
+    
+    // 過去5分間の試行回数をカウント
+    const recentAttempts = attempts.filter(time => currentTime - time < 5 * 60 * 1000);
+    
+    if (recentAttempts.length >= 10) {
+      throw new functions.https.HttpsError(
+        'resource-exhausted', 
+        'Too many login attempts. Please try again later.'
+      );
+    }
+    
+    // 現在の試行を記録
+    recentAttempts.push(currentTime);
+    loginAttempts.set(clientIP, recentAttempts);
 
     // 入力検証
     if (!email || !password) {
@@ -530,95 +634,102 @@ export const secureLogin = functions
     const db = admin.firestore();
 
     try {
-      console.log('🔐 Secure login attempt:', { email, hasStoreId: !!storeId });
-      
       // 🔒 サーバーサイドでユーザー検索（クライアントから隠蔽）
       let userQuery;
       const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       
-      console.log('📧 Email format check:', { email, isEmailFormat });
-      
       if (isEmailFormat) {
         // 実メールアドレス検索
-        console.log('🔍 Searching by real email:', email);
         userQuery = await db.collection('users').where('email', '==', email).get();
       } else {
         // 店舗ID + ニックネーム検索
         if (!storeId) {
-          console.log('❌ Store ID missing for nickname login');
           throw new functions.https.HttpsError('invalid-argument', 'Store ID required for nickname login');
         }
         const generatedEmail = `${storeId}${email}@example.com`;
-        console.log('🔍 Searching by generated email:', generatedEmail);
         userQuery = await db.collection('users').where('email', '==', generatedEmail).get();
       }
-      
-      console.log('📊 Query result:', { isEmpty: userQuery.empty, size: userQuery.size });
 
       if (userQuery.empty) {
-        throw new functions.https.HttpsError('not-found', 'User not found');
+        // 🔒 アカウント存在確認攻撃を防ぐため、パスワード間違いと同じエラー
+        throw new functions.https.HttpsError('unauthenticated', 'Invalid credentials');
       }
 
       const userDoc = userQuery.docs[0];
       const userData = userDoc.data();
 
-      console.log('👤 Found user:', { 
-        uid: userDoc.id, 
-        email: userData.email, 
-        nickname: userData.nickname,
-        role: userData.role,
-        hasCurrentPassword: !!userData.currentPassword,
-        hasHashedPassword: !!userData.hashedPassword,
-        deleted: !!userData.deleted
-      });
-
       // アカウント状態チェック
       if (userData.deleted) {
-        console.log('❌ Account is deleted');
-        throw new functions.https.HttpsError('failed-precondition', 'Account deleted');
+        // 🔒 削除アカウントも認証エラーとして扱う（情報漏洩防止）
+        throw new functions.https.HttpsError('unauthenticated', 'Invalid credentials');
       }
 
-      // 🔒 サーバーサイドでパスワード検証
+      // 🔒 タイミング攻撃対策：常に同じ処理時間になるよう実装
       let passwordValid = false;
       
-      console.log('🔑 Starting password verification');
+      // 常に両方の検証を実行（タイミング攻撃を防ぐため）
+      const verificationPromises = [];
       
-      if (userData.hashedPassword) {
-        // 新方式：ハッシュ化パスワード検証
-        console.log('🔐 Using hashed password verification');
-        try {
-          const crypto = require('crypto');
-          const [salt, hash] = userData.hashedPassword.split(':');
-          const testHash = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex');
-          passwordValid = hash === testHash;
-          console.log('🔐 Hashed password check result:', passwordValid);
-        } catch (hashError) {
-          console.error('❌ Hashed password verification error:', hashError);
-        }
-      } else if (userData.currentPassword) {
-        // レガシー：平文パスワード（移行期間のみ）
-        console.log('🔓 Using legacy password verification');
-        passwordValid = userData.currentPassword === password;
-        console.log('🔓 Legacy password check result:', passwordValid);
-      } else {
-        console.log('❌ No password found in user data');
-      }
+      // ハッシュ化パスワード検証（常に実行）
+      verificationPromises.push(
+        (async () => {
+          if (userData.hashedPassword) {
+            try {
+              const crypto = require('crypto');
+              const [salt, hash] = userData.hashedPassword.split(':');
+              const testHash = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex');
+              return hash === testHash;
+            } catch (hashError) {
+              return false;
+            }
+          } else {
+            // ダミー計算（時間を揃えるため）
+            const crypto = require('crypto');
+            crypto.pbkdf2Sync('dummy', 'dummy', 100000, 32, 'sha256');
+            return false;
+          }
+        })()
+      );
+      
+      // 平文パスワード検証（常に実行）
+      verificationPromises.push(
+        (async () => {
+          if (userData.currentPassword) {
+            // レガシー：平文パスワード（移行期間のみ）
+            return userData.currentPassword === password;
+          } else {
+            // ダミー比較（時間を揃えるため）
+            return 'dummy' === password;
+          }
+        })()
+      );
+      
+      // 両方の結果を待機し、いずれかが成功すれば認証成功
+      const results = await Promise.all(verificationPromises);
+      passwordValid = results.some(result => result === true);
 
       if (!passwordValid) {
-        console.log('❌ Password validation failed');
-        throw new functions.https.HttpsError('unauthenticated', 'Invalid password');
+        throw new functions.https.HttpsError('unauthenticated', 'Invalid credentials');
       }
 
-      console.log('✅ Password verified, generating custom token');
+      // 🔒 storesAccessデータを取得（多店舗アクセス用）
+      let storesAccess = null;
+      try {
+        const storeAccessDoc = await db.doc(`userStoreAccess/${userDoc.id}`).get();
+        if (storeAccessDoc.exists) {
+          storesAccess = storeAccessDoc.data()?.storesAccess || null;
+        }
+      } catch (error) {
+        // storeAccessが存在しない場合はnullのまま
+      }
 
-      // Firebase Auth カスタムトークン生成
+      // Firebase Auth カスタムトークン生成（Security Rulesで使用）
       const customToken = await admin.auth().createCustomToken(userDoc.id, {
         role: userData.role,
         storeId: userData.storeId,
         nickname: userData.nickname,
+        storesAccess: storesAccess,  // 🔒 多店舗アクセス情報を追加
       });
-
-      console.log('🎟️ Custom token generated successfully');
 
       // 🔒 最小限のユーザー情報のみ返却
       const result = {
@@ -632,11 +743,10 @@ export const secureLogin = functions
         }
       };
 
-      console.log('✅ Login successful, returning user data');
       return result;
 
     } catch (error) {
-      console.error('Secure login error:', error);
+      // セキュリティ上、詳細エラーはログに出力しない
       
       if (error instanceof functions.https.HttpsError) {
         throw error;

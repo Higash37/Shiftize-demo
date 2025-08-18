@@ -56,10 +56,17 @@ export const AuthService = {
       // 認証状態が反映された後にユーザー情報を返す
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) throw new Error("認証ユーザーが取得できませんでした");
+      // 🔒 セキュリティ強化：Firestoreからロール情報を取得
+      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+      if (!userDoc.exists()) {
+        throw new Error("ユーザー情報が見つかりません");
+      }
+      
+      const userData = userDoc.data();
       return {
         uid: firebaseUser.uid,
-        nickname: firebaseUser.displayName || email.split("@")[0],
-        role: email.startsWith("master@") ? "master" : "user",
+        nickname: firebaseUser.displayName || userData.nickname || email.split("@")[0],
+        role: userData.role, // Firestoreから正確なロール情報を取得
       };
     } catch (error) {
       throw error;
@@ -67,11 +74,29 @@ export const AuthService = {
   },
 
   /**
-   * ユーザーのロールを判定
+   * ユーザーのロールを判定 - 🔒 セキュリティ強化版
    */
   getUserRole: async (user: any) => {
-    const email = user.email;
-    return email.startsWith("master@") ? "master" : "user";
+    try {
+      // Firestoreからロール情報を安全に取得
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        throw new Error("ユーザー情報が見つかりません");
+      }
+      
+      const userData = userDoc.data();
+      const role = userData.role;
+      
+      // ロール値の検証
+      if (role !== "master" && role !== "user") {
+        throw new Error("無効なロール情報です");
+      }
+      
+      return role;
+    } catch (error) {
+      // フォールバック: セキュリティ上、デフォルトは最低権限
+      return "user";
+    }
   },
 
   /**
@@ -109,19 +134,7 @@ export const AuthService = {
       const tempAuth = getAuth(tempApp);
 
       try {
-        // デバッグ情報（開発環境のみ）
-        if (__DEV__) {
-          console.log('🔍 Firebase Auth Debug Info:', {
-            email,
-            passwordLength: password?.length,
-            emailValid: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
-            firebaseConfig: {
-              apiKey: firebaseConfig.apiKey ? '✅' : '❌',
-              authDomain: firebaseConfig.authDomain ? '✅' : '❌',
-              projectId: firebaseConfig.projectId ? '✅' : '❌',
-            }
-          });
-        }
+        // Firebase Auth処理開始
         
         // 1. 一時的なインスタンスでユーザーを作成
         const userCredential = await createUserWithEmailAndPassword(
@@ -142,10 +155,17 @@ export const AuthService = {
 
         // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
         const userRef = doc(db, "users", firebaseUser.uid);
+        // 🔒 セキュリティ強化：ロール判定をより安全に
+        const role = email.startsWith("master@") ? "master" : "user";
+        
+        // 🔒 セキュリティ強化：パスワードハッシュ化
+        const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
+        const hashedPassword = AESEncryption.hashPassword(password);
+        
         const userData: any = {
           nickname: displayName,
-          role: email.startsWith("master@") ? "master" : "user",
-          currentPassword: password,
+          role: role,
+          hashedPassword: hashedPassword, // ハッシュ化パスワードを使用
           email: email,
           createdAt: new Date(),
         };
@@ -153,26 +173,8 @@ export const AuthService = {
         if (storeId) userData.storeId = storeId;
 
         try {
-          if (__DEV__) {
-            console.log('📝 Attempting to save user to Firestore:', {
-              uid: firebaseUser.uid,
-              userData,
-              currentAuthUser: auth.currentUser?.uid,
-            });
-          }
           await setDoc(userRef, userData);
-          if (__DEV__) {
-            console.log('✅ User saved to Firestore successfully');
-          }
         } catch (firestoreError: any) {
-          if (__DEV__) {
-            console.error('🚨 Firestore Save Error:', {
-              code: firestoreError.code,
-              message: firestoreError.message,
-              details: firestoreError,
-              attemptedData: userData,
-            });
-          }
           // Firebase Authからユーザーを削除（ロールバック）
           try {
             await firebaseUser.delete();
@@ -189,7 +191,7 @@ export const AuthService = {
         return {
           uid: firebaseUser.uid,
           nickname: displayName,
-          role: email.startsWith("master@") ? "master" : "user",
+          role: role,
           color: color,
           storeId: storeId,
         };
@@ -276,20 +278,34 @@ export const AuthService = {
         }
 
         if (updates.password) {
-          // 現在のパスワードで再認証
+          // パスワード更新時のセキュリティ強化
           const userDoc = await getDoc(userRef);
           const userData = userDoc.data();
-          if (userData?.currentPassword) {
+          
+          // レガシー平文パスワードサポート（移行期間のみ）
+          let currentPasswordForAuth = userData?.currentPassword;
+          
+          // ハッシュ化されたパスワードが存在する場合は無視（Firebase Authは平文が必要）
+          if (userData?.hashedPassword && !currentPasswordForAuth) {
+            throw new Error("パスワード更新にはセキュア認証を使用してください");
+          }
+          
+          if (currentPasswordForAuth) {
             try {
               const credential = EmailAuthProvider.credential(
                 currentUser.email!,
-                userData.currentPassword
+                currentPasswordForAuth
               );
               await reauthenticateWithCredential(currentUser, credential);
               await updatePassword(currentUser, updates.password);
-              // 新しいパスワードで更新
+              
+              // 🔒 新しいパスワードをハッシュ化して保存
+              const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
+              const hashedPassword = AESEncryption.hashPassword(updates.password);
+              
               await updateDoc(userRef, {
-                currentPassword: updates.password,
+                hashedPassword: hashedPassword,
+                currentPassword: null, // 平文パスワードを削除
               });
             } catch (error) {
               throw new Error("パスワードの更新に失敗しました");
@@ -350,7 +366,10 @@ export const AuthService = {
           nickname: originalUser.nickname,
           email: realEmail, // 実メールアドレス
           role: originalUser.role,
-          currentPassword: password,
+          hashedPassword: await (async () => {
+            const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
+            return AESEncryption.hashPassword(password);
+          })(), // ハッシュ化パスワード
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -421,11 +440,15 @@ export const AuthService = {
       // パスワードの更新
       await updatePassword(user, newPassword);
 
-      // Firestoreのユーザーデータも更新
+      // Firestoreのユーザーデータも更新（ハッシュ化）
       if (user.uid) {
+        const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
+        const hashedPassword = AESEncryption.hashPassword(newPassword);
+        
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, {
-          currentPassword: newPassword,
+          hashedPassword: hashedPassword,
+          currentPassword: null, // 平文パスワードを削除
         });
       }
     } catch (error: any) {

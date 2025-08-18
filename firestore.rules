@@ -8,27 +8,23 @@ service cloud.firestore {
     }
 
     function hasAccessToStore(storeId) {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      let userStoreDoc = get(/databases/$(database)/documents/userStoreAccess/$(request.auth.uid));
-      
-      return (userDoc != null && userDoc.data.storeId == storeId) ||
-             (userStoreDoc != null && 
-              userStoreDoc.data != null && 
-              storeId in userStoreDoc.data.storesAccess &&
-              userStoreDoc.data.storesAccess[storeId].isActive == true);
+      // 🔒 セキュア化：カスタムトークンベース（get()完全排除）
+      return request.auth.token.storeId == storeId ||
+             (request.auth.token.storesAccess != null && 
+              storeId in request.auth.token.storesAccess &&
+              request.auth.token.storesAccess[storeId].isActive == true);
     }
 
     function isMasterOfStore(storeId) {
       return hasAccessToStore(storeId) &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master");
+        (request.auth.token.role == "master");
     }
 
     // 新規教室（store）作成の管理
     function canCreateNewStore() {
       // 認証されたユーザーで、まだどの店舗にも属していない
       return isAuthenticated() && 
-             (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
-              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('storeId', null) == null);
+             (request.auth.token.storeId == null || request.auth.token.storeId == "");
     }
 
     // ユーザー管理 - 店舗分離 + 権限制御
@@ -42,8 +38,7 @@ service cloud.firestore {
         request.resource.data.storeId != null &&
         (
           // 既存マスターが作成
-          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master" &&
+          (request.auth.token.role == "master" &&
            hasAccessToStore(request.resource.data.storeId))
           ||
           // 新規教室作成（マスターユーザー）
@@ -56,12 +51,12 @@ service cloud.firestore {
       allow update: if isAuthenticated() && 
         (request.auth.uid == userId || 
          (hasAccessToStore(resource.data.storeId) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master"));
+          request.auth.token.role == "master"));
       
       // 削除: マスターのみ（同一店舗）
       allow delete: if isAuthenticated() && 
         hasAccessToStore(resource.data.storeId) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
+        request.auth.token.role == "master";
     }
 
     match /userStoreAccess/{userId} {
@@ -97,10 +92,10 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 
-    // タスクメモコレクション - タスクの店舗に基づく
+    // タスクメモコレクション - 直接的な店舗分離
     match /TaskMemos/{docId} {
       allow read, write: if isAuthenticated() && 
-        hasAccessToStore(get(/databases/$(database)/documents/NormalTasks/$(resource.data.taskId)).data.storeId);
+        hasAccessToStore(resource.data.storeId);
     }
 
     // 拡張タスクコレクション - 店舗分離
@@ -117,8 +112,7 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         (hasAccessToStore(request.resource.data.storeId) ||
          // フォールバック: ユーザーの storeId と一致
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == request.resource.data.storeId));
+         request.auth.token.storeId == request.resource.data.storeId);
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 
@@ -129,8 +123,7 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         (hasAccessToStore(request.resource.data.storeId) ||
          // フォールバック: ユーザーの storeId と一致
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == request.resource.data.storeId));
+         request.auth.token.storeId == request.resource.data.storeId);
       allow update, delete: if isAuthenticated() && hasAccessToStore(resource.data.storeId);
     }
 
@@ -138,7 +131,7 @@ service cloud.firestore {
     match /settings/{docId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
+        request.auth.token.role == "master";
     }
 
     // シフト変更ログコレクション - 店舗分離、マスターのみアクセス可能
