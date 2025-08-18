@@ -45,7 +45,7 @@ export function ServiceIntroModal({
       icon: "home",
       title: "サービス紹介サイト",
       description: "機能詳細や導入事例を確認",
-      url: "/(landing)",
+      url: "/(landing)/home",
       color: colors.primary,
     },
     {
@@ -59,21 +59,21 @@ export function ServiceIntroModal({
       icon: "book",
       title: "ヘルプ・使い方",
       description: "詳細な操作方法を確認",
-      url: "https://docs.example.com",
+      url: "https://github.com/Higashionna/shift-scheduler-app",
       color: "#FF9800",
     },
     {
       icon: "mail",
       title: "お問い合わせ",
       description: "ご質問・ご要望はこちら",
-      url: "higashionna37@icloud.com",
+      url: "mailto:higashionna37@icloud.com",
       color: "#9C27B0",
     },
     {
       icon: "github",
       title: "開発について",
       description: "技術情報・開発ストーリー",
-      url: "https://github.com/Higash37",
+      url: "https://github.com/Higashionna",
       color: "#607D8B",
     },
   ];
@@ -123,7 +123,7 @@ export function ServiceIntroModal({
               {/* 統計 */}
               <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>27,212</Text>
+                  <Text style={styles.statNumber}>81,631</Text>
                   <Text style={styles.statLabel}>行のコード</Text>
                 </View>
                 <View style={styles.statItem}>

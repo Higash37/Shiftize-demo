@@ -40,31 +40,31 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
         <View style={styles.listContainer}>
           {/* シフトルール */}
           <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => onNavigate("/master/settings/shift-rule")}
+            style={[styles.listItem, styles.disabledItem]}
+            onPress={() => {}}
           >
-            <Text style={styles.listText}>シフトルール</Text>
-            <Text style={styles.previewBadge}>プレビュー</Text>
+            <Text style={[styles.listText, styles.disabledText]}>シフトルール</Text>
+            <Text style={styles.comingSoonBadge}>準備中</Text>
           </TouchableOpacity>
           <View style={styles.separator} />
 
           {/* 祝日・特別日 */}
           <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => onNavigate("/master/settings/shift-holiday")}
+            style={[styles.listItem, styles.disabledItem]}
+            onPress={() => {}}
           >
-            <Text style={styles.listText}>祝日・特別日</Text>
-            <Text style={styles.previewBadge}>プレビュー</Text>
+            <Text style={[styles.listText, styles.disabledText]}>祝日・特別日</Text>
+            <Text style={styles.comingSoonBadge}>準備中</Text>
           </TouchableOpacity>
           <View style={styles.separator} />
 
           {/* 外観 */}
           <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => onNavigate("/master/settings/shift-appearance")}
+            style={[styles.listItem, styles.disabledItem]}
+            onPress={() => {}}
           >
-            <Text style={styles.listText}>外観</Text>
-            <Text style={styles.previewBadge}>プレビュー</Text>
+            <Text style={[styles.listText, styles.disabledText]}>外観</Text>
+            <Text style={styles.comingSoonBadge}>準備中</Text>
           </TouchableOpacity>
           <View style={styles.separator} />
 
@@ -94,11 +94,11 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
 
           {/* バックアップ・復元 */}
           <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => onNavigate("/master/settings/backup")}
+            style={[styles.listItem, styles.disabledItem]}
+            onPress={() => {}}
           >
-            <Text style={styles.listText}>バックアップ・復元</Text>
-            <Text style={styles.previewBadge}>プレビュー</Text>
+            <Text style={[styles.listText, styles.disabledText]}>バックアップ・復元</Text>
+            <Text style={styles.comingSoonBadge}>準備中</Text>
           </TouchableOpacity>
           <View style={styles.separator} />
 

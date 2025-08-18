@@ -126,37 +126,37 @@ export default function MasterLayout() {
           }}
         />
         <Stack.Screen 
-          name="settings/index"
+          name="master-settings/index"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="settings/backup"
+          name="master-settings/backup"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="settings/shift-appearance"
+          name="master-settings/shift-appearance"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="settings/shift-holiday"
+          name="master-settings/shift-holiday"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="settings/shift-rule"
+          name="master-settings/shift-rule"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen 
-          name="settings/shift-status"
+          name="master-settings/shift-status"
           options={{
             headerShown: false,
           }}

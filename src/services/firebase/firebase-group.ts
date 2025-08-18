@@ -6,6 +6,7 @@
 
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { AESEncryption } from "@/common/common-utils/security/encryptionUtils";
 
 import { auth, db } from "./firebase-core";
 
@@ -122,13 +123,14 @@ export const GroupService = {
         isActive: true,
       });
 
-      // 6. usersコレクションに管理者情報を保存（currentPassword含む）
+      // 6. usersコレクションに管理者情報を保存（パスワードハッシュ化）
+      const hashedPassword = AESEncryption.hashPassword(data.adminPassword);
       await setDoc(doc(db, "users", adminUser.uid), {
         uid: adminUser.uid,
         nickname: data.adminNickname,
         email: adminEmail,
         role: "master",
-        currentPassword: data.adminPassword, // 重要：currentPasswordを保存
+        hashedPassword: hashedPassword, // 🔒 ハッシュ化されたパスワード
         storeId: data.storeId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -165,13 +167,14 @@ export const GroupService = {
               displayName: member.nickname,
             });
 
-            // usersコレクションにメンバー情報保存（currentPassword含む）
+            // usersコレクションにメンバー情報保存（パスワードハッシュ化）
+            const memberHashedPassword = AESEncryption.hashPassword(member.password);
             await setDoc(doc(db, "users", memberUser.uid), {
               uid: memberUser.uid,
               nickname: member.nickname,
               email: memberEmail,
               role: member.role,
-              currentPassword: member.password, // 重要：currentPasswordを保存
+              hashedPassword: memberHashedPassword, // 🔒 ハッシュ化されたパスワード
               color: member.color,
               hourlyWage: member.hourlyWage || null,
               storeId: data.storeId,

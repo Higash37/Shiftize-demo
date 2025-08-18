@@ -32,10 +32,10 @@ export default function Login() {
 
   // URLパラメータをチェックしてデモモーダルを自動表示
   useEffect(() => {
-    if (params['demo'] === 'true') {
+    if (params["demo"] === "true") {
       setShowDemoModal(true);
       // URLからパラメータを削除
-      router.replace('/(auth)/login');
+      router.replace("/(auth)/login");
     }
   }, [params]);
 
@@ -65,6 +65,7 @@ export default function Login() {
       // ナビゲーション処理を待つために少し待機
       await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
+      console.error("Login error:", error);
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
       );
@@ -81,14 +82,8 @@ export default function Login() {
       borderTopRightRadius: 0, // 上部角丸を明示的に削除
     };
 
-    if (isDesktop) {
-      // PC: 高さをさらに小さく（30%さらに縮小）
-      return {
-        ...baseStyle,
-        paddingVertical: layout.padding.small, // 8px (さらに小さく)
-      };
-    } else if (isMobile) {
-      // スマホ: 高さをさらに小さく（30%さらに縮小）
+    if (isDesktop || isMobile) {
+      // PC・スマホ: 高さをさらに小さく（30%さらに縮小）
       return {
         ...baseStyle,
         paddingVertical: layout.padding.small, // 8px (さらに小さく)
@@ -133,7 +128,6 @@ export default function Login() {
         <View style={styles.headerContainer}>
           {/* Left: Spacer */}
           <View style={styles.headerSpacer} />
-
           {/* Center: Title */}
           <TouchableOpacity
             style={styles.headerButton}
@@ -142,7 +136,6 @@ export default function Login() {
             <Text style={getHeaderTextStyle()}>Shiftize</Text>
             <Text style={getSubtitleTextStyle()}>シフト管理システム</Text>
           </TouchableOpacity>
-
           {/* Right: Icons */}
           <View style={styles.headerIcons}>
             {/* Help/Support Icon */}
@@ -152,23 +145,21 @@ export default function Login() {
             >
               <AntDesign name="questioncircleo" size={24} color="white" />
             </TouchableOpacity>
-
-            {/* Landing Page Icon */}
+            {/* Welcome Page Icon */}
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => router.push("/(landing)")}
+              onPress={() => router.push("/(auth)/auth-welcome")}
             >
               <AntDesign name="home" size={24} color="white" />
             </TouchableOpacity>
           </View>
         </View>
       </Box>
-
       {/* Content */}
       <View style={designSystem.page.content}>
-        <LoginForm 
-          onLogin={handleLogin} 
-          loading={loading} 
+        <LoginForm
+          onLogin={handleLogin}
+          loading={loading}
           showDemoModal={showDemoModal}
           setShowDemoModal={setShowDemoModal}
         />
