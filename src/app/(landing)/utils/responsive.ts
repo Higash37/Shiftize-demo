@@ -126,3 +126,7 @@ export const deviceInfo = {
   isTablet: getDeviceType() === 'tablet',
   isDesktop: getDeviceType() === 'desktop' || getDeviceType() === 'wide',
 };
+// Expo Router のルート解決のための default export
+export default function UtilsPage() {
+  return null; // ユーティリティファイルはルートとして使用しない
+}

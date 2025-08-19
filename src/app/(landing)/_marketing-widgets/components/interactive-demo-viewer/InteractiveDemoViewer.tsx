@@ -209,4 +209,4 @@ export const InteractiveDemoViewer: React.FC<InteractiveDemoViewerProps> = ({
       </TouchableOpacity>
     </View>
   );
-};
+};export default function ComponentPage() { return null; }

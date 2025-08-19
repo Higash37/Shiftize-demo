@@ -239,3 +239,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
+
+// Expo Router のルート解決のための default export
+export default function DemoModalPage() {
+  return null; // このファイルは直接ルートとしては使用しない
+}

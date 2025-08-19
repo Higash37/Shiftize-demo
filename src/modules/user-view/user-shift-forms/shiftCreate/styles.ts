@@ -143,6 +143,11 @@ export const shiftCreateFormStyles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 12,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     color: "white",
@@ -156,6 +161,11 @@ export const shiftCreateFormStyles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.error,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  deleteButtonDisabled: {
+    opacity: 0.7,
   },
   deleteButtonText: {
     color: colors.error,

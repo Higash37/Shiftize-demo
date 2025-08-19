@@ -43,4 +43,4 @@ export const SecuritySection: React.FC = () => {
       </View>
     </View>
   );
-};
+};export default function ComponentPage() { return null; }

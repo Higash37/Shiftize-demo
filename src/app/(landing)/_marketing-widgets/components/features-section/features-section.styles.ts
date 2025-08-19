@@ -213,3 +213,8 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
+
+// Expo Router のルート解決のための default export
+export default function StylesPage() {
+  return null; // スタイルファイルはルートとして使用しない
+}

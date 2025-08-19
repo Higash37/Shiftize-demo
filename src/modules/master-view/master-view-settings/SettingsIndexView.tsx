@@ -110,6 +110,16 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
             <Text style={[styles.listText, styles.disabledText]}>詳細設定</Text>
             <Text style={styles.comingSoonBadge}>準備中</Text>
           </TouchableOpacity>
+          <View style={styles.separator} />
+
+          {/* アプリバージョン管理 */}
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => onNavigate("/(main)/master/master-settings/app-version")}
+          >
+            <Text style={styles.listText}>アプリバージョン管理</Text>
+            <Text style={styles.arrow}>›</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

@@ -8,19 +8,38 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { VersionManager } from "@/services/version/VersionManager";
 
-// Web環境でのshadow警告を抑制
+// Web環境での開発警告を抑制
 if (Platform.OS === 'web' && __DEV__) {
   // LogBox警告を無視
   const { LogBox } = require('react-native');
+  LogBox.ignoreAllLogs(true); // 開発中は全ログを無視
   LogBox.ignoreLogs([
     'shadow* style props are deprecated', 
     'Use "boxShadow"',
     '"shadow*" style props are deprecated. Use "boxShadow".',
+    '"shadow*" style props are deprecated',
+    /shadow.*deprecated/i,
+    /boxShadow/i,
     'Layout children must be of type Screen',
-    'props.pointerEvents is deprecated'
+    'props.pointerEvents is deprecated',
+    'props.pointerEvents is deprecated. Use style.pointerEvents',
+    /props\.pointerEvents is deprecated/,
+    'Image: style.tintColor is deprecated',
+    /style\.tintColor is deprecated/,
+    'Please use props.tintColor',
   ]);
 
+  // Console全体を無効化（開発中のみ）
+  const noop = () => {};
+  console.warn = noop;
+  console.error = (message, ...args) => {
+    // 重要なエラーのみ表示
+    if (typeof message === 'string' && !message.includes('deprecated')) {
+      console.log('🚨 Error:', message, ...args);
+    }
+  };
 }
 
 function RootLayoutNav() {
@@ -30,6 +49,28 @@ function RootLayoutNav() {
   
   // 🔔 プッシュ通知初期化
   usePushNotifications();
+
+  // 🔄 バージョンチェックとキャッシュ管理
+  useEffect(() => {
+    // Web環境でのみバージョンチェックを実行
+    if (Platform.OS === 'web') {
+      // アプリ起動時に即座にチェック
+      VersionManager.checkForUpdatesOnStartup();
+      
+      // 定期的なバージョンチェックを開始（1分ごと）
+      VersionManager.startVersionCheck(() => {
+        // オプショナルアップデート時の通知
+        if (confirm('新しいバージョンが利用可能です。今すぐ更新しますか？')) {
+          window.location.reload();
+        }
+      });
+      
+      // クリーンアップ
+      return () => {
+        VersionManager.stopVersionCheck();
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (loading) return;
