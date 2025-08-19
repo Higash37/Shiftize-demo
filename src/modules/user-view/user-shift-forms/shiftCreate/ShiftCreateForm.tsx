@@ -398,8 +398,20 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         }
 
 
-        // 成功時は即座に遷移（ローディング状態を維持）
-        router.push("/(main)/user/shifts");
+        setIsLoading(false);
+        setShowSuccess(true);
+
+        // 成功アニメーションを表示
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+
+        // 1.5秒後にシフト確認ページに遷移（ユーザーが成功を確認できる時間）
+        setTimeout(() => {
+          router.push("/(main)/user/shifts");
+        }, 1500);
       } catch (error) {
         setIsLoading(false);
         setErrorMessage("シフトの保存中にエラーが発生しました");
