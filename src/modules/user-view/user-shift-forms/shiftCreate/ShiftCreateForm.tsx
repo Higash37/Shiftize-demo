@@ -397,7 +397,6 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         }
         }
 
-
         setIsLoading(false);
         setShowSuccess(true);
 
