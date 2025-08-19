@@ -29,9 +29,14 @@ service cloud.firestore {
 
     // ユーザー管理 - 店舗分離 + 権限制御
     match /users/{userId} {
-      // 読み取り: Phase 2 セキュア化 - 本人のデータのみアクセス可能
+      // 読み取り: 本人のデータ OR 同じ店舗のマスター
       // 🔒 SECURITY FIX: secureLogin経由のカスタムトークンのみ許可
-      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        // マスターは同じ店舗の全ユーザーを閲覧可能
+        (request.auth.token.role == "master" && 
+         resource.data.storeId == request.auth.token.storeId)
+      );
       
       // 作成: 認証されたマスターユーザーが作成可能 OR 新規教室作成
       allow create: if isAuthenticated() && 
