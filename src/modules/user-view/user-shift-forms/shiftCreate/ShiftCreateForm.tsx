@@ -400,9 +400,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         useNativeDriver: true,
       }).start();
 
-      // 1.5秒後に前の画面に戻る（ユーザーが成功を確認できる時間）
+      // 1.5秒後にシフト確認ページに遷移（ユーザーが成功を確認できる時間）
       setTimeout(() => {
-        router.back();
+        router.push("/(main)/user/shifts");
       }, 1500);
     } catch (error) {
       setIsLoading(false);
