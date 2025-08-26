@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useEffect } from "react";
-import { FlatList, ListRenderItemInfo } from "react-native";
+import { FlatList, ListRenderItemInfo, View } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
+import { GanttChartInfo } from "./components";
 import {
   ShiftItem,
   ShiftStatus,
@@ -30,6 +31,11 @@ interface GanttChartBodyProps {
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   statusStyles?: (status: string) => { borderColor: string; color: string };
   colorMode?: "status" | "user"; // 色表示モード
+  // カレンダー用のプロパティ
+  allShifts?: ShiftItem[];
+  selectedDate?: Date;
+  onDateSelect?: (date: string) => void;
+  onMonthChange?: (month: any) => void;
 }
 
 interface RowData {
@@ -56,6 +62,11 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   users = [], // デフォルト値を設定
   statusStyles,
   colorMode = "status", // デフォルトはステータス色
+  // カレンダー用のプロパティ
+  allShifts = [],
+  selectedDate,
+  onDateSelect,
+  onMonthChange,
 }) => {
   // 日付ごとに行を生成し、シフトがない日も空のグループとして含める
   // 同じ日付の行をグループ化して、日付セルを結合表示するための情報を付与
@@ -121,58 +132,79 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   }, [data]);
 
   return (
-    <FlatList
-      ref={flatListRef}
-      data={data}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-      showsVerticalScrollIndicator={false}
-      // 安定したキーを生成（シフトIDまたは日付とグループ情報）
-      keyExtractor={(
-        item: RowData & { isFirstInGroup: boolean; groupSize: number },
-        index: number
-      ) => {
-        // indexに依存しない安定したキーを生成
-        if (item.group.length > 0) {
-          return `${item.date}-${item.group.map(s => s.id).join('-')}`;
-        }
-        return `${item.date}-empty-${item.isFirstInGroup}`;
-      }}
-      renderItem={({
-        item,
-      }: ListRenderItemInfo<
-        RowData & { isFirstInGroup: boolean; groupSize: number }
-      >) => (
-        <GanttChartRow
-          date={item.date}
-          group={item.group}
-          dateColumnWidth={dateColumnWidth}
-          ganttColumnWidth={ganttColumnWidth}
-          infoColumnWidth={infoColumnWidth}
-          cellWidth={cellWidth}
-          halfHourLines={halfHourLines}
-          isClassTime={isClassTime}
-          getStatusConfig={getStatusConfig}
-          handleShiftPress={handleShiftPress}
-          handleEmptyCellClick={handleEmptyCellClick}
-          onTimeChange={onTimeChange}
-          onTaskAdd={onTaskAdd}
-          styles={styles}
-          userColorsMap={userColorsMap}
-          users={users}
-          statusStyles={statusStyles}
-          isFirstInGroup={item.isFirstInGroup}
-          groupSize={item.groupSize}
-          colorMode={colorMode}
+    <View style={{ flexDirection: "row", flex: 1 }}>
+      {/* ガントチャート部分 */}
+      <View style={{ flex: 1 }}>
+        <FlatList
+          ref={flatListRef}
+          data={data}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          // 安定したキーを生成（シフトIDまたは日付とグループ情報）
+          keyExtractor={(
+            item: RowData & { isFirstInGroup: boolean; groupSize: number },
+            index: number
+          ) => {
+            // indexに依存しない安定したキーを生成
+            if (item.group.length > 0) {
+              return `${item.date}-${item.group.map(s => s.id).join('-')}`;
+            }
+            return `${item.date}-empty-${item.isFirstInGroup}`;
+          }}
+          renderItem={({
+            item,
+          }: ListRenderItemInfo<
+            RowData & { isFirstInGroup: boolean; groupSize: number }
+          >) => (
+            <GanttChartRow
+              date={item.date}
+              group={item.group}
+              dateColumnWidth={dateColumnWidth}
+              ganttColumnWidth={ganttColumnWidth}
+              infoColumnWidth={0} // 情報列を非表示にする
+              cellWidth={cellWidth}
+              halfHourLines={halfHourLines}
+              isClassTime={isClassTime}
+              getStatusConfig={getStatusConfig}
+              handleShiftPress={handleShiftPress}
+              handleEmptyCellClick={handleEmptyCellClick}
+              onTimeChange={onTimeChange}
+              onTaskAdd={onTaskAdd}
+              styles={styles}
+              userColorsMap={userColorsMap}
+              users={users}
+              statusStyles={statusStyles}
+              isFirstInGroup={item.isFirstInGroup}
+              groupSize={item.groupSize}
+              colorMode={colorMode}
+            />
+          )}
+          initialNumToRender={20}
+          windowSize={21}
+          removeClippedSubviews={false}
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 0
+          }}
         />
-      )}
-      initialNumToRender={20}
-      windowSize={21}
-      removeClippedSubviews={false}
-      maintainVisibleContentPosition={{
-        minIndexForVisible: 0,
-        autoscrollToTopThreshold: 0
-      }}
-    />
+      </View>
+      
+      {/* カレンダー部分（右側） */}
+      <View style={{ width: infoColumnWidth }}>
+        <GanttChartInfo
+          shifts={[]} // カレンダー表示のため空配列
+          getStatusConfig={getStatusConfig}
+          onShiftPress={handleShiftPress}
+          onDelete={() => {}} // カレンダーでは削除機能不要
+          infoColumnWidth={infoColumnWidth}
+          styles={styles}
+          allShifts={allShifts}
+          selectedDate={selectedDate}
+          onDateSelect={onDateSelect}
+          onMonthChange={onMonthChange}
+        />
+      </View>
+    </View>
   );
 };

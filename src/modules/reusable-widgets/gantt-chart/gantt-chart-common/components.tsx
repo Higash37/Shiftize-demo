@@ -6,12 +6,15 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from "react-native";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftItem, TaskItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { CalendarHeader } from "../../calendar/CalendarHeader";
+import { DatePickerModal } from "../../calendar/modals/DatePickerModal";
+import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { getDateTextColor } from "@/common/common-utils/date/dateUtils";
 
@@ -679,6 +682,11 @@ export type GanttChartInfoProps = {
   onDelete: (shift: ShiftItem) => void;
   infoColumnWidth: number;
   styles: any;
+  onToggleComplete?: (shift: ShiftItem) => void;
+  allShifts?: ShiftItem[];
+  selectedDate?: Date;
+  onDateSelect?: (date: string) => void;
+  onMonthChange?: (month: any) => void;
 };
 export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   shifts,
@@ -687,103 +695,265 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   onDelete,
   infoColumnWidth,
   styles,
+  onToggleComplete,
+  allShifts = [],
+  selectedDate,
+  onDateSelect,
+  onMonthChange,
 }) => {
-  const canEditStatus = (status: string) => {
-    const statusConfig = getStatusConfig(status);
-    return statusConfig.canEdit || status === "approved";
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [currentMonth, setCurrentMonth] = React.useState(selectedDate || new Date());
+  const [internalSelectedDate, setInternalSelectedDate] = React.useState<string | null>(
+    selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
+  );
+
+  // 外部からのselectedDateが変更されたら内部状態も更新
+  React.useEffect(() => {
+    setInternalSelectedDate(selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null);
+  }, [selectedDate]);
+
+  // カレンダーグリッド用の日付データを生成
+  const calendarData = React.useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    const monthDays = eachDayOfInterval({ start, end });
+    
+    const startDayOfWeek = getDay(start);
+    const prevMonthDays = [];
+    for (let i = startDayOfWeek - 1; i >= 0; i--) {
+      const prevDay = new Date(start);
+      prevDay.setDate(prevDay.getDate() - (i + 1));
+      prevMonthDays.push({ date: prevDay, isCurrentMonth: false });
+    }
+    
+    const currentMonthDays = monthDays.map(date => ({ 
+      date, 
+      isCurrentMonth: true 
+    }));
+    
+    const totalCells = 42;
+    const remainingCells = totalCells - prevMonthDays.length - currentMonthDays.length;
+    const nextMonthDays = [];
+    for (let i = 0; i < remainingCells; i++) {
+      const nextDay = new Date(end);
+      nextDay.setDate(nextDay.getDate() + (i + 1));
+      nextMonthDays.push({ date: nextDay, isCurrentMonth: false });
+    }
+    
+    return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
+  }, [currentMonth]);
+
+  // マークされた日付を生成
+  const markedDates = React.useMemo(() => {
+    const marks: { [key: string]: any } = {};
+    const shiftsByDate: Record<string, any[]> = {};
+    
+    allShifts.forEach((shift) => {
+      if (shift.status !== "deleted" && shift.status !== "purged") {
+        const date = shift.date;
+        if (!shiftsByDate[date]) {
+          shiftsByDate[date] = [];
+        }
+        shiftsByDate[date].push(shift);
+      }
+    });
+
+    Object.entries(shiftsByDate).forEach(([date, dayShifts]) => {
+      const shiftDots = dayShifts.slice(0, 3).map((shift, index) => ({
+        key: `${shift.id}-${index}`,
+        color: getStatusColor(shift.status),
+        selectedDotColor: getStatusColor(shift.status),
+      }));
+      marks[date] = { dots: shiftDots };
+    });
+
+    return marks;
+  }, [allShifts]);
+
+  const handleDayPress = (dateString: string) => {
+    setInternalSelectedDate(dateString);
+    if (onDateSelect) {
+      onDateSelect(dateString);
+    }
   };
+
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    const newMonth = direction === 'prev' 
+      ? subMonths(currentMonth, 1)
+      : addMonths(currentMonth, 1);
+    setCurrentMonth(newMonth);
+    
+    if (onMonthChange) {
+      onMonthChange({ dateString: format(newMonth, 'yyyy-MM-dd') });
+    }
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setCurrentMonth(date);
+    if (onMonthChange) {
+      onMonthChange({ dateString: format(date, 'yyyy-MM-dd') });
+    }
+  };
+
   return (
     <View
       style={[
         styles.infoCell,
         {
           width: infoColumnWidth,
-          backgroundColor: "#f0f5fb",
-          minHeight: 65, // 最小高さを固定
-          height: Math.max(65, shifts.length * 32), // シフト数に応じて高さ調整
+          backgroundColor: "#ffffff",
+          minHeight: 300,
+          flex: 1,
         },
       ]}
     >
-      <CustomScrollView
-        style={{ flex: 1, width: "100%" }}
-        contentContainerStyle={{ paddingVertical: 4 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {shifts.map((shift, index) => {
-          const statusConfig = getStatusConfig(shift.status);
-          return (
-            <View key={shift.id} style={{ marginBottom: index < shifts.length - 1 ? 2 : 0 }}>
-              <TouchableOpacity
-                activeOpacity={onShiftPress ? 0.7 : 1}
-                onPress={() => onShiftPress?.(shift)}
-                onLongPress={() => {
-                  // 削除済みシフトのみ長押しで完全削除ダイアログ
-                  if (shift.status === "deleted") {
-                    onDelete(shift);
-                  }
-                }}
-                style={[
-                  styles.infoContent,
-                  {
-                    borderColor: statusConfig.color,
-                    marginVertical: 0,
-                    paddingVertical: 6,
-                    minHeight: 32,
-                    // 複数シフトの場合はコンパクトに
-                    ...(shifts.length > 1 && {
-                      paddingVertical: 4,
-                      minHeight: 28,
-                    }),
-                  },
-                ]}
-              >
-                {/* コンパクト表示: 名前 時間 [ステータス] */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flex: 1,
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.infoText,
-                    {
-                      fontSize: shifts.length > 1 ? 12 : 14,
-                      fontWeight: "600",
-                      flexShrink: 1,
-                      marginRight: 4,
-                    },
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {shift.startTime}-{shift.endTime} {shift.nickname}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statusText,
-                      {
-                        fontSize: shifts.length > 1 ? 10 : 12,
-                        fontWeight: "500",
-                        color: statusConfig.color,
-                        paddingHorizontal: 4,
-                        paddingVertical: 1,
-                        backgroundColor: statusConfig.color + "15",
-                        borderRadius: 4,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {statusConfig.label}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+      <View style={{ flex: 1, paddingHorizontal: 4, paddingVertical: 4 }}>
+        {/* カレンダーヘッダー */}
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          paddingVertical: 4,
+        }}>
+          <TouchableOpacity
+            onPress={() => handleMonthChange('prev')}
+            style={{ padding: 8, borderRadius: 4 }}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="chevron-left" size={20} color="#333" />
+          </TouchableOpacity>
+          
+          <CalendarHeader
+            date={currentMonth}
+            onYearMonthSelect={() => setShowDatePicker(true)}
+            responsiveStyle={{ fontSize: 14 }}
+          />
+          
+          <TouchableOpacity
+            onPress={() => handleMonthChange('next')}
+            style={{ padding: 8, borderRadius: 4 }}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="chevron-right" size={20} color="#333" />
+          </TouchableOpacity>
+        </View>
+        
+        {/* 曜日ヘッダー */}
+        <View style={{ 
+          flexDirection: 'row', 
+          marginTop: 2,
+          marginBottom: 2,
+        }}>
+          {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
+            <View key={day} style={{ 
+              flex: 1, 
+              alignItems: 'center',
+              paddingVertical: 2,
+              borderRightWidth: index < 6 ? 0.5 : 0,
+              borderRightColor: '#E5E5E5',
+            }}>
+              <Text style={{ 
+                fontSize: 12,
+                fontWeight: '600',
+                color: index === 0 ? '#FF3B30' : index === 6 ? '#007AFF' : '#333',
+              }}>
+                {day}
+              </Text>
             </View>
-          );
-        })}
-      </CustomScrollView>
+          ))}
+        </View>
+
+        {/* カレンダーグリッド */}
+        <View style={{ flex: 1 }}>
+          {[0, 1, 2, 3, 4, 5].map(weekIndex => (
+            <View key={weekIndex} style={{ 
+              flexDirection: 'row', 
+              flex: 1,
+            }}>
+              {calendarData.slice(weekIndex * 7, weekIndex * 7 + 7).map((dayData, dayIndex) => {
+                const dateString = format(dayData.date, 'yyyy-MM-dd');
+                const isSelected = internalSelectedDate === dateString;
+                const marking = markedDates[dateString];
+                
+                return (
+                  <View 
+                    key={dateString} 
+                    style={{ 
+                      flex: 1,
+                      borderRightWidth: dayIndex < 6 ? 0.5 : 0,
+                      borderRightColor: '#E5E5E5',
+                    }}
+                  >
+                    <View style={{ 
+                      flex: 1, 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      paddingVertical: 2,
+                    }}>
+                      <TouchableOpacity
+                        style={{
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: isSelected ? '#007AFF' : 'transparent',
+                          borderRadius: isSelected ? 12 : 0,
+                          width: 24,
+                          height: 24,
+                        }}
+                        onPress={() => handleDayPress(dateString)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={{
+                          fontSize: 14,
+                          fontWeight: '500',
+                          color: isSelected ? '#fff' : 
+                            !dayData.isCurrentMonth ? '#C0C0C0' :
+                            format(dayData.date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? '#007AFF' :
+                            dayData.date.getDay() === 0 ? '#FF3B30' :
+                            dayData.date.getDay() === 6 ? '#007AFF' : '#333',
+                          textAlign: 'center',
+                        }}>
+                          {format(dayData.date, 'd')}
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      {/* シフトドット */}
+                      {marking?.dots && marking.dots.length > 0 && (
+                        <View style={{
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginTop: 1,
+                        }}>
+                          {marking.dots.map((dot: any, index: number) => (
+                            <View
+                              key={dot.key || index}
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: 3,
+                                backgroundColor: dot.color,
+                                marginHorizontal: 1,
+                              }}
+                            />
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+
+        {/* 日付選択モーダル */}
+        <DatePickerModal
+          isVisible={showDatePicker}
+          initialDate={currentMonth}
+          onClose={() => setShowDatePicker(false)}
+          onSelect={handleDateSelect}
+        />
+      </View>
     </View>
   );
 };
