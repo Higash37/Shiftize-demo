@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect, useCallback } from "react";
 import { FlatList, ListRenderItemInfo, View } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
 import { GanttChartInfo } from "./components";
@@ -119,6 +119,18 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
     lastScrollOffset.current = event.nativeEvent.contentOffset.y;
   };
 
+  // 指定日付にスクロールする関数
+  const scrollToDate = useCallback((targetDate: string) => {
+    const targetIndex = data.findIndex(item => item.date === targetDate);
+    if (targetIndex >= 0 && flatListRef.current) {
+      flatListRef.current.scrollToIndex({
+        index: targetIndex,
+        animated: true,
+        viewPosition: 0.5, // 画面中央に表示
+      });
+    }
+  }, [data]);
+
   // データ更新後にスクロール位置を復元
   useEffect(() => {
     if (flatListRef.current && lastScrollOffset.current > 0) {
@@ -201,7 +213,10 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           styles={styles}
           allShifts={allShifts}
           selectedDate={selectedDate}
-          onDateSelect={onDateSelect}
+          onDateSelect={(date) => {
+            scrollToDate(date);
+            onDateSelect?.(date);
+          }}
           onMonthChange={onMonthChange}
         />
       </View>

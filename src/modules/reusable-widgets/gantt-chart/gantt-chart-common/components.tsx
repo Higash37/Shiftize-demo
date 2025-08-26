@@ -784,14 +784,14 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     setCurrentMonth(newMonth);
     
     if (onMonthChange) {
-      onMonthChange({ dateString: format(newMonth, 'yyyy-MM-dd') });
+      onMonthChange(newMonth.getFullYear(), newMonth.getMonth());
     }
   };
 
   const handleDateSelect = (date: Date) => {
     setCurrentMonth(date);
     if (onMonthChange) {
-      onMonthChange({ dateString: format(date, 'yyyy-MM-dd') });
+      onMonthChange(date.getFullYear(), date.getMonth());
     }
   };
 
