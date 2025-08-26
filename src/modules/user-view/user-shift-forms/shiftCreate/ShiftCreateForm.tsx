@@ -397,6 +397,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         }
         }
 
+
         // 成功時は即座に遷移（ローディング状態を維持）
         router.push("/(main)/user/shifts");
       } catch (error) {
