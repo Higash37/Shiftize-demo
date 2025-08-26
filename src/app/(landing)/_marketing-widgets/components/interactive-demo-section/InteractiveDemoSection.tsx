@@ -74,4 +74,4 @@ export const InteractiveDemoSection: React.FC<InteractiveDemoSectionProps> = ({
       </View>
     </View>
   );
-};
+};export default function ComponentPage() { return null; }

@@ -45,4 +45,4 @@ export const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
   },
-});
+});export default function StylesPage() { return null; }

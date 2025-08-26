@@ -182,4 +182,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onDemoClick }) => {
       )}
     </View>
   );
-};
+};export default function ComponentPage() { return null; }

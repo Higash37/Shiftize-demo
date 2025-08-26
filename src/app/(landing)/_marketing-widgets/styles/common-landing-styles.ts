@@ -88,3 +88,4 @@ export const getResponsiveStyles = (screenWidth: number) => {
     subtitleFontSize: isMobile ? 16 : 18,
   };
 };
+export default function StylesPage() { return null; }

@@ -74,4 +74,4 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#3b82f6",
   },
-});
+});export default function StylesPage() { return null; }

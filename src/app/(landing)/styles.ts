@@ -120,3 +120,7 @@ export const landingStyles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 });
+// Expo Router のルート解決のための default export
+export default function StylesPage() {
+  return null; // スタイルファイルはルートとして使用しない
+}

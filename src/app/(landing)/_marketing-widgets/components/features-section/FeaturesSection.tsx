@@ -184,4 +184,4 @@ export const FeaturesSection: React.FC = () => {
       </View>
     </View>
   );
-};
+};export default function ComponentPage() { return null; }

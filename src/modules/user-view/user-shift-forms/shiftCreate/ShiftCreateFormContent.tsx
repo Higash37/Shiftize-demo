@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
@@ -40,6 +41,8 @@ interface ShiftCreateFormContentProps {
   connectedStores: StoreInfo[];
   selectedStoreId: string;
   onStoreChange: (storeId: string) => void;
+  isLoading: boolean;
+  isDeleting: boolean;
 }
 
 const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
@@ -61,6 +64,8 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
   connectedStores,
   selectedStoreId,
   onStoreChange,
+  isLoading,
+  isDeleting,
 }) => {
   return (
     <>
@@ -223,20 +228,30 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
           ) : null}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.submitButton}
+              style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
               onPress={handleCreateOrUpdateShift}
+              disabled={isLoading}
             >
-              <Text style={styles.submitButtonText}>
-                {isEditMode ? "更新する" : "作成する"}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color={colors.white} size="small" />
+              ) : (
+                <Text style={styles.submitButtonText}>
+                  {isEditMode ? "更新する" : "作成する"}
+                </Text>
+              )}
             </TouchableOpacity>
 
             {isEditMode && (
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={[styles.deleteButton, (isLoading || isDeleting) && styles.deleteButtonDisabled]}
                 onPress={handleDeleteShift}
+                disabled={isLoading || isDeleting}
               >
-                <Text style={styles.deleteButtonText}>削除</Text>
+                {isDeleting ? (
+                  <ActivityIndicator color={colors.error} size="small" />
+                ) : (
+                  <Text style={styles.deleteButtonText}>削除</Text>
+                )}
               </TouchableOpacity>
             )}
           </View>

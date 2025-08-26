@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
   Modal,
 } from "react-native";
+import { flushSync } from "react-dom";
 import { useRouter } from "expo-router";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
@@ -60,6 +61,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   });
   const [showCalendar, setShowCalendar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const fadeAnim = new Animated.Value(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -347,10 +349,15 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const handleCreateOrUpdateShift = async () => {
     if (!validateShift() || !user) return;
 
-    try {
+    // UIの更新を即座に反映
+    flushSync(() => {
       setIsLoading(true);
-
-      for (const date of shiftData.dates) {
+    });
+    
+    // 次のフレームで処理を実行（UIのブロッキングを防ぐ）
+    setTimeout(async () => {
+      try {
+        for (const date of shiftData.dates) {
         // 時間の差を計算（duration）
         const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
         const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
@@ -388,33 +395,23 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
           await createShift(shiftObject);
         }
-      }
+        }
 
-      setIsLoading(false);
-      setShowSuccess(true);
 
-      // 成功アニメーションを表示
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-
-      // 1.5秒後にシフト確認ページに遷移（ユーザーが成功を確認できる時間）
-      setTimeout(() => {
+        // 成功時は即座に遷移（ローディング状態を維持）
         router.push("/(main)/user/shifts");
-      }, 1500);
-    } catch (error) {
-      setIsLoading(false);
-      setErrorMessage("シフトの保存中にエラーが発生しました");
-    }
+      } catch (error) {
+        setIsLoading(false);
+        setErrorMessage("シフトの保存中にエラーが発生しました");
+      }
+    }, 10); // 10ms後に実行（UIレンダリングを先に完了させる）
   };
 
   const handleDeleteShift = async () => {
     if (!isEditMode || !initialShiftId) return;
 
     try {
-      setIsLoading(true);
+      setIsDeleting(true);
 
       const shiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
       if (shiftDoc.exists()) {
@@ -442,11 +439,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       } else {
       }
 
-      setIsLoading(false);
-      router.back();
+      setIsDeleting(false);
+      router.push("/(main)/user/shifts");
     } catch (error) {
       const errorMessage = (error as Error).message;
-      setIsLoading(false);
+      setIsDeleting(false);
       setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
     }
   };
@@ -509,6 +506,8 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         connectedStores={connectedStores}
         selectedStoreId={selectedStoreId}
         onStoreChange={setSelectedStoreId}
+        isLoading={isLoading}
+        isDeleting={isDeleting}
       />
     </>
   );

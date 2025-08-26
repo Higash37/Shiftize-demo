@@ -59,12 +59,9 @@ const FirebaseCore = (() => {
       // Analytics not supported in this environment
     });
     
-    // Performance監視初期化
-    try {
-      performance = getPerformance(app);
-    } catch (error) {
-      // Performance monitoring not available
-    }
+    // Performance監視は無効化（CSS属性名エラー回避）
+    // React Native Web環境でCSS属性値が長すぎてエラーとなるため
+    performance = null;
   }
 
   // Web環境での認証永続化設定

@@ -44,4 +44,4 @@ export const SocialProofSection: React.FC = () => {
       </TouchableOpacity>
     </View>
   );
-};
+};export default function ComponentPage() { return null; }
