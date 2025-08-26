@@ -874,6 +874,14 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               styles={styles}
               userColorsMap={userColorsMap}
               colorMode={colorMode}
+              // カレンダー連動のために追加
+              allShifts={shifts}
+              selectedDate={selectedDate}
+              onDateSelect={(date) => {
+                // 日付選択時の処理（必要に応じて実装）
+              }}
+              onMonthChange={onMonthChange}
+              users={users}
             />
           </View>
         </CustomScrollView>
