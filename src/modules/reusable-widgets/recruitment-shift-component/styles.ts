@@ -17,7 +17,7 @@ export const styles = StyleSheet.create({
     maxWidth: 600,
     width: "95%",
     maxHeight: "85%",
-    alignItems: "center",
+    alignItems: "stretch",
     ...shadows.modal,
   },
   modalHeader: {

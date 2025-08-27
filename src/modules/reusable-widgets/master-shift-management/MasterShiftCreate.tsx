@@ -7,6 +7,9 @@ import {
   Animated,
   Alert,
   TextInput,
+  Modal,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -30,7 +33,7 @@ import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
 import type { ExtendedUser } from "@/modules/reusable-widgets/user-management/user-types/components";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
+// import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getUserData, type UserData } from "@/services/firebase/firebase";
@@ -53,7 +56,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const { markShiftAsDeleted, createShift } = useShift();
   const isEditMode = mode === "edit";
   const { user, role } = useAuth();
-  const { users, loading: usersLoading } = useUsers();
+  const { users, loading: usersLoading } = useUsers(user?.storeId);
   const [connectedStoreUsers, setConnectedStoreUsers] = useState<
     Array<{
       uid: string;
@@ -81,8 +84,8 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<ShiftStatus>("approved");
+  const [showUserPicker, setShowUserPicker] = useState<boolean>(false);
 
   const [selectedDate, setSelectedDate] = useState(date || "");
   const [selectedStartTime, setSelectedStartTime] = useState(startTime || "");
@@ -400,18 +403,21 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     setShowCalendar(true);
   };
 
-  // フィルタリングされたユーザーリスト（本店舗+連携校舎のユーザー）
-  const filteredUsers = [...users, ...connectedStoreUsers].filter((user) =>
-    user.nickname.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // 全ユーザーリスト（本店舗+連携校舎のユーザー）
+  const allUsers = [...users, ...connectedStoreUsers];
+  
+  // デバッグ情報
+  console.log("MasterShiftCreate - users:", users);
+  console.log("MasterShiftCreate - connectedStoreUsers:", connectedStoreUsers);
+  console.log("MasterShiftCreate - allUsers:", allUsers);
+  console.log("MasterShiftCreate - usersLoading:", usersLoading);
 
   useEffect(() => {
-    const allUsers = [...users, ...connectedStoreUsers];
     const selectedUser = allUsers.find((u) => u.uid === selectedUserId);
     if (selectedUser) {
       setSelectedUserNickname(selectedUser.nickname);
     }
-  }, [selectedUserId, users, connectedStoreUsers]);
+  }, [selectedUserId, allUsers]);
 
   if (isLoading || usersLoading) {
     return (
@@ -421,11 +427,23 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     );
   }
 
+  const { width: screenWidth } = Dimensions.get("window");
+  const isPC = screenWidth >= 768;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <MasterHeader title={isEditMode ? "シフト編集" : "シフト追加"} />
-      <View style={styles.container}>
-        <CustomScrollView style={styles.scrollView}>
+      <View style={{ 
+        flex: 1, 
+        alignSelf: 'center', 
+        width: isPC ? '60%' : '100%',
+        maxWidth: isPC ? 800 : undefined
+      }}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {errorMessage ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{errorMessage}</Text>
@@ -435,92 +453,18 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           {/* ユーザー選択セクション（マスター用） */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ユーザー選択</Text>
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="ユーザー検索..."
-                placeholderTextColor="#999"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            <View style={styles.userListContainer}>
-              {searchQuery.trim() === "" ? (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.userItem,
-                      styles.recruitmentItem,
-                      selectedUserId === "recruitment" && styles.selectedUserItem,
-                    ]}
-                    onPress={() => {
-                      if (selectedUserId === "recruitment") {
-                        // 既に選択されている場合は解除
-                        setSelectedUserId("");
-                        setSelectedUserNickname("");
-                      } else {
-                        // 選択されていない場合は選択
-                        setSelectedUserId("recruitment");
-                        setSelectedUserNickname("募集");
-                      }
-                    }}
-                  >
-                    <AntDesign 
-                      name="bells" 
-                      size={20} 
-                      color={selectedUserId === "recruitment" ? "#fff" : colors.primary} 
-                    />
-                    <Text style={[
-                      styles.userItemText, 
-                      styles.recruitmentText,
-                      selectedUserId === "recruitment" && styles.selectedUserItemText
-                    ]}>
-                      募集シフトとして作成
-                    </Text>
-                  </TouchableOpacity>
-                  <Text style={styles.noResultsText}>
-                    またはユーザー名で検索してください
-                  </Text>
-                </>
-              ) : filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <TouchableOpacity
-                    key={user.uid}
-                    style={[
-                      styles.userItem,
-                      selectedUserId === user.uid && styles.selectedUserItem,
-                    ]}
-                    onPress={() => {
-                      setSelectedUserId(user.uid);
-                      setSelectedUserNickname(user.nickname);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.userItemText,
-                        selectedUserId === user.uid &&
-                          styles.selectedUserItemText,
-                      ]}
-                    >
-                      {user.nickname} (
-                      {user.role === "master" ? "管理者" : "ユーザー"})
-                      {"storeName" in user &&
-                        user.storeName &&
-                        user.isFromOtherStore && (
-                          <Text style={styles.storeNameText}>
-                            {" "}
-                            - {user.storeName}
-                          </Text>
-                        )}
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <Text style={styles.noResultsText}>
-                  ユーザーが見つかりません
-                </Text>
-              )}
-            </View>
+            <TouchableOpacity 
+              style={styles.userPickerButton}
+              onPress={() => setShowUserPicker(true)}
+            >
+              <Text style={[
+                styles.userPickerText,
+                !selectedUserNickname && styles.placeholderText
+              ]}>
+                {selectedUserNickname || "ユーザーを選択してください"}
+              </Text>
+              <AntDesign name="down" size={16} color="#666" />
+            </TouchableOpacity>
           </View>
 
           {/* ステータス設定セクション（通常シフト用のみ表示） */}
@@ -707,16 +651,17 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               <Text style={styles.deleteButtonText}>シフトを削除</Text>
             </TouchableOpacity>
           )}
-        </CustomScrollView>
+      </ScrollView>
+      </View>
 
-        <CalendarModal
+      <CalendarModal
           visible={showCalendar}
           onClose={() => setShowCalendar(false)}
           onConfirm={handleDatesConfirm}
           initialDates={shiftData.dates}
         />
 
-        {showSuccess && (
+      {showSuccess && (
           <Animated.View
             style={[
               styles.successMessage,
@@ -736,7 +681,80 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             <Text style={styles.successText}>シフトを追加しました！</Text>
           </Animated.View>
         )}
-      </View>
+
+      {/* ユーザー選択ドロップダウン */}
+      {showUserPicker && (
+          <TouchableOpacity 
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPress={() => setShowUserPicker(false)}
+          >
+            <View style={[
+              styles.dropdownContainer,
+              {
+                width: isPC ? '60%' : '90%',
+                maxWidth: isPC ? 800 : undefined,
+                alignSelf: 'center'
+              }
+            ]}>
+              <ScrollView style={styles.dropdownList} showsVerticalScrollIndicator={false}>
+                {/* 募集シフトオプション */}
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownItem,
+                    styles.recruitmentItem,
+                  ]}
+                  onPress={() => {
+                    setSelectedUserId("recruitment");
+                    setSelectedUserNickname("募集");
+                    setShowUserPicker(false);
+                  }}
+                >
+                  <AntDesign name="bells" size={18} color={colors.primary} />
+                  <Text style={[styles.dropdownItemText, styles.recruitmentText]}>
+                    募集シフトとして作成
+                  </Text>
+                </TouchableOpacity>
+
+                {/* ユーザーリスト */}
+                {allUsers.length === 0 ? (
+                  <View style={styles.dropdownItem}>
+                    <Text style={styles.noResultsText}>
+                      ユーザーが見つかりません
+                    </Text>
+                  </View>
+                ) : (
+                  allUsers.map((user) => (
+                    <TouchableOpacity
+                      key={user.uid}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedUserId(user.uid);
+                        setSelectedUserNickname(user.nickname);
+                        setShowUserPicker(false);
+                      }}
+                    >
+                      <AntDesign name="user" size={16} color="#666" />
+                      <View style={styles.dropdownUserInfo}>
+                        <Text style={styles.dropdownItemText}>
+                          {user.nickname}
+                        </Text>
+                        <Text style={styles.dropdownUserRole}>
+                          {user.role === "master" ? "管理者" : "ユーザー"}
+                          {"storeName" in user &&
+                            user.storeName &&
+                            user.isFromOtherStore && (
+                              ` - ${user.storeName}`
+                            )}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        )}
     </View>
   );
 };
