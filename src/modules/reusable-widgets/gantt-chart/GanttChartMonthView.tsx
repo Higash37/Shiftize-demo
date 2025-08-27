@@ -188,7 +188,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const scrollBarWidth = 17; // スクロールバーの幅
   const dateColumnWidth = 50 - scrollBarWidth; // スクロールバー分を減らす
   const infoColumnWidth = Math.max(screenWidth * 0.18, 150) + scrollBarWidth; // スクロールバー分だけ左に詰める
-  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth;
+  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth; // スクロールバー分を減らす
   
   // デバイスタイプの判定
   useEffect(() => {

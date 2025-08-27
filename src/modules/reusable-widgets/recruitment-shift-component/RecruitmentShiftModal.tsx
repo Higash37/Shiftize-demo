@@ -7,6 +7,7 @@ import {
   FlatList,
   Alert,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -42,6 +43,11 @@ export function RecruitmentShiftModal({
   // タブ機能の状態
   const [activeTab, setActiveTab] = useState<"recruitment" | "period">("recruitment");
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
+
+  // レスポンシブ対応
+  const { width: screenWidth } = Dimensions.get('window');
+  const isDesktop = screenWidth > 1024;
+  const isTablet = screenWidth > 768 && screenWidth <= 1024;
 
   // 期間情報を読み込む
   useEffect(() => {
@@ -367,7 +373,7 @@ export function RecruitmentShiftModal({
             ) : (
               // シフト提出タブのコンテンツ（アップデート広告風）
               <ScrollView 
-                contentContainerStyle={{ padding: 20, alignItems: "center" }}
+                contentContainerStyle={{ padding: 20, alignItems: "stretch" }}
                 showsVerticalScrollIndicator={false}
               >
                 {period ? (
@@ -378,6 +384,7 @@ export function RecruitmentShiftModal({
                     alignItems: "center",
                     borderWidth: 1,
                     borderColor: "#e9ecef",
+                    width: "100%",
                   }}>
                     {/* アイコン */}
                     <View style={{

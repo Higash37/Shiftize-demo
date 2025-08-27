@@ -3,16 +3,6 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    maxWidth: "70%",
-    width: "100%",
-    alignSelf: "center",
-    alignItems: "center",
-    alignContent: "center",
-    marginHorizontal: "auto",
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -20,8 +10,10 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 24,
-    width: "100%",
   },
   errorContainer: {
     backgroundColor: "#fff1f0",
@@ -143,6 +135,71 @@ export const styles = StyleSheet.create({
   successText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  // ユーザーピッカーボタン
+  userPickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+  },
+  userPickerText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  placeholderText: {
+    color: "#999",
+  },
+  // ドロップダウン関連
+  dropdownOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    justifyContent: "flex-start",
+    paddingTop: 80, // ユーザー選択ボタンの下
+    paddingHorizontal: 16,
+  },
+  dropdownContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dropdownList: {
+    maxHeight: 400,
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  dropdownUserInfo: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  dropdownUserRole: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
   },
   searchContainer: {
     marginBottom: 16,

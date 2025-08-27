@@ -13,6 +13,10 @@ interface UserPayrollData {
   totalHours: number;
   totalAmount: number;
   shiftCount: number;
+  // 未承認分を追加
+  pendingHours: number;
+  pendingAmount: number;
+  pendingCount: number;
 }
 
 interface PayrollListProps {
@@ -36,7 +40,24 @@ export const PayrollList: React.FC<PayrollListProps> = ({
   const calculateUserPayrollData = (): UserPayrollData[] => {
     const userDataMap = new Map<string, UserPayrollData>();
 
-    const monthlyShifts = shifts.filter((shift) => {
+    // 全ユーザーを初期化（シフトなしでも表示）
+    users.forEach((user) => {
+      userDataMap.set(user.uid, {
+        uid: user.uid,
+        nickname: user.nickname,
+        color: user.color,
+        hourlyWage: user.hourlyWage || 1100,
+        totalHours: 0,
+        totalAmount: 0,
+        shiftCount: 0,
+        pendingHours: 0,
+        pendingAmount: 0,
+        pendingCount: 0,
+      });
+    });
+
+    // 承認済み・完了のシフト
+    const approvedShifts = shifts.filter((shift) => {
       const shiftDate = new Date(shift.date);
       const shiftYear = shiftDate.getFullYear();
       const shiftMonth = shiftDate.getMonth() + 1;
@@ -49,9 +70,23 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       );
     });
 
-    monthlyShifts.forEach((shift) => {
+    // 未承認のシフト（pending）
+    const pendingShifts = shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      const shiftYear = shiftDate.getFullYear();
+      const shiftMonth = shiftDate.getMonth() + 1;
+
+      return (
+        shiftYear === selectedYear &&
+        shiftMonth === selectedMonth &&
+        shift.status === "pending"
+      );
+    });
+
+    // 承認済みシフトの計算
+    approvedShifts.forEach((shift) => {
       const user = users.find((u) => u.uid === shift.userId);
-      if (!user) return;
+      if (!user || !userDataMap.has(user.uid)) return;
 
       const hourlyWage = user.hourlyWage || 1100;
       const classes = shift.classes || [];
@@ -67,26 +102,39 @@ export const PayrollList: React.FC<PayrollListProps> = ({
 
       const totalHours = totalMinutes / 60;
 
-      if (userDataMap.has(user.uid)) {
-        const existing = userDataMap.get(user.uid)!;
-        existing.totalHours += totalHours;
-        existing.totalAmount += totalWage;
-        existing.shiftCount += 1;
-      } else {
-        userDataMap.set(user.uid, {
-          uid: user.uid,
-          nickname: user.nickname,
-          color: user.color,
-          hourlyWage: hourlyWage,
-          totalHours: totalHours,
-          totalAmount: totalWage,
-          shiftCount: 1,
-        });
-      }
+      const existing = userDataMap.get(user.uid)!;
+      existing.totalHours += totalHours;
+      existing.totalAmount += totalWage;
+      existing.shiftCount += 1;
+    });
+
+    // 未承認シフトの計算
+    pendingShifts.forEach((shift) => {
+      const user = users.find((u) => u.uid === shift.userId);
+      if (!user || !userDataMap.has(user.uid)) return;
+
+      const hourlyWage = user.hourlyWage || 1100;
+      const classes = shift.classes || [];
+
+      const { totalMinutes, totalWage } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: classes,
+        },
+        hourlyWage
+      );
+
+      const totalHours = totalMinutes / 60;
+
+      const existing = userDataMap.get(user.uid)!;
+      existing.pendingHours += totalHours;
+      existing.pendingAmount += totalWage;
+      existing.pendingCount += 1;
     });
 
     return Array.from(userDataMap.values()).sort(
-      (a, b) => b.totalAmount - a.totalAmount
+      (a, b) => (b.totalAmount + b.pendingAmount) - (a.totalAmount + a.pendingAmount)
     );
   };
 
@@ -96,8 +144,11 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       totalHours: acc.totalHours + user.totalHours,
       totalAmount: acc.totalAmount + user.totalAmount,
       shiftCount: acc.shiftCount + user.shiftCount,
+      pendingHours: acc.pendingHours + user.pendingHours,
+      pendingAmount: acc.pendingAmount + user.pendingAmount,
+      pendingCount: acc.pendingCount + user.pendingCount,
     }),
-    { totalHours: 0, totalAmount: 0, shiftCount: 0 }
+    { totalHours: 0, totalAmount: 0, shiftCount: 0, pendingHours: 0, pendingAmount: 0, pendingCount: 0 }
   );
 
   return (
@@ -111,6 +162,11 @@ export const PayrollList: React.FC<PayrollListProps> = ({
         <Text style={styles.summaryText}>
           総計: {grandTotal.totalAmount.toLocaleString()}円 | {Math.floor(grandTotal.totalHours)}h{Math.round((grandTotal.totalHours % 1) * 60) > 0 && `${Math.round((grandTotal.totalHours % 1) * 60)}m`}{' '}| {grandTotal.shiftCount}件
         </Text>
+        {grandTotal.pendingCount > 0 && (
+          <Text style={styles.summaryPending}>
+            未承認: {grandTotal.pendingAmount.toLocaleString()}円 | {Math.floor(grandTotal.pendingHours)}h{Math.round((grandTotal.pendingHours % 1) * 60) > 0 && `${Math.round((grandTotal.pendingHours % 1) * 60)}m`}{' '}| {grandTotal.pendingCount}件
+          </Text>
+        )}
         <Text style={styles.summaryNote}>
           ※承認済み・完了のシフトのみ計算対象
         </Text>
@@ -118,49 +174,61 @@ export const PayrollList: React.FC<PayrollListProps> = ({
 
       {/* 個人別リスト */}
       <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false}>
-        {payrollData.length === 0 ? (
-          <Text style={styles.emptyText}>
-            この月のシフトデータがありません
-          </Text>
-        ) : (
-          <View style={styles.gridContainer}>
-            {payrollData.map((user) => (
-              <TouchableOpacity 
-                key={user.uid} 
-                style={[
-                  styles.userRow,
-                  selectedUserId === user.uid && styles.selectedUserRow
-                ]}
-                onPress={() => {
-                  if (onUserSelect) {
-                    // 同じユーザーをタップしたら選択解除、異なるユーザーなら選択
-                    onUserSelect(selectedUserId === user.uid ? null : user.uid);
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={styles.leftSection}>
-                  <View
-                    style={[
-                      styles.colorIndicator,
-                      { backgroundColor: user.color || "#ccc" },
-                    ]}
-                  />
-                  <AntDesign name="user" size={16} color={user.color || "#ccc"} />
-                </View>
-                
-                <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{user.nickname}</Text>
-                  <Text style={styles.userAmount}>
-                    {user.totalAmount.toLocaleString()}円 | {Math.floor(user.totalHours)}h
-                    {Math.round((user.totalHours % 1) * 60) > 0 &&
-                      `${Math.round((user.totalHours % 1) * 60)}m`}{' '}| {user.shiftCount}件
+        <View style={styles.gridContainer}>
+          {payrollData.map((user) => (
+            <TouchableOpacity 
+              key={user.uid} 
+              style={[
+                styles.userRow,
+                selectedUserId === user.uid && styles.selectedUserRow,
+                user.shiftCount === 0 && styles.noShiftUserRow // シフトがない場合のスタイル
+              ]}
+              onPress={() => {
+                if (onUserSelect) {
+                  // 同じユーザーをタップしたら選択解除、異なるユーザーなら選択
+                  onUserSelect(selectedUserId === user.uid ? null : user.uid);
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.leftSection}>
+                <View
+                  style={[
+                    styles.colorIndicator,
+                    { backgroundColor: user.color || "#ccc" },
+                  ]}
+                />
+                <AntDesign name="user" size={16} color={user.color || "#ccc"} />
+              </View>
+              
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{user.nickname}</Text>
+                <Text style={[
+                  styles.userAmount,
+                  user.shiftCount === 0 && user.pendingCount === 0 && styles.noShiftText
+                ]}>
+                  {user.shiftCount === 0 && user.pendingCount === 0 ? (
+                    "シフトなし"
+                  ) : (
+                    <>
+                      {user.totalAmount.toLocaleString()}円 | {Math.floor(user.totalHours)}h
+                      {Math.round((user.totalHours % 1) * 60) > 0 &&
+                        `${Math.round((user.totalHours % 1) * 60)}m`}{' '}| {user.shiftCount}件
+                    </>
+                  )}
+                </Text>
+                {/* 未承認分の表示 */}
+                {user.pendingCount > 0 && (
+                  <Text style={styles.pendingAmount}>
+                    未承認: {user.pendingAmount.toLocaleString()}円 | {Math.floor(user.pendingHours)}h
+                    {Math.round((user.pendingHours % 1) * 60) > 0 &&
+                      `${Math.round((user.pendingHours % 1) * 60)}m`}{' '}| {user.pendingCount}件
                   </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -259,5 +327,27 @@ const styles = StyleSheet.create({
   userDetails: {
     fontSize: 11,
     color: "#666",
+  },
+  noShiftUserRow: {
+    backgroundColor: "#f8f9fa",
+    borderColor: "#dee2e6",
+    opacity: 0.7,
+  },
+  noShiftText: {
+    color: "#6c757d",
+    fontStyle: "italic",
+  },
+  pendingAmount: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#ff8c00", // 濃い黄色（オレンジ系）
+    marginTop: 2,
+  },
+  summaryPending: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#ff8c00", // 濃い黄色（オレンジ系）
+    textAlign: "center",
+    marginTop: 4,
   },
 });

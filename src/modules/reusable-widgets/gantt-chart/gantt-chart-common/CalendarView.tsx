@@ -42,8 +42,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const shiftRefs = useRef<{ [key: string]: any }>({}).current;
 
-  // 現在の月の文字列を生成
-  const currentMonth = format(selectedDate, "yyyy-MM-dd");
+  // 現在の月の文字列を生成（月変更で更新されるように状態管理）
+  const [currentMonth, setCurrentMonth] = useState(format(selectedDate, "yyyy-MM-dd"));
+
+  // 親コンポーネントのselectedDateが変更されたときにcurrentMonthを同期
+  React.useEffect(() => {
+    const newCurrentMonth = format(selectedDate, "yyyy-MM-dd");
+    setCurrentMonth(newCurrentMonth);
+  }, [selectedDate]);
 
   // マークされた日付を生成（ShiftCalendarと同じロジック使用）
   const markedDates = useMemo(() => {
@@ -168,7 +174,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleMonthChange = (month: any) => {
     const date = new Date(month.dateString);
+    setCurrentMonth(month.dateString); // カレンダーの表示月を更新
     if (onMonthChange) {
+      // 月の最初の日に設定して親コンポーネントのselectedDateを更新
+      const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
       onMonthChange(date.getFullYear(), date.getMonth());
     }
   };
@@ -190,6 +199,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 中央：カレンダー部分 */}
         <View style={{ flex: 1, backgroundColor: "#fff", paddingHorizontal: 5 }}>
           <ShiftCalendar
+            key={`calendar-${currentMonth}-${selectedUserId || 'all'}`} // 月変更時に強制再レンダリング
             shifts={convertedShifts as any}
             selectedDate={selectedCalendarDate}
             currentMonth={currentMonth}

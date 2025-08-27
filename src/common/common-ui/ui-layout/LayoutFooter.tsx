@@ -141,7 +141,7 @@ export function Footer({}: FooterProps) {
       return;
     }
     
-    // シフト追加タブの場合はツールチップを表示してから遷移
+    // シフト追加タブの場合は期間チェックのみ実施
     if (tab.name === "create" && period) {
       const canSubmit = isWithinPeriod();
       const daysLeft = getDaysUntilDeadline();
@@ -154,15 +154,6 @@ export function Footer({}: FooterProps) {
           position: "bottom",
         });
         return;
-      }
-      
-      if (daysLeft <= 3) {
-        Toast.show({
-          type: "info",
-          text1: "締切間近！",
-          text2: `締切まであと${daysLeft}日です`,
-          position: "bottom",
-        });
       }
     }
     
