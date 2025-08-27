@@ -29,6 +29,9 @@ import { ViewStyle } from "react-native";
 import { ShiftService } from "@/services/firebase/firebase-shift";
 import { ShiftRuleValuePicker } from "@/modules/master-view/master-view-settings/ShiftRuleValuePicker";
 import { getTasks } from "@/services/firebase/firebase-task";
+import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftConfirmationService";
+import { Ionicons } from "@expo/vector-icons";
 import { modalStyles } from "../ListModal/ModalStyles";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
@@ -66,6 +69,11 @@ export const UserShiftList = () => {
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 768 && width < 1024; // タブレット判定
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  
+  // シフト確定ボタン用の状態
+  const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // 画面がフォーカスされた時にデータを更新
   useEffect(() => {
@@ -80,6 +88,87 @@ export const UserShiftList = () => {
   useEffect(() => {
     fetchShifts();
   }, []);
+
+  // 期間情報を読み込む
+  useEffect(() => {
+    if (user?.storeId) {
+      loadActivePeriod();
+    }
+  }, [user?.storeId]);
+
+  const loadActivePeriod = async () => {
+    try {
+      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      const currentPeriod = periods.length > 0 ? periods[0] : null;
+      setPeriod(currentPeriod);
+      
+      // 確定状況もロード
+      if (currentPeriod && user?.uid) {
+        const isConfirmed = await ShiftConfirmationService.getUserConfirmationStatus(
+          user.uid, 
+          currentPeriod.id
+        );
+        setIsCompleted(isConfirmed);
+      }
+    } catch (error) {
+      console.error("期間の読み込みエラー:", error);
+    }
+  };
+
+  const getDaysUntilDeadline = (): number => {
+    if (!period) return 0;
+    return ShiftSubmissionService.getDaysUntilDeadline(period);
+  };
+
+  const isWithinPeriod = (): boolean => {
+    if (!period) return false;
+    return ShiftSubmissionService.isWithinPeriod(period);
+  };
+
+  const handleShiftConfirm = () => {
+    if (isCompleted) {
+      // 確定済みの場合は取り消しを確認
+      Alert.alert(
+        "確認",
+        "シフト確定を取り消しますか？",
+        [
+          {
+            text: "キャンセル",
+            style: "cancel"
+          },
+          {
+            text: "取り消し",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                if (user?.uid && period?.id) {
+                  await ShiftConfirmationService.cancelConfirmation(user.uid, period.id);
+                  setIsCompleted(false);
+                }
+              } catch (error) {
+                Alert.alert("エラー", "取り消しに失敗しました");
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      // 未確定の場合は確認モーダルを表示
+      setShowConfirmModal(true);
+    }
+  };
+
+  const handleConfirmComplete = async () => {
+    try {
+      if (user?.uid && user?.storeId && period?.id) {
+        await ShiftConfirmationService.confirmShift(user.uid, user.storeId, period.id);
+        setIsCompleted(true);
+        setShowConfirmModal(false);
+      }
+    } catch (error) {
+      Alert.alert("エラー", "確定に失敗しました");
+    }
+  };
 
   // ユーザーの店舗IDを取得
   useEffect(() => {
@@ -316,6 +405,32 @@ export const UserShiftList = () => {
             contentContainerStyle={styles.listContentContainer}
             showsVerticalScrollIndicator={false} // スクロールバーを非表示に
           >
+            {/* シフト確定ボタン */}
+            {period && (
+              <View style={{ alignItems: "center", marginVertical: 8 }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: isCompleted ? "#6c757d" : colors.primary,
+                    borderRadius: 4,
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    alignItems: "center",
+                    opacity: isCompleted ? 0.7 : 1,
+                  }}
+                  onPress={handleShiftConfirm}
+                  disabled={isCompleted}
+                >
+                  <Text style={{
+                    color: "white",
+                    fontSize: 11,
+                    fontWeight: "600",
+                  }}>
+                    {isCompleted ? "確定済み" : "シフト確定"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
             {monthlyShifts.length > 0 ? (
               monthlyShifts.map((shift) => {
                 // シフトの表示
@@ -394,6 +509,101 @@ export const UserShiftList = () => {
         onRequestClose={() => setShowPasswordModal(false)}
       >
         <ChangePassword onComplete={() => setShowPasswordModal(false)} />
+      </Modal>
+
+      {/* シフト確定確認モーダル */}
+      <Modal
+        visible={showConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPress={() => setShowConfirmModal(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={{
+              backgroundColor: "white",
+              borderRadius: 12,
+              padding: 24,
+              margin: 20,
+              maxWidth: 320,
+              width: "90%",
+            }}
+          >
+            <Text style={{
+              fontSize: 18,
+              fontWeight: "600",
+              color: colors.text.primary,
+              textAlign: "center",
+              marginBottom: 12,
+            }}>
+              シフト確定
+            </Text>
+            
+            <Text style={{
+              fontSize: 16,
+              color: colors.text.secondary,
+              textAlign: "center",
+              marginBottom: 24,
+              lineHeight: 22,
+            }}>
+              現在提出しているシフトで一旦確定でよろしいですか？
+            </Text>
+
+            <View style={{
+              flexDirection: "row",
+              gap: 12,
+            }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.border,
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                }}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={{
+                  color: colors.text.primary,
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}>
+                  キャンセル
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.primary,
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                }}
+                onPress={handleConfirmComplete}
+              >
+                <Text style={{
+                  color: "white",
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}>
+                  決定
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </>
   );
