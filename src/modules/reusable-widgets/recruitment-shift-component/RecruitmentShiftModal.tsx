@@ -8,7 +8,7 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { RecruitmentShift, RecruitmentApplication } from "@/common/common-models/model-shift/shiftTypes";
 import { useAuth } from "@/services/auth/useAuth";
@@ -17,6 +17,7 @@ import { db } from "@/services/firebase/firebase";
 import { styles } from "./styles";
 import { RecruitmentApplicationModal } from "./RecruitmentApplicationModal";
 import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
 
 interface RecruitmentShiftModalProps {
   visible: boolean;
@@ -37,6 +38,36 @@ export function RecruitmentShiftModal({
   const [selectedMasterShift, setSelectedMasterShift] = useState<RecruitmentShift | null>(null);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [shiftToDelete, setShiftToDelete] = useState<RecruitmentShift | null>(null);
+  
+  // タブ機能の状態
+  const [activeTab, setActiveTab] = useState<"recruitment" | "period">("recruitment");
+  const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
+
+  // 期間情報を読み込む
+  useEffect(() => {
+    if (user?.storeId) {
+      loadActivePeriod();
+    }
+  }, [user?.storeId]);
+
+  const loadActivePeriod = async () => {
+    try {
+      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      setPeriod(periods.length > 0 ? periods[0] : null);
+    } catch (error) {
+      console.error("期間の読み込みエラー:", error);
+    }
+  };
+
+  const getDaysUntilDeadline = (): number => {
+    if (!period) return 0;
+    return ShiftSubmissionService.getDaysUntilDeadline(period);
+  };
+
+  const isWithinPeriod = (): boolean => {
+    if (!period) return false;
+    return ShiftSubmissionService.isWithinPeriod(period);
+  };
 
   useEffect(() => {
     if (!user?.storeId) return;
@@ -250,7 +281,11 @@ export function RecruitmentShiftModal({
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => {}}
-            style={styles.modalContainer}
+            style={[styles.modalContainer, {
+              width: "95%",
+              maxWidth: 600,
+              height: "85%",
+            }]}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -261,21 +296,176 @@ export function RecruitmentShiftModal({
               </TouchableOpacity>
             </View>
 
-            {recruitmentShifts.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                  {userRole === "master" 
-                    ? "募集中のシフトはありません" 
-                    : "現在募集中のシフトはありません"}
+            {/* タブ切り替え */}
+            <View style={{
+              flexDirection: "row",
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+              marginBottom: 16,
+            }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  paddingHorizontal: 24,
+                  alignItems: "center",
+                  borderBottomWidth: activeTab === "recruitment" ? 2 : 0,
+                  borderBottomColor: colors.primary,
+                }}
+                onPress={() => setActiveTab("recruitment")}
+              >
+                <Text style={{
+                  fontSize: 17,
+                  fontWeight: activeTab === "recruitment" ? "600" : "400",
+                  color: activeTab === "recruitment" ? colors.primary : colors.text.secondary,
+                }}>
+                  募集シフト
                 </Text>
-              </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 16,
+                  paddingHorizontal: 24,
+                  alignItems: "center",
+                  borderBottomWidth: activeTab === "period" ? 2 : 0,
+                  borderBottomColor: colors.primary,
+                }}
+                onPress={() => setActiveTab("period")}
+              >
+                <Text style={{
+                  fontSize: 17,
+                  fontWeight: activeTab === "period" ? "600" : "400",
+                  color: activeTab === "period" ? colors.primary : colors.text.secondary,
+                }}>
+                  シフト提出
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* タブコンテンツ */}
+            {activeTab === "recruitment" ? (
+              // 募集シフトタブのコンテンツ
+              recruitmentShifts.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    {userRole === "master" 
+                      ? "募集中のシフトはありません" 
+                      : "現在募集中のシフトはありません"}
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={recruitmentShifts}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderShiftItem}
+                  contentContainerStyle={styles.listContainer}
+                  showsVerticalScrollIndicator={false}
+                />
+              )
             ) : (
-              <FlatList
-                data={recruitmentShifts}
-                keyExtractor={(item) => item.id}
-                renderItem={renderShiftItem}
-                contentContainerStyle={styles.listContainer}
-              />
+              // シフト提出タブのコンテンツ（アップデート広告風）
+              <ScrollView 
+                contentContainerStyle={{ padding: 20, alignItems: "center" }}
+                showsVerticalScrollIndicator={false}
+              >
+                {period ? (
+                  <View style={{
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: 12,
+                    padding: 24,
+                    alignItems: "center",
+                    borderWidth: 1,
+                    borderColor: "#e9ecef",
+                  }}>
+                    {/* アイコン */}
+                    <View style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: 50,
+                      padding: 16,
+                      marginBottom: 16,
+                    }}>
+                      <Ionicons name="calendar" size={32} color="white" />
+                    </View>
+
+                    {/* タイトル */}
+                    <Text style={{
+                      fontSize: 20,
+                      fontWeight: "bold",
+                      color: colors.text.primary,
+                      textAlign: "center",
+                      marginBottom: 8,
+                    }}>
+                      シフト提出のお知らせ
+                    </Text>
+
+                    {/* 期間情報 */}
+                    <Text style={{
+                      fontSize: 16,
+                      color: colors.text.secondary,
+                      textAlign: "center",
+                      marginBottom: 16,
+                      lineHeight: 24,
+                    }}>
+                      {typeof period.startDate === 'string' ? period.startDate : period.startDate.toLocaleDateString()}〜{typeof period.endDate === 'string' ? period.endDate : period.endDate.toLocaleDateString()}の期間中に{"\n"}
+                      シフトの提出をお願いします
+                    </Text>
+
+                    {/* 残り日数 */}
+                    <View style={{
+                      backgroundColor: isWithinPeriod() ? "#e8f5e8" : "#fff3cd",
+                      borderRadius: 8,
+                      padding: 12,
+                      marginBottom: 20,
+                    }}>
+                      <Text style={{
+                        fontSize: 18,
+                        fontWeight: "600",
+                        color: isWithinPeriod() ? "#28a745" : "#856404",
+                        textAlign: "center",
+                      }}>
+                        {isWithinPeriod() 
+                          ? `締切まで あと${getDaysUntilDeadline()}日` 
+                          : getDaysUntilDeadline() < 0 
+                            ? "提出期間終了" 
+                            : "提出期間開始まで待機中"}
+                      </Text>
+                    </View>
+
+                    {/* アクションボタン */}
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: colors.primary,
+                        borderRadius: 8,
+                        paddingVertical: 14,
+                        paddingHorizontal: 32,
+                        minWidth: 200,
+                        alignItems: "center",
+                      }}
+                      onPress={() => {
+                        onClose();
+                        // TODO: シフト作成画面への遷移
+                      }}
+                    >
+                      <Text style={{
+                        color: "white",
+                        fontSize: 16,
+                        fontWeight: "600",
+                      }}>
+                        シフトを確定する
+                      </Text>
+                    </TouchableOpacity>
+
+                  </View>
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                      現在、シフト提出期間の設定はありません
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             )}
           </TouchableOpacity>
         </TouchableOpacity>

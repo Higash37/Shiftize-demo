@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
@@ -8,6 +8,7 @@ import { PrintButton } from "../print/PrintButton";
 import { ColorToggleButton } from "./ColorToggleButton";
 import { ViewToggleButton } from "./ViewToggleButton";
 import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./UnifiedButtonStyles";
+import { PeriodSettingModal } from "../modals/PeriodSettingModal";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -32,6 +33,7 @@ interface MonthSelectorBarProps {
   useGoogleLayout?: boolean; // 追加：Googleレイアウトを使用するか
   onToggleGoogleLayout?: () => void; // 追加：Googleレイアウト切替
   onOpenHistory?: () => void; // 追加：履歴モーダル表示
+  storeId?: string; // 追加：店舗ID（期間設定モーダル用）
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -58,7 +60,10 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     deviceType = "desktop",
     useGoogleLayout = false,
     onToggleGoogleLayout,
+    storeId,
   } = props;
+
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
   return (
     <View style={styles.monthSelector}>
       {/* 金額表示部分 - シフトがなくても表示（タップ可能） */}
@@ -154,6 +159,13 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
             selectedDate={selectedDate}
           />
         )}
+        <TouchableOpacity 
+          style={getButtonStyle("primary")} 
+          onPress={() => setShowPeriodModal(true)}
+        >
+          <Ionicons name="calendar-outline" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+          <Text style={getButtonTextStyle("primary")}>期間設定</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={getButtonStyle("secondary")} onPress={onReload}>
           <Ionicons name="refresh" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
           <Text style={getButtonTextStyle("secondary")}>更新</Text>
@@ -184,6 +196,21 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           </TouchableOpacity>
         )}
         </View>
+      )}
+
+      {/* 期間設定モーダル */}
+      {storeId && (
+        <PeriodSettingModal
+          visible={showPeriodModal}
+          onClose={() => setShowPeriodModal(false)}
+          storeId={storeId}
+          users={props.users}
+          shifts={props.shifts}
+          onPeriodCreated={(period) => {
+            // 期間が作成されました
+            // 必要に応じて親コンポーネントに通知
+          }}
+        />
       )}
     </View>
   );

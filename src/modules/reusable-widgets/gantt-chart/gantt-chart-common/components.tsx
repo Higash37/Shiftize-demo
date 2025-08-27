@@ -6,7 +6,15 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from "react-native";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  getDay,
+  addMonths,
+  subMonths,
+} from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftItem, TaskItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../GanttChartTypes";
@@ -32,10 +40,11 @@ export const DateCell: React.FC<DateCellProps> = ({
   const formattedDate = new Date(date);
   const dayOfWeek = format(formattedDate, "E", { locale: ja });
   const dayOfMonth = format(formattedDate, "d");
-  
+
   // 祝日・日曜日対応の色分け
   const holidayTextColor = getDateTextColor(date);
-  const textColor = holidayTextColor || (dayOfWeek === "土" ? "#0000FF" : "#000000");
+  const textColor =
+    holidayTextColor || (dayOfWeek === "土" ? "#0000FF" : "#000000");
   return (
     <View
       style={[
@@ -242,7 +251,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
         const cellHeight = 70;
-        
+
         // 重複チェック - 他のシフトと時間が重複するかどうか
         const hasOverlap = shifts.some((otherShift, otherIndex) => {
           if (otherIndex === index) return false;
@@ -250,10 +259,10 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           const otherEndPos = timeToPosition(otherShift.endTime);
           return !(endPos <= otherStartPos || startPos >= otherEndPos);
         });
-        
+
         let singleBarHeight;
         let barVerticalOffset;
-        
+
         if (!hasOverlap) {
           // 重複しない場合は全体の高さを使用
           singleBarHeight = cellHeight;
@@ -264,9 +273,10 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           barVerticalOffset = index * singleBarHeight;
         }
         // 色モードに応じて色を取得
-        const borderColor = colorMode === "status" 
-          ? statusConfig.color 
-          : (userColorsMap?.[shift.userId] || statusConfig.color);
+        const borderColor =
+          colorMode === "status"
+            ? statusConfig.color
+            : userColorsMap?.[shift.userId] || statusConfig.color;
 
         // 2時間以下かどうかを判定（120分 = 2時間）
         const startTimeMinutes = (() => {
@@ -702,14 +712,18 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   onMonthChange,
 }) => {
   const [showDatePicker, setShowDatePicker] = React.useState(false);
-  const [currentMonth, setCurrentMonth] = React.useState(selectedDate || new Date());
-  const [internalSelectedDate, setInternalSelectedDate] = React.useState<string | null>(
-    selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
+  const [currentMonth, setCurrentMonth] = React.useState(
+    selectedDate || new Date()
   );
+  const [internalSelectedDate, setInternalSelectedDate] = React.useState<
+    string | null
+  >(selectedDate ? format(selectedDate, "yyyy-MM-dd") : null);
 
   // 外部からのselectedDateが変更されたら内部状態も更新
   React.useEffect(() => {
-    setInternalSelectedDate(selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null);
+    setInternalSelectedDate(
+      selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
+    );
   }, [selectedDate]);
 
   // カレンダーグリッド用の日付データを生成
@@ -717,7 +731,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
     const monthDays = eachDayOfInterval({ start, end });
-    
+
     const startDayOfWeek = getDay(start);
     const prevMonthDays = [];
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
@@ -725,21 +739,22 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
       prevDay.setDate(prevDay.getDate() - (i + 1));
       prevMonthDays.push({ date: prevDay, isCurrentMonth: false });
     }
-    
-    const currentMonthDays = monthDays.map(date => ({ 
-      date, 
-      isCurrentMonth: true 
+
+    const currentMonthDays = monthDays.map((date) => ({
+      date,
+      isCurrentMonth: true,
     }));
-    
+
     const totalCells = 42;
-    const remainingCells = totalCells - prevMonthDays.length - currentMonthDays.length;
+    const remainingCells =
+      totalCells - prevMonthDays.length - currentMonthDays.length;
     const nextMonthDays = [];
     for (let i = 0; i < remainingCells; i++) {
       const nextDay = new Date(end);
       nextDay.setDate(nextDay.getDate() + (i + 1));
       nextMonthDays.push({ date: nextDay, isCurrentMonth: false });
     }
-    
+
     return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   }, [currentMonth]);
 
@@ -747,7 +762,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   const markedDates = React.useMemo(() => {
     const marks: { [key: string]: any } = {};
     const shiftsByDate: Record<string, any[]> = {};
-    
+
     allShifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
         const date = shift.date;
@@ -777,12 +792,13 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     }
   };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
-    const newMonth = direction === 'prev' 
-      ? subMonths(currentMonth, 1)
-      : addMonths(currentMonth, 1);
+  const handleMonthChange = (direction: "prev" | "next") => {
+    const newMonth =
+      direction === "prev"
+        ? subMonths(currentMonth, 1)
+        : addMonths(currentMonth, 1);
     setCurrentMonth(newMonth);
-    
+
     if (onMonthChange) {
       onMonthChange(newMonth.getFullYear(), newMonth.getMonth());
     }
@@ -804,59 +820,72 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
           backgroundColor: "#ffffff",
           minHeight: 300,
           flex: 1,
+          marginLeft: 0, // スクロールバー分だけ左に移動
         },
       ]}
     >
-      <View style={{ flex: 1, paddingHorizontal: 4, paddingVertical: 4 }}>
+      <View
+        style={{ flex: 1, paddingLeft: 0, paddingRight: 2, paddingVertical: 4 }}
+      >
         {/* カレンダーヘッダー */}
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          paddingVertical: 4,
-        }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingVertical: 4,
+          }}
+        >
           <TouchableOpacity
-            onPress={() => handleMonthChange('prev')}
+            onPress={() => handleMonthChange("prev")}
             style={{ padding: 8, borderRadius: 4 }}
             activeOpacity={0.7}
           >
             <MaterialIcons name="chevron-left" size={20} color="#333" />
           </TouchableOpacity>
-          
+
           <CalendarHeader
             date={currentMonth}
             onYearMonthSelect={() => setShowDatePicker(true)}
             responsiveStyle={{ fontSize: 14 }}
           />
-          
+
           <TouchableOpacity
-            onPress={() => handleMonthChange('next')}
+            onPress={() => handleMonthChange("next")}
             style={{ padding: 8, borderRadius: 4 }}
             activeOpacity={0.7}
           >
             <MaterialIcons name="chevron-right" size={20} color="#333" />
           </TouchableOpacity>
         </View>
-        
+
         {/* 曜日ヘッダー */}
-        <View style={{ 
-          flexDirection: 'row', 
-          marginTop: 2,
-          marginBottom: 2,
-        }}>
-          {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
-            <View key={day} style={{ 
-              flex: 1, 
-              alignItems: 'center',
-              paddingVertical: 2,
-              borderRightWidth: index < 6 ? 0.5 : 0,
-              borderRightColor: '#E5E5E5',
-            }}>
-              <Text style={{ 
-                fontSize: 12,
-                fontWeight: '600',
-                color: index === 0 ? '#FF3B30' : index === 6 ? '#007AFF' : '#333',
-              }}>
+        <View
+          style={{
+            flexDirection: "row",
+            marginTop: 2,
+            marginBottom: 2,
+          }}
+        >
+          {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
+            <View
+              key={day}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                paddingVertical: 2,
+                borderRightWidth: index < 6 ? 0.5 : 0,
+                borderRightColor: "#E5E5E5",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color:
+                    index === 0 ? "#FF3B30" : index === 6 ? "#007AFF" : "#333",
+                }}
+              >
                 {day}
               </Text>
             </View>
@@ -865,83 +894,103 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
 
         {/* カレンダーグリッド */}
         <View style={{ flex: 1 }}>
-          {[0, 1, 2, 3, 4, 5].map(weekIndex => (
-            <View key={weekIndex} style={{ 
-              flexDirection: 'row', 
-              flex: 1,
-            }}>
-              {calendarData.slice(weekIndex * 7, weekIndex * 7 + 7).map((dayData, dayIndex) => {
-                const dateString = format(dayData.date, 'yyyy-MM-dd');
-                const isSelected = internalSelectedDate === dateString;
-                const marking = markedDates[dateString];
-                
-                return (
-                  <View 
-                    key={dateString} 
-                    style={{ 
-                      flex: 1,
-                      borderRightWidth: dayIndex < 6 ? 0.5 : 0,
-                      borderRightColor: '#E5E5E5',
-                    }}
-                  >
-                    <View style={{ 
-                      flex: 1, 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      paddingVertical: 2,
-                    }}>
-                      <TouchableOpacity
+          {[0, 1, 2, 3, 4, 5].map((weekIndex) => (
+            <View
+              key={weekIndex}
+              style={{
+                flexDirection: "row",
+                flex: 1,
+              }}
+            >
+              {calendarData
+                .slice(weekIndex * 7, weekIndex * 7 + 7)
+                .map((dayData, dayIndex) => {
+                  const dateString = format(dayData.date, "yyyy-MM-dd");
+                  const isSelected = internalSelectedDate === dateString;
+                  const marking = markedDates[dateString];
+
+                  return (
+                    <View
+                      key={dateString}
+                      style={{
+                        flex: 1,
+                        borderRightWidth: dayIndex < 6 ? 0.5 : 0,
+                        borderRightColor: "#E5E5E5",
+                      }}
+                    >
+                      <View
                         style={{
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: isSelected ? '#007AFF' : 'transparent',
-                          borderRadius: isSelected ? 12 : 0,
-                          width: 24,
-                          height: 24,
+                          flex: 1,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          paddingVertical: 2,
                         }}
-                        onPress={() => handleDayPress(dateString)}
-                        activeOpacity={0.7}
                       >
-                        <Text style={{
-                          fontSize: 14,
-                          fontWeight: '500',
-                          color: isSelected ? '#fff' : 
-                            !dayData.isCurrentMonth ? '#C0C0C0' :
-                            format(dayData.date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? '#007AFF' :
-                            dayData.date.getDay() === 0 ? '#FF3B30' :
-                            dayData.date.getDay() === 6 ? '#007AFF' : '#333',
-                          textAlign: 'center',
-                        }}>
-                          {format(dayData.date, 'd')}
-                        </Text>
-                      </TouchableOpacity>
-                      
-                      {/* シフトドット */}
-                      {marking?.dots && marking.dots.length > 0 && (
-                        <View style={{
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          marginTop: 1,
-                        }}>
-                          {marking.dots.map((dot: any, index: number) => (
-                            <View
-                              key={dot.key || index}
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: 3,
-                                backgroundColor: dot.color,
-                                marginHorizontal: 1,
-                              }}
-                            />
-                          ))}
-                        </View>
-                      )}
+                        <TouchableOpacity
+                          style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: isSelected
+                              ? "#007AFF"
+                              : "transparent",
+                            borderRadius: isSelected ? 12 : 0,
+                            width: 24,
+                            height: 24,
+                          }}
+                          onPress={() => handleDayPress(dateString)}
+                          activeOpacity={0.7}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "500",
+                              color: isSelected
+                                ? "#fff"
+                                : !dayData.isCurrentMonth
+                                ? "#C0C0C0"
+                                : format(dayData.date, "yyyy-MM-dd") ===
+                                  format(new Date(), "yyyy-MM-dd")
+                                ? "#007AFF"
+                                : dayData.date.getDay() === 0
+                                ? "#FF3B30"
+                                : dayData.date.getDay() === 6
+                                ? "#007AFF"
+                                : "#333",
+                              textAlign: "center",
+                            }}
+                          >
+                            {format(dayData.date, "d")}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {/* シフトドット */}
+                        {marking?.dots && marking.dots.length > 0 && (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              marginTop: 1,
+                            }}
+                          >
+                            {marking.dots.map((dot: any, index: number) => (
+                              <View
+                                key={dot.key || index}
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: 3,
+                                  backgroundColor: dot.color,
+                                  marginHorizontal: 1,
+                                }}
+                              />
+                            ))}
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
             </View>
           ))}
         </View>

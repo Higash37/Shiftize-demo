@@ -152,7 +152,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           data={data}
           onScroll={handleScroll}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           // 安定したキーを生成（シフトIDまたは日付とグループ情報）
           keyExtractor={(
             item: RowData & { isFirstInGroup: boolean; groupSize: number },

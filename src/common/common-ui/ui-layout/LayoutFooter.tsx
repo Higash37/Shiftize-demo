@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -18,6 +18,8 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "./LayoutFooter.styles";
 import { TabItem } from "./ui-layout-types";
 import { FooterProps } from "./LayoutFooter.types";
+import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import { useAuth } from "@/services/auth/useAuth";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -98,6 +100,35 @@ function isStandalonePWA() {
 export function Footer({}: FooterProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
+  
+  const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
+
+  useEffect(() => {
+    if (user?.storeId) {
+      loadActivePeriod();
+    }
+  }, [user?.storeId]);
+
+  const loadActivePeriod = async () => {
+    try {
+      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      console.log("Footer - 読み込んだ期間:", periods);
+      setPeriod(periods.length > 0 ? periods[0] : null);
+    } catch (error) {
+      console.error("期間の読み込みエラー:", error);
+    }
+  };
+
+  const getDaysUntilDeadline = (): number => {
+    if (!period) return 0;
+    return ShiftSubmissionService.getDaysUntilDeadline(period);
+  };
+
+  const isWithinPeriod = (): boolean => {
+    if (!period) return false;
+    return ShiftSubmissionService.isWithinPeriod(period);
+  };
 
   const handleTabPress = (tab: TabItem) => {
     if (tab.isUnderDevelopment) {
@@ -109,13 +140,40 @@ export function Footer({}: FooterProps) {
       });
       return;
     }
+    
+    // シフト追加タブの場合はツールチップを表示してから遷移
+    if (tab.name === "create" && period) {
+      const canSubmit = isWithinPeriod();
+      const daysLeft = getDaysUntilDeadline();
+      
+      if (!canSubmit) {
+        Toast.show({
+          type: "error",
+          text1: "募集期間外です",
+          text2: daysLeft < 0 ? "募集期間が終了しています" : "まだ募集期間ではありません",
+          position: "bottom",
+        });
+        return;
+      }
+      
+      if (daysLeft <= 3) {
+        Toast.show({
+          type: "info",
+          text1: "締切間近！",
+          text2: `締切まであと${daysLeft}日です`,
+          position: "bottom",
+        });
+      }
+    }
+    
     router.push(tab.path);
   };
+
 
   return (
     <>
       <View style={styles.footer}>
-        {user_TABS.map((tab) => {
+        {user_TABS.map((tab, index) => {
           const active = pathname === tab.path;
           return (
             <TouchableOpacity
@@ -137,6 +195,66 @@ export function Footer({}: FooterProps) {
               >
                 {tab.label}
               </Text>
+              
+              {/* シフト追加アイコンの上にツールチップを表示 */}
+              {tab.name === "create" && period && (
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: "100%", // タブの真上
+                    left: "50%", // タブの中央
+                    transform: [{ translateX: -30 }], // ツールチップの中央を合わせる
+                    backgroundColor: "#ff9800",
+                    borderRadius: 6,
+                    paddingVertical: 6,
+                    paddingHorizontal: 8,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 6,
+                    zIndex: 1000,
+                    marginBottom: 8,
+                  }}
+                >
+                  {/* 吹き出しの三角形 */}
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: -6,
+                      left: "50%",
+                      marginLeft: -6,
+                      width: 0,
+                      height: 0,
+                      borderLeftWidth: 6,
+                      borderRightWidth: 6,
+                      borderTopWidth: 6,
+                      borderLeftColor: "transparent",
+                      borderRightColor: "transparent",
+                      borderTopColor: "#ff9800",
+                    }}
+                  />
+                  
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                    <Ionicons 
+                      name="time-outline" 
+                      size={12} 
+                      color="#fff" 
+                    />
+                    <Text style={{
+                      fontSize: 12,
+                      fontWeight: "500",
+                      color: "#fff"
+                    }}>
+                      {isWithinPeriod() 
+                        ? `締切まで ${getDaysUntilDeadline()}日` 
+                        : getDaysUntilDeadline() < 0 
+                          ? "募集期間終了" 
+                          : "募集期間外"}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}

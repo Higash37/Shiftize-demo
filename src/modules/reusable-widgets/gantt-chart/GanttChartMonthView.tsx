@@ -185,8 +185,9 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const timeOptions = generateTimeOptions();
 
   const screenWidth = Dimensions.get("window").width;
-  const dateColumnWidth = 50;
-  const infoColumnWidth = Math.max(screenWidth * 0.18, 150);
+  const scrollBarWidth = 17; // スクロールバーの幅
+  const dateColumnWidth = 50 - scrollBarWidth; // スクロールバー分を減らす
+  const infoColumnWidth = Math.max(screenWidth * 0.18, 150) + scrollBarWidth; // スクロールバー分だけ左に詰める
   const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth;
   
   // デバイスタイプの判定
@@ -453,9 +454,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     [users]
   );
 
-  // 空白セルをクリックした時の処理
+  // 空白セルをクリックした時の処理（シフト追加モーダル表示）
   const handleEmptyCellClick = useCallback(
     (date: string, position: number) => {
+      // シフトデータを準備
       const startTime = positionToTime(position);
       const startHour = parseInt(startTime.split(":")[0]);
       const startMinute = parseInt(startTime.split(":")[1]);
@@ -469,26 +471,27 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         .toString()
         .padStart(2, "0")}`;
 
-      // マスター権限の場合はユーザーIDをクリアして選択できるようにする
-      // 一般ユーザーの場合は自分自身のIDを設定
       const isMaster = user?.role === "master";
       const defaultUserId = isMaster ? "" : user?.uid || "";
       const defaultNickname = isMaster
         ? ""
         : users.find((u) => u.uid === user?.uid)?.nickname || "";
+      
       setNewShiftData({
         date,
         startTime,
         endTime,
         userId: defaultUserId,
         nickname: defaultNickname,
-        status: isMaster ? "approved" : "pending", // マスター権限の場合は直接承認済みに
+        status: isMaster ? "approved" : "pending",
         classes: [],
-        extendedTasks: [], // 拡張タスクを初期化
+        extendedTasks: [],
       });
+      
+      // 直接モーダルを表示
       setShowAddModal(true);
     },
-    [positionToTime]
+    [positionToTime, user, users]
   );
   // シフト追加
   const handleAddShift = useCallback(() => {
@@ -652,6 +655,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           useGoogleLayout={useGoogleLayout}
           onToggleGoogleLayout={() => setUseGoogleLayout(!useGoogleLayout)}
           onOpenHistory={() => setShowHistoryModal(true)}
+          storeId={user?.storeId || ""}
         />
       )}
       {/* 年月ピッカーモーダル - タブレット表示時は非表示 */}
@@ -844,7 +848,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         /* 横スクロール全体をCustomScrollViewでラップ（ガントチャートのみ） */
         <CustomScrollView 
           horizontal 
-          showsHorizontalScrollIndicator={false}
+          showsHorizontalScrollIndicator={true}
           onScroll={(event) => {
             // スクロール位置を保存
             setScrollPosition(event.nativeEvent.contentOffset.x);
@@ -956,6 +960,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         storeId={user?.storeId || ""}
         selectedDate={selectedDate}
       />
+
     </View>
   );
 };

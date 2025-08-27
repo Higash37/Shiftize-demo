@@ -352,7 +352,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
       <ScrollView
         horizontal
         style={styles.userTimelineContainer}
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
       >
         <View style={styles.userTimeline}>
           {daysToShow.map((date) => {
@@ -401,7 +401,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
 
       <ScrollView
         style={styles.chartContainer}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       >
         {users.map((user) => renderUserRow(user))}
       </ScrollView>
