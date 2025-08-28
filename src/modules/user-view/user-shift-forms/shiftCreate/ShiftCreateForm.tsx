@@ -90,7 +90,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const containerStyle = isWideScreen
     ? {
         ...styles.container,
-        width: width * 0.8,
+        width: width * 0.6,
         alignSelf: "center" as FlexAlignType,
       } // PC用スタイル
     : styles.container; // その他のデバイス用スタイル
@@ -175,8 +175,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
                 createdAt: storeData.createdAt || new Date(),
               });
             }
-          } catch (error) {
-          }
+          } catch (error) {}
         }
 
         setConnectedStores(allStores);
@@ -185,8 +184,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         if (allStores.length > 0) {
           setSelectedStoreId(userData.storeId || allStores[0].storeId);
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     if (user?.uid && userData) {
@@ -353,51 +351,50 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     flushSync(() => {
       setIsLoading(true);
     });
-    
+
     // 次のフレームで処理を実行（UIのブロッキングを防ぐ）
     setTimeout(async () => {
       try {
         for (const date of shiftData.dates) {
-        // 時間の差を計算（duration）
-        const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+          // 時間の差を計算（duration）
+          const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
+          const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
+          const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
+          const durationHours =
+            Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
 
-        const shiftObject = {
-          userId: user.uid,
-          storeId: selectedStoreId || "", // 選択された店舗IDを使用
-          nickname: user.nickname || "Unknown",
-          date,
-          startTime: shiftData.startTime,
-          endTime: shiftData.endTime,
-          type: "user" as const,
-          subject: "", // 授業科目（初期値は空文字）
-          isCompleted: false,
-          status: isEditMode
-            ? existingShift?.status || "pending"
-            : ("pending" as const),
-          duration: durationHours, // number型として時間数を設定
-          classes: shiftData.classes,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+          const shiftObject = {
+            userId: user.uid,
+            storeId: selectedStoreId || "", // 選択された店舗IDを使用
+            nickname: user.nickname || "Unknown",
+            date,
+            startTime: shiftData.startTime,
+            endTime: shiftData.endTime,
+            type: "user" as const,
+            subject: "", // 授業科目（初期値は空文字）
+            isCompleted: false,
+            status: isEditMode
+              ? existingShift?.status || "pending"
+              : ("pending" as const),
+            duration: durationHours, // number型として時間数を設定
+            classes: shiftData.classes,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
 
-        if (isEditMode && initialShiftId) {
-          // 編集モードの場合は直接Firestoreを更新（useShiftのeditShiftは別のロジックのため）
-          const shiftRef = doc(db, "shifts", initialShiftId);
-          await updateDoc(shiftRef, {
-            ...shiftObject,
-            updatedAt: serverTimestamp(),
-          });
-        } else {
-          // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
-          await createShift(shiftObject);
+          if (isEditMode && initialShiftId) {
+            // 編集モードの場合は直接Firestoreを更新（useShiftのeditShiftは別のロジックのため）
+            const shiftRef = doc(db, "shifts", initialShiftId);
+            await updateDoc(shiftRef, {
+              ...shiftObject,
+              updatedAt: serverTimestamp(),
+            });
+          } else {
+            // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
+            await createShift(shiftObject);
+          }
         }
-        }
 
-        setIsLoading(false);
         setShowSuccess(true);
 
         // 成功アニメーションを表示
@@ -407,8 +404,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           useNativeDriver: true,
         }).start();
 
-        // 1.5秒後にシフト確認ページに遷移（ユーザーが成功を確認できる時間）
+        // 1.5秒後にローディング解除と画面遷移を同時実行
         setTimeout(() => {
+          setIsLoading(false);
           router.push("/(main)/user/shifts");
         }, 1500);
       } catch (error) {

@@ -48,6 +48,10 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   const [activeTab, setActiveTab] = useState<"period-setting" | "submission-check">("period-setting");
   const [teacherStatuses, setTeacherStatuses] = useState<TeacherStatus[]>([]);
   const [loadingStatuses, setLoadingStatuses] = useState(false);
+  
+  // 削除確認モーダルの状態
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -141,27 +145,36 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     }
   };
 
-  const handleDelete = async (periodId: string) => {
-    Alert.alert(
-      "確認",
-      "この期間を削除しますか？この操作は取り消せません。",
-      [
-        { text: "キャンセル", style: "cancel" },
-        {
-          text: "削除",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await ShiftSubmissionService.deletePeriod(periodId);
-              Alert.alert("成功", "期間を削除しました");
-              loadPeriods();
-            } catch (error) {
-              Alert.alert("エラー", "期間の削除に失敗しました");
-            }
-          }
-        }
-      ]
-    );
+  const handleDelete = (periodId: string) => {
+    console.log("Delete button pressed, periodId:", periodId);
+    setDeletingPeriodId(periodId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingPeriodId) return;
+    
+    try {
+      console.log("Attempting to delete period:", deletingPeriodId);
+      await ShiftSubmissionService.deletePeriod(deletingPeriodId);
+      console.log("Period deletion successful");
+      
+      setShowDeleteConfirm(false);
+      setDeletingPeriodId(null);
+      loadPeriods();
+      
+      // 成功通知用の一時的なAlert（後でトーストに変更可能）
+      Alert.alert("成功", "期間を削除しました");
+    } catch (error) {
+      console.error("Period deletion failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "不明なエラー";
+      Alert.alert("エラー", `期間の削除に失敗しました: ${errorMessage}`);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeletingPeriodId(null);
   };
 
   const resetForm = () => {
@@ -463,7 +476,11 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                       {/* アクションボタン */}
                       <TouchableOpacity
                         style={styles.deleteButton}
-                        onPress={() => handleDelete(periods[0].id)}
+                        onPress={() => {
+                          console.log("Delete button touched, period ID:", periods[0]?.id);
+                          handleDelete(periods[0].id);
+                        }}
+                        activeOpacity={0.7}
                       >
                         <Ionicons name="trash-outline" size={16} color="#fff" />
                         <Text style={styles.deleteButtonText}>削除</Text>
@@ -604,6 +621,46 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
           onClose={() => setShowTargetMonthPicker(false)}
           onSelect={handleTargetMonthSelect}
         />
+      )}
+
+      {/* 削除確認モーダル */}
+      {showDeleteConfirm && (
+        <Modal
+          visible={showDeleteConfirm}
+          transparent
+          animationType="fade"
+          onRequestClose={cancelDelete}
+        >
+          <View style={styles.confirmOverlay}>
+            <View style={styles.confirmModal}>
+              <View style={styles.confirmHeader}>
+                <Ionicons name="warning" size={32} color="#f44336" />
+                <Text style={styles.confirmTitle}>期間を削除</Text>
+              </View>
+              
+              <Text style={styles.confirmMessage}>
+                この期間を削除しますか？{'\n'}この操作は取り消せません。
+              </Text>
+              
+              <View style={styles.confirmButtons}>
+                <TouchableOpacity
+                  style={[getButtonStyle("secondary"), styles.confirmButton]}
+                  onPress={cancelDelete}
+                >
+                  <Text style={getButtonTextStyle("secondary")}>キャンセル</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[getButtonStyle("danger"), styles.confirmButton]}
+                  onPress={confirmDelete}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+                  <Text style={getButtonTextStyle("danger")}>削除</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </Modal>
   );
@@ -754,11 +811,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f44336",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
     marginLeft: 10,
-    gap: 4,
+    gap: 6,
+    minHeight: 44,
+    minWidth: 80,
   },
   deleteButtonText: {
     color: "white",
@@ -922,5 +981,53 @@ const styles = StyleSheet.create({
   statBreakdownText: {
     fontSize: 11,
     color: "#666",
+  },
+
+  // 削除確認モーダルスタイル
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    zIndex: 9999,
+  },
+  confirmModal: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+  },
+  confirmHeader: {
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 8,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  confirmButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  confirmButton: {
+    flex: 1,
+    minHeight: 48,
   },
 });
