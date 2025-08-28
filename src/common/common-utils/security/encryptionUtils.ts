@@ -9,7 +9,7 @@ import CryptoJS from "crypto-js";
 import { SecurityLogger } from "./securityUtils";
 
 // 本格的なAES暗号化 - 業界標準のセキュリティレベル
-class AESEncryption {
+export class AESEncryption {
   /**
    * 暗号学的に安全な256bit暗号化キーを生成
    */
