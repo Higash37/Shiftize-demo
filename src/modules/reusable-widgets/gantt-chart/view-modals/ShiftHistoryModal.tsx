@@ -23,7 +23,7 @@ interface ShiftHistoryModalProps {
 
 type ActionType = ShiftActionType | "all";
 
-export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
+export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(({
   visible,
   onClose,
   storeId,
@@ -240,7 +240,15 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
           </View>
 
           {/* 履歴リスト */}
-          <ScrollView style={{ flex: 1, marginBottom: 15 }}>
+          <ScrollView 
+            style={{ flex: 1, marginBottom: 15 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            initialNumToRender={8}
+            maxToRenderPerBatch={4}
+            updateCellsBatchingPeriod={100}
+          >
             {isLoading ? (
               <View style={{ padding: 40, alignItems: "center" }}>
                 <ActivityIndicator size="large" color="#4A90E2" />
@@ -314,7 +322,14 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
               <Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 10 }}>
                 詳細情報
               </Text>
-              <ScrollView>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                removeClippedSubviews={true}
+                initialNumToRender={6}
+                maxToRenderPerBatch={3}
+                updateCellsBatchingPeriod={100}
+              >
                 <View style={{ gap: 8 }}>
                   <View style={{ flexDirection: "row" }}>
                     <Text style={{ width: 80, color: "#666", fontSize: 12 }}>実行者:</Text>
@@ -379,4 +394,4 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = ({
       </TouchableOpacity>
     </Modal>
   );
-};
+});

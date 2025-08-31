@@ -37,7 +37,7 @@ interface MobileShiftModalProps {
   onDelete?: () => void;
 }
 
-export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
+export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
   visible,
   isEdit,
   shiftData,
@@ -119,7 +119,15 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.content} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={10}
+              maxToRenderPerBatch={5}
+              updateCellsBatchingPeriod={100}
+            >
               {/* ユーザー選択 */}
               {isMaster && (
                 <View style={styles.section}>
@@ -251,7 +259,15 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.pickerContent} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={6}
+              maxToRenderPerBatch={3}
+              updateCellsBatchingPeriod={100}
+            >
               {users.map((user) => (
                 <TouchableOpacity
                   key={user.uid}
@@ -286,7 +302,15 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.pickerContent} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={6}
+              maxToRenderPerBatch={3}
+              updateCellsBatchingPeriod={100}
+            >
               {timeOptions.map((time) => (
                 <TouchableOpacity
                   key={time}
@@ -319,7 +343,15 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerContent} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.pickerContent} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={6}
+              maxToRenderPerBatch={3}
+              updateCellsBatchingPeriod={100}
+            >
               {statusConfigs.map((config) => (
                 <TouchableOpacity
                   key={config.status}
@@ -341,7 +373,7 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = ({
       </Modal>
     </>
   );
-};
+});
 
 const styles = StyleSheet.create({
   overlay: {

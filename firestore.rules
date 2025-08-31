@@ -9,10 +9,17 @@ service cloud.firestore {
 
     function hasAccessToStore(storeId) {
       // 🔒 セキュア化：カスタムトークンベース（get()完全排除）
-      return request.auth.token.storeId == storeId ||
+      // ✅ SECURITY: 追加の検証層
+      return isAuthenticated() &&
+             storeId != null &&
+             storeId != "" &&
+             (request.auth.token.storeId == storeId ||
              (request.auth.token.storesAccess != null && 
               storeId in request.auth.token.storesAccess &&
-              request.auth.token.storesAccess[storeId].isActive == true);
+              request.auth.token.storesAccess[storeId].isActive == true)) &&
+             // 🔒 トークン有効期限の検証
+             request.auth.token.iat != null &&
+             request.time.toMillis() - request.auth.token.iat * 1000 < 86400000; // 24時間
     }
 
     function isMasterOfStore(storeId) {
@@ -33,14 +40,23 @@ service cloud.firestore {
       // 🔒 SECURITY FIX: secureLogin経由のカスタムトークンのみ許可
       allow read: if isAuthenticated() && (
         request.auth.uid == userId ||
-        // マスターは同じ店舗の全ユーザーを閲覧可能
+        // マスターは同じ店舗の全ユーザーを閲覧可能（強化された検証）
         (request.auth.token.role == "master" && 
-         resource.data.storeId == request.auth.token.storeId)
+         resource.data.storeId == request.auth.token.storeId &&
+         resource.data.deleted != true && // 🔒 削除済みユーザーの隠蔽
+         hasAccessToStore(resource.data.storeId))
       );
       
       // 作成: 認証されたマスターユーザーが作成可能 OR 新規教室作成
       allow create: if isAuthenticated() && 
         request.resource.data.storeId != null &&
+        request.resource.data.storeId != "" &&
+        // 🔒 SECURITY: 必須フィールドの検証
+        request.resource.data.nickname != null &&
+        request.resource.data.email != null &&
+        request.resource.data.role in ["master", "user"] &&
+        // 🔒 SECURITY: 機密フィールドの制限
+        !("currentPassword" in request.resource.data) && // 平文パスワード禁止
         (
           // 既存マスターが作成
           (request.auth.token.role == "master" &&
@@ -54,9 +70,14 @@ service cloud.firestore {
       
       // 更新: 本人またはマスター（同一店舗）
       allow update: if isAuthenticated() && 
+        // 🔒 SECURITY: 機密フィールドの保護
+        !("currentPassword" in request.resource.data) && // 平文パスワード禁止
+        resource.data.deleted != true && // 削除済みユーザーの更新禁止
         (request.auth.uid == userId || 
          (hasAccessToStore(resource.data.storeId) &&
-          request.auth.token.role == "master"));
+          request.auth.token.role == "master" &&
+          // 🔒 マスターによる権限昇格防止
+          (request.auth.uid == userId || request.resource.data.role == resource.data.role)));
       
       // 削除: マスターのみ（同一店舗）
       allow delete: if isAuthenticated() && 

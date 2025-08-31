@@ -26,7 +26,7 @@ interface AddShiftModalViewProps {
   onSave: () => void;
 }
 
-export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
+export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
   visible,
   newShiftData,
   users,
@@ -114,7 +114,15 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
           style={styles.modalContent}
           onPress={(e) => e.stopPropagation()}
         >
-          <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            initialNumToRender={10}
+            maxToRenderPerBatch={5}
+            updateCellsBatchingPeriod={100}
+          >
             <Text style={styles.modalTitle}>シフト追加</Text>
             <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
 
@@ -379,4 +387,4 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = ({
       </TouchableOpacity>
     </Modal>
   );
-};
+});

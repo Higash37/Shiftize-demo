@@ -77,6 +77,7 @@ export class AESEncryption {
   }
 
   /**
+   * @deprecated 新しい passwordUtils.ts の PasswordHasher を使用してください
    * パスワードの安全なハッシュ化（保存用）
    * 🔒 PBKDF2 + ソルト + 100,000回反復
    */
@@ -85,6 +86,12 @@ export class AESEncryption {
       if (!password || typeof password !== "string") {
         throw new Error("無効なパスワードです");
       }
+
+      // セキュリティ警告ログ
+      SecurityLogger.logEvent({
+        type: "encryption_warning",
+        details: "Deprecated hashPassword method used. Migrate to PasswordHasher."
+      });
 
       // ランダムソルト生成（128bit）
       const salt = CryptoJS.lib.WordArray.random(16).toString();
@@ -103,6 +110,7 @@ export class AESEncryption {
   }
 
   /**
+   * @deprecated 新しい passwordUtils.ts の PasswordHasher を使用してください
    * パスワード検証
    */
   static verifyPassword(password: string, hashedPassword: string): boolean {
@@ -110,6 +118,12 @@ export class AESEncryption {
       if (!password || !hashedPassword) {
         return false;
       }
+
+      // セキュリティ警告ログ
+      SecurityLogger.logEvent({
+        type: "encryption_warning",
+        details: "Deprecated verifyPassword method used. Migrate to PasswordHasher."
+      });
 
       const [salt, hash] = hashedPassword.split(':');
       if (!salt || !hash) {

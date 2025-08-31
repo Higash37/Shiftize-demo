@@ -34,7 +34,7 @@ interface ClassTime {
 }
 
 // ステータスピッカーはroleがmasterのときのみ表示、それ以外は非表示
-export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
+export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo((
   props
 ) => {
   const { user, role } = useAuth();
@@ -215,6 +215,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={10}
+              maxToRenderPerBatch={5}
+              updateCellsBatchingPeriod={100}
             >
               <Text style={styles.modalTitle}>授業時間を追加</Text>
 
@@ -312,6 +317,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={8}
+              maxToRenderPerBatch={4}
+              updateCellsBatchingPeriod={100}
             >
               <Text style={styles.modalTitle}>登録済みタスク</Text>
               {newShiftData.extendedTasks &&
@@ -397,6 +407,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                 style={{ flex: 1 }}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                removeClippedSubviews={true}
+                initialNumToRender={6}
+                maxToRenderPerBatch={3}
+                updateCellsBatchingPeriod={100}
               >
                 <Text style={styles.modalTitle}>タスクの詳細を設定</Text>
                 <Text style={styles.modalSubtitle}>
@@ -532,6 +547,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
                 style={{ flex: 1 }}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                removeClippedSubviews={true}
+                initialNumToRender={8}
+                maxToRenderPerBatch={4}
+                updateCellsBatchingPeriod={100}
               >
                 <Text style={styles.modalTitle}>タスクを選択</Text>
                 <Text
@@ -619,6 +639,11 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
               style={{ flex: 1 }}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              initialNumToRender={12}
+              maxToRenderPerBatch={6}
+              updateCellsBatchingPeriod={100}
             >
               <Text style={styles.modalTitle}>シフト編集</Text>
               <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
@@ -814,4 +839,4 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = (
       </TouchableOpacity>
     </Modal>
   );
-};
+});

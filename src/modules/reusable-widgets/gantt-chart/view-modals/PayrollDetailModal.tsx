@@ -29,7 +29,7 @@ interface PayrollDetailModalProps {
   selectedDate: Date;
 }
 
-export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = ({
+export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(({
   visible,
   onClose,
   shifts,
@@ -163,7 +163,15 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = ({
           </View>
 
           {/* 個人別リスト */}
-          <ScrollView style={styles.listContainer} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.listContainer} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            initialNumToRender={8}
+            maxToRenderPerBatch={4}
+            updateCellsBatchingPeriod={100}
+          >
             {payrollData.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>
@@ -208,7 +216,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = ({
       </TouchableOpacity>
     </Modal>
   );
-};
+});
 
 const styles = StyleSheet.create({
   modalOverlay: {
