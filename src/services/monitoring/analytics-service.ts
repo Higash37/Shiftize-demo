@@ -4,9 +4,7 @@
  * アプリケーションの使用状況とパフォーマンスを追跡します。
  */
 
-import { logEvent, setUserProperties, setUserId } from "firebase/analytics";
-import { trace } from "firebase/performance";
-import { analytics, performance } from "../firebase/firebase-core";
+import { getAnalytics, getPerformance } from "../firebase/firebase-core";
 
 export interface AnalyticsEvent {
   name: string;
@@ -27,65 +25,101 @@ export const AnalyticsService = {
   /**
    * カスタムイベントを記録
    */
-  logEvent: (event: AnalyticsEvent) => {
-    if (analytics) {
-      logEvent(analytics, event.name, event.parameters);
+  logEvent: async (event: AnalyticsEvent) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { logEvent } = await import("firebase/analytics");
+        logEvent(analyticsInstance, event.name, event.parameters);
+      }
+    } catch (error) {
+      console.warn('Analytics logging failed:', error);
     }
   },
 
   /**
    * ユーザープロパティを設定
    */
-  setUserProperties: (properties: UserProperties) => {
-    if (analytics) {
-      setUserProperties(analytics, properties);
+  setUserProperties: async (properties: UserProperties) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { setUserProperties } = await import("firebase/analytics");
+        setUserProperties(analyticsInstance, properties);
+      }
+    } catch (error) {
+      console.warn('Analytics user properties failed:', error);
     }
   },
 
   /**
    * ユーザーIDを設定
    */
-  setUserId: (userId: string) => {
-    if (analytics) {
-      setUserId(analytics, userId);
+  setUserId: async (userId: string) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { setUserId } = await import("firebase/analytics");
+        setUserId(analyticsInstance, userId);
+      }
+    } catch (error) {
+      console.warn('Analytics setUserId failed:', error);
     }
   },
 
   /**
    * ページビューを記録
    */
-  logPageView: (pageName: string, additionalData?: Record<string, any>) => {
-    if (analytics) {
-      logEvent(analytics, "page_view", {
-        page_title: pageName,
-        ...additionalData,
-      });
+  logPageView: async (pageName: string, additionalData?: Record<string, any>) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { logEvent } = await import("firebase/analytics");
+        logEvent(analyticsInstance, "page_view", {
+          page_title: pageName,
+          ...additionalData,
+        });
+      }
+    } catch (error) {
+      console.warn('Analytics logPageView failed:', error);
     }
   },
 
   /**
    * シフト操作イベント
    */
-  logShiftAction: (action: "create" | "edit" | "delete" | "view", shiftData?: any) => {
-    if (analytics) {
-      logEvent(analytics, "shift_action", {
-        action_type: action,
-        shift_count: shiftData?.count || 1,
-        store_id: shiftData?.storeId,
-      });
+  logShiftAction: async (action: "create" | "edit" | "delete" | "view", shiftData?: any) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { logEvent } = await import("firebase/analytics");
+        logEvent(analyticsInstance, "shift_action", {
+          action_type: action,
+          shift_count: shiftData?.count || 1,
+          store_id: shiftData?.storeId,
+        });
+      }
+    } catch (error) {
+      console.warn('Analytics logShiftAction failed:', error);
     }
   },
 
   /**
    * エラーイベント
    */
-  logError: (errorName: string, errorMessage: string, errorStack?: string) => {
-    if (analytics) {
-      logEvent(analytics, "app_error", {
-        error_name: errorName,
-        error_message: errorMessage,
-        error_stack: errorStack,
-      });
+  logError: async (errorName: string, errorMessage: string, errorStack?: string) => {
+    try {
+      const analyticsInstance = await getAnalytics();
+      if (analyticsInstance) {
+        const { logEvent } = await import("firebase/analytics");
+        logEvent(analyticsInstance, "app_error", {
+          error_name: errorName,
+          error_message: errorMessage,
+          error_stack: errorStack,
+        });
+      }
+    } catch (error) {
+      console.warn('Analytics logError failed:', error);
     }
   },
 };
@@ -97,11 +131,17 @@ export const PerformanceService = {
   /**
    * カスタムトレースを開始
    */
-  startTrace: (traceName: string) => {
-    if (performance) {
-      const customTrace = trace(performance, traceName);
-      customTrace.start();
-      return customTrace;
+  startTrace: async (traceName: string) => {
+    try {
+      const performanceInstance = await getPerformance();
+      if (performanceInstance) {
+        const { trace } = await import("firebase/performance");
+        const customTrace = trace(performanceInstance, traceName);
+        customTrace.start();
+        return customTrace;
+      }
+    } catch (error) {
+      console.warn('Performance trace failed:', error);
     }
     return null;
   },
@@ -113,7 +153,7 @@ export const PerformanceService = {
     operation: () => Promise<T>,
     operationName: string
   ): Promise<T> => {
-    const traceInstance = PerformanceService.startTrace(`data_load_${operationName}`);
+    const traceInstance = await PerformanceService.startTrace(`data_load_${operationName}`);
     
     try {
       const result = await operation();
@@ -154,8 +194,8 @@ export const PerformanceService = {
   /**
    * コンポーネント読み込み時間を測定
    */
-  measureComponentLoad: (componentName: string) => {
-    return PerformanceService.startTrace(`component_${componentName}`);
+  measureComponentLoad: async (componentName: string) => {
+    return await PerformanceService.startTrace(`component_${componentName}`);
   },
 };
 

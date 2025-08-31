@@ -12,8 +12,6 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAnalytics, isSupported } from "firebase/analytics";
-import { getPerformance } from "firebase/performance";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { Platform } from "react-native";
 
@@ -45,24 +43,37 @@ const FirebaseCore = (() => {
   const storage = getStorage(app);
   const functions = getFunctions(app, 'asia-northeast1');
 
-  // Analytics・Performance（Web環境のみ）
-  let analytics = null;
-  let performance = null;
-  
-  if (Platform.OS === "web") {
-    // Analytics初期化（サポート確認後）
-    isSupported().then((supported) => {
-      if (supported) {
-        analytics = getAnalytics(app);
+  // Analytics・Performance（Lazy Loading）
+  let analytics: any = null;
+  let performance: any = null;
+
+  // 必要時にのみ動的ロード
+  const getAnalyticsInstance = async () => {
+    if (Platform.OS === "web" && !analytics) {
+      try {
+        const { getAnalytics, isSupported } = await import("firebase/analytics");
+        const supported = await isSupported();
+        if (supported) {
+          analytics = getAnalytics(app);
+        }
+      } catch (error) {
+        // Analytics not supported
       }
-    }).catch(() => {
-      // Analytics not supported in this environment
-    });
-    
-    // Performance監視は無効化（CSS属性名エラー回避）
-    // React Native Web環境でCSS属性値が長すぎてエラーとなるため
-    performance = null;
-  }
+    }
+    return analytics;
+  };
+
+  const getPerformanceInstance = async () => {
+    if (Platform.OS === "web" && !performance) {
+      try {
+        const { getPerformance } = await import("firebase/performance");
+        performance = getPerformance(app);
+      } catch (error) {
+        // Performance monitoring disabled
+      }
+    }
+    return performance;
+  };
 
   // Web環境での認証永続化設定
   if (Platform.OS === "web") {
@@ -77,8 +88,8 @@ const FirebaseCore = (() => {
     db,
     storage,
     functions,
-    analytics,
-    performance,
+    getAnalyticsInstance,
+    getPerformanceInstance,
     firebaseConfig,
   };
 })();
@@ -88,7 +99,7 @@ export const auth = FirebaseCore.auth;
 export const db = FirebaseCore.db;
 export const storage = FirebaseCore.storage;
 export const functions = FirebaseCore.functions;
-export const analytics = FirebaseCore.analytics;
-export const performance = FirebaseCore.performance;
+export const getAnalytics = FirebaseCore.getAnalyticsInstance;
+export const getPerformance = FirebaseCore.getPerformanceInstance;
 export const app = FirebaseCore.app;
 export const firebaseConfig = FirebaseCore.firebaseConfig;

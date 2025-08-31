@@ -128,7 +128,7 @@ export const GroupService = {
         nickname: data.adminNickname,
         email: adminEmail,
         role: "master",
-        currentPassword: data.adminPassword, // 重要：currentPasswordを保存
+        hashedPassword: await (await import("@/common/common-utils/security/passwordUtils")).PasswordHasher.hashPassword(data.adminPassword), // 🔒 ハッシュ化パスワード
         storeId: data.storeId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -171,7 +171,7 @@ export const GroupService = {
               nickname: member.nickname,
               email: memberEmail,
               role: member.role,
-              currentPassword: member.password, // 重要：currentPasswordを保存
+              hashedPassword: await (await import("@/common/common-utils/security/passwordUtils")).PasswordHasher.hashPassword(member.password), // 🔒 ハッシュ化パスワード
               color: member.color,
               hourlyWage: member.hourlyWage || null,
               storeId: data.storeId,

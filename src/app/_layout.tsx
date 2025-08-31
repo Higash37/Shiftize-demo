@@ -35,9 +35,14 @@ if (Platform.OS === 'web' && __DEV__) {
   const noop = () => {};
   console.warn = noop;
   console.error = (message, ...args) => {
-    // 重要なエラーのみ表示
+    // 🔒 SECURITY: 機密情報の漏洩を防ぐため、開発環境のみで詳細表示
     if (typeof message === 'string' && !message.includes('deprecated')) {
-      console.log('🚨 Error:', message, ...args);
+      if (__DEV__) {
+        console.log('🚨 Error:', message, ...args);
+      } else {
+        // 本番環境では最小限のエラーログのみ
+        console.error('Application error occurred');
+      }
     }
   };
 }

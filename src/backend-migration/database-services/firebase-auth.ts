@@ -128,10 +128,14 @@ export const AuthService = {
 
         // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
         const userRef = doc(db, "users", firebaseUser.uid);
+        // 🔒 SECURITY: パスワードはハッシュ化して保存
+        const { PasswordHasher } = await import("@/common/common-utils/security/passwordUtils");
+        const hashedPassword = await PasswordHasher.hashPassword(password);
+        
         const userData: any = {
           nickname: displayName,
           role: email.startsWith("master@") ? "master" : "user",
-          currentPassword: password,
+          hashedPassword: hashedPassword, // 🔒 ハッシュ化パスワード
           email: email,
           createdAt: new Date(),
         };
@@ -202,7 +206,14 @@ export const AuthService = {
         }
       }
       if (updates.role) updateData["role"] = updates.role;
-      if (updates.password) updateData["currentPassword"] = updates.password;
+      if (updates.password) {
+        // 🔒 SECURITY: パスワードはハッシュ化して保存
+        const { PasswordHasher } = await import("@/common/common-utils/security/passwordUtils");
+        updateData["hashedPassword"] = await PasswordHasher.hashPassword(updates.password);
+        
+        // 古い平文パスワードを削除
+        updateData["currentPassword"] = admin.firestore.FieldValue.delete();
+      }
       if (updates.color) updateData["color"] = updates.color;
       if (updates.storeId) updateData["storeId"] = updates.storeId;
 
@@ -231,7 +242,7 @@ export const AuthService = {
               await updatePassword(currentUser, updates.password);
               // 新しいパスワードで更新
               await updateDoc(userRef, {
-                currentPassword: updates.password,
+                hashedPassword: await PasswordHasher.hashPassword(updates.password),
               });
             } catch (error) {
               throw new Error("パスワードの更新に失敗しました");
@@ -287,12 +298,16 @@ export const AuthService = {
 
         // Firestoreに実メールアドレス用の新しいユーザードキュメント作成
         const realEmailUserRef = doc(db, 'users', userCredential.user.uid);
+        // 🔒 SECURITY: パスワードはハッシュ化して保存
+        const { PasswordHasher } = await import("@/common/common-utils/security/passwordUtils");
+        const hashedPassword = await PasswordHasher.hashPassword(password);
+        
         const userData: any = {
           uid: userCredential.user.uid,
           nickname: originalUser["nickname"],
           email: realEmail, // 実メールアドレス
           role: originalUser["role"],
-          currentPassword: password,
+          hashedPassword: hashedPassword, // 🔒 ハッシュ化パスワード
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
