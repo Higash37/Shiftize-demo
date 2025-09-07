@@ -118,7 +118,7 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
             onPress={() => onNavigate("/(main)/master/master-settings/app-version")}
           >
             <Text style={styles.listText}>アプリバージョン管理</Text>
-            <Text style={styles.arrow}>›</Text>
+            <Text style={{ fontSize: 20, color: '#ccc' }}>›</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

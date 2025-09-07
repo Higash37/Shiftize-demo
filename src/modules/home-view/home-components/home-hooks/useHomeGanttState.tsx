@@ -65,13 +65,13 @@ export function useHomeGanttState() {
         const start = allTimes[i];
         const end = allTimes[i + 1];
         const staff = staffShifts.find(
-          (s) => start >= s.startTime && start < s.endTime
+          (s) => start && s.startTime && s.endTime && start >= s.startTime && start < s.endTime
         );
         let classSlot = null;
         for (const s of classShifts) {
           if (s.classes) {
             for (const c of s.classes) {
-              if (start >= c.startTime && start < c.endTime) {
+              if (start && c.startTime && c.endTime && start >= c.startTime && start < c.endTime) {
                 classSlot = { ...s, classTime: c };
                 break;
               }
@@ -111,9 +111,9 @@ export function useHomeGanttState() {
   const timesSecond = allTimes.slice(mid - 1);
 
   const hasSlotInTimes = (name: string, times: string[]) =>
-    buildScheduleColumns([name])[0].slots.some((s) =>
-      times.some((t) => t >= s.start && t < s.end && s.task)
-    );
+    buildScheduleColumns([name])[0]?.slots.some((s) =>
+      times.some((t) => t && s.start && s.end && t >= s.start && t < s.end && s.task)
+    ) || false;
   const filteredNamesFirst = allNames.filter((name) =>
     hasSlotInTimes(name, timesFirst)
   );

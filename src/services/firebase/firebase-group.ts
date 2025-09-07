@@ -232,7 +232,7 @@ export const GroupService = {
         const storeData = storeDoc.data();
         return {
           exists: true,
-          groupName: storeData.storeName,
+          groupName: storeData['storeName'],
         };
       }
 

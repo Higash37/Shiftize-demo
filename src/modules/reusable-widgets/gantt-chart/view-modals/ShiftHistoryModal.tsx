@@ -244,10 +244,6 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(({
             style={{ flex: 1, marginBottom: 15 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            removeClippedSubviews={true}
-            initialNumToRender={8}
-            maxToRenderPerBatch={4}
-            updateCellsBatchingPeriod={100}
           >
             {isLoading ? (
               <View style={{ padding: 40, alignItems: "center" }}>
@@ -325,10 +321,6 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(({
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                removeClippedSubviews={true}
-                initialNumToRender={6}
-                maxToRenderPerBatch={3}
-                updateCellsBatchingPeriod={100}
               >
                 <View style={{ gap: 8 }}>
                   <View style={{ flexDirection: "row" }}>

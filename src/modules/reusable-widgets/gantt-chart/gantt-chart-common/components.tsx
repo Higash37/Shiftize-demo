@@ -129,10 +129,12 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   function timeToPosition(time: string): number {
     let position = 0;
     const [targetHour, targetMin] = time.split(":").map(Number);
-    const targetMinutes = targetHour * 60 + targetMin;
+    const targetMinutes = (targetHour ?? 0) * 60 + (targetMin ?? 0);
 
     for (let i = 0; i < halfHourLines.length; i++) {
-      const [hour, min] = halfHourLines[i].split(":").map(Number);
+      const [hourStr, minStr] = halfHourLines[i]?.split(":") || ["0", "0"];
+      const hour = hourStr ? Number(hourStr) : 0;
+      const min = minStr ? Number(minStr) : 0;
       const currentMinutes = hour * 60 + min;
 
       if (currentMinutes >= targetMinutes) {
@@ -144,9 +146,10 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           const prevMinutes =
             i > 0
               ? (() => {
-                  const [prevHour, prevMin] = halfHourLines[i - 1]
-                    .split(":")
-                    .map(Number);
+                  const [prevHourStr, prevMinStr] = halfHourLines[i - 1]
+                    ?.split(":") || ["0", "0"];
+                  const prevHour = prevHourStr ? Number(prevHourStr) : 0;
+                  const prevMin = prevMinStr ? Number(prevMinStr) : 0;
                   return prevHour * 60 + prevMin;
                 })()
               : currentMinutes;
@@ -155,15 +158,15 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           const prevPosition =
             i > 0
               ? position -
-                (getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth)
+                (getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth)
               : 0;
           return (
             prevPosition +
-            ratio * (getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth)
+            ratio * (getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth)
           );
         }
       }
-      position += getTimeWidth ? getTimeWidth(halfHourLines[i]) : cellWidth;
+      position += getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth;
     }
     return position;
   }
@@ -174,18 +177,20 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
 
     for (let i = 0; i < halfHourLines.length; i++) {
       const currentWidth = getTimeWidth
-        ? getTimeWidth(halfHourLines[i])
+        ? getTimeWidth(halfHourLines[i] || "")
         : cellWidth;
       const nextPosition = currentPosition + currentWidth;
 
       if (position <= nextPosition) {
         // この時間範囲内に位置がある
-        const [hour, min] = halfHourLines[i].split(":").map(Number);
+        const [hourStr, minStr] = halfHourLines[i]?.split(":") || ["0", "0"];
+        const hour = hourStr ? Number(hourStr) : 0;
+        const min = minStr ? Number(minStr) : 0;
         const baseMinutes = hour * 60 + min;
 
         if (position <= currentPosition) {
           // 現在の時間ポイント
-          return halfHourLines[i];
+          return halfHourLines[i] ?? "00:00";
         } else {
           // 時間範囲内での補間
           const ratio = (position - currentPosition) / currentWidth;
@@ -206,7 +211,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
     }
 
     // 範囲外の場合は最後の時間を返す
-    return halfHourLines[halfHourLines.length - 1];
+    return halfHourLines[halfHourLines.length - 1] ?? "22:00";
   }
 
   return (
@@ -232,8 +237,8 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
             <View
               key={t}
               style={[
-                styles.ganttBgCell,
-                isClassTime(t) && styles.classTimeCell,
+                styles['ganttBgCell'],
+                isClassTime(t) && styles['classTimeCell'],
                 {
                   width: currentWidth,
                   borderRightWidth: isHourMark ? 1 : 0.5,
@@ -281,11 +286,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         // 2時間以下かどうかを判定（120分 = 2時間）
         const startTimeMinutes = (() => {
           const [h, m] = shift.startTime.split(":").map(Number);
-          return h * 60 + m;
+          return (h ?? 0) * 60 + (m ?? 0);
         })();
         const endTimeMinutes = (() => {
           const [h, m] = shift.endTime.split(":").map(Number);
-          return h * 60 + m;
+          return (h ?? 0) * 60 + (m ?? 0);
         })();
         const durationMinutes = endTimeMinutes - startTimeMinutes;
         const isShortShift = durationMinutes <= 120; // 2時間以下
@@ -800,14 +805,14 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     setCurrentMonth(newMonth);
 
     if (onMonthChange) {
-      onMonthChange(newMonth.getFullYear(), newMonth.getMonth());
+      onMonthChange(newMonth);
     }
   };
 
   const handleDateSelect = (date: Date) => {
     setCurrentMonth(date);
     if (onMonthChange) {
-      onMonthChange(date.getFullYear(), date.getMonth());
+      onMonthChange(date);
     }
   };
 
@@ -1037,7 +1042,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
 
     for (let i = 0; i < halfHourLines.length - 1; i++) {
       const currentWidth = getTimeWidth
-        ? getTimeWidth(halfHourLines[i])
+        ? getTimeWidth(halfHourLines[i] || "")
         : cellWidth;
       if (x >= currentX && x < currentX + currentWidth) {
         // このセル内でクリックされた
@@ -1051,13 +1056,13 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
     handleEmptyCellClick(date, position);
   };
   return (
-    <View style={[styles.emptyCell, { width }]}>
+    <View style={[styles['emptyCell'], { width }]}>
       <TouchableOpacity
         style={[StyleSheet.absoluteFill, { zIndex: 1 }]}
         onPress={handlePress}
         activeOpacity={0.7}
       />
-      <View style={styles.ganttBgRow}>
+      <View style={styles['ganttBgRow']}>
         {halfHourLines.map((t, i) => {
           const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
           const isHourMark = t.endsWith(":00");
@@ -1065,8 +1070,8 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
             <View
               key={t}
               style={[
-                styles.ganttBgCell,
-                isClassTime(t) && styles.classTimeCell,
+                styles['ganttBgCell'],
+                isClassTime(t) && styles['classTimeCell'],
                 {
                   width: currentWidth,
                   borderRightWidth: isHourMark ? 1 : 0.5,

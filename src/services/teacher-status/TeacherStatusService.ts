@@ -48,9 +48,9 @@ export class TeacherStatusService {
         const data = doc.data();
         teachers.push({
           uid: doc.id,
-          nickname: data.nickname || data.email || "名前未設定",
-          email: data.email,
-          storeId: data.storeId
+          nickname: data['nickname'] || data['email'] || "名前未設定",
+          email: data['email'],
+          storeId: data['storeId']
         });
       });
       
@@ -71,11 +71,17 @@ export class TeacherStatusService {
     try {
       // targetMonth は "2024-01" 形式
       const [year, month] = targetMonth.split('-');
+      if (!year || !month) {
+        throw new Error('Invalid targetMonth format');
+      }
       const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
       
       const startDateString = startDate.toISOString().split('T')[0];
       const endDateString = endDate.toISOString().split('T')[0];
+      if (!startDateString || !endDateString) {
+        throw new Error('Failed to format dates');
+      }
 
       const q = query(
         collection(db, "shifts"),
@@ -95,7 +101,7 @@ export class TeacherStatusService {
       
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        const status = data.status || "pending";
+        const status = data['status'] || "pending";
         
         stats.total++;
         switch (status) {

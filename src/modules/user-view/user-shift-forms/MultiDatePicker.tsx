@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { styles, calendarTheme } from "./styles";
+import { styles, calendarTheme } from "./MultiDatePicker.styles";
 import { MultiDatePickerProps } from "./types";
 
 /**
@@ -12,14 +12,19 @@ import { MultiDatePickerProps } from "./types";
  */
 const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   selectedDates,
+  onDatesChange,
   setSelectedDates,
 }) => {
   // 日付の選択/選択解除を切り替える
   const toggleDate = (dateString: string) => {
     if (selectedDates.includes(dateString)) {
-      setSelectedDates(selectedDates.filter((d) => d !== dateString));
+      const newDates = selectedDates.filter((d) => d !== dateString);
+      onDatesChange(newDates);
+      setSelectedDates?.(newDates);
     } else {
-      setSelectedDates([...selectedDates, dateString]);
+      const newDates = [...selectedDates, dateString];
+      onDatesChange(newDates);
+      setSelectedDates?.(newDates);
     }
   };
 

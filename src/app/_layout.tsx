@@ -27,18 +27,47 @@ if (Platform.OS === 'web' && __DEV__) {
     'props.pointerEvents is deprecated. Use style.pointerEvents',
     /props\.pointerEvents is deprecated/,
     'Image: style.tintColor is deprecated',
+    'Added non-passive event listener',
+    /Added non-passive event listener/,
+    'message handler took',
+    /message handler took/,
+    '[Violation]',
+    /\[Violation\]/,
     /style\.tintColor is deprecated/,
     'Please use props.tintColor',
   ]);
 
   // Console全体を無効化（開発中のみ）
+  // React Native Web警告を抑制
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  
+  console.warn = (...args: any[]) => {
+    const message = args[0]?.toString?.() || '';
+    if (
+      message.includes('Added non-passive event listener') ||
+      message.includes('[Violation]') ||
+      message.includes('message handler took')
+    ) {
+      return; // 特定の警告をスキップ
+    }
+    // originalWarn(...args); // 開発中は全警告を無効
+  };
+  
+  console.error = (...args: any[]) => {
+    const message = args[0]?.toString?.() || '';
+    if (message.includes('[Violation]')) {
+      return; // Violation警告をスキップ
+    }
+    // 重要なエラーのみ表示
+    originalError(...args);
+  };
+  
   const noop = () => {};
-  console.warn = noop;
   console.error = (message, ...args) => {
     // 🔒 SECURITY: 機密情報の漏洩を防ぐため、開発環境のみで詳細表示
     if (typeof message === 'string' && !message.includes('deprecated')) {
       if (__DEV__) {
-        console.log('🚨 Error:', message, ...args);
       } else {
         // 本番環境では最小限のエラーログのみ
         console.error('Application error occurred');

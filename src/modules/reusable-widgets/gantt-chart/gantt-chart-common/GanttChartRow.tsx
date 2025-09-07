@@ -111,8 +111,8 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
                 (x / ganttColumnWidth) * ((halfHourLines.length - 1) / 2);
               handleEmptyCellClick(date, position);
             }}
-            onTimeChange={onTimeChange}
-            onTaskAdd={onTaskAdd} // タスク追加ハンドラーを追加
+            {...(onTimeChange && { onTimeChange })}
+            {...(onTaskAdd && { onTaskAdd })} // タスク追加ハンドラーを追加
             styles={styles}
             userColorsMap={userColorsMap}
             users={users}

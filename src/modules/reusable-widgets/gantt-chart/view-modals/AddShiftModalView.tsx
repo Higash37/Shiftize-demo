@@ -118,10 +118,6 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
             contentContainerStyle={styles.scrollContainer} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            removeClippedSubviews={true}
-            initialNumToRender={10}
-            maxToRenderPerBatch={5}
-            updateCellsBatchingPeriod={100}
           >
             <Text style={styles.modalTitle}>シフト追加</Text>
             <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>

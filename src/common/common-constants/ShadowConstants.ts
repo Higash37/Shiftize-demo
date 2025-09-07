@@ -35,6 +35,29 @@ const createWebShadow = (
   return `${x}px ${y}px ${blur}px ${rgba}`;
 };
 
+// 既存のshadowプロパティをWebの警告を回避する形式に変換するヘルパー関数
+export const convertShadowForWeb = (shadowStyle: {
+  shadowColor?: string;
+  shadowOffset?: { width: number; height: number };
+  shadowOpacity?: number;
+  shadowRadius?: number;
+  elevation?: number;
+}): ViewStyle => {
+  if (Platform.OS === "web") {
+    const color = shadowStyle.shadowColor || "#000";
+    const x = shadowStyle.shadowOffset?.width || 0;
+    const y = shadowStyle.shadowOffset?.height || 0;
+    const blur = shadowStyle.shadowRadius || 0;
+    const opacity = shadowStyle.shadowOpacity || 0;
+    
+    return {
+      boxShadow: createWebShadow(color, x, y, blur, opacity),
+    } as ViewStyle;
+  }
+  
+  return shadowStyle as ViewStyle;
+};
+
 // プラットフォーム共通のシャドウスタイルを生成するヘルパー関数
 const createShadow = (
   color: string,

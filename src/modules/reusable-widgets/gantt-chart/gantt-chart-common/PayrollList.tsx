@@ -45,7 +45,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
       userDataMap.set(user.uid, {
         uid: user.uid,
         nickname: user.nickname,
-        color: user.color,
+        color: user.color || "#999",
         hourlyWage: user.hourlyWage || 1100,
         totalHours: 0,
         totalAmount: 0,

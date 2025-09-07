@@ -152,7 +152,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  placeholderText: {
+  placeholderTextDropdown: {
     color: "#999",
   },
   // ドロップダウン関連

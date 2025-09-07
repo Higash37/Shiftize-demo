@@ -81,6 +81,10 @@ export class PasswordHasher {
       
       const [, , iterations, salt, hash] = hashParts;
       
+      if (!iterations || !salt || !hash) {
+        return false;
+      }
+      
       // 同じ条件でハッシュ化して比較
       const testHash = CryptoJS.PBKDF2(password, salt, {
         keySize: this.KEY_SIZE / 4,

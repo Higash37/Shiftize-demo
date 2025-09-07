@@ -16,7 +16,7 @@ import {
   getAuth,
 } from "firebase/auth";
 
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { initializeApp, deleteApp } from "firebase/app";
 
 import { User } from "@/common/common-models/model-user/UserModel";
@@ -212,7 +212,7 @@ export const AuthService = {
         updateData["hashedPassword"] = await PasswordHasher.hashPassword(updates.password);
         
         // 古い平文パスワードを削除
-        updateData["currentPassword"] = admin.firestore.FieldValue.delete();
+        updateData["currentPassword"] = deleteField();
       }
       if (updates.color) updateData["color"] = updates.color;
       if (updates.storeId) updateData["storeId"] = updates.storeId;
@@ -241,8 +241,9 @@ export const AuthService = {
               await reauthenticateWithCredential(currentUser, credential);
               await updatePassword(currentUser, updates.password);
               // 新しいパスワードで更新
+              const { PasswordHasher: PwHasher } = await import("@/common/common-utils/security/passwordUtils");
               await updateDoc(userRef, {
-                hashedPassword: await PasswordHasher.hashPassword(updates.password),
+                hashedPassword: await PwHasher.hashPassword(updates.password),
               });
             } catch (error) {
               throw new Error("パスワードの更新に失敗しました");

@@ -33,12 +33,12 @@ export default function AppVersionManager() {
       const versionDoc = await getDoc(doc(db, "settings", "app_version"));
       if (versionDoc.exists()) {
         const data = versionDoc.data();
-        setCurrentVersion(data.version || "1.0.0");
-        setNewVersion(data.version || "1.0.0");
-        setForceUpdate(data.forceUpdate || false);
-        setUpdateMessage(data.updateMessage || "");
-        if (data.updatedAt) {
-          setLastUpdate(data.updatedAt.toDate());
+        setCurrentVersion(data['version'] || "1.0.0");
+        setNewVersion(data['version'] || "1.0.0");
+        setForceUpdate(data['forceUpdate'] || false);
+        setUpdateMessage(data['updateMessage'] || "");
+        if (data['updatedAt']) {
+          setLastUpdate(data['updatedAt'].toDate());
         }
       } else {
         setCurrentVersion("1.0.0");
@@ -114,7 +114,7 @@ export default function AppVersionManager() {
             value={newVersion}
             onChangeText={setNewVersion}
             placeholder="例: 1.0.1"
-            placeholderTextColor={colors.disabled}
+            placeholderTextColor={colors.text.disabled}
           />
         </View>
 
@@ -123,8 +123,8 @@ export default function AppVersionManager() {
           <Switch
             value={forceUpdate}
             onValueChange={setForceUpdate}
-            trackColor={{ false: colors.disabled, true: colors.primary }}
-            thumbColor={forceUpdate ? colors.white : colors.lightGray}
+            trackColor={{ false: colors.text.disabled, true: colors.primary }}
+            thumbColor={forceUpdate ? colors.text.white : colors.border}
           />
         </View>
 
@@ -135,7 +135,7 @@ export default function AppVersionManager() {
             value={updateMessage}
             onChangeText={setUpdateMessage}
             placeholder="例: 重要なバグ修正が含まれています"
-            placeholderTextColor={colors.disabled}
+            placeholderTextColor={colors.text.disabled}
             multiline
             numberOfLines={3}
           />
@@ -163,7 +163,7 @@ export default function AppVersionManager() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color={colors.white} />
+            <ActivityIndicator color={colors.text.white} />
           ) : (
             <Text style={styles.updateButtonText}>バージョン更新</Text>
           )}
@@ -183,7 +183,7 @@ export default function AppVersionManager() {
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
   content: {
     padding: 20,
@@ -195,7 +195,7 @@ const styles = {
     marginBottom: 20,
   },
   infoSection: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 20,
@@ -209,11 +209,11 @@ const styles = {
   currentVersion: {
     fontSize: 24,
     fontWeight: "bold" as const,
-    color: colors.black,
+    color: colors.text.primary,
   },
   lastUpdateText: {
     fontSize: 12,
-    color: colors.disabled,
+    color: colors.text.disabled,
     marginTop: 4,
   },
   inputSection: {
@@ -225,8 +225,8 @@ const styles = {
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: colors.black,
-    backgroundColor: colors.white,
+    color: colors.text.primary,
+    backgroundColor: colors.background,
   },
   messageInput: {
     minHeight: 80,
@@ -253,7 +253,7 @@ const styles = {
   },
   noteText: {
     fontSize: 12,
-    color: colors.black,
+    color: colors.text.primary,
     marginBottom: 4,
     lineHeight: 18,
   },
@@ -268,7 +268,7 @@ const styles = {
     opacity: 0.6,
   },
   updateButtonText: {
-    color: colors.white,
+    color: colors.text.white,
     fontSize: 16,
     fontWeight: "600" as const,
   },

@@ -140,8 +140,7 @@ export const CreateGroupScreen: React.FC = () => {
       nickname: "",
       password: "",
       role: "user",
-      color: PRESET_COLORS[initialMembers.length % PRESET_COLORS.length],
-      hourlyWage: undefined,
+      color: PRESET_COLORS[initialMembers.length % PRESET_COLORS.length] || PRESET_COLORS[0] || "#FFD700",
     };
     setInitialMembers([...initialMembers, newMember]);
   };
@@ -199,14 +198,18 @@ export const CreateGroupScreen: React.FC = () => {
     // 初期メンバーのバリデーション
     for (let i = 0; i < initialMembers.length; i++) {
       const member = initialMembers[i];
-      if (!member.nickname.trim()) {
+      if (!member) {
+        Alert.alert("エラー", `メンバー${i + 1}のデータが見つかりません`);
+        return false;
+      }
+      if (!member.nickname?.trim()) {
         Alert.alert(
           "エラー",
           `メンバー${i + 1}のニックネームを入力してください`
         );
         return false;
       }
-      if (!member.password.trim()) {
+      if (!member.password?.trim()) {
         Alert.alert("エラー", `メンバー${i + 1}のパスワードを入力してください`);
         return false;
       }
@@ -234,18 +237,17 @@ export const CreateGroupScreen: React.FC = () => {
         groupName: form.groupName,
         storeId: currentStoreId,
         adminNickname: form.adminNickname,
-        adminEmail: form.adminEmail || undefined, // 実際のメールアドレス（任意）
+        ...(form.adminEmail.trim() && { adminEmail: form.adminEmail }), // 実際のメールアドレス（任意）
         adminPassword: form.adminPassword,
-        initialMembers:
-          initialMembers.length > 0
-            ? initialMembers.map((member) => ({
-                nickname: member.nickname,
-                password: member.password,
-                role: member.role,
-                color: member.color,
-                hourlyWage: member.hourlyWage,
-              }))
-            : undefined,
+        initialMembers: initialMembers.length > 0 
+          ? initialMembers.map((member) => ({
+              nickname: member.nickname,
+              password: member.password,
+              role: member.role,
+              color: member.color,
+              ...(member.hourlyWage !== undefined && { hourlyWage: member.hourlyWage }),
+            }))
+          : [],
       });
 
       if (result.success) {

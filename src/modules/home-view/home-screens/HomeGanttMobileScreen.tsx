@@ -106,8 +106,8 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
     users,
-    onShiftUpdate,
-    refreshPage,
+    onShiftUpdate: onShiftUpdate || (() => {}),
+    refreshPage: refreshPage || (() => {}),
   });
   
   const timeOptions = generateTimeOptions();
@@ -137,8 +137,9 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   
   // 空白セルクリック
   const handleEmptyCellClick = useCallback((date: string, time: string, userId: string) => {
-    const startHour = parseInt(time.split(":")[0]);
-    const startMinute = parseInt(time.split(":")[1]);
+    const timeParts = time.split(":");
+    const startHour = parseInt(timeParts[0] ?? "9");
+    const startMinute = parseInt(timeParts[1] ?? "0");
     let endHour = startHour + 1;
     let endMinute = startMinute;
     if (endHour > 22) {
@@ -314,10 +315,10 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
               sampleSchedule={sampleSchedule}
               cellWidth={cellWidth}
               cellHeight={cellHeight}
-              onCellPress={onCellPress}
+              onCellPress={onCellPress || (() => {})}
               shifts={shifts}
               users={users}
-              date={dateString}
+              date={dateString ?? ""}
               onShiftPress={handleEditShift}
               onEmptyCellPress={handleEmptyCellClick}
               userColorsMap={userColorsMap}
@@ -353,9 +354,9 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
           setShowAddModal(false);
         }}
         onSave={handleSaveShift}
-        onDelete={showEditModal && editingShift ? async () => {
-          await handleDeleteShift(editingShift.id);
-        } : undefined}
+        onDelete={showEditModal && editingShift ? () => {
+          handleDeleteShift(editingShift.id);
+        } : () => {}}
       />
       
       {/* バッチ確認モーダル */}

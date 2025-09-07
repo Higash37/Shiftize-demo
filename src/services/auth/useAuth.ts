@@ -127,7 +127,6 @@ export const useAuth = () => {
         email: userData.email,
         role: userData.role,
         storeId: userData.storeId,
-        deleted: false,
       });
       setRole(userData.role);
       setStoreId(userData.storeId);
@@ -137,7 +136,7 @@ export const useAuth = () => {
 
       // セキュリティ: ログイン成功ログ
       SecurityLogger.logEvent({
-        type: 'user_login_success',
+        type: 'system_event',
         details: `User ${userData.nickname} logged in successfully`,
         userAgent: navigator.userAgent,
       });
@@ -228,9 +227,8 @@ export const useAuth = () => {
               uid: firebaseUser.uid,
               nickname: userData.nickname,
               role: userData.role,
-              email: firebaseUser.email || undefined,
+              email: firebaseUser.email || "",
               storeId: userStoreId,
-              deleted: false,
             });
             setRole(userData.role);
             setStoreId(userStoreId);

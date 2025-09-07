@@ -96,7 +96,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
   // 時間位置の計算（メモ化）
   const timeToPosition = useCallback((timeString: string): number => {
     const [hours, minutes] = timeString.split(":").map(Number);
-    const totalMinutesFromStart = (hours - startHour) * 60 + minutes;
+    const totalMinutesFromStart = ((hours ?? 0) - startHour) * 60 + (minutes ?? 0);
     return (totalMinutesFromStart / totalMinutes) * 100;
   }, [startHour, endHour]);
 
@@ -139,7 +139,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
       let layerIndex = 0;
       while (layerIndex < layers.length) {
         const layer = layers[layerIndex];
-        const hasOverlap = layer.some((existingShift) => {
+        const hasOverlap = layer?.some((existingShift) => {
           const existingStart = timeToPosition(existingShift.startTime);
           const existingEnd = timeToPosition(existingShift.endTime);
           return !(shiftEnd <= existingStart || shiftStart >= existingEnd);
@@ -152,7 +152,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
       if (!layers[layerIndex]) {
         layers[layerIndex] = [];
       }
-      layers[layerIndex].push(shift);
+      layers[layerIndex]?.push(shift);
     }
 
     return layers;
@@ -177,7 +177,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
       const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
       const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
       const workMinutes =
-        endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
+        (endHours ?? 0) * 60 + (endMinutes ?? 0) - ((startHours ?? 0) * 60 + (startMinutes ?? 0));
       const workHours = workMinutes / 60;
       return total + workHours * user.hourlyWage!;
     }, 0);
@@ -306,7 +306,7 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
           {
             left: `${leftPosition}%`,
             width: `${width}%`,
-            backgroundColor: shiftType.backgroundColor,
+            backgroundColor: shiftType?.backgroundColor ?? "#E5E5E5",
             height,
             top,
           },
@@ -314,14 +314,14 @@ export const ModernGanttChart: React.FC<ModernGanttChartProps> = ({
         onPress={() => onShiftPress?.(shift)}
       >
         <Text
-          style={[styles.shiftBarText, { color: shiftType.color }]}
+          style={[styles.shiftBarText, { color: shiftType?.color ?? "#000000" }]}
           numberOfLines={1}
         >
-          {shiftType.name}
+          {shiftType?.name ?? "不明"}
         </Text>
         {width > 15 && (
           <Text
-            style={[styles.shiftBarTime, { color: shiftType.color }]}
+            style={[styles.shiftBarTime, { color: shiftType?.color ?? "#000000" }]}
             numberOfLines={1}
           >
             {shift.startTime.substring(0, 5)}-{shift.endTime.substring(0, 5)}

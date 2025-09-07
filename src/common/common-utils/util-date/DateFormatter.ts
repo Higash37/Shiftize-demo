@@ -72,7 +72,11 @@ export const getDateRange = (startDate: Date, endDate: Date): Date[] => {
  * @returns "YYYY-MM-DD" 形式の文字列
  */
 export const toISODateString = (date: Date): string => {
-  return date.toISOString().split("T")[0];
+  const isoString = date.toISOString().split("T")[0];
+  if (!isoString) {
+    throw new Error("Failed to format date to ISO string");
+  }
+  return isoString;
 };
 
 /**
@@ -82,7 +86,11 @@ export const toISODateString = (date: Date): string => {
  */
 export const getJapaneseDayOfWeek = (date: Date): string => {
   const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
-  return dayNames[date.getDay()];
+  const dayName = dayNames[date.getDay()];
+  if (!dayName) {
+    throw new Error("Invalid day of week");
+  }
+  return dayName;
 };
 
 /**

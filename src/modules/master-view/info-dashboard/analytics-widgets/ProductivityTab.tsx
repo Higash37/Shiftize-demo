@@ -83,9 +83,11 @@ export const ProductivityTab: React.FC<ProductivityTabProps> = ({
       hourCounts[startHour] = (hourCounts[startHour] || 0) + 1;
     });
 
-    const peakHour = Object.keys(hourCounts).reduce((a, b) =>
-      hourCounts[parseInt(a)] > hourCounts[parseInt(b)] ? a : b
-    );
+    const peakHour = Object.keys(hourCounts).reduce((a, b) => {
+      const countA = hourCounts[parseInt(a)] ?? 0;
+      const countB = hourCounts[parseInt(b)] ?? 0;
+      return countA > countB ? a : b;
+    });
     const peakHours = peakHour
       ? `${peakHour}:00-${parseInt(peakHour) + 3}:00`
       : "データなし";

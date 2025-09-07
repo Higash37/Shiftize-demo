@@ -88,7 +88,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
         userDataMap.set(user.uid, {
           uid: user.uid,
           nickname: user.nickname,
-          color: user.color,
+          color: user.color ?? "#4A90E2",
           hourlyWage: hourlyWage,
           totalHours: totalHours,
           totalAmount: totalWage,
@@ -167,10 +167,6 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
             style={styles.listContainer} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            removeClippedSubviews={true}
-            initialNumToRender={8}
-            maxToRenderPerBatch={4}
-            updateCellsBatchingPeriod={100}
           >
             {payrollData.length === 0 ? (
               <View style={styles.emptyContainer}>

@@ -123,10 +123,6 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               style={styles.content} 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={10}
-              maxToRenderPerBatch={5}
-              updateCellsBatchingPeriod={100}
             >
               {/* ユーザー選択 */}
               {isMaster && (
@@ -263,10 +259,6 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               style={styles.pickerContent} 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={6}
-              maxToRenderPerBatch={3}
-              updateCellsBatchingPeriod={100}
             >
               {users.map((user) => (
                 <TouchableOpacity
@@ -306,10 +298,6 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               style={styles.pickerContent} 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={6}
-              maxToRenderPerBatch={3}
-              updateCellsBatchingPeriod={100}
             >
               {timeOptions.map((time) => (
                 <TouchableOpacity
@@ -347,10 +335,6 @@ export const MobileShiftModal: React.FC<MobileShiftModalProps> = React.memo(({
               style={styles.pickerContent} 
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={6}
-              maxToRenderPerBatch={3}
-              updateCellsBatchingPeriod={100}
             >
               {statusConfigs.map((config) => (
                 <TouchableOpacity

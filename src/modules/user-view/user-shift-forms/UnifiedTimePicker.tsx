@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { View, Platform, TouchableOpacity, Text, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { UnifiedTimePickerProps } from "./types";
+import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";
+import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 
 /**
  * UnifiedTimePicker - 統一された時間選択コンポーネント
@@ -79,11 +80,13 @@ export default function UnifiedTimePicker({
               borderRadius: 12,
               padding: 20,
               minWidth: 300,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
+              ...convertShadowForWeb({
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 4,
+                elevation: 5,
+              }),
             }}>
               <DateTimePicker
                 value={value}

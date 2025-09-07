@@ -40,10 +40,13 @@ const ShiftReportModal = ({
     if (modalShift) {
       try {
         const formattedTasks = Object.keys(taskCounts).reduce((acc, key) => {
-          acc[key] = {
-            count: taskCounts[key].count,
-            time: taskCounts[key].time,
-          };
+          const task = taskCounts[key];
+          if (task) {
+            acc[key] = {
+              count: task.count,
+              time: task.time,
+            };
+          }
           return acc;
         }, {} as { [key: string]: { count: number; time: number } });
 
@@ -85,11 +88,11 @@ const ShiftReportModal = ({
                       setTaskCounts((prev) => {
                         const updatedTaskCounts = { ...prev };
                         updatedTaskCounts[task] = {
-                          ...updatedTaskCounts[task],
                           count: Math.max(
                             (updatedTaskCounts[task]?.count || 0) - 1,
                             0
                           ),
+                          time: updatedTaskCounts[task]?.time || 0,
                         };
                         return updatedTaskCounts;
                       });
@@ -104,8 +107,8 @@ const ShiftReportModal = ({
                       setTaskCounts((prev) => {
                         const updatedTaskCounts = { ...prev };
                         updatedTaskCounts[task] = {
-                          ...updatedTaskCounts[task],
                           count: (updatedTaskCounts[task]?.count || 0) + 1,
+                          time: updatedTaskCounts[task]?.time || 0,
                         };
                         return updatedTaskCounts;
                       });
@@ -121,7 +124,7 @@ const ShiftReportModal = ({
                       setTaskCounts((prev) => {
                         const updatedTaskCounts = { ...prev };
                         updatedTaskCounts[task] = {
-                          ...updatedTaskCounts[task],
+                          count: updatedTaskCounts[task]?.count || 0,
                           time: Math.max(
                             (updatedTaskCounts[task]?.time || 0) - 5,
                             0
@@ -140,7 +143,7 @@ const ShiftReportModal = ({
                       setTaskCounts((prev) => {
                         const updatedTaskCounts = { ...prev };
                         updatedTaskCounts[task] = {
-                          ...updatedTaskCounts[task],
+                          count: updatedTaskCounts[task]?.count || 0,
                           time: (updatedTaskCounts[task]?.time || 0) + 5,
                         };
                         return updatedTaskCounts;

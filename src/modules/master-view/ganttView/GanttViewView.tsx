@@ -84,7 +84,7 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
         onClose={() => setShowTaskCreateModal(false)}
         onTaskCreated={handleTaskCreated}
         initialShiftId={selectedShiftIdForTask}
-        initialShiftData={initialShiftData}
+        initialShiftData={initialShiftData || { date: "", startTime: "", endTime: "", userId: "" }}
       />
     </View>
   );

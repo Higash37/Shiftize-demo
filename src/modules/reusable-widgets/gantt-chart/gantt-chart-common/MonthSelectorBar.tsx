@@ -204,8 +204,8 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           visible={showPeriodModal}
           onClose={() => setShowPeriodModal(false)}
           storeId={storeId}
-          users={props.users}
-          shifts={props.shifts}
+          users={props.users || []}
+          shifts={props.shifts || []}
           onPeriodCreated={(period) => {
             // 期間が作成されました
             // 必要に応じて親コンポーネントに通知

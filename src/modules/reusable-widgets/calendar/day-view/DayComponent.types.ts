@@ -1,5 +1,5 @@
 import { StyleProp, TextStyle, ViewStyle } from "react-native";
-import { DayComponentProps } from "../../calendar-types/common.types";
+import { DayComponentProps } from "../calendar-types/common.types";
 
 /**
  * DayComponentのProps型定義

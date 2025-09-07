@@ -79,16 +79,16 @@ export const useShiftHistory = ({
           const data = doc.data();
           const entry: ShiftHistoryEntry = {
             id: doc.id,
-            storeId: data.storeId,
-            shiftId: data.shiftId,
-            action: data.action,
-            actor: data.actor,
-            timestamp: data.timestamp,
-            date: data.date,
-            prev: data.prev,
-            next: data.next,
-            summary: data.summary,
-            notes: data.notes,
+            storeId: data['storeId'],
+            shiftId: data['shiftId'],
+            action: data['action'],
+            actor: data['actor'],
+            timestamp: data['timestamp'],
+            date: data['date'],
+            prev: data['prev'],
+            next: data['next'],
+            summary: data['summary'],
+            notes: data['notes'],
           };
           
           // クライアント側でのフィルタリング

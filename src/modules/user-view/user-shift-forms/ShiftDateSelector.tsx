@@ -18,7 +18,7 @@ const ShiftDateSelector: React.FC<ShiftDateSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Calendar
-        current={selectedDate || undefined}
+        current={selectedDate}
         onDayPress={(day: { dateString: string }) => onSelect(day.dateString)}
         markedDates={{
           [selectedDate]: {

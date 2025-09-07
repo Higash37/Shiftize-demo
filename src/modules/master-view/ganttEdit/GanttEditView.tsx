@@ -45,9 +45,9 @@ export const GanttEditView: React.FC<GanttEditViewProps> = ({
         onShiftPress={onShiftPress}
         onShiftUpdate={onShiftUpdate}
         onMonthChange={onMonthChange}
-        onTimeChange={onTimeChange}
+        onTimeChange={onTimeChange || (() => {})}
         classTimes={[]}
-        refreshPage={refreshPage}
+        refreshPage={refreshPage || (() => {})}
       />
     </View>
   );

@@ -51,8 +51,8 @@ export function validateUser(data: unknown): { success: boolean; data?: any; err
   if (result.success) {
     return { success: true, data: result.data };
   } else {
-    const errorMessage = result.error.errors
-      .map(err => `${err.path.join('.')}: ${err.message}`)
+    const errorMessage = result.error.issues
+      .map((err: any) => `${err.path.join('.')}: ${err.message}`)
       .join(', ');
     return { success: false, error: errorMessage };
   }
@@ -67,8 +67,8 @@ export function validateShift(data: unknown): { success: boolean; data?: any; er
   if (result.success) {
     return { success: true, data: result.data };
   } else {
-    const errorMessage = result.error.errors
-      .map(err => `${err.path.join('.')}: ${err.message}`)
+    const errorMessage = result.error.issues
+      .map((err: any) => `${err.path.join('.')}: ${err.message}`)
       .join(', ');
     return { success: false, error: errorMessage };
   }
@@ -80,7 +80,7 @@ export function validateShift(data: unknown): { success: boolean; data?: any; er
 export function validateNotificationData(data: unknown) {
   const result = NotificationDataSchema.safeParse(data);
   if (!result.success) {
-    throw new Error(`通知データが無効です: ${result.error.errors[0]?.message}`);
+    throw new Error(`通知データが無効です: ${result.error.issues[0]?.message}`);
   }
   return result.data;
 }
@@ -91,7 +91,7 @@ export function validateNotificationData(data: unknown) {
 export function validateEmailMessage(data: unknown) {
   const result = EmailMessageSchema.safeParse(data);
   if (!result.success) {
-    throw new Error(`メールデータが無効です: ${result.error.errors[0]?.message}`);
+    throw new Error(`メールデータが無効です: ${result.error.issues[0]?.message}`);
   }
   return result.data;
 }

@@ -346,7 +346,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                 selectedValue={classTime.startTime}
                 onValueChange={(value) => {
                   const updated = [...classes];
-                  updated[idx] = { ...updated[idx], startTime: value };
+                  updated[idx] = { ...updated[idx], startTime: value, endTime: updated[idx]?.endTime || "" };
                   setClasses(updated);
                 }}
                 style={styles.picker}
@@ -365,7 +365,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                 selectedValue={classTime.endTime}
                 onValueChange={(value) => {
                   const updated = [...classes];
-                  updated[idx] = { ...updated[idx], endTime: value };
+                  updated[idx] = { ...updated[idx], endTime: value, startTime: updated[idx]?.startTime || "" };
                   setClasses(updated);
                 }}
                 style={styles.picker}
@@ -428,7 +428,16 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
               value={task.title}
               onChangeText={(value) => {
                 const updated = [...extendedTasks];
-                updated[idx] = { ...updated[idx], title: value };
+                updated[idx] = { 
+                  ...updated[idx], 
+                  title: value,
+                  id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
+                  taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
+                  startTime: updated[idx]?.startTime || "09:00",
+                  endTime: updated[idx]?.endTime || "10:00",
+                  shortName: updated[idx]?.shortName || "Task",
+                  createdAt: updated[idx]?.createdAt || new Date()
+                };
                 setExtendedTasks(updated);
               }}
               placeholder="タスク名"
@@ -439,7 +448,16 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
               value={task.shortName || ""}
               onChangeText={(value) => {
                 const updated = [...extendedTasks];
-                updated[idx] = { ...updated[idx], shortName: value };
+                updated[idx] = { 
+                  ...updated[idx], 
+                  shortName: value,
+                  id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
+                  taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
+                  startTime: updated[idx]?.startTime || "09:00",
+                  endTime: updated[idx]?.endTime || "10:00",
+                  title: updated[idx]?.title || "New Task",
+                  createdAt: updated[idx]?.createdAt || new Date()
+                };
                 setExtendedTasks(updated);
               }}
               placeholder="略称"
@@ -456,7 +474,16 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                   selectedValue={task.startTime}
                   onValueChange={(value) => {
                     const updated = [...extendedTasks];
-                    updated[idx] = { ...updated[idx], startTime: value };
+                    updated[idx] = { 
+                      ...updated[idx], 
+                      startTime: value,
+                      id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
+                      taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
+                      endTime: updated[idx]?.endTime || "10:00",
+                      title: updated[idx]?.title || "New Task",
+                      shortName: updated[idx]?.shortName || "Task",
+                      createdAt: updated[idx]?.createdAt || new Date()
+                    };
                     setExtendedTasks(updated);
                   }}
                   style={styles.picker}
@@ -475,7 +502,16 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
                   selectedValue={task.endTime}
                   onValueChange={(value) => {
                     const updated = [...extendedTasks];
-                    updated[idx] = { ...updated[idx], endTime: value };
+                    updated[idx] = { 
+                      ...updated[idx], 
+                      endTime: value,
+                      id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
+                      taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
+                      startTime: updated[idx]?.startTime || "09:00",
+                      title: updated[idx]?.title || "New Task",
+                      shortName: updated[idx]?.shortName || "Task",
+                      createdAt: updated[idx]?.createdAt || new Date()
+                    };
                     setExtendedTasks(updated);
                   }}
                   style={styles.picker}

@@ -80,7 +80,7 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
               sampleSchedule={sampleSchedule}
               cellWidth={cellWidth}
               cellHeight={cellHeight}
-              onCellPress={onCellPress}
+              onCellPress={onCellPress || (() => {})}
             />
           ))}
         </View>

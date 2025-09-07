@@ -13,6 +13,7 @@ import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getCurrentYearHolidays } from "@/common/common-utils/util-settings/japaneseHolidays";
+import { SpecialDay, Holiday } from "./ShiftHolidaySettingsView.types";
 import { shiftHolidaySettingsViewStyles as styles } from "./ShiftHolidaySettingsView.styles";
 import type { ShiftHolidaySettingsViewProps } from "./ShiftHolidaySettingsView.types";
 
@@ -44,10 +45,10 @@ export const ShiftHolidaySettingsView: React.FC<
       return;
     }
 
-    const dateString = newHolidayDate.toISOString().split("T")[0];
+    const dateString = newHolidayDate.toISOString().split("T")[0] as string;
 
     if (isSpecialDay) {
-      const newSpecialDay = {
+      const newSpecialDay: SpecialDay = {
         id: Date.now().toString(),
         date: dateString,
         name: newHolidayName.trim(),
@@ -64,7 +65,7 @@ export const ShiftHolidaySettingsView: React.FC<
         specialDays: updatedSpecialDays,
       });
     } else {
-      const newHoliday = {
+      const newHoliday: Holiday = {
         id: Date.now().toString(),
         date: dateString,
         name: newHolidayName.trim(),
@@ -328,7 +329,7 @@ export const ShiftHolidaySettingsView: React.FC<
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={{ fontSize: 16 }}>
-                {formatDate(newHolidayDate.toISOString().split("T")[0])}
+                {formatDate((newHolidayDate || new Date()).toISOString().split("T")[0]!)}
               </Text>
             </TouchableOpacity>
 

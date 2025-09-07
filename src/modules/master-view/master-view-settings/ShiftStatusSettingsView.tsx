@@ -57,8 +57,8 @@ export const ShiftStatusSettingsView: React.FC<
           }}
           initialColor={
             selectedStatus
-              ? statusConfigs.find((c) => c.status === selectedStatus)?.color
-              : undefined
+              ? statusConfigs.find((c) => c.status === selectedStatus)?.color ?? "#000000"
+              : "#000000"
           }
         />
       </ScrollView>

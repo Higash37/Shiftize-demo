@@ -82,8 +82,8 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
   useEffect(() => {
     if (initialShiftData && visible) {
       // シフトの時間帯からタスクの推奨設定を計算
-      const startHour = parseInt(initialShiftData.startTime.split(":")[0]);
-      const endHour = parseInt(initialShiftData.endTime.split(":")[0]);
+      const startHour = parseInt(initialShiftData.startTime?.split(":")[0] ?? "9");
+      const endHour = parseInt(initialShiftData.endTime?.split(":")[0] ?? "17");
       const durationHours = endHour - startHour;
 
       // シフト時間に基づいてタスクの基本設定を提案
@@ -324,7 +324,8 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
     value: string
   ) => {
     const newRanges = [...formData.restrictedTimeRanges];
-    newRanges[index] = { ...newRanges[index], [field]: value };
+    const currentRange = newRanges[index] || { startTime: '', endTime: '' };
+    newRanges[index] = { ...currentRange, [field]: value };
     updateFormData("restrictedTimeRanges", newRanges);
   };
 
@@ -392,7 +393,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       // 各時間範囲のバリデーション
       for (let i = 0; i < formData.restrictedTimeRanges.length; i++) {
         const range = formData.restrictedTimeRanges[i];
-        if (!range.startTime || !range.endTime) {
+        if (!range?.startTime || !range?.endTime) {
           Alert.alert(
             "エラー",
             `時間範囲${i + 1}の開始時間と終了時間を入力してください`
@@ -475,7 +476,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             startTime: initialShiftData.startTime,
             endTime: initialShiftData.endTime,
             title: formData.title.trim(),
-            shortName: formData.shortName.trim() || undefined,
+            shortName: formData.shortName?.trim() || formData.title.trim(),
             color: formData.color,
             icon: formData.icon,
             status: "pending",

@@ -59,7 +59,7 @@ export function RecruitmentShiftModal({
   const loadActivePeriod = async () => {
     try {
       const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
-      setPeriod(periods.length > 0 ? periods[0] : null);
+      setPeriod(periods.length > 0 ? periods[0] ?? null : null);
     } catch (error) {
       console.error("期間の読み込みエラー:", error);
     }
@@ -500,7 +500,7 @@ export function RecruitmentShiftModal({
                   nickname: user.nickname,
                   requestedStartTime: startTime,
                   requestedEndTime: endTime,
-                  notes,
+                  notes: notes || "",
                 }
               );
 

@@ -108,7 +108,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
   // 時間をminutes（分）に変換するヘルパー関数
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(":").map(Number);
-    return hours * 60 + minutes;
+    return (hours || 0) * 60 + (minutes || 0);
   };
 
   // タスク時間のバリデーション
@@ -216,11 +216,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={10}
-              maxToRenderPerBatch={5}
-              updateCellsBatchingPeriod={100}
-            >
+                    >
               <Text style={styles.modalTitle}>授業時間を追加</Text>
 
               {(newShiftData.classes || []).map(
@@ -318,11 +314,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={8}
-              maxToRenderPerBatch={4}
-              updateCellsBatchingPeriod={100}
-            >
+              >
               <Text style={styles.modalTitle}>登録済みタスク</Text>
               {newShiftData.extendedTasks &&
               newShiftData.extendedTasks.length > 0 ? (
@@ -408,11 +400,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                removeClippedSubviews={true}
-                initialNumToRender={6}
-                maxToRenderPerBatch={3}
-                updateCellsBatchingPeriod={100}
-              >
+                  >
                 <Text style={styles.modalTitle}>タスクの詳細を設定</Text>
                 <Text style={styles.modalSubtitle}>
                   選択されたタスク: {selectedTaskTemplate}
@@ -548,11 +536,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                removeClippedSubviews={true}
-                initialNumToRender={8}
-                maxToRenderPerBatch={4}
-                updateCellsBatchingPeriod={100}
-              >
+                  >
                 <Text style={styles.modalTitle}>タスクを選択</Text>
                 <Text
                   style={[
@@ -640,11 +624,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              initialNumToRender={12}
-              maxToRenderPerBatch={6}
-              updateCellsBatchingPeriod={100}
-            >
+              >
               <Text style={styles.modalTitle}>シフト編集</Text>
               <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
 

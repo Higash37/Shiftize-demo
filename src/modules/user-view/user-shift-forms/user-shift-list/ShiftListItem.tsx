@@ -42,7 +42,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
         if (!userDoc.exists()) return;
 
         const userData = userDoc.data();
-        const currentStoreId = userData.storeId;
+        const currentStoreId = userData['storeId'];
 
         // 他店舗のシフトかどうかを判定
         if (shift.storeId !== currentStoreId) {
@@ -55,7 +55,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
             );
             if (storeDoc.exists()) {
               const storeData = storeDoc.data();
-              setStoreName(storeData.storeName || storeData.name || "他店舗");
+              setStoreName(storeData['storeName'] || storeData['name'] || "他店舗");
             }
           }
         } else {

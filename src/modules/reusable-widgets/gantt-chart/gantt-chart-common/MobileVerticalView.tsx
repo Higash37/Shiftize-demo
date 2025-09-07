@@ -460,9 +460,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                   const [classEndHour, classEndMin] = classTime.endTime.split(":").map(Number);
                                   const [timeHour, timeMin] = time.split(":").map(Number);
                                   
-                                  const classStartMinutes = classStartHour * 60 + classStartMin;
-                                  const classEndMinutes = classEndHour * 60 + classEndMin;
-                                  const currentTimeMinutes = timeHour * 60 + timeMin;
+                                  const classStartMinutes = (classStartHour ?? 0) * 60 + (classStartMin ?? 0);
+                                  const classEndMinutes = (classEndHour ?? 0) * 60 + (classEndMin ?? 0);
+                                  const currentTimeMinutes = (timeHour ?? 0) * 60 + (timeMin ?? 0);
                                   
                                   return currentTimeMinutes >= classStartMinutes && currentTimeMinutes < classEndMinutes;
                                 });
@@ -473,9 +473,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                   const [shiftEndHour, shiftEndMin] = userShift.endTime.split(":").map(Number);
                                   const [timeHour, timeMin] = time.split(":").map(Number);
                                   
-                                  const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin;
-                                  const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin;
-                                  const currentTimeMinutes = timeHour * 60 + timeMin;
+                                  const shiftStartMinutes = (shiftStartHour ?? 0) * 60 + (shiftStartMin ?? 0);
+                                  const shiftEndMinutes = (shiftEndHour ?? 0) * 60 + (shiftEndMin ?? 0);
+                                  const currentTimeMinutes = (timeHour ?? 0) * 60 + (timeMin ?? 0);
                                   
                                   return currentTimeMinutes >= shiftStartMinutes && currentTimeMinutes < shiftEndMinutes;
                                 })();
@@ -578,11 +578,11 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                   // 30分刻みでの位置計算
                                   const baseHour = hideEarlyHours ? 13 : 9;
                                   const startSlots =
-                                    (startHour - baseHour) * 2 +
-                                    (startMin >= 30 ? 1 : 0);
+                                    ((startHour ?? 0) - baseHour) * 2 +
+                                    ((startMin ?? 0) >= 30 ? 1 : 0);
                                   const endSlots =
-                                    (endHour - baseHour) * 2 +
-                                    (endMin >= 30 ? 1 : 0);
+                                    ((endHour ?? 0) - baseHour) * 2 +
+                                    ((endMin ?? 0) >= 30 ? 1 : 0);
                                   const top = startSlots * 20;
                                   const height = (endSlots - startSlots) * 20;
 

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { styles } from "./styles";
-import { TimeInputSectionProps, TimeSlot } from "./types";
+import { styles } from "./TimeInputSection.styles";
+import { TimeInputSectionProps, TimeSlot } from "./TimeInputSection.types";
 import { generateTimeOptions } from "../user-shift-utils/ui-utils";
 
 /**
@@ -25,7 +25,9 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
     if (newTimeSlots.length === 0) {
       newTimeSlots.push({ start: "", end: "" });
     }
-    newTimeSlots[0][type] = selectedTime;
+    if (newTimeSlots[0]) {
+      newTimeSlots[0][type] = selectedTime;
+    }
     onChange(newTimeSlots);
   };
 
@@ -40,7 +42,7 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
     visible: boolean,
     setVisible: (visible: boolean) => void
   ) => {
-    const currentValue = value[0]?.[type] || timeOptions[0];
+    const currentValue = value[0]?.[type] ?? timeOptions[0] ?? "09:00";
 
     if (!visible) return null;
 
@@ -52,8 +54,10 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              if (!value[0]?.[type]) {
-                handleTimeChange(type, timeOptions[0]);
+              const currentTime = value[0]?.[type];
+              if (!currentTime) {
+                const defaultTime = timeOptions[0] ?? "09:00";
+                handleTimeChange(type, defaultTime);
               }
               setVisible(false);
             }}
@@ -63,7 +67,11 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
         </View>
         <Picker
           selectedValue={currentValue}
-          onValueChange={(itemValue) => handleTimeChange(type, itemValue)}
+          onValueChange={(itemValue) => {
+            if (itemValue) {
+              handleTimeChange(type, itemValue);
+            }
+          }}
           style={styles.picker}
         >
           {timeOptions.map((time) => (
@@ -85,7 +93,7 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
             onPress={() => setShowStartPicker(true)}
           >
             <Text style={styles.timeButtonText}>
-              {formatTime(value[0]?.start)}
+              {formatTime(value[0]?.start ?? "")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -97,7 +105,7 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
             onPress={() => setShowEndPicker(true)}
           >
             <Text style={styles.timeButtonText}>
-              {formatTime(value[0]?.end)}
+              {formatTime(value[0]?.end ?? "")}
             </Text>
           </TouchableOpacity>
         </View>
