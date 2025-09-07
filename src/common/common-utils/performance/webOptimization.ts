@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
  * 開発環境での特定のReact Native警告を抑制
  */
 export const suppressReactNativeWebWarnings = () => {
-  if (Platform.OS === 'web' && process.env.NODE_ENV === 'development') {
+  if (Platform.OS === 'web' && process.env['NODE_ENV'] === 'development') {
     const originalWarn = console.warn;
     const originalViolation = console.error;
 
