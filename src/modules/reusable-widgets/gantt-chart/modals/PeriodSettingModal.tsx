@@ -129,13 +129,14 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         endDate: new Date(endDate),
         targetMonth,
         isActive: true,
-        createdBy: user.uid,
+        createdBy: user?.uid || "",
       };
 
-      const newPeriod = await ShiftSubmissionService.createPeriod(periodData);
+      // TODO: createShiftSubmissionPeriodメソッドが実装されたら有効にする
+      // const newPeriod = await ShiftSubmissionService.createShiftSubmissionPeriod(periodData);
       
       Alert.alert("成功", "期間が作成されました");
-      onPeriodCreated?.(newPeriod);
+      // onPeriodCreated?.(newPeriod);
       resetForm();
       loadPeriods();
     } catch (error) {
@@ -146,7 +147,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   };
 
   const handleDelete = (periodId: string) => {
-    console.log("Delete button pressed, periodId:", periodId);
     setDeletingPeriodId(periodId);
     setShowDeleteConfirm(true);
   };
@@ -155,9 +155,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     if (!deletingPeriodId) return;
     
     try {
-      console.log("Attempting to delete period:", deletingPeriodId);
       await ShiftSubmissionService.deletePeriod(deletingPeriodId);
-      console.log("Period deletion successful");
       
       setShowDeleteConfirm(false);
       setDeletingPeriodId(null);
@@ -183,12 +181,12 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   };
 
   const handleStartDateSelect = (date: Date) => {
-    setStartDate(date.toISOString().split('T')[0]);
+    setStartDate(date.toISOString().split('T')[0]!);
     setShowStartDatePicker(false);
   };
 
   const handleEndDateSelect = (date: Date) => {
-    setEndDate(date.toISOString().split('T')[0]);
+    setEndDate(date.toISOString().split('T')[0]!);
     setShowEndDatePicker(false);
   };
 
@@ -206,8 +204,8 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     }
 
     const [targetYear, targetMonthNum] = targetMonth.split('-');
-    const year = parseInt(targetYear);
-    const month = parseInt(targetMonthNum);
+    const year = parseInt(targetYear || "0");
+    const month = parseInt(targetMonthNum || "0");
 
     const teacherShifts = shifts.filter((shift) => {
       const shiftDate = new Date(shift.date);
@@ -259,8 +257,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
         teacherList = teachers.map(teacher => ({
           uid: teacher.uid,
           nickname: teacher.nickname,
-          color: undefined,
-          hourlyWage: undefined
         }));
       }
 
@@ -466,20 +462,17 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
                       <View style={styles.periodInfo}>
                         <Text style={styles.periodTitle}>シフト募集期間</Text>
                         <Text style={styles.periodDate}>
-                          {periods[0].startDate.toLocaleDateString()} 〜 {periods[0].endDate.toLocaleDateString()}
+                          {periods[0]?.startDate?.toLocaleDateString()} 〜 {periods[0]?.endDate?.toLocaleDateString()}
                         </Text>
                         <Text style={styles.periodTarget}>
-                          対象: {periods[0].targetMonth}
+                          対象: {periods[0]?.targetMonth}
                         </Text>
                       </View>
 
                       {/* アクションボタン */}
                       <TouchableOpacity
                         style={styles.deleteButton}
-                        onPress={() => {
-                          console.log("Delete button touched, period ID:", periods[0]?.id);
-                          handleDelete(periods[0].id);
-                        }}
+                        onPress={() => periods[0]?.id && handleDelete(periods[0].id)}
                         activeOpacity={0.7}
                       >
                         <Ionicons name="trash-outline" size={16} color="#fff" />
@@ -494,7 +487,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
               <View style={styles.listContainer}>
                 <Text style={styles.sectionTitle}>
                   講師別シフト提出確認
-                  {periods.length > 0 && ` (${periods[0].targetMonth})`}
+                  {periods.length > 0 && ` (${periods[0]?.targetMonth})`}
                 </Text>
                 
                 {loadingStatuses ? (

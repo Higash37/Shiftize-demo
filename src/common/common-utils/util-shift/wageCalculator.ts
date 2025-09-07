@@ -6,7 +6,14 @@
  * 時間文字列（HH:mm）から分数に変換する
  */
 export const timeStringToMinutes = (timeString: string): number => {
-  const [hours, minutes] = timeString.split(":").map(Number);
+  const [hoursStr, minutesStr] = timeString.split(":");
+  const hours = hoursStr ? Number(hoursStr) : 0;
+  const minutes = minutesStr ? Number(minutesStr) : 0;
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    throw new Error("Invalid time format");
+  }
+  
   return hours * 60 + minutes;
 };
 

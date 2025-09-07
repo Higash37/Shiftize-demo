@@ -181,8 +181,8 @@ export class FolderService {
           ({
             id: doc.id,
             ...doc.data(),
-            createdAt: doc.data().createdAt.toDate(),
-            updatedAt: doc.data().updatedAt.toDate(),
+            createdAt: doc.data()['createdAt'].toDate(),
+            updatedAt: doc.data()['updatedAt'].toDate(),
           } as Folder)
       );
     } catch (error) {
@@ -214,8 +214,8 @@ export class FolderService {
             ({
               id: doc.id,
               ...doc.data(),
-              createdAt: doc.data().createdAt.toDate(),
-              updatedAt: doc.data().updatedAt.toDate(),
+              createdAt: doc.data()['createdAt'].toDate(),
+              updatedAt: doc.data()['updatedAt'].toDate(),
             } as Folder)
         )
         .filter((folder) => folder.parentId === parentId)
@@ -276,8 +276,8 @@ export class FolderService {
           (doc) => ({
             id: doc.id,
             ...doc.data(),
-            createdAt: doc.data().createdAt.toDate(),
-            updatedAt: doc.data().updatedAt.toDate(),
+            createdAt: doc.data()['createdAt'].toDate(),
+            updatedAt: doc.data()['updatedAt'].toDate(),
           } as Folder)
         );
 
@@ -445,9 +445,9 @@ export class FileService {
           ({
             id: doc.id,
             ...doc.data(),
-            createdAt: doc.data().createdAt.toDate(),
-            updatedAt: doc.data().updatedAt.toDate(),
-            lastAccessedAt: doc.data().lastAccessedAt?.toDate(),
+            createdAt: doc.data()['createdAt'].toDate(),
+            updatedAt: doc.data()['updatedAt'].toDate(),
+            lastAccessedAt: doc.data()['lastAccessedAt']?.toDate(),
           } as FileItem)
       );
 
@@ -542,9 +542,9 @@ export class FileService {
           ({
             id: doc.id,
             ...doc.data(),
-            createdAt: doc.data().createdAt.toDate(),
-            updatedAt: doc.data().updatedAt.toDate(),
-            lastAccessedAt: doc.data().lastAccessedAt?.toDate(),
+            createdAt: doc.data()['createdAt'].toDate(),
+            updatedAt: doc.data()['updatedAt'].toDate(),
+            lastAccessedAt: doc.data()['lastAccessedAt']?.toDate(),
           } as FileItem)
       );
 
@@ -615,9 +615,9 @@ export class FileSystemStatsService {
         const fileData = {
           id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-          lastAccessedAt: doc.data().lastAccessedAt?.toDate(),
+          createdAt: doc.data()['createdAt'].toDate(),
+          updatedAt: doc.data()['updatedAt'].toDate(),
+          lastAccessedAt: doc.data()['lastAccessedAt']?.toDate(),
         } as FileItem;
 
         files.push(fileData);

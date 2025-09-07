@@ -56,8 +56,8 @@ export const SimpleTaskCreateModal: React.FC<SimpleTaskCreateModalProps> = ({
         priority: editTask.priority,
         tags: editTask.tags || [],
         isPublic: editTask.isPublic,
-        startDate: editTask.startDate,
-        dueDate: editTask.dueDate,
+        startDate: editTask.startDate || null as any,
+        dueDate: editTask.dueDate || null as any,
       });
     } else {
       setFormData({
@@ -277,7 +277,7 @@ export const SimpleTaskCreateModal: React.FC<SimpleTaskCreateModalProps> = ({
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
-                        setFormData({ ...formData, startDate: undefined })
+                        setFormData({ ...formData, startDate: null as any })
                       }
                     >
                       <Ionicons name="close-circle" size={20} color="#ccc" />
@@ -317,7 +317,7 @@ export const SimpleTaskCreateModal: React.FC<SimpleTaskCreateModalProps> = ({
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
-                        setFormData({ ...formData, dueDate: undefined })
+                        setFormData({ ...formData, dueDate: null as any })
                       }
                     >
                       <Ionicons name="close-circle" size={20} color="#ccc" />

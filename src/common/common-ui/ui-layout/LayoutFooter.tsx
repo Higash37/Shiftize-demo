@@ -20,6 +20,7 @@ import { TabItem } from "./ui-layout-types";
 import { FooterProps } from "./LayoutFooter.types";
 import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
 import { useAuth } from "@/services/auth/useAuth";
+import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -113,8 +114,7 @@ export function Footer({}: FooterProps) {
   const loadActivePeriod = async () => {
     try {
       const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
-      console.log("Footer - 読み込んだ期間:", periods);
-      setPeriod(periods.length > 0 ? periods[0] : null);
+      setPeriod(periods.length > 0 ? periods[0] || null : null);
     } catch (error) {
       console.error("期間の読み込みエラー:", error);
     }
@@ -199,11 +199,13 @@ export function Footer({}: FooterProps) {
                     borderRadius: 6,
                     paddingVertical: 6,
                     paddingHorizontal: 8,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 6,
-                    elevation: 6,
+                    ...convertShadowForWeb({
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: -2 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 6,
+                      elevation: 6,
+                    }),
                     zIndex: 1000,
                     marginBottom: 8,
                   }}

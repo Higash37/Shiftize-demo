@@ -156,7 +156,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
           loading={loading}
           error={error}
           currentPassword={
-            selectedUser ? userPasswords[selectedUser.uid] : undefined
+            selectedUser ? userPasswords[selectedUser.uid] ?? "" : ""
           }
         />
       ) : (

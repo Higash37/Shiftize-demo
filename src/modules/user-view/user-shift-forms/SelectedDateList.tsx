@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./styles";
+import { styles } from "./SelectedDateList.styles";
 import { SelectedDateListProps } from "./types";
 
 /**
@@ -11,6 +11,7 @@ import { SelectedDateListProps } from "./types";
 const SelectedDateList: React.FC<SelectedDateListProps> = ({
   selectedDates,
   onRemove,
+  onRemoveDate,
 }) => {
   // 日付を「〇月〇日（曜日）」の形式でフォーマット
   const formatDateWithWeekday = (dateStr: string): string => {
@@ -32,7 +33,7 @@ const SelectedDateList: React.FC<SelectedDateListProps> = ({
       {selectedDates.map((date) => (
         <View key={date} style={styles.item}>
           <Text style={styles.dateText}>{formatDateWithWeekday(date)}</Text>
-          <TouchableOpacity onPress={() => onRemove(date)}>
+          <TouchableOpacity onPress={() => onRemove?.(date) || onRemoveDate(date)}>
             <Text style={styles.removeText}>選択を解除</Text>
           </TouchableOpacity>
         </View>

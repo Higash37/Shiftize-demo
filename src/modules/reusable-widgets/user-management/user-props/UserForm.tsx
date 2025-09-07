@@ -39,7 +39,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   );
   const [errorMessage, setError] = useState<string | null>(null);
   const [hasMaster, setHasMaster] = useState(false);
-  const [color, setColor] = useState(initialData?.color || PRESET_COLORS[0]);
+  const [color, setColor] = useState<string>(() => initialData?.color ?? PRESET_COLORS[0] ?? "#4A90E2");
   const [hourlyWage, setHourlyWage] = useState<string>(
     initialData?.hourlyWage?.toString() || ""
   );
@@ -71,7 +71,11 @@ export const UserForm: React.FC<UserFormProps> = ({
       setNickname(initialData.nickname ?? "");
       setRole(initialData.role);
       setPassword("");
-      setColor(initialData.color || PRESET_COLORS[0]);
+      if (initialData.color) {
+        setColor(initialData.color);
+      } else {
+        setColor(PRESET_COLORS[0] ?? "#4A90E2");
+      }
       setHourlyWage(initialData.hourlyWage?.toString() || "");
     }
   }, [initialData]);
@@ -109,15 +113,18 @@ export const UserForm: React.FC<UserFormProps> = ({
       const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
       const autoEmail = email || `${sanitizeForEmail(currentUser.storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`;
       
-      const formData = {
+      const formData: any = {
         email: autoEmail,
-        password: password || undefined,
+        password: password || "defaultPassword123",
         nickname,
         role: isMasterEdit ? "master" : role,
-        color,
-        storeId: currentUser.storeId, // 現在のユーザーのstoreIdを自動設定
-        hourlyWage: hourlyWage ? parseFloat(hourlyWage) : undefined,
+        storeId: currentUser.storeId || "", // 現在のユーザーのstoreIdを自動設定
+        hourlyWage: hourlyWage ? parseFloat(hourlyWage) : 1000,
       };
+      
+      if (color) {
+        formData.color = color;
+      }
       
       
       await onSubmit(formData);
@@ -127,7 +134,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         setPassword("");
         setNickname("");
         setRole("user");
-        setColor(PRESET_COLORS[0]);
+        setColor(PRESET_COLORS[0] ?? "#4A90E2");
       }
     } catch (err: any) {
       setError(err.message || "エラーが発生しました");
@@ -161,7 +168,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           value={nickname}
           onChangeText={setNickname}
           placeholder="山田 太郎"
-          error={!nickname ? "ニックネームを入力してください" : undefined}
+          error={!nickname ? "ニックネームを入力してください" : ""}
         />
 
         <Input
@@ -171,7 +178,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           placeholder="example@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
-          error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "有効なメールアドレスを入力してください" : undefined}
+          error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "有効なメールアドレスを入力してください" : ""}
         />
 
         {!email && (
@@ -225,7 +232,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           error={
             mode === "add" && (!password || password.length < 6)
               ? "パスワードは6文字以上で入力してください"
-              : undefined
+              : ""
           }
         />
 
@@ -298,12 +305,14 @@ export const UserForm: React.FC<UserFormProps> = ({
         />
       </View>
 
-      <ColorPicker
-        visible={colorPickerVisible}
-        onClose={() => setColorPickerVisible(false)}
-        onSelectColor={(c) => setColor(c)}
-        initialColor={color}
-      />
+      {colorPickerVisible && (
+        <ColorPicker
+          visible={colorPickerVisible}
+          onClose={() => setColorPickerVisible(false)}
+          onSelectColor={(c) => setColor(c)}
+          initialColor={color}
+        />
+      )}
     </View>
   );
 };

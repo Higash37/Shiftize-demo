@@ -54,8 +54,10 @@ export const getDayColor = (
 
 // 日付文字列と時間文字列を組み合わせてDateオブジェクトを生成する関数
 export function parseTimeString(dateStr: string, timeStr: string): Date {
-  const [hours, minutes] = timeStr.split(":").map(Number);
+  const [hoursStr, minutesStr] = timeStr.split(":");
+  const hours = hoursStr ? Number(hoursStr) : 0;
+  const minutes = minutesStr ? Number(minutesStr) : 0;
   const date = new Date(dateStr);
-  date.setHours(hours, minutes, 0, 0);
+  date.setHours(hours ?? 0, minutes ?? 0, 0, 0);
   return date;
 }

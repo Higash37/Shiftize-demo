@@ -68,7 +68,7 @@ export const OnboardingScreen: React.FC = () => {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: slide.backgroundColor }]}
+      style={[styles.container, { backgroundColor: slide?.backgroundColor ?? '#ffffff' }]}
     >
       <SafeAreaView style={styles.safeArea}>
         {/* Skip Button */}
@@ -78,8 +78,8 @@ export const OnboardingScreen: React.FC = () => {
 
         {/* Content */}
         <View style={styles.content}>
-          <Text style={styles.title}>{slide.title}</Text>
-          <Text style={styles.description}>{slide.description}</Text>
+          <Text style={styles.title}>{slide?.title ?? ''}</Text>
+          <Text style={styles.description}>{slide?.description ?? ''}</Text>
         </View>
 
         {/* Indicators */}

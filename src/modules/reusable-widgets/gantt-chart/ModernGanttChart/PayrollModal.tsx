@@ -107,7 +107,7 @@ export const PayrollModal: React.FC<PayrollModalProps> = ({
         return {
           userId: user.uid,
           nickname: user.nickname,
-          color: user.color,
+          color: user.color || "#4A90E2",
           hourlyWage: user.hourlyWage!,
           totalHours,
           totalPay,
@@ -141,7 +141,7 @@ export const PayrollModal: React.FC<PayrollModalProps> = ({
         <View
           style={[
             styles.userColorBar,
-            { backgroundColor: data.color || colors.primary },
+            { backgroundColor: data.color ?? colors.primary },
           ]}
         />
         <Text style={styles.userName}>{data.nickname}</Text>

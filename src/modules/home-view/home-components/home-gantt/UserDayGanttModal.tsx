@@ -39,6 +39,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
     const end = timeSlots[i + 1];
     // このスロットに該当するシフトを探す
     const slot = userSlots.find((s) => {
+      if (!start || !s.start || !s.end) return false;
       if (start === s.start && end === s.end && start === "22:00") return true;
       return start >= s.start && start < s.end;
     });
@@ -79,7 +80,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                     fontSize: 25,
                   }}
                 >
-                  {userSlots[0].start} ～ {userSlots[userSlots.length - 1].end}
+                  {userSlots[0]?.start || "unknown"} ～ {userSlots[userSlots.length - 1]?.end || "unknown"}
                 </Text>
               )}
               {/* 30分刻みで全スロット表示 */}

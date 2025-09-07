@@ -33,8 +33,12 @@ export const useShift = (storeId?: string) => {
       if (role === "master") {
         // 教室長の場合：指定されたstoreIdまたは自分のstoreIdのシフトを取得
         // 🔄 新APIサービス使用
+        const targetStoreId = storeId || user?.storeId;
+        if (!targetStoreId) {
+          throw new Error("Store ID is required");
+        }
         allShifts = await ShiftAPIService.getShifts({ 
-          storeId: storeId || user?.storeId 
+          storeId: targetStoreId 
         });
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
@@ -52,8 +56,12 @@ export const useShift = (storeId?: string) => {
         } else {
           // ユーザーデータが見つからない場合は従来の方法
           // 🔄 新APIサービス使用
+          const targetStoreId = storeId || user?.storeId;
+          if (!targetStoreId) {
+            throw new Error("Store ID is required for shift access");
+          }
           allShifts = await ShiftAPIService.getShifts({ 
-            storeId: storeId || user?.storeId 
+            storeId: targetStoreId 
           });
         }
       }

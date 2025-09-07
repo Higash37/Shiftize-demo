@@ -313,9 +313,9 @@ export const TaskPerformanceTab: React.FC<TaskPerformanceTabProps> = ({
             {efficiencyData.labels.length > 0 ? (
               <View style={styles.efficiencyList}>
                 {efficiencyData.labels.map((label, index) => {
-                  const efficiency = efficiencyData.datasets[0].data[index];
+                  const efficiency = efficiencyData.datasets[0]?.data[index] ?? 0;
                   const color =
-                    efficiencyData.datasets[0].colors?.[index]?.() ||
+                    efficiencyData.datasets[0]?.colors?.[index]?.() ||
                     colors.primary;
                   return (
                     <View key={label} style={styles.efficiencyItem}>
@@ -325,14 +325,14 @@ export const TaskPerformanceTab: React.FC<TaskPerformanceTabProps> = ({
                           style={[
                             styles.progressBar,
                             {
-                              width: `${Math.min(efficiency, 100)}%`,
+                              width: `${Math.min(efficiency ?? 0, 100)}%`,
                               backgroundColor: color,
                             },
                           ]}
                         />
                       </View>
                       <Text style={styles.efficiencyValue}>
-                        {efficiency.toFixed(1)}%
+                        {(efficiency ?? 0).toFixed(1)}%
                       </Text>
                     </View>
                   );

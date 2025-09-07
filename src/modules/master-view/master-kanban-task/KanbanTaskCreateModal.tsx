@@ -196,7 +196,7 @@ export const KanbanTaskCreateModal: React.FC<KanbanTaskCreateModalProps> = ({
               {formData.dueDate && (
                 <TouchableOpacity
                   onPress={() =>
-                    setFormData({ ...formData, dueDate: undefined })
+                    setFormData({ ...formData, dueDate: null as any })
                   }
                 >
                   <Ionicons name="close-circle" size={20} color="#666" />

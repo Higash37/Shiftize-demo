@@ -63,7 +63,6 @@ export class VersionManager {
         
         // バージョン比較
         if (this.isUpdateRequired(CURRENT_VERSION, data.version)) {
-          console.log('新しいバージョンが利用可能です:', data.version);
           
           // 強制アップデート or 通知
           if (data.forceUpdate) {
@@ -186,7 +185,6 @@ export async function updateAppVersion(
       updatedAt: new Date()
     });
     
-    console.log('アプリバージョン更新完了:', version);
   } catch (error) {
     console.error('バージョン更新エラー:', error);
     throw error;

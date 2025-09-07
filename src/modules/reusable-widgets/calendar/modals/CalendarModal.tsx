@@ -96,59 +96,6 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
               textMonthFontSize: 16,
               textDayFontSize: 14,
               textDayHeaderFontSize: 12,
-              "stylesheet.calendar.header": {
-                header: {
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderBottomWidth: 1,
-                  borderBottomColor: colors.border,
-                },
-                monthText: {
-                  fontSize: 16,
-                  fontWeight: "bold",
-                },
-                arrow: {
-                  padding: 8,
-                },
-              },
-              "stylesheet.calendar.main": {
-                week: {
-                  marginTop: 0,
-                  marginBottom: 0,
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  borderBottomWidth: 1,
-                  borderBottomColor: colors.border,
-                },
-              },
-              "stylesheet.day.basic": {
-                base: {
-                  width: DAY_WIDTH,
-                  height: DAY_WIDTH,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRightWidth: 1,
-                  borderRightColor: colors.border,
-                },
-                dot: {
-                  width: 2,
-                  height: 2,
-                  marginTop: 2,
-                  borderRadius: 1.5,
-                },
-                selected: {
-                  backgroundColor: colors.primary,
-                  borderRadius: DAY_WIDTH / 2,
-                },
-                today: {
-                  borderColor: colors.primary,
-                  borderWidth: 1,
-                  borderRadius: DAY_WIDTH / 2,
-                },
-              },
             }}
           />
 

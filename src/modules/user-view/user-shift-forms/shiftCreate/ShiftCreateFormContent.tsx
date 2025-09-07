@@ -233,7 +233,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color={colors.white} size="small" />
+                <ActivityIndicator color={"#ffffff"} size="small" />
               ) : (
                 <Text style={styles.submitButtonText}>
                   {isEditMode ? "更新する" : "作成する"}

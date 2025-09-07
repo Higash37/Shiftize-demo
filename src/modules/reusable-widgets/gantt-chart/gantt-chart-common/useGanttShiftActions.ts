@@ -197,6 +197,11 @@ export function useGanttShiftActions({
             id: docRef.id,
             ...newShiftData,
             storeId: user.storeId,
+            type: "user" as const,
+            isCompleted: false,
+            duration: "0", // 将来的に計算される
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
           
           await logShiftChange(

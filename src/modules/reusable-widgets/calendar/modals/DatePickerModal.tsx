@@ -149,7 +149,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
   // 日選択ハンドラ
   const handleDaySelect = (dateString: string) => {
     const [y, m, d] = dateString.split("-").map(Number);
-    const newDate = new Date(y, m - 1, d);
+    const newDate = new Date(y ?? 0, (m ?? 1) - 1, d ?? 1);
     setTempDate(newDate);
     onSelect(newDate);
     onClose();

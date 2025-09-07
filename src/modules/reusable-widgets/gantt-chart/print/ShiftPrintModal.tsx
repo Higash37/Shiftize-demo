@@ -80,7 +80,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       if (!acc[shift.userId]) {
         acc[shift.userId] = [];
       }
-      acc[shift.userId].push(shift);
+      acc[shift.userId]?.push(shift);
       return acc;
     }, {} as Record<string, ShiftItem[]>);
 
@@ -91,7 +91,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     return users
       .filter(userFilter)
       .map((user) => {
-        const userShifts = shiftsByUser[user.uid]
+        const userShifts = (shiftsByUser[user.uid] || [])
           .map((shift) => {
             const shiftDate = new Date(shift.date);
             return {
@@ -108,8 +108,8 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             const parseDate = (dateStr: string) => {
               const match = dateStr.match(/(\d+)月(\d+)日/);
               if (match) {
-                const month = parseInt(match[1], 10);
-                const day = parseInt(match[2], 10);
+                const month = parseInt(match[1] || "0", 10);
+                const day = parseInt(match[2] || "0", 10);
                 return new Date(selectedYear, month - 1, day);
               }
               return new Date();
@@ -819,7 +819,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
               const userShiftsMap = userData.shifts.reduce((acc, shift) => {
                 const dayMatch = shift.date.match(/(\d+)月(\d+)日/);
                 if (dayMatch) {
-                  const day = parseInt(dayMatch[2], 10);
+                  const day = parseInt(dayMatch[2] || "0", 10);
                   acc[day] = shift;
                 }
                 return acc;
@@ -867,10 +867,10 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                           if (day === null) {
                             html += '<td class="empty-day"></td>';
                           } else {
-                            const dayNumber = day.getDate();
+                            const dayNumber = day?.getDate() || 0;
                             const shift = userShiftsMap[dayNumber];
                             const isWeekend =
-                              day.getDay() === 0 || day.getDay() === 6;
+                              day?.getDay() === 0 || day?.getDay() === 6;
 
                             html += `
                               <td class="calendar-day ${
@@ -952,7 +952,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       userData.shifts.forEach((shift) => {
         const dayMatch = shift.date.match(/(\d+)月(\d+)日/);
         if (dayMatch) {
-          const day = parseInt(dayMatch[2], 10);
+          const day = parseInt(dayMatch[2] || "0", 10);
           if (!shiftsByDate[day]) {
             shiftsByDate[day] = [];
           }
@@ -967,7 +967,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
     // 各日のシフトを時間順にソート
     Object.keys(shiftsByDate).forEach((day) => {
-      shiftsByDate[parseInt(day)].sort((a, b) =>
+      shiftsByDate[parseInt(day)]?.sort((a, b) =>
         a.startTime.localeCompare(b.startTime)
       );
     });
@@ -1012,9 +1012,9 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                   if (day === null) {
                     html += '<td class="unified-empty-day"></td>';
                   } else {
-                    const dayNumber = day.getDate();
+                    const dayNumber = day?.getDate() || 0;
                     const dayShifts = shiftsByDate[dayNumber] || [];
-                    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                    const isWeekend = day?.getDay() === 0 || day?.getDay() === 6;
 
                     html += `
                       <td class="unified-calendar-day ${
@@ -1126,14 +1126,14 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                     nextShiftsByDate[day].push({
                       startTime: shift.startTime.substring(0, 5),
                       endTime: shift.endTime.substring(0, 5),
-                      nickname: selectedUserNicknames[shift.userId],
+                      nickname: selectedUserNicknames[shift.userId] ?? "不明",
                     });
                   }
                 });
 
                 // 各日のシフトを時間順にソート
                 Object.keys(nextShiftsByDate).forEach((day) => {
-                  nextShiftsByDate[parseInt(day)].sort((a, b) =>
+                  nextShiftsByDate[parseInt(day)]?.sort((a, b) =>
                     a.startTime.localeCompare(b.startTime)
                   );
                 });
@@ -1167,10 +1167,10 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                     if (day === null) {
                       html += '<td class="unified-empty-day"></td>';
                     } else {
-                      const dayNumber = day.getDate();
+                      const dayNumber = day?.getDate() || 0;
                       const dayShifts = nextShiftsByDate[dayNumber] || [];
                       const isWeekend =
-                        day.getDay() === 0 || day.getDay() === 6;
+                        day?.getDay() === 0 || day?.getDay() === 6;
 
                       html += `
                         <td class="unified-calendar-day ${

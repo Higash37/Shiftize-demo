@@ -93,7 +93,7 @@ export class RecruitmentShiftService {
     const docSnap = await getDocs(query(collection(db, RECRUITMENT_SHIFTS_COLLECTION), where("__name__", "==", recruitmentShiftId)));
     
     if (!docSnap.empty) {
-      const recruitmentShiftData = docSnap.docs[0].data();
+      const recruitmentShiftData = docSnap.docs[0]?.data();
       if (!recruitmentShiftData) {
         throw new Error('募集シフトデータが見つかりません');
       }
@@ -120,7 +120,7 @@ export class RecruitmentShiftService {
     const docSnap = await getDocs(query(collection(db, RECRUITMENT_SHIFTS_COLLECTION), where("__name__", "==", recruitmentShiftId)));
     
     if (!docSnap.empty) {
-      const recruitmentShiftData = docSnap.docs[0].data();
+      const recruitmentShiftData = docSnap.docs[0]?.data();
       if (!recruitmentShiftData) {
         throw new Error('募集シフトデータが見つかりません');
       }

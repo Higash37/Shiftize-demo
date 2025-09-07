@@ -181,12 +181,12 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
               getStatusConfig={getStatusConfig}
               handleShiftPress={handleShiftPress}
               handleEmptyCellClick={handleEmptyCellClick}
-              onTimeChange={onTimeChange}
-              onTaskAdd={onTaskAdd}
+              {...(onTimeChange && { onTimeChange })}
+              {...(onTaskAdd && { onTaskAdd })}
               styles={styles}
               userColorsMap={userColorsMap}
               users={users}
-              statusStyles={statusStyles}
+              {...(statusStyles && { statusStyles })}
               isFirstInGroup={item.isFirstInGroup}
               groupSize={item.groupSize}
               colorMode={colorMode}
@@ -212,12 +212,12 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           infoColumnWidth={infoColumnWidth}
           styles={styles}
           allShifts={allShifts}
-          selectedDate={selectedDate}
+          selectedDate={selectedDate || new Date()}
           onDateSelect={(date) => {
             scrollToDate(date);
             onDateSelect?.(date);
           }}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
         />
       </View>
     </View>

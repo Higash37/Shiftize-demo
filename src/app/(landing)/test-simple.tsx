@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function TestSimple() {
-  console.log('TestSimple component loaded');
   
   return (
     <View style={styles.container}>

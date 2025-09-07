@@ -13,11 +13,11 @@ export const MasterShiftCreateView: React.FC<MasterShiftCreateViewProps> = ({
   return (
     <MasterShiftCreate
       mode={mode}
-      shiftId={shiftId}
-      date={date}
-      startTime={startTime}
-      endTime={endTime}
-      classes={classes}
+      shiftId={shiftId ?? ""}
+      date={date ?? ""}
+      startTime={startTime ?? ""}
+      endTime={endTime ?? ""}
+      classes={classes ?? ""}
     />
   );
 };

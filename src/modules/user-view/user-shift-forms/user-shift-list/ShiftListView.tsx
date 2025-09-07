@@ -10,6 +10,7 @@ import {
   FlexAlignType,
   useWindowDimensions,
   Modal,
+  Alert,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -100,7 +101,7 @@ export const UserShiftList = () => {
     try {
       const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
       const currentPeriod = periods.length > 0 ? periods[0] : null;
-      setPeriod(currentPeriod);
+      setPeriod(currentPeriod ?? null);
       
       // 確定状況もロード
       if (currentPeriod && user?.uid) {
@@ -179,7 +180,7 @@ export const UserShiftList = () => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setCurrentUserStoreId(userData.storeId);
+          setCurrentUserStoreId(userData['storeId']);
         }
       } catch (error) {
       }
@@ -385,7 +386,7 @@ export const UserShiftList = () => {
             shifts={monthlyShifts}
             selectedDate={selectedDate}
             currentMonth={currentMonth}
-            currentUserStoreId={currentUserStoreId}
+            currentUserStoreId={currentUserStoreId ?? ""}
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
             onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
@@ -441,7 +442,11 @@ export const UserShiftList = () => {
                 return (
                   <View
                     key={shift.id}
-                    ref={(ref) => (shiftRefs[shift.id] = ref)}
+                    ref={(ref) => {
+                      if (ref) {
+                        shiftRefs[shift.id] = ref;
+                      }
+                    }}
                     style={{ width: "100%" }} // 親Viewの幅を100%に設定
                   >
                     <ShiftListItem

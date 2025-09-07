@@ -128,9 +128,9 @@ export const TrendAnalysisTab: React.FC<TrendAnalysisTabProps> = ({
   const workHoursTrend =
     currentData.workHours.length >= 2
       ? Math.round(
-          ((currentData.workHours[currentData.workHours.length - 1] -
-            currentData.workHours[currentData.workHours.length - 2]) /
-            currentData.workHours[currentData.workHours.length - 2]) *
+          (((currentData.workHours[currentData.workHours.length - 1] ?? 0) -
+            (currentData.workHours[currentData.workHours.length - 2] ?? 0)) /
+            (currentData.workHours[currentData.workHours.length - 2] ?? 1)) *
             100
         )
       : 0;
@@ -138,17 +138,17 @@ export const TrendAnalysisTab: React.FC<TrendAnalysisTabProps> = ({
   const costsTrend =
     currentData.costs.length >= 2
       ? Math.round(
-          ((currentData.costs[currentData.costs.length - 1] -
-            currentData.costs[currentData.costs.length - 2]) /
-            currentData.costs[currentData.costs.length - 2]) *
+          (((currentData.costs[currentData.costs.length - 1] ?? 0) -
+            (currentData.costs[currentData.costs.length - 2] ?? 0)) /
+            (currentData.costs[currentData.costs.length - 2] ?? 1)) *
             100
         )
       : 0;
 
   const efficiencyTrend =
     currentData.efficiency.length >= 2
-      ? currentData.efficiency[currentData.efficiency.length - 1] -
-        currentData.efficiency[currentData.efficiency.length - 2]
+      ? (currentData.efficiency[currentData.efficiency.length - 1] ?? 0) -
+        (currentData.efficiency[currentData.efficiency.length - 2] ?? 0)
       : 0;
 
   const renderPeriodSelector = () => (
@@ -242,9 +242,9 @@ export const TrendAnalysisTab: React.FC<TrendAnalysisTabProps> = ({
             <Text style={styles.trendValue}>
               ¥
               {currentData.costs.length > 0
-                ? currentData.costs[
+                ? (currentData.costs[
                     currentData.costs.length - 1
-                  ].toLocaleString()
+                  ] ?? 0).toLocaleString()
                 : 0}
             </Text>
             <Text style={styles.trendLabel}>人件費</Text>

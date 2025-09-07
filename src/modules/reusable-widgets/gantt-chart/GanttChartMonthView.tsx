@@ -177,7 +177,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
     user,
     users, // usersパラメータを追加
-    onShiftUpdate,
+    ...(onShiftUpdate && { onShiftUpdate }),
     // refreshPageを使わずにstate更新のみで処理
   });
 
@@ -239,17 +239,27 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     return () => unsubscribe();
   }, []);
 
-  const getStatusConfig = (status: string) => {
-    return (
-      statusConfigs.find((config) => config.status === status) ||
-      statusConfigs[0]
-    );
+  const getStatusConfig = (status: string): ShiftStatusConfig => {
+    const config = statusConfigs.find((config) => config.status === status) || statusConfigs[0];
+    return config || {
+      status: "pending" as ShiftStatus,
+      label: "未定",
+      color: "#E5E5E5",
+      canEdit: true,
+      description: "未定義のステータス"
+    };
   };
 
   // 表示対象のシフト（deleted, purgedは除外）
   const visibleShifts = useMemo(() => 
     shifts.filter((s) => s.status !== "deleted" && s.status !== "purged"),
     [shifts]
+  );
+
+  // コンポーネントが期待するroleプロパティを追加したusers配列
+  const usersWithRole = useMemo(() => 
+    users.map(user => ({ ...user, role: "staff" as string })),
+    [users]
   );
 
   // 日付ごとにシフトをグループ化（useMemoで安定化）
@@ -459,8 +469,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     (date: string, position: number) => {
       // シフトデータを準備
       const startTime = positionToTime(position);
-      const startHour = parseInt(startTime.split(":")[0]);
-      const startMinute = parseInt(startTime.split(":")[1]);
+      const startHour = parseInt(startTime.split(":")[0] || "0");
+      const startMinute = parseInt(startTime.split(":")[1] || "0");
       let endHour = startHour + 1;
       let endMinute = startMinute;
       if (endHour > 22) {
@@ -644,11 +654,11 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           totalAmount={totalWage.totalAmount}
           totalHours={totalWage.totalHours}
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           colorMode={colorMode}
           onColorModeToggle={handleColorModeToggle}
           onPayrollPress={handlePayrollPress}
-          viewMode={viewMode}
+          viewMode={viewMode === "compact" ? "gantt" : viewMode}
           onViewModeToggle={handleViewToggle}
           isMobileView={deviceType !== "desktop"}
           deviceType={deviceType}
@@ -676,22 +686,22 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         styles={styles}
         setBatchModal={setBatchModal}
         setIsLoading={setIsLoading}
-        refreshPage={refreshPage}
+        {...(refreshPage && { refreshPage })}
       />
       {/* 本体 - ビューモードとデバイスに応じて切り替え */}
       {deviceType === "mobile" ? (
         /* モバイル用縦型ビュー */
         <MobileVerticalView
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
           onEmptyCellClick={(date, time, userId) => {
             const targetUser = users.find(u => u.uid === userId);
             const startTime = time;
             const [hour] = time.split(':').map(Number);
-            const endTime = `${hour + 1}:00`;
+            const endTime = `${(hour ?? 0) + 1}:00`;
             
             setNewShiftData({
               date,
@@ -728,15 +738,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         /* タブレット用もモバイル縦型ビューを使用 */
         <MobileVerticalView
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
           onEmptyCellClick={(date, time, userId) => {
             const targetUser = users.find(u => u.uid === userId);
             const startTime = time;
             const [hour] = time.split(':').map(Number);
-            const endTime = `${hour + 1}:00`;
+            const endTime = `${(hour ?? 0) + 1}:00`;
             
             setNewShiftData({
               date,
@@ -773,15 +783,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         /* Googleカレンダー風レイアウト */
         <GoogleCalendarView
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
           onEmptyCellClick={(date, time, userId) => {
             const targetUser = users.find(u => u.uid === userId);
             const startTime = time;
             const [hour] = time.split(':').map(Number);
-            const endTime = `${hour + 1}:00`;
+            const endTime = `${(hour ?? 0) + 1}:00`;
             
             setNewShiftData({
               date,
@@ -803,15 +813,15 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         /* 画面分割時はモバイル縦型ビューを使用 */
         <MobileVerticalView
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
           onEmptyCellClick={(date, time, userId) => {
             const targetUser = users.find(u => u.uid === userId);
             const startTime = time;
             const [hour] = time.split(':').map(Number);
-            const endTime = `${hour + 1}:00`;
+            const endTime = `${(hour ?? 0) + 1}:00`;
             
             setNewShiftData({
               date,
@@ -884,8 +894,8 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
               onDateSelect={(date) => {
                 // 日付選択時の処理（必要に応じて実装）
               }}
-              onMonthChange={onMonthChange}
-              users={users}
+              {...(onMonthChange && { onMonthChange: (month: any) => onMonthChange(month.getFullYear(), month.getMonth()) })}
+              users={usersWithRole}
             />
           </View>
         </CustomScrollView>
@@ -893,10 +903,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         /* カレンダービューは横スクロール不要 */
         <CalendarView
           shifts={shifts}
-          users={users}
+          users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          onMonthChange={onMonthChange}
+          {...(onMonthChange && { onMonthChange })}
           styles={styles}
         />
       )}

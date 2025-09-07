@@ -49,9 +49,9 @@ export function getDebugInfo(): Record<string, any> {
   // ShiftAPIService のデバッグ情報
   try {
     const { ShiftAPIService } = require("./ShiftAPIService");
-    debugInfo.ShiftAPIService = ShiftAPIService.getDebugInfo();
+    debugInfo['ShiftAPIService'] = ShiftAPIService.getDebugInfo();
   } catch (error) {
-    debugInfo.ShiftAPIService = { error: "Failed to get debug info" };
+    debugInfo['ShiftAPIService'] = { error: "Failed to get debug info" };
   }
 
   // 将来のサービスのデバッグ情報もここに追加

@@ -388,7 +388,11 @@ const getUserName = async (userId: string): Promise<string> => {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data();
+      const userDoc = querySnapshot.docs[0];
+      if (!userDoc) {
+        return "Unknown User";
+      }
+      const userData = userDoc.data();
       return userData["nickname"] || "Unknown User";
     }
 

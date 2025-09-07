@@ -47,7 +47,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                 {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}
                 {" ~ "}
                 {format(
-                  parseTimeString(shift.date, shift.classes[0].startTime),
+                  parseTimeString(shift.date, shift.classes[0]?.startTime || "09:00"),
                   "HH:mm"
                 )}
               </Text>
@@ -88,7 +88,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                         {format(
                           parseTimeString(
                             shift.date,
-                            shift.classes[index + 1].startTime
+                            shift.classes[index + 1]?.startTime || "10:00"
                           ),
                           "HH:mm"
                         )}
@@ -105,7 +105,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                 {format(
                   parseTimeString(
                     shift.date,
-                    shift.classes[shift.classes.length - 1].endTime
+                    shift.classes[shift.classes.length - 1]?.endTime || "22:00"
                   ),
                   "HH:mm"
                 )}

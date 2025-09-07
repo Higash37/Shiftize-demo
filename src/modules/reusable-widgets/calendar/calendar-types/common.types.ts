@@ -18,7 +18,7 @@ export interface DayComponentProps {
     timestamp: number;
     dateString: string;
   };
-  state?: "disabled" | "today" | "selected";
+  state?: "disabled" | "today" | "selected" | "" | "inactive";
   marking?: {
     selected?: boolean;
     marked?: boolean;
@@ -26,6 +26,8 @@ export interface DayComponentProps {
     dotStyle?: any;
     dots?: Array<{ key?: string; color: string }>;
   };
+  onPress?: (date?: { dateString: string; day: number; month: number; year: number; timestamp: number; }) => void;
+  responsiveSize?: any;
 }
 
 export interface DatePickerProps {

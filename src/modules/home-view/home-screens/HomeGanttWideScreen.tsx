@@ -98,6 +98,8 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
               }
               // このセルの開始時刻
               const t = timeList[i];
+              if (!t) return null;
+              
               // この人のこの時間帯で該当するタスクを探す（区間内判定）
               const slot = sampleSchedule
                 .flatMap((col) => col.slots)

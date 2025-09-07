@@ -1,4 +1,4 @@
-import { DayComponentProps } from "../../calendar-types/common.types";
+import { DayComponentProps } from "../calendar-types/common.types";
 import { ViewStyle } from "react-native";
 import { Shift } from "@/common/common-models/ModelIndex";
 

@@ -100,7 +100,7 @@ function timeToMinutes(time: string): number {
   }
   
   const [hours, minutes] = time.split(':').map(Number);
-  const result = hours * 60 + minutes;
+  const result = (hours ?? 0) * 60 + (minutes ?? 0);
   timeToMinutesCache.set(time, result);
   return result;
 }
@@ -116,7 +116,7 @@ export function timeToPosition(time: string): number {
   
   const [hours, minutes] = time.split(":").map(Number);
   // 15分刻みでの位置を計算 (0-51の範囲)
-  const totalMinutesFromStart = (hours - 9) * 60 + minutes;
+  const totalMinutesFromStart = ((hours ?? 0) - 9) * 60 + (minutes ?? 0);
   const result = totalMinutesFromStart / 15;
   timePositionCache.set(time, result);
   return result;
@@ -137,9 +137,9 @@ export function positionToTime(position: number, timeGrid?: string[]): string {
   // 動的グリッドでの位置計算
   const index = Math.floor(position);
   if (index >= 0 && index < timeGrid.length) {
-    return timeGrid[index];
+    return timeGrid[index] ?? "00:00";
   }
 
   // インデックスが範囲外の場合は最初または最後の時間を返す
-  return index < 0 ? timeGrid[0] : timeGrid[timeGrid.length - 1];
+  return index < 0 ? (timeGrid[0] ?? "09:00") : (timeGrid[timeGrid.length - 1] ?? "22:00");
 }

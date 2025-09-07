@@ -38,9 +38,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const responsiveStyles = useMemo(
     () => ({
       calendar: {
-        width: "96%", // リストと幅を統一（96%に統一）
+        width: "96%" as const, // リストと幅を統一（96%に統一）
         maxWidth: 480,
-        marginHorizontal: "auto", // 中央揃え
+        alignSelf: "center" as const, // 中央揃え
         ...(responsiveSize?.container || {}),
       },
     }),
@@ -107,8 +107,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   
   if (propMarkedDates) {
     const sampleKey = Object.keys(propMarkedDates)[0];
-    const sampleData = propMarkedDates[sampleKey];
-    if (sampleData.dots) {
+    if (sampleKey) {
+      const sampleData = propMarkedDates[sampleKey];
+      if (sampleData?.dots) {
+      }
     }
   } else {
   }
@@ -116,7 +118,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const handleDateSelect = (date: Date) => {
     setTempDate(date);
     if (onMonthChange) {
-      onMonthChange({ dateString: date.toISOString().split("T")[0] });
+      onMonthChange({ dateString: date.toISOString().split("T")[0] ?? '' });
     }
   };
 
@@ -127,7 +129,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       <Calendar
         current={currentMonth}
         onDayPress={onDayPress}
-        onMonthChange={onMonthChange}
+        {...(onMonthChange && { onMonthChange })}
         markedDates={finalMarkedDates}
         markingType={'multi-dot'} // multi-dot機能を有効化
         enableSwipeMonths={true}
@@ -173,40 +175,6 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           textDayFontSize: 16,
           textMonthFontSize: 18,
           textDayHeaderFontSize: 14,
-          "stylesheet.calendar.header": {
-            dayHeader: {
-              color: colors.text.secondary,
-              fontFamily:
-                "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
-              fontWeight: "600",
-              fontSize: 14,
-              // iOSカレンダー風：曜日ごとに色分け
-              // Sunday: 赤, Saturday: 青, Weekday: グレー
-              // これは DayComponent 側で曜日判定して色を渡すのが理想だが、
-              // react-native-calendars の仕様上ここで全体色指定→DayComponentで個別色上書き
-            },
-          },
-          "stylesheet.calendar.main": {
-            week: {
-              marginTop: 0,
-              marginBottom: 0,
-              flexDirection: "row",
-              justifyContent: "space-around",
-              borderWidth: 0,
-              borderLeftWidth: 0,
-              borderRightWidth: 0,
-              borderColor: "transparent",
-            },
-            dayContainer: {
-              borderWidth: 0,
-              borderLeftWidth: 1, // 縦線のみ
-              borderRightWidth: 0,
-              borderBottomWidth: 0, // 横線は消す
-              borderColor: "#E5E5E5",
-              borderRadius: 0, // 角丸も消す
-              overflow: "visible",
-            },
-          },
         }}
         dayComponent={({ date, state, marking }: DayComponentProps) => (
           <DayComponent

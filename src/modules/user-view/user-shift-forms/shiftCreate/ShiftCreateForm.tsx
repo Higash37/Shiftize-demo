@@ -168,11 +168,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               const storeData = storeDoc.data();
               allStores.push({
                 storeId: connectedStoreId,
-                storeName: storeData.storeName || storeData.name || "連携店舗",
-                adminUid: storeData.adminUid || "",
-                adminNickname: storeData.adminNickname || "",
+                storeName: storeData['storeName'] || storeData['name'] || "連携店舗",
+                adminUid: storeData['adminUid'] || "",
+                adminNickname: storeData['adminNickname'] || "",
                 isActive: true,
-                createdAt: storeData.createdAt || new Date(),
+                createdAt: storeData['createdAt'] || new Date(),
               });
             }
           } catch (error) {}
@@ -182,7 +182,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
         // 初期選択店舗を設定
         if (allStores.length > 0) {
-          setSelectedStoreId(userData.storeId || allStores[0].storeId);
+          setSelectedStoreId(userData.storeId ?? allStores[0]?.storeId ?? "");
         }
       } catch (error) {}
     };
@@ -236,8 +236,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     } else if (type === "classStart" && index !== undefined) {
       const updatedClasses = [...shiftData.classes];
       updatedClasses[index] = {
-        ...updatedClasses[index],
         startTime: value,
+        endTime: updatedClasses[index]?.endTime ?? "",
+        ...updatedClasses[index],
       };
       setShiftData((prev) => ({
         ...prev,
@@ -247,8 +248,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     } else if (type === "classEnd" && index !== undefined) {
       const updatedClasses = [...shiftData.classes];
       updatedClasses[index] = {
-        ...updatedClasses[index],
+        startTime: updatedClasses[index]?.startTime ?? "",
         endTime: value,
+        ...updatedClasses[index],
       };
       setShiftData((prev) => ({
         ...prev,
@@ -263,7 +265,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       ...prev,
       dates,
     }));
-    setSelectedDate(dates[0]); // 最初の日付を選択状態に設定
+    setSelectedDate(dates[0] ?? ""); // 最初の日付を選択状態に設定
     setShowCalendar(false);
   };
 
@@ -324,8 +326,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     // 授業時間の検証
     for (let i = 0; i < shiftData.classes.length; i++) {
       const classItem = shiftData.classes[i];
-      const classStartTime = new Date(`2000-01-01T${classItem.startTime}`);
-      const classEndTime = new Date(`2000-01-01T${classItem.endTime}`);
+      if (!classItem) continue;
+      const classStartTime = new Date(`2000-01-01T${classItem.startTime ?? "00:00"}`);
+      const classEndTime = new Date(`2000-01-01T${classItem.endTime ?? "00:00"}`);
 
       if (classStartTime >= classEndTime) {
         setErrorMessage(
@@ -426,7 +429,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       if (shiftDoc.exists()) {
         const shiftData = shiftDoc.data();
 
-        if (shiftData.status === "pending") {
+        if (shiftData['status'] === "pending") {
           // 承認待ちの場合は即時削除
           await updateDoc(doc(db, "shifts", initialShiftId), {
             status: "deleted",

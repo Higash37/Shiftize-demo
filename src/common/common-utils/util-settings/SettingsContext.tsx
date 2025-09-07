@@ -37,9 +37,9 @@ interface SettingsContextType {
   getHolidayInfo: (date: string) => {
     isHoliday: boolean;
     isSpecialDay: boolean;
-    holidayName?: string;
-    specialDayName?: string;
-    isWorkingDay?: boolean;
+    holidayName: string | undefined;
+    specialDayName: string | undefined;
+    isWorkingDay: boolean | undefined;
   };
 
   // 設定管理機能

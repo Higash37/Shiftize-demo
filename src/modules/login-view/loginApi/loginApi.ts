@@ -17,21 +17,25 @@ export const handleLogin = async (
       throw new Error("ユーザーが見つかりません");
     }
 
-    const userData = userSnapshot.docs[0].data();
+    const userDoc = userSnapshot.docs[0];
+    if (!userDoc) {
+      throw new Error("ユーザーが見つかりません");
+    }
+    const userData = userDoc.data();
 
     // 削除フラグを確認
-    if (userData.deleted) {
+    if (userData['deleted']) {
       throw new Error("このユーザーは削除されています");
     }
 
     // currentPasswordと入力されたパスワードを照合
 
-    if (userData.currentPassword !== password) {
+    if (userData['currentPassword'] !== password) {
       throw new Error("パスワードが正しくありません");
     }
 
     // Firebase Authでのログイン（メールアドレスとcurrentPasswordを使用）
-    await signInWithEmailAndPassword(auth, email, userData.currentPassword);
+    await signInWithEmailAndPassword(auth, email, userData['currentPassword']);
   } catch (err: any) {
     setError(err.message || "ログインに失敗しました");
   }

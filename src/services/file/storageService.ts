@@ -175,6 +175,7 @@ export class StorageService {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      if (!file) continue;
       try {
         const result = await this.uploadFile(
           file,
@@ -191,7 +192,7 @@ export class StorageService {
         );
         results.push({
           ...result,
-          originalName: file.name,
+          originalName: file!.name,
           folderId: folderId, // folderIdを結果に含める
         });
       } catch (error) {
@@ -250,13 +251,24 @@ export class StorageService {
       const fileRef = ref(storage, storageUrl);
       const metadata = await getMetadata(fileRef);
 
-      return {
+      const result: {
+        size: number;
+        contentType: string;
+        timeCreated: string;
+        updated: string;
+        downloadTokens?: string;
+      } = {
         size: metadata.size,
         contentType: metadata.contentType || "application/octet-stream",
         timeCreated: metadata.timeCreated,
         updated: metadata.updated,
-        downloadTokens: metadata.customMetadata?.downloadTokens,
       };
+      
+      if (metadata.customMetadata?.['downloadTokens']) {
+        result.downloadTokens = metadata.customMetadata['downloadTokens'];
+      }
+      
+      return result;
     } catch (error) {
       throw error;
     }
@@ -438,6 +450,10 @@ export class StorageService {
     const urlParts = downloadUrl.split("?");
     const basePath = urlParts[0];
     const queryParams = urlParts[1];
+    
+    if (!basePath) {
+      return downloadUrl; // 元のURLを返す
+    }
 
     // ファイル名と拡張子を分離
     const lastSlash = basePath.lastIndexOf("/");

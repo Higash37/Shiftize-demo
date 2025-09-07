@@ -37,22 +37,33 @@ const timeList = [
 function makeSlots(name: string): SampleSlot[] {
   const slots: SampleSlot[] = [];
   for (let i = 0; i < timeList.length - 1; i++) {
+    const start = timeList[i];
+    const end = timeList[i + 1];
+    const task = tasks[i % tasks.length];
+    
+    if (!start || !end || !task) {
+      continue; // Skip if any value is undefined
+    }
+    
     slots.push({
       name,
-      start: timeList[i],
-      end: timeList[i + 1],
-      task: tasks[i % tasks.length],
+      start,
+      end,
+      task,
       date: "2025-06-01", // 追加
     });
   }
   // 21:30-22:00は終業作業系
-  slots.push({
-    name,
-    start: "21:30",
-    end: "22:00",
-    task: closingTasks[0],
-    date: "2025-06-01", // 追加
-  });
+  const closingTask = closingTasks[0];
+  if (closingTask) {
+    slots.push({
+      name,
+      start: "21:30",
+      end: "22:00",
+      task: closingTask,
+      date: "2025-06-01", // 追加
+    });
+  }
   return slots;
 }
 
@@ -67,7 +78,9 @@ function makeSlots90min(name: string): SampleSlot[] {
       continue;
     }
     // 90分後の時刻を計算
-    const [h, m] = cur.split(":").map(Number);
+    const timeParts = cur.split(":");
+    const h = timeParts[0] ? parseInt(timeParts[0], 10) : 0;
+    const m = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
     const endMin = h * 60 + m + 90;
     const endH = Math.floor(endMin / 60);
     const endM = endMin % 60;
@@ -78,7 +91,7 @@ function makeSlots90min(name: string): SampleSlot[] {
         name,
         start: cur,
         end: "16:00",
-        task: tasks[taskIdx % tasks.length],
+        task: tasks[taskIdx % tasks.length] || "作業",
         date: "2025-06-01", // 追加
       });
       cur = "17:00";
@@ -91,7 +104,7 @@ function makeSlots90min(name: string): SampleSlot[] {
       name,
       start: cur,
       end,
-      task: tasks[taskIdx % tasks.length],
+      task: tasks[taskIdx % tasks.length] || "作業",
       date: "2025-06-01", // 追加
     });
     cur = end;
@@ -99,13 +112,16 @@ function makeSlots90min(name: string): SampleSlot[] {
     if (cur === "21:30") break;
   }
   // 21:30-22:00は終業作業
-  slots.push({
-    name,
-    start: "21:30",
-    end: "22:00",
-    task: closingTasks[0],
-    date: "2025-06-01", // 追加
-  });
+  const closingTask = closingTasks[0];
+  if (closingTask) {
+    slots.push({
+      name,
+      start: "21:30",
+      end: "22:00",
+      task: closingTask,
+      date: "2025-06-01", // 追加
+    });
+  }
   return slots;
 }
 

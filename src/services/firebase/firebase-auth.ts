@@ -65,8 +65,8 @@ export const AuthService = {
       const userData = userDoc.data();
       return {
         uid: firebaseUser.uid,
-        nickname: firebaseUser.displayName || userData.nickname || email.split("@")[0],
-        role: userData.role, // Firestoreから正確なロール情報を取得
+        nickname: firebaseUser.displayName || userData['nickname'] || email.split("@")[0],
+        role: userData['role'], // Firestoreから正確なロール情報を取得
       };
     } catch (error) {
       throw error;
@@ -85,7 +85,7 @@ export const AuthService = {
       }
       
       const userData = userDoc.data();
-      const role = userData.role;
+      const role = userData['role'];
       
       // ロール値の検証
       if (role !== "master" && role !== "user") {
@@ -149,9 +149,11 @@ export const AuthService = {
         const displayName = nickname || email.split("@")[0];
 
         // 2. ユーザープロファイルを更新（一時的なインスタンス上で）
-        await updateProfile(firebaseUser, {
-          displayName: displayName,
-        });
+        if (displayName !== undefined) {
+          await updateProfile(firebaseUser, {
+            displayName: displayName,
+          });
+        }
 
         // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
         const userRef = doc(db, "users", firebaseUser.uid);
@@ -190,10 +192,10 @@ export const AuthService = {
         // 5. 作成されたユーザー情報を返す
         return {
           uid: firebaseUser.uid,
-          nickname: displayName,
+          nickname: displayName || email.split("@")[0] || "Unknown User",
           role: role,
-          color: color,
-          storeId: storeId,
+          color: color || "#FFD700",
+          storeId: storeId || "",
         };
       } catch (error: any) {
         // 詳細エラー情報をデバッグ出力
@@ -244,27 +246,27 @@ export const AuthService = {
       const updateData: { [key: string]: any } = {};
 
       if (updates.nickname) {
-        updateData.nickname = updates.nickname;
-        updateData.displayName = updates.nickname;
+        updateData['nickname'] = updates.nickname;
+        updateData['displayName'] = updates.nickname;
       }
       if (updates.email) {
         // 実メールアドレスは別フィールドに保存（元のemailフィールドは変更しない）
-        updateData.realEmail = updates.email;
+        updateData['realEmail'] = updates.email;
         
         // 現在のユーザーデータを取得してパスワードを確認
         const currentUserData = await getDoc(userRef);
         if (currentUserData.exists()) {
           const userData = currentUserData.data();
-          const passwordToUse = updates.password || userData.currentPassword;
+          const passwordToUse = updates.password || userData['currentPassword'];
           
           // Firebase Authに実メールアドレスでの新しいアカウントを作成
           await AuthService.createSecondaryEmailAccount(user, updates.email, passwordToUse);
         }
       }
-      if (updates.role) updateData.role = updates.role;
-      if (updates.password) updateData.currentPassword = updates.password;
-      if (updates.color) updateData.color = updates.color;
-      if (updates.storeId) updateData.storeId = updates.storeId;
+      if (updates.role) updateData['role'] = updates.role;
+      if (updates.password) updateData['currentPassword'] = updates.password;
+      if (updates.color) updateData['color'] = updates.color;
+      if (updates.storeId) updateData['storeId'] = updates.storeId;
 
       await updateDoc(userRef, updateData);
 
@@ -283,10 +285,10 @@ export const AuthService = {
           const userData = userDoc.data();
           
           // レガシー平文パスワードサポート（移行期間のみ）
-          let currentPasswordForAuth = userData?.currentPassword;
+          let currentPasswordForAuth = userData?.['currentPassword'];
           
           // ハッシュ化されたパスワードが存在する場合は無視（Firebase Authは平文が必要）
-          if (userData?.hashedPassword && !currentPasswordForAuth) {
+          if (userData?.['hashedPassword'] && !currentPasswordForAuth) {
             throw new Error("パスワード更新にはセキュア認証を使用してください");
           }
           
@@ -319,11 +321,11 @@ export const AuthService = {
         const data = updatedDoc.data();
         return {
           uid: updatedDoc.id,
-          role: data.role as "master" | "user",
-          nickname: data.nickname || "",
-          email: data.email, // メールアドレスを追加
-          color: data.color,
-          storeId: data.storeId,
+          role: data['role'] as "master" | "user",
+          nickname: data['nickname'] || "",
+          email: data['email'], // メールアドレスを追加
+          color: data['color'],
+          storeId: data['storeId'],
         };
       }
       return undefined;

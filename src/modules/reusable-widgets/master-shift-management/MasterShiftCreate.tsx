@@ -237,7 +237,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             notes: "", // 必要に応じてメモを追加
             createdBy: user?.uid || "",
             status: "open" as const,
-            maxApplicants: undefined, // 制限なし
+            maxApplicants: 5, // デフォルト値を設定
           };
 
           await RecruitmentShiftService.createRecruitmentShift(recruitmentShift);
@@ -406,11 +406,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   // 全ユーザーリスト（本店舗+連携校舎のユーザー）
   const allUsers = [...users, ...connectedStoreUsers];
   
-  // デバッグ情報
-  console.log("MasterShiftCreate - users:", users);
-  console.log("MasterShiftCreate - connectedStoreUsers:", connectedStoreUsers);
-  console.log("MasterShiftCreate - allUsers:", allUsers);
-  console.log("MasterShiftCreate - usersLoading:", usersLoading);
 
   useEffect(() => {
     const selectedUser = allUsers.find((u) => u.uid === selectedUserId);
