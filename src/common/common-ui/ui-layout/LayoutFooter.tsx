@@ -81,6 +81,19 @@ const user_TABS: TabItem[] = [
     ),
     isUnderDevelopment: false,
   },
+  {
+    name: "settings",
+    label: "設定",
+    path: "/user/settings",
+    icon: (active: boolean) => (
+      <Ionicons
+        name="settings-outline"
+        size={IS_SMALL_DEVICE ? 20 : 24}
+        color={active ? colors.primary : colors.text.secondary}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
 ];
 
 function isStandalonePWA() {

@@ -43,6 +43,11 @@ export {
   UserService,
 } from "./firebase-user";
 
+// LINE Bot統合モジュールからのインポート
+export {
+  LineService,
+} from "./firebase-line";
+
 // タスク管理モジュールからのインポート
 export {
   addTask,
