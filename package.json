@@ -44,7 +44,7 @@
     "react-native-screens": "~4.11.1",
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "10.3.0",
-    "react-native-web": "^0.20.0",
+    "react-native-web": "^0.21.1",
     "zod": "4.0.17"
   },
   "devDependencies": {
