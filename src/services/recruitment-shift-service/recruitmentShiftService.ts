@@ -14,8 +14,10 @@ import {
 import { httpsCallable } from "firebase/functions";
 import { db } from "@/services/firebase/firebase";
 import { functions } from "@/services/firebase/firebase-core";
-import { RecruitmentShift, RecruitmentApplication } from "@/common/common-models/model-shift/shiftTypes";
-import { useAuth } from "@/services/auth/useAuth";
+import {
+  RecruitmentShift,
+  RecruitmentApplication,
+} from "@/common/common-models/model-shift/shiftTypes";
 import { ShiftAPIService } from "@/services/api/ShiftAPIService";
 
 const RECRUITMENT_SHIFTS_COLLECTION = "recruitmentShifts";
@@ -25,13 +27,15 @@ export class RecruitmentShiftService {
    * 募集シフトを作成（LINE通知付き）
    */
   static async createRecruitmentShift(
-    shift: Omit<RecruitmentShift, "id" | "createdAt" | "updatedAt" | "applications">,
+    shift: Omit<
+      RecruitmentShift,
+      "id" | "createdAt" | "updatedAt" | "applications"
+    >,
     options?: {
       sendLineNotification?: boolean;
       masterName?: string;
     }
   ): Promise<string> {
-
     const newShift = {
       ...shift,
       applications: [],
@@ -64,22 +68,26 @@ export class RecruitmentShiftService {
             startTime: shift.startTime,
             endTime: shift.endTime,
             masterName: options.masterName,
-            createdAt: newShift.createdAt.toDate().toISOString()
+            createdAt: newShift.createdAt.toDate().toISOString(),
           };
 
           if (shift.notes) {
             notificationData.notes = shift.notes;
           }
 
-          await this.sendRecruitmentLineNotification(docRef.id, notificationData);
+          await this.sendRecruitmentLineNotification(
+            docRef.id,
+            notificationData
+          );
         } catch (lineError) {
           // LINE通知の失敗はログに記録するが、シフト作成は継続
-          console.error('LINE notification failed:', lineError);
+          console.error("LINE notification failed:", lineError);
         }
       }
 
       return docRef.id;
     } catch (error) {
+      console.error('Error creating recruitment shift:', error);
       throw error;
     }
   }
@@ -100,11 +108,14 @@ export class RecruitmentShiftService {
       createdAt: string;
     }
   ): Promise<void> {
-    const sendNotification = httpsCallable(functions, 'sendRecruitmentNotification');
+    const sendNotification = httpsCallable(
+      functions,
+      "sendRecruitmentNotification"
+    );
 
     await sendNotification({
       storeId: shiftData.storeId,
-      recruitmentShift: shiftData
+      recruitmentShift: shiftData,
     });
   }
 
@@ -129,17 +140,11 @@ export class RecruitmentShiftService {
     shiftId: string,
     application: Omit<RecruitmentApplication, "appliedAt" | "status">
   ): Promise<void> {
-    console.log('🟡 RecruitmentShiftService.applyToRecruitmentShift called');
-    console.log('🟡 ShiftId:', shiftId);
-    console.log('🟡 Application:', application);
-
     const newApplication: RecruitmentApplication = {
       ...application,
       appliedAt: new Date(),
       status: "pending",
     };
-
-    console.log('🟡 New application object:', newApplication);
 
     const docRef = doc(db, RECRUITMENT_SHIFTS_COLLECTION, shiftId);
     try {
@@ -148,7 +153,6 @@ export class RecruitmentShiftService {
         applications: arrayUnion(newApplication),
         updatedAt: Timestamp.now(),
       });
-      console.log('🟢 Successfully added application to recruitmentShift:', shiftId);
 
       // 2. 募集シフトの詳細を取得
       const recruitmentDoc = await getDoc(docRef);
@@ -157,25 +161,22 @@ export class RecruitmentShiftService {
 
         // 3. 応募者の仮シフトを作成（承認待ち状態）
         const pendingShift = {
-          storeId: recruitmentData.storeId,
+          storeId: recruitmentData['storeId'],
           userId: application.userId,
           nickname: application.nickname,
-          date: recruitmentData.date,
+          date: recruitmentData['date'],
           startTime: application.requestedStartTime,
           endTime: application.requestedEndTime,
-          notes: application.notes + " (募集シフト応募・承認待ち)",
+          notes: (application.notes || "") + " (募集シフト応募・承認待ち)",
           status: "pending" as const,
           createdAt: new Date(),
           updatedAt: new Date(),
-          recruitmentShiftId: shiftId, // 関連する募集シフトのID
         };
 
-        console.log('🟡 Creating pending shift for application');
         await ShiftAPIService.createShift(pendingShift as any);
-        console.log('🟢 Successfully created pending shift');
       }
     } catch (error) {
-      console.error('🔴 Failed to add application to recruitmentShift:', error);
+      console.error("🔴 Failed to add application to recruitmentShift:", error);
       throw new Error(`応募の保存に失敗しました: ${error}`);
     }
   }
@@ -196,15 +197,17 @@ export class RecruitmentShiftService {
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      throw new Error('募集シフトが見つかりません');
+      throw new Error("募集シフトが見つかりません");
     }
 
     const recruitmentShift = docSnap.data() as RecruitmentShift;
 
     // 対象の応募を見つける
-    const application = recruitmentShift.applications.find(app => app.userId === userId);
+    const application = recruitmentShift.applications.find(
+      (app) => app.userId === userId
+    );
     if (!application) {
-      throw new Error('応募が見つかりません');
+      throw new Error("応募が見つかりません");
     }
 
     // 新しい通常シフトを作成
@@ -226,20 +229,21 @@ export class RecruitmentShiftService {
     try {
       const existingShifts = await ShiftAPIService.getShifts({
         storeId: recruitmentShift.storeId,
-        userId: userId
+        userId: userId,
       });
 
-      const pendingShift = existingShifts.find(shift =>
-        shift.recruitmentShiftId === recruitmentShiftId &&
-        shift.status === "pending"
+      const pendingShift = existingShifts.find(
+        (shift) =>
+          shift.notes?.includes("募集シフト応募・承認待ち") &&
+          shift.status === "pending"
       );
 
       if (pendingShift) {
-        console.log('🟡 Deleting pending shift:', pendingShift.id);
+        console.log("🟡 Deleting pending shift:", pendingShift.id);
         await ShiftAPIService.deleteShift(pendingShift.id);
       }
     } catch (error) {
-      console.log('⚠️ Could not find/delete pending shift:', error);
+      console.log("⚠️ Could not find/delete pending shift:", error);
     }
 
     // ShiftAPIServiceを使用して新しいシフトを作成
@@ -264,12 +268,17 @@ export class RecruitmentShiftService {
     userId: string
   ): Promise<void> {
     const docRef = doc(db, RECRUITMENT_SHIFTS_COLLECTION, recruitmentShiftId);
-    const docSnap = await getDocs(query(collection(db, RECRUITMENT_SHIFTS_COLLECTION), where("__name__", "==", recruitmentShiftId)));
-    
+    const docSnap = await getDocs(
+      query(
+        collection(db, RECRUITMENT_SHIFTS_COLLECTION),
+        where("__name__", "==", recruitmentShiftId)
+      )
+    );
+
     if (!docSnap.empty) {
       const recruitmentShiftData = docSnap.docs[0]?.data();
       if (!recruitmentShiftData) {
-        throw new Error('募集シフトデータが見つかりません');
+        throw new Error("募集シフトデータが見つかりません");
       }
       const recruitmentShift = recruitmentShiftData as RecruitmentShift;
       const updatedApplications = recruitmentShift.applications.map((app) =>
@@ -308,7 +317,9 @@ export class RecruitmentShiftService {
   /**
    * 店舗の募集シフト一覧を取得
    */
-  static async getRecruitmentShifts(storeId: string): Promise<RecruitmentShift[]> {
+  static async getRecruitmentShifts(
+    storeId: string
+  ): Promise<RecruitmentShift[]> {
     try {
       const q = query(
         collection(db, RECRUITMENT_SHIFTS_COLLECTION),
@@ -323,14 +334,18 @@ export class RecruitmentShiftService {
         recruitmentShifts.push({
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
+          createdAt: data['createdAt']?.toDate
+            ? data['createdAt'].toDate()
+            : data['createdAt'],
+          updatedAt: data['updatedAt']?.toDate
+            ? data['updatedAt'].toDate()
+            : data['updatedAt'],
         } as RecruitmentShift);
       });
 
       return recruitmentShifts;
     } catch (error) {
-      console.error('募集シフトの取得に失敗:', error);
+      console.error("募集シフトの取得に失敗:", error);
       throw error;
     }
   }

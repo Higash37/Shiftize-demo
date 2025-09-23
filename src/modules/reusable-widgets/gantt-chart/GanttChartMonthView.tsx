@@ -271,6 +271,10 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       isRecruitment: true, // 募集シフトであることを示すフラグ
       classes: [],
       extendedTasks: [],
+      isCompleted: false, // ShiftItemに必要
+      duration: "0", // ShiftItemに必要（計算は後で行われる）
+      createdAt: recruitmentShift.createdAt || new Date(), // ShiftItemに必要
+      updatedAt: recruitmentShift.updatedAt || new Date(), // ShiftItemに必要
     }));
 
     console.log('🔍 visibleShifts更新:', {
