@@ -34,8 +34,15 @@ export default function Login() {
   useEffect(() => {
     if (params["demo"] === "true") {
       setShowDemoModal(true);
-      // URLからパラメータを削除
-      router.replace("/(auth)/login");
+      // demoパラメータのみを削除し、redirectパラメータは保持
+      const newParams = new URLSearchParams();
+      if (params['redirect']) {
+        newParams.set('redirect', params['redirect'] as string);
+      }
+      const redirectUrl = newParams.toString()
+        ? `/(auth)/login?${newParams.toString()}`
+        : "/(auth)/login";
+      router.replace(redirectUrl);
     }
   }, [params]);
 

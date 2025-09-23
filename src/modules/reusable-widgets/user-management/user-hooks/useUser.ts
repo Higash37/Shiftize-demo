@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
 import { User } from "@/common/common-models/model-user/UserModel";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  setDoc,
-} from "firebase/firestore";
-import { db } from "@/services/firebase/firebase-core";
-import {
   getUsers as getUsersService,
   deleteUser,
   checkMasterExists,

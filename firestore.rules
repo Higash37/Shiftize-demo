@@ -41,11 +41,18 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         request.auth.uid == userId ||
         // マスターは同じ店舗の全ユーザーを閲覧可能（強化された検証）
-        (request.auth.token.role == "master" && 
+        (request.auth.token.role == "master" &&
          resource.data.storeId == request.auth.token.storeId &&
          resource.data.deleted != true && // 🔒 削除済みユーザーの隠蔽
          hasAccessToStore(resource.data.storeId))
       );
+
+      // 🔒 NEW: コレクションクエリ許可（マスターのみ、同一店舗内）
+      allow list: if isAuthenticated() &&
+        request.auth.token.role == "master" &&
+        // storeIdでフィルタされたクエリのみ許可
+        resource.data.storeId == request.auth.token.storeId &&
+        hasAccessToStore(request.auth.token.storeId);
       
       // 作成: 認証されたマスターユーザーが作成可能 OR 新規教室作成
       allow create: if isAuthenticated() && 

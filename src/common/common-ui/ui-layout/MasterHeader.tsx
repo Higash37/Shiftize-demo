@@ -21,6 +21,7 @@ import { MasterHeaderProps } from "./LayoutHeader.types";
 import { useAuth } from "@/services/auth/useAuth";
 import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-shift-component/RecruitmentShiftModal";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
+import { LineNotificationModal } from "@/modules/reusable-widgets/line-notification/LineNotificationModal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
@@ -45,6 +46,7 @@ export function MasterHeader({
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [recruitmentCount, setRecruitmentCount] = useState(0);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
+  const [showLineNotification, setShowLineNotification] = useState(false);
 
   // ユーザーの店舗アクセス権限を取得
   useEffect(() => {
@@ -211,6 +213,14 @@ export function MasterHeader({
           )}
         </TouchableOpacity>
 
+        {/* LINE通知送信ボタン */}
+        <TouchableOpacity
+          onPress={() => setShowLineNotification(true)}
+          style={styles.lineNotificationButton}
+        >
+          <AntDesign name="message1" size={24} color={colors.success} />
+        </TouchableOpacity>
+
         {/* カンバンタスク管理ボタン */}
         <TouchableOpacity
           onPress={() => router.push("/(main)/master/kanban-task")}
@@ -339,6 +349,14 @@ export function MasterHeader({
       <ServiceIntroModal
         visible={showServiceIntro}
         onClose={() => setShowServiceIntro(false)}
+      />
+
+      {/* LINE通知送信モーダル */}
+      <LineNotificationModal
+        visible={showLineNotification}
+        onClose={() => setShowLineNotification(false)}
+        storeId={currentStoreInfo}
+        recruitmentCount={recruitmentCount}
       />
     </View>
   );

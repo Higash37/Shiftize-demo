@@ -129,6 +129,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     simplifiedStatusConfigs
   );
+  const [recruitmentShifts, setRecruitmentShifts] = useState<any[]>([]);
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -250,17 +251,66 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     };
   };
 
-  // 表示対象のシフト（deleted, purgedは除外）
-  const visibleShifts = useMemo(() => 
-    shifts.filter((s) => s.status !== "deleted" && s.status !== "purged"),
-    [shifts]
-  );
+  // 表示対象のシフト（deleted, purgedは除外）＋募集シフト
+  const visibleShifts = useMemo(() => {
+    // 通常のシフト（deleted, purgedは除外）
+    const regularShifts = shifts.filter((s) => s.status !== "deleted" && s.status !== "purged");
 
-  // コンポーネントが期待するroleプロパティを追加したusers配列
-  const usersWithRole = useMemo(() => 
-    users.map(user => ({ ...user, role: "staff" as string })),
-    [users]
-  );
+    // 募集シフトを通常シフト形式に変換
+    const convertedRecruitmentShifts = recruitmentShifts.map((recruitmentShift) => ({
+      id: `recruitment-${recruitmentShift.id}`,
+      userId: "recruitment",
+      nickname: "募集中",
+      date: recruitmentShift.date,
+      startTime: recruitmentShift.startTime,
+      endTime: recruitmentShift.endTime,
+      status: "approved" as const,
+      notes: recruitmentShift.notes || "",
+      storeId: recruitmentShift.storeId,
+      type: "recruitment" as const,
+      isRecruitment: true, // 募集シフトであることを示すフラグ
+      classes: [],
+      extendedTasks: [],
+      isCompleted: false, // ShiftItemに必要
+      duration: "0", // ShiftItemに必要（計算は後で行われる）
+      createdAt: recruitmentShift.createdAt || new Date(), // ShiftItemに必要
+      updatedAt: recruitmentShift.updatedAt || new Date(), // ShiftItemに必要
+    }));
+
+    console.log('🔍 visibleShifts更新:', {
+      regularShifts: regularShifts.length,
+      convertedRecruitmentShifts: convertedRecruitmentShifts.length,
+      total: regularShifts.length + convertedRecruitmentShifts.length,
+      recruitmentShifts: convertedRecruitmentShifts
+    });
+
+    return [...regularShifts, ...convertedRecruitmentShifts];
+  }, [shifts, recruitmentShifts]);
+
+  // コンポーネントが期待するroleプロパティを追加したusers配列＋募集用ユーザー
+  const usersWithRole = useMemo(() => {
+    const regularUsers = users.map(user => ({ ...user, role: "staff" as string }));
+
+    // 募集シフトが存在する場合は募集用ユーザーを追加
+    const hasRecruitmentShifts = recruitmentShifts.length > 0;
+    const recruitmentUser = hasRecruitmentShifts ? [{
+      uid: "recruitment",
+      nickname: "募集中",
+      role: "recruitment" as string,
+      color: "#000000", // 黒色
+      storeId: user?.storeId || "",
+    }] : [];
+
+    console.log('🔍 usersWithRole更新:', {
+      regularUsers: regularUsers.length,
+      hasRecruitmentShifts,
+      recruitmentUser: recruitmentUser.length,
+      total: regularUsers.length + recruitmentUser.length,
+      finalUsers: [...regularUsers, ...recruitmentUser]
+    });
+
+    return [...regularUsers, ...recruitmentUser];
+  }, [users, recruitmentShifts, user?.storeId]);
 
   // 日付ごとにシフトをグループ化（useMemoで安定化）
   const rows = useMemo(() => {
@@ -336,10 +386,31 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
 
   // シフト削除
   const handleDeleteShift = async (shiftId: string) => {
-    
+
+    // 募集シフトの場合
+    if (shiftId.startsWith('recruitment-')) {
+      const recruitmentShiftId = shiftId.replace('recruitment-', '');
+      try {
+        await RecruitmentShiftService.deleteRecruitmentShift(recruitmentShiftId);
+        console.log('🗑️ 募集シフト削除完了:', recruitmentShiftId);
+
+        // 募集シフトデータを再取得
+        if (user?.storeId) {
+          const updatedRecruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
+          setRecruitmentShifts(updatedRecruitmentData);
+        }
+      } catch (error) {
+        console.error('❌ 募集シフト削除失敗:', error);
+        Alert.alert('エラー', '募集シフトの削除に失敗しました');
+      }
+      setShowEditModal(false);
+      return;
+    }
+
+    // 通常シフトの場合
     // 編集中のシフトの情報を取得
     const targetShift = editingShift || shifts.find(s => s.id === shiftId);
-    
+
     if (targetShift) {
       // 通知対忌の削除機能を使用
       await deleteShift(targetShift);
@@ -348,7 +419,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       const newStatus: ShiftStatus = "deleted";
       await updateShiftStatus(shiftId, newStatus);
     }
-    
+
     setShowEditModal(false); // モーダルを閉じる
 
     // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
@@ -541,12 +612,16 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     setViewMode(prev => prev === "gantt" ? "calendar" : "gantt");
   }, []);
 
-  // ユーザーID→colorマップを作成
+  // ユーザーID→colorマップを作成（募集シフト用の黒色を含む）
   const userColorsMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     users.forEach((u) => {
       if (u.uid && u.color) map[u.uid] = u.color;
     });
+
+    // 募集シフト用の黒色を追加
+    map["recruitment"] = "#000000";
+
     return map;
   }, [users]);
 
@@ -624,6 +699,27 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     const { totalAmount, totalHours } = calculateMonthlyTotals();
     setTotalWage({ totalAmount, totalHours });
   }, [shifts, users, calculateMonthlyTotals]);
+
+  // 募集シフトを取得
+  useEffect(() => {
+    const fetchRecruitmentShifts = async () => {
+      if (!user?.storeId) {
+        console.log('🔍 募集シフト取得: storeIdがありません');
+        return;
+      }
+
+      try {
+        console.log('🔍 募集シフト取得開始:', user.storeId);
+        const recruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
+        console.log('🔍 募集シフト取得完了:', recruitmentData.length, '件', recruitmentData);
+        setRecruitmentShifts(recruitmentData);
+      } catch (error) {
+        console.error('❌ 募集シフトの取得に失敗:', error);
+      }
+    };
+
+    fetchRecruitmentShifts();
+  }, [user?.storeId, refreshKey]);
   
 
   // --- 本体 ---

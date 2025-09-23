@@ -41,6 +41,7 @@ export const UserService = {
       }
 
       const snapshot = await getDocs(q);
+
       const users = snapshot.docs.map((doc) => {
         const data = doc.data();
         const user = {
