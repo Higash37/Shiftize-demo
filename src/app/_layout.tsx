@@ -107,32 +107,97 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
-    const inAuthGroup = segments[0] === "(auth)";
-    const inLandingGroup = segments[0] === "(landing)";
-    const inMainGroup = segments[0] === "(main)";
-    const atRoot = segments.length < 1;
-    
-    // ルートページまたはランディングページは認証に関係なく常にアクセス可能
-    if (inLandingGroup || atRoot) {
+    console.log('🔍 DEBUG: Layout useEffect triggered');
+    console.log('🔍 Loading:', loading);
+    console.log('🔍 User:', user?.email || 'No user');
+    console.log('🔍 Role:', role);
+    console.log('🔍 Segments:', segments);
+
+    if (loading) {
+      console.log('🔍 Early return: loading is true');
       return;
     }
-    
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inLandingGroup = segments[0] === "(landing)";
+    // (main) グループ内のページを正しく判定
+    const inMainGroup = segments[0] === "(main)" ||
+                       segments[0] === "user" ||
+                       segments[0] === "master" ||
+                       segments[0] === "user-settings" ||
+                       segments.includes("user") ||
+                       segments.includes("master");
+    const atRoot = segments.length < 1;
+
+    console.log('🔍 Group checks:', { inAuthGroup, inLandingGroup, inMainGroup, atRoot });
+
+    // ルートページまたはランディングページは認証に関係なく常にアクセス可能
+    if (inLandingGroup || atRoot) {
+      console.log('🔍 Early return: landing or root');
+      return;
+    }
+
     // 認証が必要なページのチェック
     if (!user) {
+      console.log('🔍 User is NOT authenticated');
       // 未認証ユーザーの場合
       if (inMainGroup) {
-        // メインアプリにアクセスしようとした場合はログインページへ
-        router.replace("/(auth)/login");
+        console.log('🔍 Redirecting to login - saving current path');
+        // 現在のパスを保存してログインページへ
+        const currentPath = segments.join('/');
+        const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+        const redirectPath = encodeURIComponent('/' + currentPath + urlParams);
+        console.log('🔍 Current path:', currentPath);
+        console.log('🔍 URL params:', urlParams);
+        console.log('🔍 Encoded redirect path:', redirectPath);
+        router.replace(`/(auth)/login?redirect=${redirectPath}`);
         return;
       }
+      console.log('🔍 Not in main group, doing nothing');
       // 認証グループでもない場合は何もしない（index.tsxがランディングを表示する）
-    } else if (inAuthGroup) {
-      // 認証済みユーザーが認証画面にいる場合はメインアプリへリダイレクト
-      if (role === "master") {
-        router.replace("/(main)/master/home");
-      } else if (role === "user") {
-        router.replace("/(main)/user/home");
+    } else {
+      console.log('🔍 User IS authenticated');
+      if (inAuthGroup) {
+        console.log('🔍 User in auth group - checking redirect');
+        // 認証済みユーザーが認証画面にいる場合
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectPath = urlParams.get('redirect');
+
+          console.log('🔍 DEBUG: Auth group redirect check');
+          console.log('🔍 Current URL:', window.location.href);
+          console.log('🔍 URL params:', window.location.search);
+          console.log('🔍 Redirect path:', redirectPath);
+          console.log('🔍 Segments:', segments);
+
+          if (redirectPath) {
+            const decodedPath = decodeURIComponent(redirectPath);
+            console.log('🔍 Decoded redirect path:', decodedPath);
+            // リダイレクトパスがある場合はそこに移動
+            router.replace(decodedPath);
+            return;
+          }
+        }
+
+        // リダイレクトパスがない場合のみデフォルトのホーム画面へ
+        // ただし、既に他のページにいる場合は強制リダイレクトしない
+        const currentSegments = segments.filter(seg => seg && seg !== '(auth)');
+        console.log('🔍 DEBUG: Home redirect check');
+        console.log('🔍 Current segments:', currentSegments);
+        console.log('🔍 Includes login:', segments.includes('login'));
+        console.log('🔍 Should redirect to home:', currentSegments.length === 0 || segments.includes('login'));
+
+        if (currentSegments.length === 0 || segments.includes('login')) {
+          console.log('🔍 Redirecting to home for role:', role);
+          if (role === "master") {
+            router.replace("/(main)/master/home");
+          } else if (role === "user") {
+            router.replace("/(main)/user/home");
+          }
+        }
+      } else if (inMainGroup) {
+        // 認証済みユーザーがメインページにいる場合は何もしない
+        console.log('🔍 User authenticated and in main group - staying on current page');
       }
     }
   }, [user, role, loading, segments]);
@@ -143,14 +208,19 @@ function RootLayoutNav() {
       if (nextAppState === "active" && !loading) {
         // ランディングページにいる場合は認証チェックをスキップ
         const inLandingGroup = segments[0] === "(landing)";
+        const inAuthGroup = segments[0] === "(auth)";
         if (inLandingGroup) {
           return;
         }
-        
+
         // 認証状態を再確認する前に少し待つ
         timeoutId = setTimeout(() => {
-          if (!user && !loading) {
-            router.replace("/(auth)/login");
+          if (!user && !loading && !inAuthGroup) {
+            // 現在のパスとパラメータを保存してリダイレクト
+            const currentPath = segments.join('/');
+            const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+            const redirectPath = encodeURIComponent('/' + currentPath + urlParams);
+            router.replace(`/(auth)/login?redirect=${redirectPath}`);
           }
         }, 1000); // 1秒待機
       }

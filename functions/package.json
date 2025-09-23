@@ -14,6 +14,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "@line/bot-sdk": "^10.2.0",
+    "axios": "^1.6.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.1",

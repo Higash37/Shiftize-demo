@@ -25,7 +25,9 @@ export default function userLayout() {
     }
 
     // ユーザーロールが不適切な場合はリダイレクト
-    if (role !== "user") {
+    // ただし、募集シフトページ(recruitment)はmasterも閲覧可能
+    const isRecruitmentPage = segments.includes("recruitment");
+    if (role !== "user" && !isRecruitmentPage) {
       router.replace("/(main)/master/home");
       return;
     }
@@ -54,7 +56,9 @@ export default function userLayout() {
   }
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
-  if (!user || role !== "user") {
+  // ただし、募集シフトページはmasterもアクセス可能
+  const isRecruitmentPage = segments.includes("recruitment");
+  if (!user || (role !== "user" && !isRecruitmentPage)) {
     return null;
   }
 

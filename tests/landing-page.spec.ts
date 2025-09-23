@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Landing Page E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8081/(landing)');
+    await page.goto('https://shift-scheduler-app-vu6i.onrender.com/(landing)');
   });
 
   test('should display hero section with side-by-side layout on desktop', async ({ page }) => {

@@ -62,6 +62,10 @@ export const styles = StyleSheet.create({
     padding: 8,
     position: "relative",
   },
+  lineNotificationButton: {
+    padding: 8,
+    marginRight: 4,
+  },
   badge: {
     position: "absolute",
     top: 4,
