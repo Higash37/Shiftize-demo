@@ -49,6 +49,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   React.useEffect(() => {
     const newCurrentMonth = format(selectedDate, "yyyy-MM-dd");
     setCurrentMonth(newCurrentMonth);
+    setSelectedCalendarDate(newCurrentMonth);
   }, [selectedDate]);
 
   // マークされた日付を生成（ShiftCalendarと同じロジック使用）
