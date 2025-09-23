@@ -139,7 +139,7 @@ export class LineService {
       }
       return null;
     } catch (error) {
-      console.error('Error getting LINE mapping by LINE User ID:', error);
+      // Silent error handling for getting LINE mapping by LINE User ID
       return null;
     }
   }
@@ -290,7 +290,7 @@ export class LineService {
       });
     } catch (error) {
       // エラーログのみ、処理は継続
-      console.error("Failed to update last used time:", error);
+      // Silent error handling for updating last used time
     }
   }
 }

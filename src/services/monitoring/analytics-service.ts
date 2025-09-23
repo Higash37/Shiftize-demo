@@ -33,7 +33,7 @@ export const AnalyticsService = {
         logEvent(analyticsInstance, event.name, event.parameters);
       }
     } catch (error) {
-      console.warn('Analytics logging failed:', error);
+      // Silent error handling for analytics logging
     }
   },
 
@@ -48,7 +48,7 @@ export const AnalyticsService = {
         setUserProperties(analyticsInstance, properties);
       }
     } catch (error) {
-      console.warn('Analytics user properties failed:', error);
+      // Silent error handling for analytics user properties
     }
   },
 
@@ -63,7 +63,7 @@ export const AnalyticsService = {
         setUserId(analyticsInstance, userId);
       }
     } catch (error) {
-      console.warn('Analytics setUserId failed:', error);
+      // Silent error handling for analytics setUserId
     }
   },
 
@@ -81,7 +81,7 @@ export const AnalyticsService = {
         });
       }
     } catch (error) {
-      console.warn('Analytics logPageView failed:', error);
+      // Silent error handling for analytics logPageView
     }
   },
 
@@ -100,7 +100,7 @@ export const AnalyticsService = {
         });
       }
     } catch (error) {
-      console.warn('Analytics logShiftAction failed:', error);
+      // Silent error handling for analytics logShiftAction
     }
   },
 
@@ -119,7 +119,7 @@ export const AnalyticsService = {
         });
       }
     } catch (error) {
-      console.warn('Analytics logError failed:', error);
+      // Silent error handling for analytics logError
     }
   },
 };
@@ -141,7 +141,7 @@ export const PerformanceService = {
         return customTrace;
       }
     } catch (error) {
-      console.warn('Performance trace failed:', error);
+      // Silent error handling for performance trace
     }
     return null;
   },

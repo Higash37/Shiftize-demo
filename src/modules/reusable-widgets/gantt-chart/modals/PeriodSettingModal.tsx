@@ -164,7 +164,6 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       // 成功通知用の一時的なAlert（後でトーストに変更可能）
       Alert.alert("成功", "期間を削除しました");
     } catch (error) {
-      console.error("Period deletion failed:", error);
       const errorMessage = error instanceof Error ? error.message : "不明なエラー";
       Alert.alert("エラー", `期間の削除に失敗しました: ${errorMessage}`);
     }

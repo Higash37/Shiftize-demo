@@ -96,15 +96,6 @@ export const useUser = (storeId?: string) => {
     } catch (err: any) {
       // 詳細なエラー情報をデバッグ出力
       if (__DEV__) {
-        console.error('🚨 useUser addUser Error:', {
-          code: err.code,
-          message: err.message,
-          generatedEmail: email,
-          storeId,
-          nickname,
-          role,
-          fullError: err
-        });
       }
       
       const errorMessage =

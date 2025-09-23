@@ -73,7 +73,7 @@ export class VersionManager {
         }
       }
     } catch (error) {
-      console.error('バージョンチェックエラー:', error);
+      // Silent error handling for version check
     }
   }
 
@@ -163,7 +163,7 @@ export class VersionManager {
       
       return false;
     } catch (error) {
-      console.error('起動時バージョンチェックエラー:', error);
+      // Silent error handling for startup version check
       return false;
     }
   }
@@ -186,7 +186,7 @@ export async function updateAppVersion(
     });
     
   } catch (error) {
-    console.error('バージョン更新エラー:', error);
+    // Silent error handling for version update
     throw error;
   }
 }

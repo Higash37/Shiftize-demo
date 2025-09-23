@@ -142,7 +142,7 @@ export const useAuth = () => {
       });
 
     } catch (error: any) {
-      console.error("ログインエラー:", error);
+      // Silent error handling for login
       setUser(null);
       setRole(null);
       setStoreId(null);
@@ -195,7 +195,7 @@ export const useAuth = () => {
       const userData = userDoc.data();
       return userData || null;
     } catch (error) {
-      console.error('User fetch error:', error);
+      // Silent error handling for user fetch
       return null;
     }
   };
@@ -242,7 +242,7 @@ export const useAuth = () => {
             setAuthError("ユーザー情報が見つかりません。");
           }
         } catch (error) {
-          console.error("認証状態確認エラー:", error);
+          // Silent error handling for auth state confirmation
           
           // エラーの場合はログアウト
           await auth.signOut();

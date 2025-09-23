@@ -33,7 +33,6 @@ export const ShiftSubmissionTooltip: React.FC<ShiftSubmissionTooltipProps> = ({
       const periods = await ShiftSubmissionService.getActivePeriods(storeId);
       setPeriod(periods && periods.length > 0 ? periods[0] || null : null);
     } catch (error) {
-      console.error("期間の読み込みエラー:", error);
     } finally {
       setLoading(false);
     }

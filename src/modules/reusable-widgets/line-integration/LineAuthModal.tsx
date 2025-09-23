@@ -90,7 +90,6 @@ export const LineAuthModal: React.FC<LineAuthModalProps> = ({
       });
 
     } catch (error) {
-      console.error('Auth code generation error:', error);
       Alert.alert('エラー', '認証コードの生成に失敗しました。しばらくしてから再試行してください。');
       
       SecurityLogger.logEvent({

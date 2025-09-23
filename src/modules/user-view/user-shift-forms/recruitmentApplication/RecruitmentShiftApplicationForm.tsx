@@ -101,7 +101,6 @@ export const RecruitmentShiftApplicationForm: React.FC<RecruitmentShiftApplicati
         // 初期化はrecruitmentShiftsが更新された時に別のuseEffectで行う
 
       } catch (error) {
-        console.error("Error fetching recruitment shifts:", error);
         Alert.alert("エラー", "募集シフトの取得に失敗しました。");
       } finally {
         setLoading(false);
@@ -191,21 +190,16 @@ export const RecruitmentShiftApplicationForm: React.FC<RecruitmentShiftApplicati
             : applicationData.generalNotes || "",
         };
 
-        console.log('🔵 About to call RecruitmentShiftService.applyToRecruitmentShift');
-        console.log('🔵 ShiftId:', application.shiftId);
-        console.log('🔵 Application data:', shiftApplicationData);
 
         await RecruitmentShiftService.applyToRecruitmentShift(
           application.shiftId,
           shiftApplicationData
         );
 
-        console.log('🔵 Successfully called RecruitmentShiftService.applyToRecruitmentShift');
       }
       router.replace("/(main)/user/shifts");
 
     } catch (error) {
-      console.error("Error submitting applications:", error);
       Alert.alert("エラー", "応募の送信に失敗しました。もう一度お試しください。");
     } finally {
       setSubmitting(false);

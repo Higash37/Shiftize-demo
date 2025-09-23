@@ -45,7 +45,7 @@ export class ShiftConfirmationService {
         confirmationData
       );
     } catch (error) {
-      console.error("シフト確定の保存エラー:", error);
+      // Silent error handling for shift confirmation save
       throw error;
     }
   }
@@ -61,7 +61,7 @@ export class ShiftConfirmationService {
       const confirmationId = `${userId}_${periodId}`;
       await deleteDoc(doc(db, this.COLLECTION_NAME, confirmationId));
     } catch (error) {
-      console.error("シフト確定取り消しエラー:", error);
+      // Silent error handling for shift confirmation cancellation
       throw error;
     }
   }
@@ -84,7 +84,7 @@ export class ShiftConfirmationService {
       const querySnapshot = await getDocs(q);
       return !querySnapshot.empty;
     } catch (error) {
-      console.error("確定状況取得エラー:", error);
+      // Silent error handling for getting confirmation status
       return false;
     }
   }
@@ -116,7 +116,7 @@ export class ShiftConfirmationService {
       
       return confirmations;
     } catch (error) {
-      console.error("店舗確定状況取得エラー:", error);
+      // Silent error handling for getting store confirmation status
       return [];
     }
   }

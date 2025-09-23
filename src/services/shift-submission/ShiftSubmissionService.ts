@@ -86,7 +86,7 @@ export const ShiftSubmissionService = {
         };
       });
     } catch (error) {
-      console.error("Error getting active periods:", error);
+      // Silent error handling for getting active periods
       throw error;
     }
   },
@@ -119,7 +119,7 @@ export const ShiftSubmissionService = {
         };
       });
     } catch (error) {
-      console.error("Error getting all periods:", error);
+      // Silent error handling for getting all periods
       throw error;
     }
   },
@@ -148,7 +148,7 @@ export const ShiftSubmissionService = {
         createdBy: data['createdBy'],
       };
     } catch (error) {
-      console.error("Error getting period:", error);
+      // Silent error handling for getting period
       throw error;
     }
   },
@@ -190,7 +190,7 @@ export const ShiftSubmissionService = {
         updatedAt: data['updatedAt']?.toDate() || new Date(),
       };
     } catch (error) {
-      console.error("Error getting user submission:", error);
+      // Silent error handling for getting user submission
       throw error;
     }
   },
@@ -229,7 +229,7 @@ export const ShiftSubmissionService = {
         });
       }
     } catch (error) {
-      console.error("Error saving submission:", error);
+      // Silent error handling for saving submission
       throw error;
     }
   },
@@ -252,7 +252,7 @@ export const ShiftSubmissionService = {
         updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("Error submitting shift requests:", error);
+      // Silent error handling for submitting shift requests
       throw error;
     }
   },
@@ -315,7 +315,7 @@ export const ShiftSubmissionService = {
       const periodRef = doc(db, "shift_submission_periods", periodId);
       await deleteDoc(periodRef);
     } catch (error) {
-      console.error("Error deleting period:", error);
+      // Silent error handling for deleting period
       throw error;
     }
   },

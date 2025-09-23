@@ -164,7 +164,6 @@ export function MasterFooter({}: MasterFooterProps) {
       const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
       setPeriod(periods.length > 0 ? periods[0] || null : null);
     } catch (error) {
-      console.error("期間の読み込みエラー:", error);
     }
   };
 

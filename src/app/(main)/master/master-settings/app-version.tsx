@@ -45,7 +45,6 @@ export default function AppVersionManager() {
         setNewVersion("1.0.0");
       }
     } catch (error) {
-      console.error("バージョン情報の取得に失敗:", error);
     }
   };
 
