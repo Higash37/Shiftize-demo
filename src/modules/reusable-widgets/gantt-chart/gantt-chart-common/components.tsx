@@ -729,6 +729,9 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     setInternalSelectedDate(
       selectedDate ? format(selectedDate, "yyyy-MM-dd") : null
     );
+    if (selectedDate) {
+      setCurrentMonth(new Date(selectedDate));
+    }
   }, [selectedDate]);
 
   // カレンダーグリッド用の日付データを生成
