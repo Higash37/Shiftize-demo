@@ -170,9 +170,7 @@ export const logShiftChange = async (
     await addDoc(collection(db, "shiftChangeLogs"), dataToSave);
   } catch (error) {
     // ログ記録の失敗は通常の操作を妨げないようにする
-    if (__DEV__) {
-      console.error("Failed to log shift change:", error);
-    }
+    // Silent error handling for shift change logging
   }
 };
 

@@ -31,8 +31,7 @@ const FirebaseCore = (() => {
 
   // 必須環境変数の検証
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
-    console.error("Firebase configuration missing required environment variables");
-    console.error("Current config:", firebaseConfig);
+    // Silent error handling for Firebase configuration
     throw new Error("Firebase configuration is incomplete");
   }
 

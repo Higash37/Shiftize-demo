@@ -200,13 +200,7 @@ export const AuthService = {
       } catch (error: any) {
         // 詳細エラー情報をデバッグ出力
         if (__DEV__) {
-          console.error('🚨 Firebase Auth Error Details:', {
-            code: error.code,
-            message: error.message,
-            details: error,
-            email,
-            passwordLength: password?.length,
-          });
+          // Silent error handling in development
         }
         
         // エラーが発生した場合は一時的なアプリを削除
@@ -221,7 +215,7 @@ export const AuthService = {
       // より詳細なエラーメッセージ
       const errorMessage = `ユーザー作成に失敗しました: ${error.code || 'UNKNOWN'} - ${error.message}`;
       if (__DEV__) {
-        console.error('🚨 CreateUser Final Error:', errorMessage);
+        // Silent error handling in development
       }
       throw new Error(errorMessage);
     }

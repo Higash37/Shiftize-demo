@@ -64,7 +64,6 @@ export function LineNotificationModal({
 
       setRecruitmentShifts(shifts);
     } catch (error) {
-      console.error('Failed to fetch recruitment shifts:', error);
       Alert.alert('エラー', '募集シフトの取得に失敗しました');
     } finally {
       setLoading(false);
@@ -104,7 +103,6 @@ export function LineNotificationModal({
         ]
       );
     } catch (error: any) {
-      console.error('Failed to send LINE notification:', error);
       Alert.alert(
         '送信失敗',
         error.message || 'LINE通知の送信に失敗しました'

@@ -72,7 +72,7 @@ export default function Login() {
       // ナビゲーション処理を待つために少し待機
       await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
-      console.error("Login error:", error);
+      // Silent error handling for login
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
       );

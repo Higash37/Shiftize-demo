@@ -277,12 +277,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       updatedAt: recruitmentShift.updatedAt || new Date(), // ShiftItemに必要
     }));
 
-    console.log('🔍 visibleShifts更新:', {
-      regularShifts: regularShifts.length,
-      convertedRecruitmentShifts: convertedRecruitmentShifts.length,
-      total: regularShifts.length + convertedRecruitmentShifts.length,
-      recruitmentShifts: convertedRecruitmentShifts
-    });
 
     return [...regularShifts, ...convertedRecruitmentShifts];
   }, [shifts, recruitmentShifts]);
@@ -301,13 +295,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       storeId: user?.storeId || "",
     }] : [];
 
-    console.log('🔍 usersWithRole更新:', {
-      regularUsers: regularUsers.length,
-      hasRecruitmentShifts,
-      recruitmentUser: recruitmentUser.length,
-      total: regularUsers.length + recruitmentUser.length,
-      finalUsers: [...regularUsers, ...recruitmentUser]
-    });
 
     return [...regularUsers, ...recruitmentUser];
   }, [users, recruitmentShifts, user?.storeId]);
@@ -392,7 +379,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       const recruitmentShiftId = shiftId.replace('recruitment-', '');
       try {
         await RecruitmentShiftService.deleteRecruitmentShift(recruitmentShiftId);
-        console.log('🗑️ 募集シフト削除完了:', recruitmentShiftId);
 
         // 募集シフトデータを再取得
         if (user?.storeId) {
@@ -400,7 +386,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
           setRecruitmentShifts(updatedRecruitmentData);
         }
       } catch (error) {
-        console.error('❌ 募集シフト削除失敗:', error);
         Alert.alert('エラー', '募集シフトの削除に失敗しました');
       }
       setShowEditModal(false);
@@ -704,17 +689,13 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   useEffect(() => {
     const fetchRecruitmentShifts = async () => {
       if (!user?.storeId) {
-        console.log('🔍 募集シフト取得: storeIdがありません');
         return;
       }
 
       try {
-        console.log('🔍 募集シフト取得開始:', user.storeId);
         const recruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
-        console.log('🔍 募集シフト取得完了:', recruitmentData.length, '件', recruitmentData);
         setRecruitmentShifts(recruitmentData);
       } catch (error) {
-        console.error('❌ 募集シフトの取得に失敗:', error);
       }
     };
 

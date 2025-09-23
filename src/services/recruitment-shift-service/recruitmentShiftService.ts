@@ -81,13 +81,11 @@ export class RecruitmentShiftService {
           );
         } catch (lineError) {
           // LINE通知の失敗はログに記録するが、シフト作成は継続
-          console.error("LINE notification failed:", lineError);
         }
       }
 
       return docRef.id;
     } catch (error) {
-      console.error('Error creating recruitment shift:', error);
       throw error;
     }
   }
@@ -176,7 +174,6 @@ export class RecruitmentShiftService {
         await ShiftAPIService.createShift(pendingShift as any);
       }
     } catch (error) {
-      console.error("🔴 Failed to add application to recruitmentShift:", error);
       throw new Error(`応募の保存に失敗しました: ${error}`);
     }
   }
@@ -239,11 +236,9 @@ export class RecruitmentShiftService {
       );
 
       if (pendingShift) {
-        console.log("🟡 Deleting pending shift:", pendingShift.id);
         await ShiftAPIService.deleteShift(pendingShift.id);
       }
     } catch (error) {
-      console.log("⚠️ Could not find/delete pending shift:", error);
     }
 
     // ShiftAPIServiceを使用して新しいシフトを作成
@@ -345,7 +340,6 @@ export class RecruitmentShiftService {
 
       return recruitmentShifts;
     } catch (error) {
-      console.error("募集シフトの取得に失敗:", error);
       throw error;
     }
   }

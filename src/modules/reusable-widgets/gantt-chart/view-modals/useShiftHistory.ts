@@ -113,7 +113,6 @@ export const useShiftHistory = ({
         setIsLoading(false);
       },
       (err) => {
-        console.error("Failed to fetch shift history:", err);
         setError("履歴データの取得に失敗しました");
         setIsLoading(false);
       }

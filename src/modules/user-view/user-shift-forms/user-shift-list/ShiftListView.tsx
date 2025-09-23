@@ -112,7 +112,7 @@ export const UserShiftList = () => {
         setIsCompleted(isConfirmed);
       }
     } catch (error) {
-      console.error("期間の読み込みエラー:", error);
+      // Silent error handling for period loading
     }
   };
 

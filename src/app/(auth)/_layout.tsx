@@ -26,7 +26,7 @@ export default function AuthLayout() {
           try {
             router.replace(route);
           } catch (navError) {
-            console.error("Navigation error:", navError);
+            // Silent error handling for navigation
           }
         }
       }
