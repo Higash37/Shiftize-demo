@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '@/common/common-constants/ThemeConstants';
 
 export const styles = StyleSheet.create({
   container: {
@@ -9,11 +10,11 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
+    color: colors.text.primary,
   },
   calendar: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     borderRadius: 8,
   },
   dateContainer: {
@@ -21,7 +22,7 @@ export const styles = StyleSheet.create({
   },
   dateItem: {
     padding: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.surface,
     marginBottom: 8,
     borderRadius: 8,
     flexDirection: 'row',
@@ -36,7 +37,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 16,
   },

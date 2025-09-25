@@ -200,7 +200,7 @@ function getStatusColor(status: string): string {
     case 'rejected': return 'red';
     case 'pending': return 'orange';
     case 'completed': return 'blue';
-    default: return 'gray';
+    default: return 'white';
   }
 }
 

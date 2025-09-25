@@ -1,17 +1,53 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Calendar } from "react-native-calendars";
-import { View, useWindowDimensions } from "react-native";
+import { Calendar, LocaleConfig } from "react-native-calendars";
+import type { MarkedDates } from "react-native-calendars";
+import { View, ViewStyle } from "react-native";
+import { format } from "date-fns";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { DayComponentProps } from "../calendar-types/common.types";
 import { DayComponent } from "../day-view/DayComponent";
+
+LocaleConfig.locales.ja = {
+  monthNames: [
+    "1月",
+    "2月",
+    "3月",
+    "4月",
+    "5月",
+    "6月",
+    "7月",
+    "8月",
+    "9月",
+    "10月",
+    "11月",
+    "12月",
+  ],
+  monthNamesShort: [
+    "1月",
+    "2月",
+    "3月",
+    "4月",
+    "5月",
+    "6月",
+    "7月",
+    "8月",
+    "9月",
+    "10月",
+    "11月",
+    "12月",
+  ],
+  dayNames: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+  dayNamesShort: ["日", "月", "火", "水", "木", "金", "土"],
+  today: "今日",
+};
+
+LocaleConfig.defaultLocale = "ja";
+
 import { CalendarHeader } from "../CalendarHeader";
 import { DatePickerModal } from "../modals/DatePickerModal";
-import {
-  useResponsiveCalendarSize,
-  PLATFORM_SPECIFIC,
-} from "../constants";
+import { useResponsiveCalendarSize } from "../constants";
 import { styles } from "./ShiftCalendar.styles";
-import { ShiftCalendarProps, CalendarHeaderInfo } from "./ShiftCalendar.types";
+import { ShiftCalendarProps } from "./ShiftCalendar.types";
 
 export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   shifts,
@@ -26,8 +62,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(currentMonth));
-  const { calendarWidth, isSmallScreen } = useResponsiveCalendarSize();
-  const { width: windowWidth } = useWindowDimensions();
+  const { isSmallScreen } = useResponsiveCalendarSize();
+  const scale = responsiveSize?.scale ?? 1;
 
   // currentMonthが変わったらtempDateも更新
   useEffect(() => {
@@ -35,17 +71,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   }, [currentMonth]);
 
   // レスポンシブなスタイルを生成
-  const responsiveStyles = useMemo(
-    () => ({
-      calendar: {
-        width: "96%" as const, // リストと幅を統一（96%に統一）
-        maxWidth: 480,
-        alignSelf: "center" as const, // 中央揃え
-        ...(responsiveSize?.container || {}),
-      },
-    }),
-    [calendarWidth, isSmallScreen, responsiveSize]
-  );
+  const responsiveStyles = useMemo(() => {
+    const calendarStyle: ViewStyle = {
+      width: "96%",
+      maxWidth: 480,
+      alignSelf: "center",
+    };
+
+    if (scale !== 1) {
+      calendarStyle.transform = [{ scale }];
+    }
+
+    const containerStyle: ViewStyle = {
+      ...(responsiveSize?.container || {}),
+    };
+
+    return { calendar: calendarStyle, container: containerStyle };
+  }, [responsiveSize, scale]);
 
   useEffect(() => {
     if (onMount) {
@@ -55,7 +97,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
   // カレンダーのマーカー用のデータを作成
   const markedDates = useMemo(() => {
-    const marks: { [key: string]: any } = {};
+    const marks: MarkedDates = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -103,7 +145,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   }, [selectedDate, shifts, currentUserStoreId]);
 
   // propMarkedDatesが提供されている場合はそれを使用、そうでなければ内部のmarkedDatesを使用
-  const finalMarkedDates = propMarkedDates || markedDates;
+  const finalMarkedDates: MarkedDates =
+    (propMarkedDates as MarkedDates | undefined) || markedDates;
   
   if (propMarkedDates) {
     const sampleKey = Object.keys(propMarkedDates)[0];
@@ -118,13 +161,17 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const handleDateSelect = (date: Date) => {
     setTempDate(date);
     if (onMonthChange) {
-      onMonthChange({ dateString: date.toISOString().split("T")[0] ?? '' });
+      onMonthChange({ dateString: format(date, "yyyy-MM-dd") });
     }
   };
 
   return (
     <View
-      style={[styles.container, isSmallScreen && styles.containerFullWidth]}
+      style={[
+        styles.container,
+        isSmallScreen && styles.containerFullWidth,
+        responsiveStyles.container,
+      ]}
     >
       <Calendar
         current={currentMonth}
@@ -138,7 +185,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           styles.calendarShadow,
           responsiveStyles.calendar,
         ]}
-        renderHeader={(date: CalendarHeaderInfo) => (
+        renderHeader={() => (
           <CalendarHeader
             date={new Date(currentMonth)} // ←常にcurrentMonthを反映
             onYearMonthSelect={() => {
@@ -172,9 +219,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           textDayFontWeight: "500",
           textMonthFontWeight: "600",
           textDayHeaderFontWeight: "600",
-          textDayFontSize: 16,
-          textMonthFontSize: 18,
-          textDayHeaderFontSize: 14,
+          textDayFontSize: 20,
+          textMonthFontSize: 20,
+          textDayHeaderFontSize: 18,
+
         }}
         dayComponent={({ date, state, marking }: DayComponentProps) => (
           <DayComponent

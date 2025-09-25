@@ -8,8 +8,7 @@ import {
 } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
-import { GanttHeaderRow } from "../home-components/home-gantt/GanttHeaderRow";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface Props {
@@ -18,7 +17,6 @@ interface Props {
   timesFirst: string[];
   timesSecond: string[];
   sampleSchedule: SampleScheduleColumn[];
-  CELL_WIDTH: number;
   showFirst: boolean; // 追加
   onCellPress?: (userName: string) => void; // 追加
 }
@@ -29,22 +27,16 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
   timesFirst,
   timesSecond,
   sampleSchedule,
-  CELL_WIDTH,
   showFirst, // 追加
   onCellPress, // 追加
 }) => {
   const { width: windowWidth } = useWindowDimensions();
-  const totalColumnsFirst = timesFirst.length + 1;
-  const totalColumnsSecond = timesSecond.length + 1;
-  const cellWidthFirst = windowWidth / totalColumnsFirst;
-  const cellWidthSecond = windowWidth / totalColumnsSecond;
+  const renderTable = (names: string[], times: string[]) => {
+    const columnCount = Math.max(times.length + 1, 1);
+    const columnWidth = windowWidth / columnCount;
+    const cellHeight = columnWidth * 0.5;
 
-  // セルの高さを半分に（PC画面専用）
-  const cellHeightFirst = cellWidthFirst * 0.5;
-  const cellHeightSecond = cellWidthSecond * 0.5;
-
-  // テーブル描画
-  const renderTable = (names: string[], times: string[], label: string) => (
+    return (
     <View style={{ marginBottom: 16, width: windowWidth }}>
       {/* ヘッダー */}
       <View style={{ flexDirection: "row", width: windowWidth }}>
@@ -52,7 +44,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
           style={[
             styles.headerCell,
             styles.positionHeaderCell,
-            { width: cellWidthFirst },
+            { width: columnWidth },
           ]}
         >
           <Text style={styles.headerText}>名前</Text>
@@ -60,7 +52,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
         {times.map((time) => (
           <View
             key={time}
-            style={[styles.headerCell, { width: cellWidthFirst }]}
+            style={[styles.headerCell, { width: columnWidth }]}
           >
             <Text style={[styles.headerText, { fontWeight: "bold" }]}>
               {time}
@@ -75,13 +67,13 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
             flexDirection: "row",
             width: windowWidth,
             borderBottomWidth: 1,
-            borderBottomColor: "#e0e0e0",
+            borderBottomColor: colors.border,
           }}
         >
           <View
             style={[
               styles.positionCell,
-              { width: cellWidthFirst, height: cellHeightFirst },
+              { width: columnWidth, height: cellHeight },
             ]}
           >
             <Text style={styles.positionText}>{name}</Text>
@@ -123,12 +115,16 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                     style={[
                       styles.cell,
                       {
-                        width: cellWidthFirst * span,
-                        height: cellHeightFirst,
+                        width: columnWidth * span,
+                        height: cellHeight,
                         backgroundColor:
-                          slot.type === "class" ? "#eee" : undefined, // スタッフのときは背景色なし
+                          slot.type === "class"
+                            ? colors.surfaceElevated
+                            : slot.color || colors.primary + "1A",
                         borderColor:
-                          slot.type === "class" ? "#bbb" : colors.primary, // スタッフのときは青枠
+                          slot.type === "class"
+                            ? colors.border
+                            : slot.color || colors.primary,
                         borderWidth: 1,
                         justifyContent: "center",
                         alignItems: "center",
@@ -137,21 +133,21 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                     ]}
                     onPress={() => onCellPress && onCellPress(name)}
                   >
-                    <MaterialIcons
-                      name={slot.type === "class" ? "school" : "person"}
-                      size={16}
-                      color={
-                        slot.type === "class"
-                          ? colors.text.secondary
-                          : colors.primary
-                      }
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text
-                      style={[
-                        styles.taskText,
-                        slot.type !== "class" && { color: colors.primary }, // スタッフのときは青文字
-                      ]}
+          <MaterialIcons
+            name={slot.type === "class" ? "school" : "person"}
+            size={16}
+            color={
+              slot.type === "class"
+                ? colors.text.secondary
+                : colors.text.white
+            }
+            style={{ marginRight: 4 }}
+          />
+          <Text
+            style={[
+              styles.taskText,
+              slot.type !== "class" && { color: colors.text.white }, // スタッフのときは白文字
+            ]}
                     >
                       {slot.task || ""} {slot.start}~{slot.end}
                     </Text>
@@ -165,8 +161,8 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
                     style={[
                       styles.cell,
                       {
-                        width: cellWidthFirst,
-                        height: cellHeightFirst,
+                        width: columnWidth,
+                        height: cellHeight,
                         opacity: 0.1,
                       },
                     ]}
@@ -180,14 +176,15 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
       ))}
     </View>
   );
+  };
 
   return (
     <View style={{ flex: 1 }}>
       {/* 前半/後半切り替えボタンは親で管理 */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flex: 1 }}>
         {showFirst
-          ? renderTable(namesFirst, timesFirst, "午前")
-          : renderTable(namesSecond, timesSecond, "午後")}
+          ? renderTable(namesFirst, timesFirst)
+          : renderTable(namesSecond, timesSecond)}
       </ScrollView>
     </View>
   );

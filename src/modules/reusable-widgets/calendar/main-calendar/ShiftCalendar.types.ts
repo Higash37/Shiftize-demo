@@ -19,6 +19,7 @@ export interface ShiftCalendarProps {
     container?: ViewStyle;
     header?: any;
     day?: any;
+    scale?: number;
   };
 }
 

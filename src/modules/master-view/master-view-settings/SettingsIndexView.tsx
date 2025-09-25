@@ -10,11 +10,9 @@ import { Stack } from "expo-router";
 import { settingsIndexViewStyles as styles } from "./SettingsIndexView.styles";
 import type { SettingsIndexViewProps } from "./SettingsIndexView.types";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 const isDesktop = width >= 1024;
-const FOOTER_HEIGHT = 80; // フッターの高さ
-const HEADER_HEIGHT = 60; // ヘッダーの高さ
 
 export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
   onNavigate,

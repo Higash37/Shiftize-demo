@@ -63,7 +63,7 @@ const Screenshots = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="gradient-text">実際の画面</span>をご覧ください
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto">
             直感的なデザインで、誰でも簡単に使えます
           </p>
         </div>
@@ -76,7 +76,7 @@ const Screenshots = () => {
               className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeView === option.key
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105"
-                  : "bg-white border-2 border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600"
+                  : "bg-white border-2 border-black/10 text-black/80 hover:border-blue-300 hover:text-blue-600"
               }`}
               onClick={() => setActiveView(option.key)}
             >
@@ -91,23 +91,23 @@ const Screenshots = () => {
           <div className="card p-0 overflow-hidden">
             <div className="relative">
               {/* Placeholder for screenshot */}
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 aspect-video flex items-center justify-center">
+              <div className="bg-gradient-to-br from-white to-white aspect-video flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-6xl mb-4">
                     {viewOptions.find((v) => v.key === activeView)?.icon}
                   </div>
-                  <div className="text-gray-500 text-lg">
+                  <div className="text-black/70 text-lg">
                     {screenshots[activeView]?.title || "スクリーンショット"}
                     のスクリーンショット
                   </div>
-                  <div className="text-sm text-gray-400 mt-2">
+                  <div className="text-sm text-black/60 mt-2">
                     Playwrightで自動撮影予定
                   </div>
                 </div>
               </div>
 
               {/* Browser Chrome */}
-              <div className="absolute top-0 left-0 right-0 h-8 bg-gray-800 rounded-t-2xl flex items-center px-4">
+              <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-2xl flex items-center px-4">
                 <div className="flex space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -128,7 +128,7 @@ const Screenshots = () => {
                   <h3 className="text-2xl font-bold mb-4 gradient-text">
                     {screenshots[activeView]?.title || "タイトル"}
                   </h3>
-                  <p className="text-gray-600 text-lg mb-6">
+                  <p className="text-black/80 text-lg mb-6">
                     {screenshots[activeView]?.description || "説明"}
                   </p>
 
@@ -155,7 +155,7 @@ const Screenshots = () => {
                               />
                             </svg>
                           </div>
-                          <span className="text-gray-700 text-sm">
+                          <span className="text-black text-sm">
                             {feature}
                           </span>
                         </div>
@@ -170,7 +170,7 @@ const Screenshots = () => {
                     <div className="text-2xl font-bold gradient-text mb-2">
                       71,464行
                     </div>
-                    <div className="text-gray-600 text-sm">
+                    <div className="text-black/80 text-sm">
                       のコードで構築された堅牢なシステム
                     </div>
                   </div>
@@ -178,13 +178,13 @@ const Screenshots = () => {
                     <div className="text-2xl font-bold text-green-600 mb-2">
                       5+店舗
                     </div>
-                    <div className="text-gray-600 text-sm">で実際に運用中</div>
+                    <div className="text-black/80 text-sm">で実際に運用中</div>
                   </div>
                   <div className="card p-6 bg-gradient-to-r from-purple-50 to-pink-50">
                     <div className="text-2xl font-bold text-purple-600 mb-2">
                       100%
                     </div>
-                    <div className="text-gray-600 text-sm">
+                    <div className="text-black/80 text-sm">
                       モバイル対応済み
                     </div>
                   </div>
@@ -196,7 +196,7 @@ const Screenshots = () => {
 
         {/* Technology Stack */}
         <div className="mt-16 text-center">
-          <h3 className="text-xl font-bold mb-8 text-gray-800">
+          <h3 className="text-xl font-bold mb-8 text-black">
             最新技術で構築された信頼性の高いシステム
           </h3>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
@@ -204,25 +204,25 @@ const Screenshots = () => {
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-blue-600 font-bold text-sm">⚛️</span>
               </div>
-              <span className="text-gray-600 font-medium">React Native</span>
+              <span className="text-black/80 font-medium">React Native</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-blue-600 font-bold text-sm">TS</span>
               </div>
-              <span className="text-gray-600 font-medium">TypeScript</span>
+              <span className="text-black/80 font-medium">TypeScript</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
                 <span className="text-orange-600 font-bold text-sm">🔥</span>
               </div>
-              <span className="text-gray-600 font-medium">Firebase</span>
+              <span className="text-black/80 font-medium">Firebase</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                 <span className="text-green-600 font-bold text-sm">📱</span>
               </div>
-              <span className="text-gray-600 font-medium">PWA</span>
+              <span className="text-black/80 font-medium">PWA</span>
             </div>
           </div>
         </div>

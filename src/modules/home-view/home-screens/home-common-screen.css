@@ -2,7 +2,7 @@ body {
   cursor: default;
   -webkit-user-select: none;
   user-select: none;
-  background-color: #1565c0; /* ヘッダーの色と一致 */
+  background-color: #ffffff;
   margin: 0;
   padding: 0;
   min-height: var(--app-height);

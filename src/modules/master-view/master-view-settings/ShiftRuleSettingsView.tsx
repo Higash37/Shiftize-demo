@@ -13,11 +13,9 @@ import { ShiftRuleValuePicker } from "./ShiftRuleValuePicker";
 import { shiftRuleSettingsViewStyles as styles } from "./ShiftRuleSettingsView.styles";
 import type { ShiftRuleSettingsViewProps } from "./ShiftRuleSettingsView.types";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 const isDesktop = width >= 1024;
-const FOOTER_HEIGHT = 80; // フッターの高さ
-const HEADER_HEIGHT = 60; // ヘッダーの高さ
 
 export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
   settings,
@@ -31,10 +29,6 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
   const maxWorkHoursList = Array.from({ length: 13 }, (_, i) => i + 6);
   const minBreakList = [30, 45, 60, 90, 120];
   const maxConsecutiveList = [3, 4, 5, 6, 7, 8, 9, 10];
-  const weekStartDayList = [
-    { value: 0, label: "日曜日" },
-    { value: 1, label: "月曜日" },
-  ];
   const shiftTimeUnitList = [15, 30, 60];
   const maxOvertimeHoursList = Array.from({ length: 8 }, (_, i) => i + 1);
   const minShiftHoursList = Array.from({ length: 8 }, (_, i) => i + 1);

@@ -7,7 +7,7 @@ import { shadows } from "@/common/common-constants/ThemeConstants";
 export const styles = StyleSheet.create<ShiftCalendarStyles>({
   container: {
     alignItems: "center",
-    paddingVertical: 8, // iOS風に余白を増やす
+    paddingVertical: 0,
     // backgroundColor: "#fff", // ←親で白背景なので不要
     borderRadius: 16, // iOS風に角丸
     borderWidth: 0,

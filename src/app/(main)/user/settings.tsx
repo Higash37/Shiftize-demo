@@ -44,8 +44,10 @@ export default function SettingsPage() {
     {
       id: "line",
       title: "LINE連携",
+      subtitle: "準備中",
       icon: <AntDesign name="wechat" size={18} color="#fff" />,
-      onPress: () => setShowLineAuthModal(true),
+      onPress: () => {}, // 何もしない
+      disabled: true,
     },
     {
       id: "password",
@@ -119,8 +121,10 @@ export default function SettingsPage() {
                     styles.settingsItem,
                     index === settingsItems.length - 1 &&
                       styles.settingsItemLast,
+                    item.disabled && styles.settingsItemDisabled,
                   ]}
-                  onPress={item.onPress}
+                  onPress={item.disabled ? undefined : item.onPress}
+                  disabled={item.disabled}
                 >
                   <View style={styles.itemLeft}>
                     <View
@@ -140,10 +144,21 @@ export default function SettingsPage() {
                         style={[
                           styles.itemTitle,
                           item.isDestructive && { color: "#FF3B30" },
+                          item.disabled && { color: "#c7c7cc" },
                         ]}
                       >
                         {item.title}
                       </Text>
+                      {item.subtitle && (
+                        <Text
+                          style={[
+                            styles.itemSubtitle,
+                            item.disabled && { color: "#c7c7cc" },
+                          ]}
+                        >
+                          {item.subtitle}
+                        </Text>
+                      )}
                     </View>
                   </View>
                   <AntDesign name="right" size={13} color="#c7c7cc" />
@@ -163,15 +178,17 @@ export default function SettingsPage() {
         </View>
       </ScrollView>
 
-      {/* LINE連携モーダル */}
-      <LineAuthModal
-        visible={showLineAuthModal}
-        onClose={() => setShowLineAuthModal(false)}
-        onSuccess={() => {
-          setShowLineAuthModal(false);
-          Alert.alert("成功", "LINE連携が完了しました！");
-        }}
-      />
+      {/* LINE連携モーダル - 現在無効化 */}
+      {false && (
+        <LineAuthModal
+          visible={showLineAuthModal}
+          onClose={() => setShowLineAuthModal(false)}
+          onSuccess={() => {
+            setShowLineAuthModal(false);
+            Alert.alert("成功", "LINE連携が完了しました！");
+          }}
+        />
+      )}
 
       {/* パスワード変更モーダル */}
       {showPasswordModal && (
@@ -254,6 +271,9 @@ const styles = {
   },
   settingsItemLast: {
     borderBottomWidth: 0,
+  },
+  settingsItemDisabled: {
+    opacity: 0.6,
   },
   itemLeft: {
     flexDirection: "row" as const,

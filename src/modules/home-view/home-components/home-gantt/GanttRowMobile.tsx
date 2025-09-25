@@ -1,10 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "../../home-styles/home-view-styles";
-import type { SampleScheduleColumn } from "../../home-types/home-view-types";
-import { colors } from "@/common/common-theme/ThemeColors";
+import type { SampleScheduleColumn, SampleSlot } from "../../home-types/home-view-types";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
+import type {
+  ShiftItem,
+  ShiftStatus,
+  ShiftStatusConfig,
+} from "@/common/common-models/model-shift/shiftTypes";
 import { User } from "@/common/common-models/model-user/UserModel";
 
 interface GanttRowMobileProps {
@@ -21,7 +25,7 @@ interface GanttRowMobileProps {
   onShiftPress?: (shift: ShiftItem) => void;
   onEmptyCellPress?: (date: string, time: string, userId: string) => void;
   userColorsMap?: Record<string, string>;
-  getStatusConfig?: (status: string) => any;
+  getStatusConfig?: (status: ShiftStatus) => ShiftStatusConfig | undefined;
 }
 
 export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
@@ -44,7 +48,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
       style={{
         flexDirection: "row",
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
+        borderBottomColor: colors.border,
       }}
     >
       <View
@@ -67,9 +71,9 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
           );
           
           const statusConfig = getStatusConfig ? getStatusConfig(userShift?.status || 'approved') : null;
-          const backgroundColor = userShift 
-            ? (userColorsMap[user.uid] || statusConfig?.color || colors.primary)
-            : 'transparent';
+          const backgroundColor = userShift
+            ? userColorsMap[user.uid] || statusConfig?.color || colors.primary
+            : "transparent";
             
           return (
             <TouchableOpacity
@@ -79,8 +83,8 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 {
                   width: cellWidth,
                   height: cellHeight,
-                  backgroundColor: userShift ? backgroundColor : 'transparent',
-                  borderColor: userShift ? '#ddd' : '#f0f0f0',
+                  backgroundColor: userShift ? backgroundColor : "transparent",
+                  borderColor: userShift ? colors.border : colors.border,
                   borderWidth: 1,
                   opacity: userShift ? 0.8 : 0.3,
                   justifyContent: "center",
@@ -97,21 +101,25 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
               disabled={!userShift && !onEmptyCellPress}
             >
               {userShift && (
-                <View style={{ alignItems: 'center' }}>
+                <View style={{ alignItems: "center" }}>
                   <MaterialIcons
                     name={userShift.type === "class" ? "school" : "person"}
                     size={14}
                     color="white"
                   />
                   {userShift.subject && (
-                    <Text style={{ 
-                      fontSize: 10, 
-                      color: 'white', 
-                      textAlign: 'center',
-                      marginTop: 2
-                    }}>
-                      {userShift.subject.length > 6 ? userShift.subject.slice(0, 6) + '...' : userShift.subject}
-                    </Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: colors.text.white,
+                      textAlign: "center",
+                      marginTop: 2,
+                    }}
+                  >
+                    {userShift.subject.length > 6
+                      ? `${userShift.subject.slice(0, 6)}...`
+                      : userShift.subject}
+                  </Text>
                   )}
                 </View>
               )}
@@ -120,7 +128,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
         }
         
         // 従来のサンプルデータ表示（後方互換性のため）
-        const classSlot = sampleSchedule
+        const classSlot: SampleSlot | undefined = sampleSchedule
           .flatMap((col) => col.slots)
           .find(
             (s) =>
@@ -129,7 +137,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
               ((time === s.start && time === s.end && time === "22:00") ||
                 (time >= s.start && time < s.end))
           );
-        const staffSlot = sampleSchedule
+        const staffSlot: SampleSlot | undefined = sampleSchedule
           .flatMap((col) => col.slots)
           .find(
             (s) =>
@@ -149,13 +157,13 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 height: cellHeight,
                 backgroundColor: slot
                   ? slot.type === "class"
-                    ? "#eee"
-                    : undefined
+                    ? colors.surfaceElevated
+                    : slot.color || colors.primary + "1A"
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
-                    ? "#bbb"
-                    : colors.primary
+                    ? colors.border
+                    : slot.color || colors.primary
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
@@ -171,7 +179,9 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 name={slot.type === "class" ? "school" : "person"}
                 size={16}
                 color={
-                  slot.type === "class" ? colors.text.secondary : colors.primary
+                  slot.type === "class"
+                    ? colors.text.secondary
+                    : colors.text.white
                 }
                 style={{ marginRight: 4 }}
               />
@@ -180,7 +190,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
               <Text
                 style={[
                   styles.taskText,
-                  slot.type !== "class" && { color: colors.primary },
+                  slot.type !== "class" && { color: colors.text.white },
                 ]}
               >
                 {slot.task}

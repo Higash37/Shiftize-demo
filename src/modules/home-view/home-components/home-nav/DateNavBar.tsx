@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "../../home-styles/home-view-styles";
 import { FontAwesome } from "@expo/vector-icons";
 
@@ -49,13 +50,13 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
           style={{
             borderRadius: 16,
             borderWidth: 1,
-            borderColor: "#90caf9",
-            backgroundColor: "#e3f2fd",
+            borderColor: colors.primary + "66",
+            backgroundColor: colors.primary + "1A",
             paddingHorizontal: 10,
             paddingVertical: 8,
           }}
         >
-          <Text style={{ color: "#1976d2", fontWeight: "bold" }}>
+          <Text style={{ color: colors.primary, fontWeight: "bold" }}>
             {showFirst ? "前半" : "後半"}
           </Text>
         </Pressable>
@@ -91,7 +92,7 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         }}
       >
         <Pressable onPress={onPressSettings}>
-          <FontAwesome name="key" size={20} color="#666" />
+          <FontAwesome name="key" size={20} color={colors.text.secondary} />
         </Pressable>
       </View>
     )}

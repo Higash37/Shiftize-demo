@@ -12,11 +12,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { settingsBackupViewStyles as styles } from "./SettingsBackupView.styles";
 import type { SettingsBackupViewProps } from "./SettingsBackupView.types";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 const isDesktop = width >= 1024;
-const FOOTER_HEIGHT = 80; // フッターの高さ
-const HEADER_HEIGHT = 60; // ヘッダーの高さ
 
 export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
   loading,

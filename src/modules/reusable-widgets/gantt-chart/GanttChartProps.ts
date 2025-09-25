@@ -1,4 +1,4 @@
-import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 // --- Edit 用 ---
 export interface GanttChartMonthEditProps {

@@ -1,0 +1,45 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+- `src/app`: Expo Router entry points for native and web; marketing widgets live under `(landing)`.
+- `src/modules`: Feature domains (manager, user, master views) wired into screens via hooks and services.
+- `src/common`: Shared UI, constants, theming, and utilities exposed through path aliases such as `@components/*` and `@constants/*`.
+- `src/services` & `src/backend-migration`: API clients and migration adapters, including sample integrations.
+- `functions`: Firebase Cloud Functions (run npm commands from this subfolder); `public` and `assets` contain web exports and static media.
+- `tests` / `tests-examples`: Playwright end-to-end specs and reference scripts; keep new suites beside similar flows.
+
+## Build, Test, and Development Commands
+- `npm run dev` (alias `npm run start`): launches the Expo development server with hot reload.
+- `npm run web`: starts the web preview (`expo start --web`) while suppressing noisy Expo warnings.
+- `npm run build`: generates the static web bundle in `dist/`; run `npm run build:functions` first when Cloud Functions change.
+- `npm run build:all`: sequentially builds Firebase functions and the web bundle for deployment.
+- `npx playwright test`: executes the E2E suite defined in `playwright.config.ts`.
+
+## Coding Style & Naming Conventions
+- TypeScript is strict (`tsconfig.json`); favor typed React function components and hooks.
+- Follow the ESLint ruleset (`eslint.config.js`) and run `npx eslint src --max-warnings=0` before committing.
+- Use 2-space indentation, PascalCase for components, camelCase for functions/variables, and kebab-case for file names under `app/(landing)`.
+- Import via configured aliases (e.g., `@features/manager/...`) instead of deep relative paths.
+
+## Testing Guidelines
+- Place Playwright specs under `tests/` using a `*.spec.ts` suffix; mirror the route or feature under test in folder names.
+- Include at least one happy-path and one failure-state assertion for new flows.
+- Smoke-test visual regressions with `npx playwright test --project=chromium` after changing marketing layouts.
+
+## Commit & Pull Request Guidelines
+- Use imperative, type-prefixed commit messages (e.g., `feat: add shift draft banner`, `fix: sync calendar scroll`) and reference issues with `(#123)` when applicable.
+- PRs should describe intent, testing done (`npx playwright test` results, manual checks), and attach screenshots for UI changes (desktop + mobile when relevant).
+- Keep changes scoped; separate infrastructure updates (Firebase, Expo config) from UI features.
+
+## Security & Configuration Tips
+- Store secrets in `.env` or Expo config profiles; never commit raw API keys or Firebase service credentials.
+- When adding config, prefer `EXPO_PUBLIC_` variables for web-safe values and document new keys in `README.md`.
+- Review Firebase rules before deploying `functions/`; run `npm run build:functions` locally to surface lint/TypeScript errors.
+## Open Tasks
+| Area | Detail | Owner | Status |
+| --- | --- | --- | --- |
+| Gantt chart UI | Replace hard-coded `#fafbfc` / `#f5f5f5` backgrounds with theme-based whites in `GanttChartMonthView.styles.ts` and related components. | TBD | Backlog |
+| Home view | Align `home-common-screen.css` and `HomeGanttMobileScreen` backgrounds with iOS 26 white palette (remove `#1565c0`, `#f5f5f5`, `#e3f2fd`). | TBD | Backlog |
+| Teacher settings screens | Swap residual `#f5f5f5` surfaces in user/teacher settings (`user-shift-forms` styles, modal sheets) for theme tokens. | TBD | Backlog |
+| Legacy lint cleanup | Refactor `gantt-chart-common` and `user-shift-forms` legacy modules to eliminate unused code/`any` usage and clear remaining ESLint violations. | TBD | Backlog |
+

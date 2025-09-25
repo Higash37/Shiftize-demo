@@ -3,7 +3,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   // エラーとワーニングを上書き
   const originalConsoleWarn = console.warn;
   const originalConsoleError = console.error;
-  
+
   console.warn = function(...args) {
     const message = String(args[0] || '');
     if (message.includes('shadow') && (message.includes('deprecated') || message.includes('boxShadow'))) {
@@ -21,4 +21,5 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   };
 }
 
-import "expo-router/entry";
+// expo-routerプラグインが有効になっているため、手動でのentryインポートは不要
+// import "expo-router/entry";

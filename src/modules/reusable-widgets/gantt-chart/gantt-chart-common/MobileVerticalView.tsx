@@ -12,6 +12,7 @@ import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { Ionicons } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 interface MobileVerticalViewProps {
   shifts: ShiftItem[];
@@ -243,17 +244,17 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/* 左右分割レイアウト（モバイル用） */}
       <View style={{ flexDirection: "row", flex: 1, height: "100%" }}>
         {/* 左側：カレンダー */}
         <View
           style={{
             flex: 1,
-            backgroundColor: "#fff",
+            backgroundColor: colors.surface,
             paddingRight: 2,
             borderRightWidth: 1,
-            borderRightColor: "#e0e0e0",
+            borderRightColor: colors.border,
           }}
         >
           <View style={{ height: 310, overflow: "hidden" }}>
@@ -282,16 +283,16 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
         <View
           style={{
             flex: 1,
-            backgroundColor: "#fff",
+            backgroundColor: colors.surface,
             paddingLeft: 2,
           }}
         >
           {/* ヘッダー：選択日表示 */}
           <View
             style={{
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.surfaceElevated,
               borderBottomWidth: 1,
-              borderBottomColor: "#e0e0e0",
+              borderBottomColor: colors.border,
               paddingVertical: 8,
               paddingHorizontal: 8,
               flexDirection: "row",
@@ -317,7 +318,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                 onPress={handlePrevDay}
               >
                 <Text
-                  style={{ fontSize: 16, color: "#2196f3", fontWeight: "bold" }}
+                  style={{ fontSize: 16, color: colors.primary, fontWeight: "bold" }}
                 >
                   {"<"}
                 </Text>
@@ -327,7 +328,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                 style={{
                   fontSize: 12,
                   fontWeight: "bold",
-                  color: "#333",
+                  color: colors.text.primary,
                   marginHorizontal: 8,
                 }}
               >
@@ -344,7 +345,11 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                 onPress={handleNextDay}
               >
                 <Text
-                  style={{ fontSize: 16, color: "#2196f3", fontWeight: "bold" }}
+                  style={{
+                    fontSize: 16,
+                    color: colors.primary,
+                    fontWeight: "bold",
+                  }}
                 >
                   {">"}
                 </Text>
@@ -356,14 +361,16 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
               style={{
                 paddingHorizontal: 8,
                 paddingVertical: 4,
-                backgroundColor: hideEarlyHours ? "#ff9800" : "#e0e0e0",
+                backgroundColor: hideEarlyHours
+                  ? colors.warning
+                  : colors.surfaceElevated,
                 borderRadius: 12,
               }}
               onPress={() => setHideEarlyHours(!hideEarlyHours)}
             >
               <Text
                 style={{
-                  color: hideEarlyHours ? "#fff" : "#333",
+                  color: hideEarlyHours ? colors.text.white : colors.text.primary,
                   fontWeight: hideEarlyHours ? "bold" : "normal",
                   fontSize: 10,
                 }}
@@ -430,19 +437,19 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                               style={{
                                 height: 30,
                                 borderRightWidth: 1,
-                                borderRightColor: "#e0e0e0",
+                                borderRightColor: colors.border,
                                 borderBottomWidth: 1,
-                                borderBottomColor: "#e0e0e0",
+                                borderBottomColor: colors.border,
                                 justifyContent: "center",
                                 alignItems: "center",
-                                backgroundColor: "#f9f9f9",
+                                backgroundColor: colors.surface,
                               }}
                             >
                               <Text
                                 style={{
                                   fontSize: 13,
                                   fontWeight: "bold",
-                                  color: "#333",
+                                  color: colors.text.primary,
                                   textAlign: "center",
                                 }}
                                 numberOfLines={1}
@@ -519,12 +526,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                       style={{
                                         height: 20,
                                         borderRightWidth: 1,
-                                        borderRightColor: "#f0f0f0",
+                                        borderRightColor: colors.border,
                                         borderBottomWidth: 1,
-                                        borderBottomColor:
-                                          timeIndex % 2 === 0
-                                            ? "#f0f0f0"
-                                            : "#f5f5f5",
+                                        borderBottomColor: colors.border,
                                         backgroundColor,
                                         zIndex: 1, // シフトバーより下に配置
                                       }}

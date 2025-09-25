@@ -62,7 +62,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-white text-black">
       {/* Main Footer */}
       <div className="container-responsive py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
@@ -86,7 +86,7 @@ const Footer = () => {
               </div>
               <span className="text-xl font-bold">Shiftize</span>
             </div>
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <p className="text-black/60 mb-6 leading-relaxed">
               塾・カフェ・小売店のためのシフト管理システム。
               月間10時間の作業時間削減を実現し、効率的な店舗運営をサポートします。
             </p>
@@ -95,7 +95,7 @@ const Footer = () => {
                 <a
                   key={social.name}
                   href={social.href}
-                  className="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors"
+                  className="w-10 h-10 bg-white border border-black/10 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-colors text-black"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -113,7 +113,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-black/60 hover:text-blue-600 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -130,7 +130,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-black/60 hover:text-blue-600 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -147,7 +147,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-black/60 hover:text-blue-600 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -164,7 +164,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-black/60 hover:text-blue-600 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -176,15 +176,15 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-800">
+      <div className="border-t border-black/10">
         <div className="container-responsive py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-gray-400 text-sm">
+            <div className="text-black/60 text-sm">
               © {currentYear} Shiftize. All rights reserved.
             </div>
 
             {/* Developer Credit */}
-            <div className="text-gray-400 text-sm flex items-center space-x-2">
+            <div className="text-black/60 text-sm flex items-center space-x-2">
               <span>Created by</span>
               <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent font-semibold">
                 大学3年生
@@ -194,10 +194,10 @@ const Footer = () => {
             </div>
 
             {/* Security Badges */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
+            <div className="flex items-center space-x-4 text-xs text-black/70">
               <div className="flex items-center space-x-1">
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 text-black"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -213,7 +213,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-1">
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 text-black"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

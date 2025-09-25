@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 // 統一されたボタンスタイル
 export const UnifiedButtonStyles = StyleSheet.create({
@@ -27,11 +28,11 @@ export const UnifiedButtonStyles = StyleSheet.create({
   
   // セカンダリボタン（グレー系）
   secondaryButton: {
-    backgroundColor: "#f5f5f5",
-    borderColor: "#ddd",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
   },
   secondaryButtonText: {
-    color: "#333",
+    color: colors.text.primary,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -60,22 +61,22 @@ export const UnifiedButtonStyles = StyleSheet.create({
   
   // 切り替えボタン（アクティブ状態）
   toggleActiveButton: {
-    backgroundColor: "#e3f2fd",
-    borderColor: "#2196f3",
+    backgroundColor: colors.primary + "1A",
+    borderColor: colors.primary + "66",
   },
   toggleActiveButtonText: {
-    color: "#2196f3",
+    color: colors.primary,
     fontSize: 12,
     fontWeight: "600",
   },
   
   // 切り替えボタン（非アクティブ状態）
   toggleInactiveButton: {
-    backgroundColor: "#fff",
-    borderColor: "#ddd",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
   },
   toggleInactiveButtonText: {
-    color: "#666",
+    color: colors.text.secondary,
     fontSize: 12,
     fontWeight: "600",
   },

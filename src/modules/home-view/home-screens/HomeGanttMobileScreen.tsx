@@ -1,11 +1,24 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, ScrollView, useWindowDimensions, Alert, TouchableOpacity } from "react-native";
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  useWindowDimensions,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { GanttHeaderRow } from "../home-components/home-gantt/GanttHeaderRow";
 import { GanttRowMobile } from "../home-components/home-gantt/GanttRowMobile";
-import { ShiftItem, ShiftStatus, ClassTimeSlot, ShiftTaskSlot } from "@/common/common-models/model-shift/shiftTypes";
+import {
+  ShiftItem,
+  ShiftStatus,
+  ShiftStatusConfig,
+  ClassTimeSlot,
+  ShiftTaskSlot,
+} from "@/common/common-models/model-shift/shiftTypes";
 import { User } from "@/common/common-models/model-user/UserModel";
 import { useAuth } from "@/services/auth/useAuth";
 import { MobileShiftModal } from "@/modules/reusable-widgets/gantt-chart/view-modals/MobileShiftModal";
@@ -32,7 +45,6 @@ interface Props {
   onShiftUpdate?: () => void;
   refreshPage?: () => void;
   userColorsMap?: Record<string, string>;
-  onMonthChange?: (year: number, month: number) => void;
 }
 
 // レイアウト用定数
@@ -58,14 +70,12 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   onShiftUpdate,
   refreshPage,
   userColorsMap = {},
-  onMonthChange,
 }) => {
   const { user } = useAuth();
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const scrollViewRef = React.useRef<ScrollView>(null);
-  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
   const [newShiftData, setNewShiftData] = useState({
     date: "",
     startTime: "09:00",
@@ -85,25 +95,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   }>({ visible: false, type: null });
   
   // スクロール位置を保持する関数
-  const handleScroll = (event: any) => {
-    const { contentOffset } = event.nativeEvent;
-    setScrollPosition({ x: contentOffset.x, y: contentOffset.y });
-  };
-  
-  // スクロール位置を復元する関数
-  const restoreScrollPosition = () => {
-    setTimeout(() => {
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({
-          x: scrollPosition.x,
-          y: scrollPosition.y,
-          animated: false,
-        });
-      }
-    }, 100); // データ更新後に少し遅延して実行
-  };
-  
-  const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
+  const { saveShift, deleteShift } = useGanttShiftActions({
     user,
     users,
     onShiftUpdate: onShiftUpdate || (() => {}),
@@ -112,9 +104,12 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   
   const timeOptions = generateTimeOptions();
   const statusConfigs = DEFAULT_SHIFT_STATUS_CONFIG;
-  
-  const getStatusConfig = (status: string) => {
-    return statusConfigs.find((config) => config.status === status) || statusConfigs[0];
+
+  const getStatusConfig = (status: ShiftStatus): ShiftStatusConfig => {
+    return (
+      statusConfigs.find((config) => config.status === status) ||
+      statusConfigs[0]
+    );
   };
   
   // シフト編集
@@ -198,11 +193,12 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
       setShowAddModal(false);
       // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
     } catch (error) {
+      console.error(error);
       Alert.alert("エラー", "シフトの保存に失敗しました。");
     } finally {
       setIsLoading(false);
     }
-  }, [editingShift, newShiftData, saveShift, refreshPage]);
+  }, [editingShift, newShiftData, saveShift]);
   
   // シフト削除
   const handleDeleteShift = async (shiftId: string) => {
@@ -269,9 +265,9 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
           justifyContent: 'center',
           paddingVertical: 8,
           paddingHorizontal: 16,
-          backgroundColor: '#f5f5f5',
+          backgroundColor: colors.surface,
           borderBottomWidth: 1,
-          borderBottomColor: '#e0e0e0',
+          borderBottomColor: colors.border,
         }}>
           <TouchableOpacity
             style={[buttonStyle, { backgroundColor: '#4CAF50' }]}
@@ -298,8 +294,6 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
         contentContainerStyle={{ flex: 1 }}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
       >
         <View style={{ minWidth: windowWidth }}>
           <GanttHeaderRow

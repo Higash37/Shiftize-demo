@@ -39,7 +39,7 @@ const Hero = () => {
           </h1>
 
           {/* Sub Headline */}
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-black/80 mb-8 max-w-3xl mx-auto leading-relaxed">
             塾・カフェ・小売店のためのシフト管理システム
             <br />
             <span className="font-semibold text-blue-600">
@@ -57,25 +57,25 @@ const Hero = () => {
               <div className="text-3xl md:text-4xl font-bold gradient-text">
                 5+
               </div>
-              <div className="text-gray-600 text-sm">導入店舗</div>
+              <div className="text-black/80 text-sm">導入店舗</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold gradient-text">
                 80%
               </div>
-              <div className="text-gray-600 text-sm">時間削減</div>
+              <div className="text-black/80 text-sm">時間削減</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold gradient-text">
                 100+
               </div>
-              <div className="text-gray-600 text-sm">利用者数</div>
+              <div className="text-black/80 text-sm">利用者数</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold gradient-text">
                 27K+
               </div>
-              <div className="text-gray-600 text-sm">コード行数</div>
+              <div className="text-black/80 text-sm">コード行数</div>
             </div>
           </div>
 
@@ -123,7 +123,7 @@ const Hero = () => {
 
           {/* Trust Indicators */}
           <div className="text-center">
-            <p className="text-gray-500 text-sm mb-4">導入実績のある業界</p>
+            <p className="text-black/70 text-sm mb-4">導入実績のある業界</p>
             <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -141,7 +141,7 @@ const Hero = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-600 font-medium">学習塾</span>
+                <span className="text-black/80 font-medium">学習塾</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -159,7 +159,7 @@ const Hero = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-600 font-medium">カフェ</span>
+                <span className="text-black/80 font-medium">カフェ</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -177,7 +177,7 @@ const Hero = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-600 font-medium">小売店</span>
+                <span className="text-black/80 font-medium">小売店</span>
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ const Hero = () => {
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <div className="animate-bounce">
             <svg
-              className="w-6 h-6 text-gray-400"
+              className="w-6 h-6 text-black/60"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
