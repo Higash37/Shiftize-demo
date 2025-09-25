@@ -26,7 +26,7 @@ const Pricing = () => {
       ],
       cta: "無料で始める",
       popular: false,
-      color: "gray",
+      color: "white",
     },
     {
       name: "ベーシック",
@@ -113,7 +113,7 @@ const Pricing = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="gradient-text">シンプル</span>で分かりやすい料金
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto mb-8">
             店舗規模に合わせて選べるプラン。まずは無料でお試しください。
           </p>
 
@@ -121,14 +121,14 @@ const Pricing = () => {
           <div className="flex items-center justify-center space-x-4">
             <span
               className={`text-sm font-medium ${
-                !isYearly ? "text-gray-900" : "text-gray-500"
+                !isYearly ? "text-black" : "text-black/70"
               }`}
             >
               月額払い
             </span>
             <button
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isYearly ? "bg-blue-600" : "bg-gray-200"
+                isYearly ? "bg-blue-600" : "bg-white"
               }`}
               onClick={() => setIsYearly(!isYearly)}
               aria-label={
@@ -144,7 +144,7 @@ const Pricing = () => {
             </button>
             <span
               className={`text-sm font-medium ${
-                isYearly ? "text-gray-900" : "text-gray-500"
+                isYearly ? "text-black" : "text-black/70"
               }`}
             >
               年額払い
@@ -161,13 +161,13 @@ const Pricing = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {plans.map((plan) => {
             const colorClasses: Record<string, string> = {
-              gray: "border-gray-200 hover:border-gray-300",
+              white: "border-black/10 hover:border-black/10",
               blue: "border-blue-500 ring-2 ring-blue-500 ring-opacity-20",
               indigo: "border-indigo-500 hover:border-indigo-600",
             };
 
             const buttonClasses: Record<string, string> = {
-              gray: "btn-secondary",
+              white: "btn-secondary",
               blue: "btn-primary",
               indigo:
                 "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl",
@@ -195,7 +195,7 @@ const Pricing = () => {
                   {/* Header */}
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                    <p className="text-gray-600 mb-6">{plan.description}</p>
+                    <p className="text-black/80 mb-6">{plan.description}</p>
 
                     {/* Price */}
                     <div className="mb-4">
@@ -208,14 +208,14 @@ const Pricing = () => {
                           <span className="text-4xl font-bold gradient-text">
                             ¥{currentPrice.toLocaleString()}
                           </span>
-                          <span className="text-gray-600 ml-2">
+                          <span className="text-black/80 ml-2">
                             /{isYearly ? "年" : "月"}
                           </span>
                         </div>
                       )}
 
                       {isYearly && plan.originalPrice?.yearly && (
-                        <div className="text-sm text-gray-500 line-through">
+                        <div className="text-sm text-black/70 line-through">
                           通常 ¥{plan.originalPrice.yearly.toLocaleString()}/年
                         </div>
                       )}
@@ -241,7 +241,7 @@ const Pricing = () => {
                             />
                           </svg>
                         </div>
-                        <span className="text-gray-700 text-sm">{feature}</span>
+                        <span className="text-black text-sm">{feature}</span>
                       </li>
                     ))}
                     {plan.limitations.map((limitation) => (
@@ -249,9 +249,9 @@ const Pricing = () => {
                         key={limitation}
                         className="flex items-center space-x-3 opacity-50"
                       >
-                        <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                           <svg
-                            className="w-3 h-3 text-gray-400"
+                            className="w-3 h-3 text-black/60"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -264,7 +264,7 @@ const Pricing = () => {
                             />
                           </svg>
                         </div>
-                        <span className="text-gray-500 text-sm">
+                        <span className="text-black/70 text-sm">
                           {limitation}
                         </span>
                       </li>
@@ -282,22 +282,22 @@ const Pricing = () => {
         </div>
 
         {/* Enterprise */}
-        <div className="card p-8 bg-gradient-to-r from-gray-50 to-gray-100 text-center">
+        <div className="card p-8 bg-gradient-to-r from-white to-white text-center">
           <h3 className="text-2xl font-bold mb-4">エンタープライズ</h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-black/80 mb-6">
             大規模展開や特別な要件がある場合は、個別にご相談ください
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-6">
-            <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-700">
+            <span className="px-3 py-1 bg-white rounded-full text-sm text-black">
               多店舗管理
             </span>
-            <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-700">
+            <span className="px-3 py-1 bg-white rounded-full text-sm text-black">
               専用サーバー
             </span>
-            <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-700">
+            <span className="px-3 py-1 bg-white rounded-full text-sm text-black">
               カスタム開発
             </span>
-            <span className="px-3 py-1 bg-white rounded-full text-sm text-gray-700">
+            <span className="px-3 py-1 bg-white rounded-full text-sm text-black">
               SLA保証
             </span>
           </div>
@@ -312,10 +312,10 @@ const Pricing = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             {faq.map((item) => (
               <div key={item.question} className="card p-6">
-                <h4 className="font-bold text-gray-800 mb-3">
+                <h4 className="font-bold text-black mb-3">
                   {item.question}
                 </h4>
-                <p className="text-gray-600 leading-relaxed">{item.answer}</p>
+                <p className="text-black/80 leading-relaxed">{item.answer}</p>
               </div>
             ))}
           </div>
@@ -328,7 +328,7 @@ const Pricing = () => {
             <h3 className="text-xl font-bold mb-4 text-green-800">
               14日間返金保証
             </h3>
-            <p className="text-gray-700">
+            <p className="text-black">
               万が一ご満足いただけない場合は、14日以内であれば全額返金いたします。
               安心してお試しください。
             </p>

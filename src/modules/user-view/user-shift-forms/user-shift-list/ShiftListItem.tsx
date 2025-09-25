@@ -3,16 +3,11 @@ import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-import { colors } from "@/common/common-theme/ThemeColors";
-import { designSystem } from "@/common/common-constants/DesignSystem";
-import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftListItemProps } from "./types";
 import { shiftListItemStyles as styles } from "./styles";
-import Box from "@/common/common-ui/ui-base/BoxComponent";
-import { MultiStoreService } from "@/services/firebase/firebase-multistore";
 import { useAuth } from "@/services/auth/useAuth";
 
 // レスポンシブデザイン用の定数
@@ -63,6 +58,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
           setStoreName("");
         }
       } catch (error) {
+        console.error(error);
       }
     };
 

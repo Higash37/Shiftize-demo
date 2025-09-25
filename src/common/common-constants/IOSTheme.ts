@@ -195,12 +195,12 @@ export const iosTheme: IOSTheme = {
     quaternaryLabel: '#3C3C432D',          // 18% opacity
     
     systemBackground: '#FFFFFF',
-    secondarySystemBackground: '#F2F2F7',
+    secondarySystemBackground: 'rgba(255, 255, 255, 0.94)',
     tertiarySystemBackground: '#FFFFFF',
     
-    systemGroupedBackground: '#F2F2F7',
+    systemGroupedBackground: 'rgba(255, 255, 255, 0.94)',
     secondarySystemGroupedBackground: '#FFFFFF',
-    tertiarySystemGroupedBackground: '#F2F2F7',
+    tertiarySystemGroupedBackground: 'rgba(255, 255, 255, 0.94)',
     
     systemFill: '#78788033',               // 20% opacity
     secondarySystemFill: '#78788028',      // 16% opacity
@@ -215,14 +215,14 @@ export const iosTheme: IOSTheme = {
     
     // Custom Shift Colors using iOS System Colors
     shift: {
-      draft: '#8E8E93',           // System Gray
+      draft: '#FFFFFF',           // ios26 White
       pending: '#FF9500',         // System Orange
       approved: '#007AFF',        // System Blue
       rejected: '#FF3B30',        // System Red
-      deleted: '#8E8E93',         // System Gray
+      deleted: '#FFFFFF',         // ios26 White
       completed: '#34C759',       // System Green
       deletion_requested: '#FF9500', // System Orange
-      purged: '#8E8E93',          // System Gray (hidden)
+      purged: '#FFFFFF',          // ios26 White (hidden)
     },
   },
   

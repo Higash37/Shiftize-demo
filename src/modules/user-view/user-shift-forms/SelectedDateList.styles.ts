@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 16,
     elevation: 2,
@@ -12,21 +13,21 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold" as const,
     marginBottom: 8,
-    color: "#333",
+    color: colors.text.primary,
   },
   calendar: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: "bold" as const,
     marginBottom: 12,
-    color: "#003366",
+    color: colors.primary,
   },
   item: {
-    backgroundColor: "#F2F4F8",
+    backgroundColor: colors.surfaceElevated,
     padding: 12,
     borderRadius: 12,
     flexDirection: "row" as const,
@@ -39,16 +40,16 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
   },
   removeText: {
-    color: "#007AFF",
+    color: colors.primary,
     fontWeight: "bold" as const,
   },
   noneText: {
-    color: "#999",
+    color: colors.text.secondary,
     fontStyle: "italic",
   },
   picker: {
     height: 50,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
   },
 });

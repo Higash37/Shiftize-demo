@@ -196,7 +196,7 @@ const Features = () => {
   return (
     <section
       id="features"
-      className="section-padding bg-gradient-to-b from-gray-50 to-white"
+      className="section-padding bg-gradient-to-b from-white to-white"
     >
       <div className="container-responsive">
         {/* Section Header */}
@@ -204,7 +204,7 @@ const Features = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="gradient-text">充実の機能</span>で完全サポート
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto">
             管理者もスタッフも使いやすい、双方向のシフト管理システム
           </p>
         </div>
@@ -216,7 +216,7 @@ const Features = () => {
               className={`px-8 py-3 rounded-xl font-semibold transition-all ${
                 activeTab === "manager"
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                  : "text-gray-600 hover:text-blue-600"
+                  : "text-black/80 hover:text-blue-600"
               }`}
               onClick={() => setActiveTab("manager")}
             >
@@ -226,7 +226,7 @@ const Features = () => {
               className={`px-8 py-3 rounded-xl font-semibold transition-all ${
                 activeTab === "staff"
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                  : "text-gray-600 hover:text-blue-600"
+                  : "text-black/80 hover:text-blue-600"
               }`}
               onClick={() => setActiveTab("staff")}
             >
@@ -249,14 +249,14 @@ const Features = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
-                      <h3 className="text-xl font-bold text-gray-800">
+                      <h3 className="text-xl font-bold text-black">
                         {feature.title}
                       </h3>
                       <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold">
                         {feature.highlight}
                       </span>
                     </div>
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-black/80 leading-relaxed">
                       {feature.description}
                     </p>
                   </div>
@@ -271,7 +271,7 @@ const Features = () => {
           <h3 className="text-2xl font-bold text-center mb-8 gradient-text">
             シフトステータス管理
           </h3>
-          <p className="text-center text-gray-600 mb-8">
+          <p className="text-center text-black/80 mb-8">
             承認フローが明確で、トラブルを防ぐ仕組み
           </p>
 
@@ -295,12 +295,12 @@ const Features = () => {
                     >
                       {item.status}
                     </div>
-                    <p className="text-xs text-gray-500 max-w-20">
+                    <p className="text-xs text-black/70 max-w-20">
                       {item.description}
                     </p>
                   </div>
                   {index < statusFlow.length - 1 && (
-                    <div className="text-gray-400 text-xl hidden sm:block">
+                    <div className="text-black/60 text-xl hidden sm:block">
                       →
                     </div>
                   )}
@@ -316,7 +316,7 @@ const Features = () => {
             <h3 className="text-2xl font-bold mb-4 gradient-text">
               全機能を無料で体験
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-black/80 mb-6">
               実際の画面で使い心地を確認してみてください
             </p>
             <button className="btn-primary">

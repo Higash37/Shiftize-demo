@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback, Fragment } from "react";
-import { View, Alert, Platform, Text, TouchableOpacity, FlatList, ScrollView } from "react-native";
+import {
+  View,
+  Alert,
+  Platform,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { useAuth } from "@/services/auth/useAuth";
 import { MasterHeader, Header } from "@/common/common-ui/ui-layout";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,6 +24,7 @@ import { CollectionRecoveryService } from "@/services/file/collectionRecovery";
 import { FileExplorer } from "./file-browser-ui/FileExplorer/FileExplorer";
 import { FileUploadModal } from "./file-browser-ui/FileUploadModal/FileUploadModal";
 import { CreateFolderModal } from "./file-browser-ui/CreateFolderModal/CreateFolderModal";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 interface FileManagerViewProps {
   hideHeader?: boolean;
@@ -26,6 +36,8 @@ export function FileManagerView({
   showBreadcrumbs = true,
 }: FileManagerViewProps) {
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const [folders, setFolders] = useState<Folder[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -45,89 +57,6 @@ export function FileManagerView({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   // 既存Storageファイルとの同期
-  const syncStorageFiles = useCallback(async () => {
-    if (!user?.storeId) return;
-
-    try {
-
-      // Storage内の全ファイルを取得
-      const storageFiles = await StorageService.getAllStorageFiles(
-        user.storeId
-      );
-
-      if (storageFiles.length === 0) {
-        return;
-      }
-
-
-      // 各ファイルをFirestoreに同期
-      for (const storageFile of storageFiles) {
-        try {
-          // 既存のFileItemを確認
-          const existingFiles = await FileService.searchFiles(user.storeId, {
-            query: storageFile.name,
-          });
-
-          const existingFile = existingFiles.find(
-            (f) => f.storageUrl === storageFile.fullPath
-          );
-
-          if (!existingFile) {
-            // 新しいファイルとしてFirestoreに登録
-
-            // フォルダIDに対応するフォルダを確認/作成
-            let targetFolderId = storageFile.folderId;
-            if (
-              targetFolderId &&
-              targetFolderId !== "root" &&
-              targetFolderId !== ""
-            ) {
-              const folderExists = await FolderService.getFoldersByStore(
-                user.storeId
-              ).then((folders) => folders.find((f) => f.id === targetFolderId));
-
-              if (!folderExists) {
-                // フォルダが存在しない場合は「既存ファイル」フォルダを作成
-                targetFolderId = await FolderService.createFolder(
-                  "既存ファイル",
-                  undefined,
-                  user.storeId,
-                  user.uid
-                );
-              }
-            } else {
-              // root または空文字の場合はルートファイルとして扱う
-              targetFolderId = "";
-            }
-
-            await FileService.createFile({
-              name: storageFile.name,
-              originalName: storageFile.name,
-              type: StorageService.getFileType(storageFile.contentType),
-              mimeType: storageFile.contentType,
-              size: storageFile.size,
-              folderId: targetFolderId,
-              storeId: user.storeId,
-              storageUrl: storageFile.fullPath,
-              downloadUrl: storageFile.downloadUrl,
-              metadata: {
-                description: "既存ファイルから同期",
-              },
-              createdAt: new Date(storageFile.timeCreated),
-              updatedAt: new Date(),
-              createdBy: user.uid,
-              isDeleted: false,
-              downloadCount: 0,
-            });
-          }
-        } catch (error) {
-        }
-      }
-
-    } catch (error) {
-    }
-  }, [user?.storeId, user?.uid]);
-
   // コレクション診断と復旧
   const diagnosisAndRecover = useCallback(async () => {
     if (!user?.storeId) return;
@@ -166,7 +95,7 @@ export function FileManagerView({
                     }`
                   );
                   await loadData(currentFolderId);
-                } catch (error) {
+                } catch {
                   Alert.alert("エラー", "復旧処理に失敗しました。");
                 }
               },
@@ -176,7 +105,7 @@ export function FileManagerView({
       } else {
         Alert.alert("診断結果", `コレクションは正常です。\n\n${report}`);
       }
-    } catch (error) {
+    } catch {
       Alert.alert("エラー", "診断処理に失敗しました。");
     } finally {
       setIsLoading(false);
@@ -217,7 +146,7 @@ export function FileManagerView({
         } else {
           setBreadcrumbs([]);
         }
-      } catch (error) {
+      } catch {
         Alert.alert("エラー", "データの読み込みに失敗しました。");
       } finally {
         setIsLoading(false);
@@ -259,7 +188,7 @@ export function FileManagerView({
         // モバイルの場合はダウンロード
         await StorageService.downloadFile(file.storageUrl, file.originalName);
       }
-    } catch (error) {
+    } catch {
       Alert.alert("エラー", "ファイルを開けませんでした。");
     }
   }, []);
@@ -301,10 +230,6 @@ export function FileManagerView({
   }, [loadData, currentFolderId]);
 
   // ソート変更処理
-  const handleSortChange = useCallback((newSortOptions: FileSortOptions) => {
-    setSortOptions(newSortOptions);
-  }, []);
-
   // フォルダ長押し処理（コンテキストメニュー）
   const handleFolderLongPress = useCallback(
     (folder: Folder) => {
@@ -333,9 +258,9 @@ export function FileManagerView({
                       await FolderService.deleteFolder(folder.id);
                       await loadData(currentFolderId);
                       Alert.alert("成功", "フォルダを削除しました。");
-                    } catch (error) {
-                      Alert.alert("エラー", "フォルダの削除に失敗しました。");
-                    }
+        } catch {
+          Alert.alert("エラー", "フォルダの削除に失敗しました。");
+        }
                   },
                 },
               ]
@@ -383,9 +308,9 @@ export function FileManagerView({
                       await StorageService.deleteFile(file.storageUrl);
                       await loadData(currentFolderId);
                       Alert.alert("成功", "ファイルを削除しました。");
-                    } catch (error) {
-                      Alert.alert("エラー", "ファイルの削除に失敗しました。");
-                    }
+        } catch {
+          Alert.alert("エラー", "ファイルの削除に失敗しました。");
+        }
                   },
                 },
               ]
@@ -470,7 +395,7 @@ export function FileManagerView({
           await StorageService.downloadFile(file.storageUrl, file.originalName);
           printedCount++;
         }
-      } catch (error) {
+      } catch {
       }
     }
 
@@ -591,13 +516,65 @@ export function FileManagerView({
     return null;
   }
 
+  if (isMobile) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.surface }}>
+        {!hideHeader && (user?.role === "master" ? (
+          <MasterHeader title="ファイル管理" />
+        ) : (
+          <Header title="ファイル管理" />
+        ))}
+
+        <FileExplorer
+          folders={folders}
+          files={files}
+          breadcrumbs={breadcrumbs}
+          currentFolderId={currentFolderId}
+          isLoading={isLoading}
+          sortOptions={sortOptions}
+          onFolderPress={handleFolderPress}
+          onFilePress={handleFilePress}
+          onBreadcrumbPress={handleBreadcrumbPress}
+          onCreateFolder={() => setShowCreateFolderModal(true)}
+          onUploadFiles={() => {
+            setUploadModalFolderId(currentFolderId);
+            setShowUploadModal(true);
+          }}
+          onSortChange={setSortOptions}
+          onFolderLongPress={handleFolderLongPress}
+          onFileLongPress={handleFileLongPress}
+          onDiagnosisAndRecover={diagnosisAndRecover}
+          hideHeader={!showBreadcrumbs}
+          showBreadcrumbs={showBreadcrumbs}
+        />
+
+        <FileUploadModal
+          visible={showUploadModal}
+          folderId={uploadModalFolderId ?? ""}
+          storeId={user.storeId}
+          onClose={() => {
+            setShowUploadModal(false);
+            setUploadModalFolderId(null);
+          }}
+          onUploadComplete={handleUploadComplete}
+        />
+
+        <CreateFolderModal
+          visible={showCreateFolderModal}
+          onClose={() => setShowCreateFolderModal(false)}
+          onCreateFolder={handleCreateFolder}
+        />
+      </View>
+    );
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      {user?.role === "master" ? (
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      {!hideHeader && (user?.role === "master" ? (
         <MasterHeader title="ファイル管理" />
       ) : (
         <Header title="ファイル管理" />
-      )}
+      ))}
       
       {/* パンくずリスト */}
       <View style={{ 

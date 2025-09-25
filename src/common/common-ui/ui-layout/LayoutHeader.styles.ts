@@ -6,10 +6,13 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    padding: 12,
+    backgroundColor: colors.header.background,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.header.separator,
+    ...(Platform.OS === "web" && ({
+      backdropFilter: "blur(18px)",
+    } as any)),
     width: "100%", // ヘッダーを画面幅いっぱいに
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
@@ -86,12 +89,12 @@ export const styles = StyleSheet.create({
   // モーダル関連のスタイル
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
   },
   storeModalContainer: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     width: "80%",
     maxWidth: 400,
     borderRadius: 12,
@@ -102,8 +105,8 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.header.separator,
   },
   storeModalTitle: {
     fontSize: 18,
@@ -118,8 +121,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.header.separator,
   },
   storeItemSelected: {
     backgroundColor: colors.primary + "10", // 10% opacity
@@ -141,15 +144,15 @@ export const styles = StyleSheet.create({
   // 店舗管理オプション
   storeManagementOptions: {
     paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.header.separator,
   },
   managementOption: {
     flexDirection: "row",
     alignItems: "flex-start",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.header.separator,
   },
   managementOptionText: {
     fontSize: 16,

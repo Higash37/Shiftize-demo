@@ -341,7 +341,7 @@ export function MasterFooter({}: MasterFooterProps) {
             style={{
               height: 10,
               width: "100%",
-              backgroundColor: colors.background,
+              backgroundColor: colors.footer.background,
             }}
           />
         ))}

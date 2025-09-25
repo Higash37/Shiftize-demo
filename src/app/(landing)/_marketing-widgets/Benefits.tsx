@@ -98,7 +98,7 @@ const Benefits = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             こんな<span className="text-red-500">課題</span>ありませんか？
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto">
             多くの店舗が抱えるシフト管理の悩み
           </p>
         </div>
@@ -110,8 +110,8 @@ const Benefits = () => {
               className="card p-6 text-center border-red-100"
             >
               <div className="text-4xl mb-4">{problem.icon}</div>
-              <h3 className="font-bold text-gray-800 mb-3">{problem.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <h3 className="font-bold text-black mb-3">{problem.title}</h3>
+              <p className="text-black/80 text-sm leading-relaxed">
                 {problem.description}
               </p>
             </div>
@@ -133,7 +133,7 @@ const Benefits = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="gradient-text">劇的な改善</span>を実現
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto">
             実際の導入店舗で証明された効果
           </p>
         </div>
@@ -169,10 +169,10 @@ const Benefits = () => {
                 >
                   {benefit.stat}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">
+                <h3 className="text-xl font-bold mb-4 text-black">
                   {benefit.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-black/80 leading-relaxed">
                   {benefit.description}
                 </p>
               </div>
@@ -184,7 +184,7 @@ const Benefits = () => {
         <div className="mt-16 text-center">
           <div className="card p-8 max-w-4xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="text-4xl text-blue-600 mb-4">"</div>
-            <blockquote className="text-xl text-gray-700 italic mb-6">
+            <blockquote className="text-xl text-black italic mb-6">
               導入前は毎週3時間かけてExcelでシフトを作っていましたが、今では30分で完了。
               急な講師の欠勤にも、募集機能で素早く対応できるようになりました。
             </blockquote>
@@ -193,8 +193,8 @@ const Benefits = () => {
                 A
               </div>
               <div>
-                <div className="font-bold text-gray-800">個別指導塾A 塾長</div>
-                <div className="text-gray-600 text-sm">導入から1ヶ月</div>
+                <div className="font-bold text-black">個別指導塾A 塾長</div>
+                <div className="text-black/80 text-sm">導入から1ヶ月</div>
               </div>
             </div>
           </div>

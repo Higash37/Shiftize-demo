@@ -5,27 +5,27 @@ import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerat
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
-const IS_TABLET = SCREEN_WIDTH > 768;
-
 export const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    backgroundColor: colors.footer.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.footer.separator,
     width: "100%", // 画面端まで伸ばす
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     justifyContent: "space-around", // タブを均等に配置
     alignItems: "center", // 縦方向の中央揃え
     minHeight: 60, // 最小高さを保証
-    paddingHorizontal: 8, // 左右の余白
-    ...(Platform.OS === "web" && {
+    paddingHorizontal: 12, // 左右の余白
+    paddingVertical: 6,
+    ...(Platform.OS === "web" && ({
       position: "relative" as any,
       bottom: 0,
       left: 0,
       right: 0,
-    }),
+      backdropFilter: "blur(18px)",
+    } as any)),
   },
   tab: {
     flex: 1,
@@ -47,10 +47,10 @@ export const styles = StyleSheet.create({
     marginTop: IS_SMALL_DEVICE ? 2 : 4,
   },
   activeLabel: {
-    color: colors.primary,
+    color: colors.footer.tint,
   },
   createLabel: {
-    color: colors.primary,
+    color: colors.footer.tint,
   },
   disabledLabel: {
     color: colors.text.secondary,

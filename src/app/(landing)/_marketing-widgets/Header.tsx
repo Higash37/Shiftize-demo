@@ -45,25 +45,25 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <a
               href="#features"
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+              className="text-black/80 hover:text-blue-600 font-medium transition-colors"
             >
               機能
             </a>
             <a
               href="#benefits"
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+              className="text-black/80 hover:text-blue-600 font-medium transition-colors"
             >
               導入効果
             </a>
             <a
               href="#screenshots"
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+              className="text-black/80 hover:text-blue-600 font-medium transition-colors"
             >
               画面
             </a>
             <a
               href="#pricing"
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+              className="text-black/80 hover:text-blue-600 font-medium transition-colors"
             >
               料金
             </a>
@@ -77,7 +77,7 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-white transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="メニューを開く"
             title="メニューを開く"
@@ -113,25 +113,25 @@ const Header = () => {
             <div className="py-4 space-y-4">
               <a
                 href="#features"
-                className="block px-4 py-2 text-gray-600 hover:text-blue-600 font-medium"
+                className="block px-4 py-2 text-black/80 hover:text-blue-600 font-medium"
               >
                 機能
               </a>
               <a
                 href="#benefits"
-                className="block px-4 py-2 text-gray-600 hover:text-blue-600 font-medium"
+                className="block px-4 py-2 text-black/80 hover:text-blue-600 font-medium"
               >
                 導入効果
               </a>
               <a
                 href="#screenshots"
-                className="block px-4 py-2 text-gray-600 hover:text-blue-600 font-medium"
+                className="block px-4 py-2 text-black/80 hover:text-blue-600 font-medium"
               >
                 画面
               </a>
               <a
                 href="#pricing"
-                className="block px-4 py-2 text-gray-600 hover:text-blue-600 font-medium"
+                className="block px-4 py-2 text-black/80 hover:text-blue-600 font-medium"
               >
                 料金
               </a>

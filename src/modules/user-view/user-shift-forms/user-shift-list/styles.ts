@@ -1,10 +1,9 @@
 import { StyleSheet, Dimensions } from "react-native";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { theme } from "@/common/common-theme/ThemeDefinition";
 import { IS_TABLET, IS_SMALL_DEVICE } from "@/common/common-utils/util-style";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const windowWidth = Dimensions.get("window").width;
 
 export const shiftListItemStyles = StyleSheet.create({
@@ -142,6 +141,10 @@ export const shiftListViewStyles = StyleSheet.create({
     padding: 0,
     margin: 0,
   },
+  calendarContainerCompact: {
+    marginTop: -60,
+    marginBottom: 0,
+  },
   listContainer: {
     flex: IS_TABLET ? 1 : undefined,
     width: "96%", // カレンダーと同じ幅に固定
@@ -151,6 +154,7 @@ export const shiftListViewStyles = StyleSheet.create({
     paddingLeft: 0,
     marginLeft: 0,
     marginRight: 0,
+    marginTop: -50,
     alignSelf: "center", // 中央揃え
   },
   listContentContainer: {
@@ -158,7 +162,7 @@ export const shiftListViewStyles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "column",
     paddingHorizontal: 0, // 水平パディングを削除して幅を合わせる
-    paddingBottom: 80, // 下部に余白を追加して、ボタンに隠れないようにする
+    paddingBottom: 0, // 下部に余白を追加して、ボタンに隠れないようにする
     width: "100%", // 親コンテナの幅いっぱいに広げる
     borderRadius: 16, // カレンダーと同じ角丸
   },

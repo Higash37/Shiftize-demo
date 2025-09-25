@@ -66,7 +66,7 @@ const Testimonials = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             お客様の<span className="gradient-text">成功事例</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-black/80 max-w-3xl mx-auto">
             実際にご利用いただいているお客様の声
           </p>
         </div>
@@ -82,7 +82,7 @@ const Testimonials = () => {
               <div className="text-4xl text-blue-600 mb-4">"</div>
 
               {/* Content */}
-              <blockquote className="text-gray-700 mb-6 leading-relaxed italic">
+              <blockquote className="text-black mb-6 leading-relaxed italic">
                 {testimonial.content}
               </blockquote>
 
@@ -92,7 +92,7 @@ const Testimonials = () => {
                   <div className="text-lg font-bold gradient-text">
                     {testimonial.stats}
                   </div>
-                  <div className="text-gray-600 text-sm">
+                  <div className="text-black/80 text-sm">
                     {testimonial.period}
                   </div>
                 </div>
@@ -104,10 +104,10 @@ const Testimonials = () => {
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <div className="font-bold text-gray-800">
+                  <div className="font-bold text-black">
                     {testimonial.name}
                   </div>
-                  <div className="text-gray-600 text-sm">
+                  <div className="text-black/80 text-sm">
                     {testimonial.role}
                   </div>
                 </div>
@@ -167,7 +167,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">週3時間のシフト作成作業</span>
+                <span className="text-black">週3時間のシフト作成作業</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
@@ -185,7 +185,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">Excelの複雑な管理</span>
+                <span className="text-black">Excelの複雑な管理</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
@@ -203,7 +203,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">急な欠勤への対応に苦労</span>
+                <span className="text-black">急な欠勤への対応に苦労</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
@@ -221,7 +221,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">
+                <span className="text-black">
                   スタッフからの問い合わせ多数
                 </span>
               </li>
@@ -251,7 +251,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">30分でシフト作成完了</span>
+                <span className="text-black">30分でシフト作成完了</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
@@ -269,7 +269,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">直感的なドラッグ&ドロップ</span>
+                <span className="text-black">直感的なドラッグ&ドロップ</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
@@ -287,7 +287,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">募集機能で即座に穴埋め</span>
+                <span className="text-black">募集機能で即座に穴埋め</span>
               </li>
               <li className="flex items-center space-x-3">
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
@@ -305,7 +305,7 @@ const Testimonials = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">問い合わせゼロを実現</span>
+                <span className="text-black">問い合わせゼロを実現</span>
               </li>
             </ul>
           </div>

@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
-import { shadows } from "@/common/common-constants/ThemeConstants";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fafbfc", // よりモダンな背景色
+    backgroundColor: colors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     width: 320,
     maxHeight: "100%", // 画面の80%以下に制限
     borderRadius: 16, // より丸みを帯びたデザイン
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginRight: 8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.surfaceElevated,
   },
   cancelButtonText: {
     color: "#666",
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.surfaceElevated,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     elevation: 2,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     padding: 10,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     borderRadius: 5,
   },
   costLabel: {

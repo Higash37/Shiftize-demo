@@ -4,27 +4,31 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  useWindowDimensions,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { useResponsiveCalendarSize } from "./constants";
 
+interface ResponsiveHeaderStyle {
+  fontSize?: number;
+}
+
 interface CalendarHeaderProps {
   date: Date;
   onYearMonthSelect: () => void;
-  responsiveStyle?: any;
+  responsiveStyle?: ResponsiveHeaderStyle;
 }
 
 /**
  * カレンダーヘッダーコンポーネント
  * 年月表示と日付選択ボタンを含む
  */
-export const CalendarHeader = memo<CalendarHeaderProps>(
-  ({ date, onYearMonthSelect, responsiveStyle }) => {
-    const { isSmallScreen } = useResponsiveCalendarSize();
-    const { width } = useWindowDimensions();
-
+const CalendarHeaderComponent: React.FC<CalendarHeaderProps> = ({
+  date,
+  onYearMonthSelect,
+  responsiveStyle,
+}) => {
+  const { isSmallScreen } = useResponsiveCalendarSize();
     // レスポンシブサイズに基づくスタイル
     const dynamicStyles = useMemo(
       () => ({
@@ -64,15 +68,18 @@ export const CalendarHeader = memo<CalendarHeaderProps>(
         </TouchableOpacity>
       </View>
     );
-  }
-);
+  };
+
+CalendarHeaderComponent.displayName = "CalendarHeader";
+
+export const CalendarHeader = memo(CalendarHeaderComponent);
 
 const styles = StyleSheet.create({
   calendarHeader: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 4,
+    paddingVertical: 0,
     backgroundColor: "transparent",
   },
   monthSelector: {

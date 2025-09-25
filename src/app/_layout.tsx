@@ -207,7 +207,7 @@ function RootLayoutNav() {
   const getLayoutStyle = () => {
     return {
       flex: 1,
-      backgroundColor: "#F2F2F7",
+      backgroundColor: colors.background,
     };
   };
 
@@ -230,7 +230,7 @@ export default function RootLayout() {
           colors: {
             primary: colors.primary,
             background: colors.background,
-            card: colors.background,
+            card: colors.surface,
             text: colors.text.primary,
             border: colors.border,
             notification: colors.primary,

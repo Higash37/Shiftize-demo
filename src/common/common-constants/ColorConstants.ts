@@ -5,6 +5,7 @@ export type ColorsType = {
   secondary: string;
   background: string;
   surface: string;
+  surfaceElevated: string;
   text: {
     primary: string;
     secondary: string;
@@ -12,37 +13,64 @@ export type ColorsType = {
     disabled: string;
   };
   border: string;
+  overlay: string;
+  header: {
+    background: string;
+    tint: string;
+    separator: string;
+  };
+  footer: {
+    background: string;
+    tint: string;
+    separator: string;
+  };
   error: string;
   success: string;
   warning: string;
   selected: string;
   shift: Record<ShiftStatus, string>;
+  status: Record<ShiftStatus, string>;
+};
+
+const shiftStatusPalette: Record<ShiftStatus, string> = {
+  draft: "#FFFFFF",
+  pending: "#FF9F0A",
+  approved: "#0A84FF",
+  rejected: "#FF3B30",
+  deleted: "#FFFFFF",
+  completed: "#34C759",
+  deletion_requested: "#FF9F0A",
+  purged: "#FFFFFF",
 };
 
 export const colors: ColorsType = {
-  primary: "#1565C0", // メインカラー（ヘッダーと同じ青）
-  secondary: "#657786", // サブカラー
-  background: "#FFFFFF", // 背景色
-  surface: "#F5F8FA", // カード背景色
+  primary: "#0A84FF", // iOS systemBlue accent
+  secondary: "#5E5CE6", // systemIndigo
+  background: "rgba(255, 255, 255, 0.94)", // shared translucent background
+  surface: "#FFFFFF", // systemBackground
+  surfaceElevated: "rgba(255, 255, 255, 0.82)", // frosted surfaces
   text: {
-    primary: "#14171A", // メインテキスト
-    secondary: "#657786", // サブテキスト
-    white: "#FFFFFF", // 白テキスト
-    disabled: "#AAB8C2", // 無効テキスト
+    primary: "#1C1C1E", // label
+    secondary: "#6E6E73", // secondaryLabel
+    white: "#FFFFFF",
+    disabled: "#AEAEB2", // tertiaryLabel
   },
-  border: "#E1E8ED", // ボーダー
-  error: "#E0245E", // エラー
-  success: "#17BF63", // 成功
-  warning: "#FFAD1F", // 警告
-  selected: "#E3F2FD",
-  shift: {
-    draft: "#9E9E9E", // 灰色 - 下書き
-    pending: "#FFA726", // 黄 - 変更申請中
-    approved: "#1565C0", // 青色 - 承認済み
-    rejected: "#EF5350", // 赤 - 削除済み
-    deleted: "#B0BEC5", // 青 - 承認済み（未完了）
-    completed: "#42A5F5", // 青色 - 完了
-    deletion_requested: "#FFA500", // オレンジ - 削除申請中
-    purged: "#000000", // 黒 - 完全非表示
+  border: "rgba(60, 60, 67, 0.18)", // separator on light backgrounds
+  overlay: "rgba(255, 255, 255, 0.6)", // blur overlay tint
+  header: {
+    background: "rgba(255, 255, 255, 0.9)",
+    tint: "#0A84FF",
+    separator: "rgba(60, 60, 67, 0.29)",
   },
+  footer: {
+    background: "rgba(255, 255, 255, 0.9)",
+    tint: "#0A84FF",
+    separator: "rgba(60, 60, 67, 0.18)",
+  },
+  error: "#FF3B30",
+  success: "#34C759",
+  warning: "#FF9F0A",
+  selected: "rgba(10, 132, 255, 0.12)",
+  shift: shiftStatusPalette,
+  status: shiftStatusPalette,
 };

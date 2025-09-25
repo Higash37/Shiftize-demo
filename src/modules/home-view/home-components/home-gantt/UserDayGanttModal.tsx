@@ -7,16 +7,15 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-import { styles as ganttStyles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
 import { timeSlots } from "../../home-data/scheduleSample";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 
 interface UserDayGanttModalProps {
   visible: boolean;
   onClose: () => void;
   userName: string;
-  times: string[];
   sampleSchedule: SampleScheduleColumn[];
 }
 
@@ -24,7 +23,6 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
   visible,
   onClose,
   userName,
-  times,
   sampleSchedule,
 }) => {
   // ユーザーのその日の全シフトを抽出
@@ -49,8 +47,8 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
       task: slot ? slot.task : "",
       color: slot
         ? slot.type === "class"
-          ? "#eee"
-          : undefined // スタッフのときは背景色なし
+          ? colors.surfaceElevated
+          : slot.color || colors.primary + "1A" // スタッフはカラーか薄いアクセント
         : undefined,
       type: slot ? slot.type : undefined,
     });
@@ -74,7 +72,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
               {userSlots.length > 0 && (
                 <Text
                   style={{
-                    color: "black",
+                    color: colors.text.primary,
                     fontWeight: "bold",
                     marginBottom: 8,
                     fontSize: 25,
@@ -103,7 +101,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                   >
                     <Text
                       style={{
-                        color: "#1976d2",
+                        color: colors.primary,
                         fontWeight: "bold",
                         minWidth: 90,
                         textAlign: "center", // 中央揃え
@@ -113,7 +111,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                     </Text>
                     <Text
                       style={{
-                        color: row.task ? "#333" : "#bbb",
+                        color: row.task ? colors.text.primary : colors.text.secondary,
                         fontSize: 15,
                         marginLeft: 8,
                       }}
@@ -139,7 +137,7 @@ const modalStyles = StyleSheet.create({
     alignItems: "center",
   },
   content: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
     minWidth: 320,
@@ -153,29 +151,6 @@ const modalStyles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     marginBottom: 16,
-    color: "#1976d2",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    minHeight: 32,
-  },
-  activeRow: {
-    backgroundColor: "#e3f2fd",
-  },
-  time: {
-    width: 60,
-    color: "#1976d2",
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  task: {
-    color: "#333",
-    fontSize: 15,
-    marginLeft: 8,
+    color: colors.primary,
   },
 });

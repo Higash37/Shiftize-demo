@@ -6,7 +6,7 @@ export const useExtendedShiftReportStyles = () => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     header: {
       flexDirection: "row",

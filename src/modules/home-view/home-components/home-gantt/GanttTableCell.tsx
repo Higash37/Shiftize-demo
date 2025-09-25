@@ -1,9 +1,15 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { styles } from "../../home-styles/home-view-styles";
 
+type GanttCellSlot = {
+  type?: string;
+  color?: string;
+} | null;
+
 interface GanttTableCellProps {
-  slot: any;
+  slot?: GanttCellSlot;
   cellWidth: number;
   cellHeight: number;
   onPress?: () => void;
@@ -17,6 +23,9 @@ export const GanttTableCell: React.FC<GanttTableCellProps> = ({
   onPress,
   children,
 }) => {
+  const defaultSlotFill = colors.primary + "1A";
+  const defaultSlotBorder = colors.primary + "66";
+
   if (onPress) {
     return (
       <Pressable
@@ -27,13 +36,13 @@ export const GanttTableCell: React.FC<GanttTableCellProps> = ({
             height: cellHeight,
             backgroundColor: slot
               ? slot.type === "class"
-                ? "#eee"
-                : slot.color || "#e3f2fd"
+                ? colors.surfaceElevated
+                : slot.color || defaultSlotFill
               : undefined,
             borderColor: slot
               ? slot.type === "class"
-                ? "#bbb"
-                : slot.color || "#90caf9"
+                ? colors.border
+                : slot.color || defaultSlotBorder
               : undefined,
             borderWidth: slot ? 1 : 0,
             opacity: slot ? 1 : 0.1,
@@ -56,13 +65,13 @@ export const GanttTableCell: React.FC<GanttTableCellProps> = ({
           height: cellHeight,
           backgroundColor: slot
             ? slot.type === "class"
-              ? "#eee"
-              : slot.color || "#e3f2fd"
+              ? colors.surfaceElevated
+              : slot.color || defaultSlotFill
             : undefined,
           borderColor: slot
             ? slot.type === "class"
-              ? "#bbb"
-              : slot.color || "#90caf9"
+              ? colors.border
+              : slot.color || defaultSlotBorder
             : undefined,
           borderWidth: slot ? 1 : 0,
           opacity: slot ? 1 : 0.1,

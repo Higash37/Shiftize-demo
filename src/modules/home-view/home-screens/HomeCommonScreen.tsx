@@ -3,7 +3,7 @@
 // スタイル分割済み（home-view-styles.ts）
 // 型定義分割済み（home-view-types.ts）
 import React, { useState } from "react";
-import { View, useWindowDimensions, Modal } from "react-native";
+import { View, Modal } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
@@ -52,7 +52,7 @@ export default function HomeCommonScreen() {
         onToggleHalf={() => gantt.setShowFirst((v: boolean) => !v)}
         onPrevDay={handlePrevDay}
         onNextDay={handleNextDay}
-        dateLabel={format(gantt.selectedDate, "yyyy年M月d日")}
+        dateLabel={format(gantt.selectedDate, "yyyy年M月d日", { locale: ja })}
         onOpenDatePicker={openDatePicker}
         onPressSettings={() => setShowPasswordModal(true)} // パスワード変更
       />
@@ -112,7 +112,6 @@ export default function HomeCommonScreen() {
         visible={!!gantt.modalUser}
         onClose={() => gantt.setModalUser(null)}
         userName={gantt.modalUser || ""}
-        times={gantt.showFirst ? gantt.timesFirst : gantt.timesSecond}
         sampleSchedule={gantt.scheduleForSelectedDate}
       />
 

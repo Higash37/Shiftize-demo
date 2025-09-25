@@ -5,19 +5,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Text,
-  Pressable,
-  TextInput,
   FlexAlignType,
   useWindowDimensions,
   Modal,
   Alert,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { colors } from "@/common/common-constants/ThemeConstants";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/services/auth/useAuth";
@@ -26,18 +23,17 @@ import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../user-shift-utils/shift-time.utils";
 import { shiftListViewStyles as styles } from "./styles";
-import { ViewStyle } from "react-native";
-import { ShiftService } from "@/services/firebase/firebase-shift";
-import { ShiftRuleValuePicker } from "@/modules/master-view/master-view-settings/ShiftRuleValuePicker";
 import { getTasks } from "@/services/firebase/firebase-task";
-import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import {
+  ShiftSubmissionService,
+  ShiftSubmissionPeriod,
+} from "@/services/shift-submission/ShiftSubmissionService";
 import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftConfirmationService";
-import { Ionicons } from "@expo/vector-icons";
-import { modalStyles } from "../ListModal/ModalStyles";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
 import TaskModal from "../ListModal/TaskModal";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
+import type { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
 
 export const UserShiftList = () => {
   const router = useRouter();
@@ -47,13 +43,13 @@ export const UserShiftList = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => {
     const today = new Date();
-    return format(today, "yyyy-MM-dd");
+    return format(today, "yyyy-MM");
   });
   const [displayMonth, setDisplayMonth] = useState<string | null>(null);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [modalShift, setModalShift] = useState<any>(null);
+  const [modalShift, setModalShift] = useState<ShiftItem | null>(null);
   const [currentUserStoreId, setCurrentUserStoreId] = useState<
     string | undefined
   >(undefined);
@@ -64,13 +60,12 @@ export const UserShiftList = () => {
   const [comments, setComments] = useState("");
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [isTaskModalVisible, setTaskModalVisible] = useState(false);
-  const [picker, setPicker] = useState<string | null>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const shiftRefs = useRef<{ [key: string]: any }>({}).current;
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const shiftPositionsRef = useRef<Record<string, number>>({});
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 768 && width < 1024; // タブレット判定
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
+
   // シフト確定ボタン用の状態
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -90,7 +85,7 @@ export const UserShiftList = () => {
     fetchShifts();
   }, []);
 
-  // 期間情報を読み込む
+  // 期間設定を読み込む
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
@@ -99,60 +94,53 @@ export const UserShiftList = () => {
 
   const loadActivePeriod = async () => {
     try {
-      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      const periods = await ShiftSubmissionService.getActivePeriods(
+        user?.storeId || ""
+      );
       const currentPeriod = periods.length > 0 ? periods[0] : null;
       setPeriod(currentPeriod ?? null);
-      
+
       // 確定状況もロード
       if (currentPeriod && user?.uid) {
-        const isConfirmed = await ShiftConfirmationService.getUserConfirmationStatus(
-          user.uid, 
-          currentPeriod.id
-        );
+        const isConfirmed =
+          await ShiftConfirmationService.getUserConfirmationStatus(
+            user.uid,
+            currentPeriod.id
+          );
         setIsCompleted(isConfirmed);
       }
     } catch (error) {
-      // Silent error handling for period loading
+      console.error(error);
     }
-  };
-
-  const getDaysUntilDeadline = (): number => {
-    if (!period) return 0;
-    return ShiftSubmissionService.getDaysUntilDeadline(period);
-  };
-
-  const isWithinPeriod = (): boolean => {
-    if (!period) return false;
-    return ShiftSubmissionService.isWithinPeriod(period);
   };
 
   const handleShiftConfirm = () => {
     if (isCompleted) {
       // 確定済みの場合は取り消しを確認
-      Alert.alert(
-        "確認",
-        "シフト確定を取り消しますか？",
-        [
-          {
-            text: "キャンセル",
-            style: "cancel"
-          },
-          {
-            text: "取り消し",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                if (user?.uid && period?.id) {
-                  await ShiftConfirmationService.cancelConfirmation(user.uid, period.id);
-                  setIsCompleted(false);
-                }
-              } catch (error) {
-                Alert.alert("エラー", "取り消しに失敗しました");
+      Alert.alert("確認", "シフト確定を取り消しますか？", [
+        {
+          text: "キャンセル",
+          style: "cancel",
+        },
+        {
+          text: "取り消し",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              if (user?.uid && period?.id) {
+                await ShiftConfirmationService.cancelConfirmation(
+                  user.uid,
+                  period.id
+                );
+                setIsCompleted(false);
               }
+            } catch (error) {
+              console.error(error);
+              Alert.alert("エラー", "取り消しに失敗しました");
             }
-          }
-        ]
-      );
+          },
+        },
+      ]);
     } else {
       // 未確定の場合は確認モーダルを表示
       setShowConfirmModal(true);
@@ -162,11 +150,16 @@ export const UserShiftList = () => {
   const handleConfirmComplete = async () => {
     try {
       if (user?.uid && user?.storeId && period?.id) {
-        await ShiftConfirmationService.confirmShift(user.uid, user.storeId, period.id);
+        await ShiftConfirmationService.confirmShift(
+          user.uid,
+          user.storeId,
+          period.id
+        );
         setIsCompleted(true);
         setShowConfirmModal(false);
       }
     } catch (error) {
+      console.error(error);
       Alert.alert("エラー", "確定に失敗しました");
     }
   };
@@ -180,14 +173,15 @@ export const UserShiftList = () => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setCurrentUserStoreId(userData['storeId']);
+          setCurrentUserStoreId(userData["storeId"]);
         }
       } catch (error) {
+        console.error(error);
       }
     };
 
     fetchUserStoreId();
-  }, [user?.uid]);
+  }, [user]);
 
   // カレンダーがマウントされた時に現在の月を設定
   const handleCalendarMount = () => {
@@ -196,8 +190,10 @@ export const UserShiftList = () => {
   };
 
   const handleMonthChange = (month: { dateString: string }) => {
-    setCurrentMonth(month.dateString);
-    setDisplayMonth(month.dateString);
+    const date = new Date(month.dateString);
+    const monthKey = format(date, "yyyy-MM");
+    setCurrentMonth(monthKey);
+    setDisplayMonth(monthKey);
     setSelectedDate("");
     setSelectedShiftId(null);
   };
@@ -208,7 +204,7 @@ export const UserShiftList = () => {
       return [];
     }
 
-    const displayMonthDate = new Date(displayMonth);
+    const displayMonthDate = new Date(`${displayMonth}-01`);
     const year = displayMonthDate.getFullYear();
     const month = displayMonthDate.getMonth();
 
@@ -250,6 +246,17 @@ export const UserShiftList = () => {
     return filteredShifts;
   }, [shifts, displayMonth, user]);
 
+  useEffect(() => {
+    if (!selectedDate) return;
+    const selectedShift = monthlyShifts.find((shift) => shift.date === selectedDate);
+    if (!selectedShift) return;
+    const targetY = shiftPositionsRef.current[selectedShift.id];
+    if (typeof targetY !== "number") return;
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+    }, 120);
+  }, [selectedDate, monthlyShifts]);
+
   if (shiftsLoading) {
     return (
       <View style={styles.container}>
@@ -266,27 +273,23 @@ export const UserShiftList = () => {
       return;
     }
 
-    setSelectedDate(day.dateString);
+    const targetDate = new Date(day.dateString);
+    const targetMonthString = format(targetDate, "yyyy-MM");
+    const currentMonthString = currentMonth;
 
-    // 選択された日付のシフトまでスクロール
-    const selectedShift = monthlyShifts.find(
-      (shift) => shift.date === day.dateString
-    );
-    if (selectedShift && shiftRefs[selectedShift.id]) {
-      // 少し遅延を入れてスクロールを実行（レイアウト計算のため）
+    // 違う月の日付がクリックされた場合、月を切り替える
+    if (targetMonthString !== currentMonthString) {
+      handleMonthChange({ dateString: `${targetMonthString}-01` });
+      // 月切り替え後に日付を選択
       setTimeout(() => {
-        shiftRefs[selectedShift.id]?.measureLayout(
-          // @ts-ignore
-          scrollViewRef.current?._nativeRef,
-          (x: number, y: number) => {
-            scrollViewRef.current?.scrollTo({ y, animated: true });
-          },
-          () => {}
-        );
+        setSelectedDate(day.dateString);
       }, 100);
+    } else {
+      // 同じ月の日付の場合、そのまま選択
+      setSelectedDate(day.dateString);
     }
   };
-  const handleShiftEdit = (shift: any) => {
+  const handleShiftEdit = (shift: ShiftItem) => {
     router.push({
       pathname: "/(main)/user/shifts/create",
       params: {
@@ -300,7 +303,7 @@ export const UserShiftList = () => {
     });
   };
 
-  const handleShiftPress = (shift: any) => {
+  const handleShiftPress = (shift: ShiftItem) => {
     if (shift.status === "approved") {
       setModalShift(shift);
       setModalVisible(true);
@@ -329,6 +332,7 @@ export const UserShiftList = () => {
 
         setTaskCounts(taskCountsData);
       } catch (error) {
+        console.error(error);
       }
     }
   };
@@ -381,11 +385,14 @@ export const UserShiftList = () => {
           title="シフト一覧"
           onPressSettings={() => setShowPasswordModal(true)}
         />
-        <View style={styles.calendarContainer}>
+        <View
+          style={[styles.calendarContainer, styles.calendarContainerCompact]}
+        >
           <ShiftCalendar
+            key={`calendar-${currentMonth}`} // 月が変わったら強制再レンダリング
             shifts={monthlyShifts}
             selectedDate={selectedDate}
-            currentMonth={currentMonth}
+            currentMonth={currentMonth + "-01"}
             currentUserStoreId={currentUserStoreId ?? ""}
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
@@ -393,9 +400,11 @@ export const UserShiftList = () => {
             responsiveSize={{
               container: {
                 width: "96%",
-                maxWidth: 480, // カレンダーの最大幅を明示的に設定
+                maxWidth: 480,
+                paddingVertical: 0,
               },
-              day: { fontSize: 13 },
+              day: { fontSize: 24, fontWeight: "700" },
+              scale: 0.7,
             }}
           />
         </View>
@@ -408,7 +417,7 @@ export const UserShiftList = () => {
           >
             {/* シフト確定ボタン */}
             {period && (
-              <View style={{ alignItems: "center", marginVertical: 8 }}>
+              <View style={{ alignItems: "center", marginVertical: 0 }}>
                 <TouchableOpacity
                   style={{
                     backgroundColor: isCompleted ? "#6c757d" : colors.primary,
@@ -421,17 +430,19 @@ export const UserShiftList = () => {
                   onPress={handleShiftConfirm}
                   disabled={isCompleted}
                 >
-                  <Text style={{
-                    color: "white",
-                    fontSize: 11,
-                    fontWeight: "600",
-                  }}>
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 11,
+                      fontWeight: "600",
+                    }}
+                  >
                     {isCompleted ? "確定済み" : "シフト確定"}
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
-            
+
             {monthlyShifts.length > 0 ? (
               monthlyShifts.map((shift) => {
                 // シフトの表示
@@ -442,12 +453,10 @@ export const UserShiftList = () => {
                 return (
                   <View
                     key={shift.id}
-                    ref={(ref) => {
-                      if (ref) {
-                        shiftRefs[shift.id] = ref;
-                      }
-                    }}
                     style={{ width: "100%" }} // 親Viewの幅を100%に設定
+                    onLayout={({ nativeEvent }) => {
+                      shiftPositionsRef.current[shift.id] = nativeEvent.layout.y;
+                    }}
                   >
                     <ShiftListItem
                       shift={shift}
@@ -499,15 +508,6 @@ export const UserShiftList = () => {
         handleTaskUpdate={handleTaskUpdate}
         timeOptions={timeOptions}
       />
-      <ShiftRuleValuePicker
-        visible={picker === "time"}
-        values={timeOptions}
-        value={taskCounts[selectedTask!]?.time || 0}
-        unit="分"
-        title="時間選択"
-        onSelect={(v: number) => handleTaskUpdate(selectedTask!, "time", v)}
-        onClose={() => setPicker(null)}
-      />
       <Modal
         visible={showPasswordModal}
         animationType="slide"
@@ -545,30 +545,35 @@ export const UserShiftList = () => {
               width: "90%",
             }}
           >
-            <Text style={{
-              fontSize: 18,
-              fontWeight: "600",
-              color: colors.text.primary,
-              textAlign: "center",
-              marginBottom: 12,
-            }}>
-              シフト確定
-            </Text>
-            
-            <Text style={{
-              fontSize: 16,
-              color: colors.text.secondary,
-              textAlign: "center",
-              marginBottom: 24,
-              lineHeight: 22,
-            }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "600",
+                color: colors.text.primary,
+                textAlign: "center",
+                marginBottom: 12,
+              }}
+            >
+              シフト確宁E            </Text>
+
+            <Text
+              style={{
+                fontSize: 16,
+                color: colors.text.secondary,
+                textAlign: "center",
+                marginBottom: 24,
+                lineHeight: 22,
+              }}
+            >
               現在提出しているシフトで一旦確定でよろしいですか？
             </Text>
 
-            <View style={{
-              flexDirection: "row",
-              gap: 12,
-            }}>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 12,
+              }}
+            >
               <TouchableOpacity
                 style={{
                   flex: 1,
@@ -579,11 +584,13 @@ export const UserShiftList = () => {
                 }}
                 onPress={() => setShowConfirmModal(false)}
               >
-                <Text style={{
-                  color: colors.text.primary,
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}>
+                <Text
+                  style={{
+                    color: colors.text.primary,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
                   キャンセル
                 </Text>
               </TouchableOpacity>
@@ -598,13 +605,14 @@ export const UserShiftList = () => {
                 }}
                 onPress={handleConfirmComplete}
               >
-                <Text style={{
-                  color: "white",
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}>
-                  決定
-                </Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  決宁E                </Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

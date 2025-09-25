@@ -1,7 +1,6 @@
 import React from "react";
 import { View, ScrollView, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { styles } from "../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../home-types/home-view-types";
 import { GanttHeaderRowTablet } from "../home-components/home-gantt/GanttHeaderRowTablet";
 import { GanttRowTablet } from "../home-components/home-gantt/GanttRowTablet";

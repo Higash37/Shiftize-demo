@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
-import { shadows } from "@/common/common-constants/ThemeConstants";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 export const shiftStatusSettingsViewStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
     paddingTop: 32,
@@ -16,7 +16,7 @@ export const shiftStatusSettingsViewStyles = StyleSheet.create({
   statusItem: {
     marginBottom: 16,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 0,
     ...shadows.none,
@@ -38,7 +38,7 @@ export const shiftStatusSettingsViewStyles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: "#666",
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   actions: {
@@ -46,13 +46,13 @@ export const shiftStatusSettingsViewStyles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   colorButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 4,
   },
   colorButtonText: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: 14,
   },
 });

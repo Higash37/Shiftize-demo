@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import {
@@ -13,6 +14,7 @@ import {
   ActivityIndicator,
   Platform,
   useWindowDimensions,
+  DevSettings,
 } from "react-native";
 import {
   Shift,
@@ -717,12 +719,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
             if (typeof window !== "undefined" && window.location) {
               window.location.reload();
             } else if (Platform.OS !== "web") {
-              try {
-                const { AppRegistry } = require("react-native");
-                if (AppRegistry && AppRegistry.reload) {
-                  AppRegistry.reload();
-                }
-              } catch (e) {}
+              DevSettings.reload();
             }
           }}
           onBatchApprove={() => setBatchModal({ visible: true, type: "approve" })}

@@ -4,6 +4,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 /**
  * UnifiedTimePicker - 統一された時間選択コンポーネント
@@ -37,7 +38,7 @@ export default function UnifiedTimePicker({
   return (
     <View
       style={{
-        backgroundColor: "#F4F6FA",
+        backgroundColor: colors.surfaceElevated,
         borderRadius: 12,
         padding: 8,
         marginBottom: 8,
@@ -46,9 +47,9 @@ export default function UnifiedTimePicker({
       <TouchableOpacity
         onPress={openPicker}
         style={{
-          backgroundColor: "white",
+          backgroundColor: colors.surface,
           borderWidth: 1,
-          borderColor: "#E0E0E0",
+          borderColor: colors.border,
           borderRadius: 8,
           paddingVertical: 12,
           paddingHorizontal: 16,
@@ -56,7 +57,7 @@ export default function UnifiedTimePicker({
         }}
         activeOpacity={0.7}
       >
-        <Text style={{ fontSize: 16, color: "#333" }}>
+        <Text style={{ fontSize: 16, color: colors.text.primary }}>
           {format(value, "HH:mm")}
         </Text>
       </TouchableOpacity>
@@ -75,7 +76,7 @@ export default function UnifiedTimePicker({
             alignItems: 'center',
           }}>
             <View style={{
-              backgroundColor: "white",
+              backgroundColor: colors.surface,
               margin: 20,
               borderRadius: 12,
               padding: 20,
@@ -97,7 +98,7 @@ export default function UnifiedTimePicker({
               <TouchableOpacity
                 onPress={closePicker}
                 style={{
-                  backgroundColor: "#007AFF",
+                  backgroundColor: colors.primary,
                   borderRadius: 8,
                   paddingVertical: 12,
                   paddingHorizontal: 24,
@@ -106,7 +107,7 @@ export default function UnifiedTimePicker({
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+                <Text style={{ color: colors.text.white, fontSize: 16, fontWeight: "600" }}>
                   完了
                 </Text>
               </TouchableOpacity>
@@ -138,7 +139,7 @@ export default function UnifiedTimePicker({
             alignItems: 'center',
           }}>
             <View style={{
-              backgroundColor: "white",
+              backgroundColor: colors.surface,
               margin: 20,
               borderRadius: 12,
               padding: 20,
@@ -165,23 +166,23 @@ export default function UnifiedTimePicker({
                   width: "100%",
                   padding: "12px",
                   fontSize: "16px",
-                  border: "1px solid #E0E0E0",
+                  border: '1px solid ' + colors.border,
                   borderRadius: "8px",
                   marginBottom: "16px",
                   outline: "none",
                   transition: "border-color 0.2s ease",
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "#007AFF";
+                  e.target.style.borderColor = colors.primary;
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = "#E0E0E0";
+                  e.target.style.borderColor = colors.border;
                 }}
               />
               <TouchableOpacity
                 onPress={closePicker}
                 style={{
-                  backgroundColor: "#007AFF",
+                  backgroundColor: colors.primary,
                   borderRadius: 8,
                   paddingVertical: 12,
                   paddingHorizontal: 24,
@@ -189,7 +190,7 @@ export default function UnifiedTimePicker({
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+                <Text style={{ color: colors.text.white, fontSize: 16, fontWeight: "600" }}>
                   完了
                 </Text>
               </TouchableOpacity>

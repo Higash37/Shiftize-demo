@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
-import { shadows } from "@/common/common-constants/ThemeConstants";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 export type ShiftRuleValuePickerProps = {
   visible: boolean;
@@ -29,9 +29,6 @@ export const ShiftRuleValuePicker: React.FC<ShiftRuleValuePickerProps> = ({
   title,
 }) => {
   const [selected, setSelected] = useState(value);
-  const currentIdx = values.indexOf(selected);
-  const prev = values[currentIdx - 1];
-  const next = values[currentIdx + 1];
 
   const handleAdd = () => {
     onSelect(selected);
@@ -104,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pickerModal: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 24,
     width: "80%",
@@ -128,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingRight: 24,
     borderRightWidth: 1,
-    borderRightColor: "#eee",
+    borderRightColor: colors.border,
     minWidth: 240,
     maxWidth: 320,
   },
@@ -145,12 +142,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#1976D2",
+    color: colors.primary,
   },
   calendarPlaceholder: {
     width: 120,
     height: 120,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxHeight: 180,
     borderRadius: 8,
-    backgroundColor: "#fafafa",
+    backgroundColor: colors.surface,
     paddingVertical: 4,
     overflow: "scroll",
   },
@@ -169,18 +166,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: colors.border,
     width: "100%",
   },
   selectedItem: {
-    backgroundColor: "#E3F2FD",
+    backgroundColor: colors.primary + "1A",
   },
   valueText: {
     fontSize: 18,
-    color: "#222",
+    color: colors.text.primary,
   },
   selectedText: {
-    color: "#1976D2",
+    color: colors.primary,
     fontWeight: "bold",
   },
   pickerFooterRow: {
@@ -198,7 +195,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   addButton: {
-    backgroundColor: "#1976D2",
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 32,
@@ -206,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addButtonText: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: 18,
     fontWeight: "bold",
   },

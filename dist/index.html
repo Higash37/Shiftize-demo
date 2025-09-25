@@ -4,8 +4,12 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Shiftize" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="google-site-verification" content="Je5W8Kxj3tBMQiEZkzrvbSQ-pfko-uA8HOdIeYplXsQ" />
     <title>シフタイズ - シフト管理・スケジューリングアプリ</title>
     <meta name="description" content="シフタイズは、シフト管理とスケジューリングを簡単にするアプリです。講師やスタッフのシフト作成、管理、確認が効率的に行えます。" />
@@ -43,7 +47,7 @@
         height: 100%;
         top: 0;
         left: 0;
-        background-color: #F2F2F7; /* 青色から白色に変更 */
+        background-color: rgba(255, 255, 255, 0.94); /* 青色から白色に変更 */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -82,6 +86,10 @@
 
     <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
+      html {
+        background-color: rgba(255, 255, 255, 0.94);
+        color-scheme: light;
+      }
       html,
       body {
         min-height: var(--app-height);
@@ -89,9 +97,8 @@
         margin: 0;
         padding: 0;
         width: 100%;
-        background-color: white;
+        background-color: rgba(255, 255, 255, 0.94);
         overscroll-behavior: none;
-        /* ズーム機能を有効化 */
         touch-action: pan-x pan-y pinch-zoom;
         -webkit-user-select: none;
         user-select: none;
@@ -108,9 +115,35 @@
       }
       body {
         height: calc(var(--vh, 1vh) * 100);
+        color: #14171A;
       }
-      
-      /* PWA関連スタイルは無効化済み */
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+        pointer-events: none;
+        background-color: rgba(255, 255, 255, 0.94);
+      }
+      body::before {
+        top: 0;
+        height: env(safe-area-inset-top, 0px);
+      }
+      body::after {
+        bottom: 0;
+        height: env(safe-area-inset-bottom, 0px);
+      }
+      @supports (top: constant(safe-area-inset-top)) {
+        body::before {
+          height: constant(safe-area-inset-top);
+        }
+        body::after {
+          height: constant(safe-area-inset-bottom);
+        }
+      }
+      /* PWA関連スタイルは別で管理 */
     </style>
 
     <!-- 構造化データ -->
@@ -139,7 +172,7 @@
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
     <!-- PWA theme color -->
-    <meta name="theme-color" content="#F2F2F7" />
+    <meta name="theme-color" content="#FFFFFF" />
 
     <!-- Apple Touch Icon for PWA -->
     <link rel="apple-touch-icon" href="/PWAIcon180x180.png" sizes="180x180" />
@@ -222,7 +255,7 @@
         // viewport設定を強制的に更新
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
-          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes');
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes');
         }
         
         // touch-actionを全要素に適用
@@ -249,6 +282,6 @@
         document.removeEventListener = function() {};
       });
     </script>
-  <script src="/_expo/static/js/web/entry-5db6867fd5c03b24bea8df7717d5dc23.js" defer></script>
+  <script src="/_expo/static/js/web/entry-273ae364fdf53b41ce867707513ecabb.js" defer></script>
 </body>
 </html>

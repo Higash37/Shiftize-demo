@@ -22,6 +22,7 @@ import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { escapeHtml } from "@/common/common-utils/validation/inputValidation";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 interface ShiftPrintModalProps {
   visible: boolean;
@@ -644,13 +645,13 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             overflow: hidden;
           }
           .calendar-day.weekend {
-            background-color: #f9f9f9;
+            background-color: #ffffff;
           }
           .empty-day {
             border: 1px solid #ccc;
             height: 10mm; /* セルの固定高さを大きく */
             width: 14.28%;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             box-sizing: border-box;
           }
           .day-number {
@@ -725,7 +726,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             border: 1px solid #ccc;
             height: 75px; /* 高さをより大きく */
             width: 14.28%;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             box-sizing: border-box;
           }
           .unified-day-number {
@@ -1467,7 +1468,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             border: 1px solid #ccc;
             height: 42px; /* 高さをさらに大きく */
             width: 14.28%;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             box-sizing: border-box;
           }
           .day-number {
@@ -1542,7 +1543,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             border: 1px solid #ccc;
             height: 75px; /* 高さをより大きく */
             width: 14.28%;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             box-sizing: border-box;
           }
           .unified-day-number {
@@ -1947,7 +1948,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: "row",
@@ -2141,7 +2142,7 @@ const styles = StyleSheet.create({
   },
   fullPreviewContainer: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     padding: 16,
   },
   previewPageContainer: {

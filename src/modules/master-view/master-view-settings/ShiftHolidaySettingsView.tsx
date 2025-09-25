@@ -16,6 +16,7 @@ import { getCurrentYearHolidays } from "@/common/common-utils/util-settings/japa
 import { SpecialDay, Holiday } from "./ShiftHolidaySettingsView.types";
 import { shiftHolidaySettingsViewStyles as styles } from "./ShiftHolidaySettingsView.styles";
 import type { ShiftHolidaySettingsViewProps } from "./ShiftHolidaySettingsView.types";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 const { width, height } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -393,7 +394,7 @@ export const ShiftHolidaySettingsView: React.FC<
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: colors.surface,
                   borderRadius: 8,
                   marginRight: 8,
                   alignItems: "center",
