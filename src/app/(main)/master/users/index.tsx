@@ -25,6 +25,7 @@ interface UserFormData {
   role: "master" | "user";
   color?: string;
   storeId?: string;
+  hourlyWage?: number;
 }
 
 interface UserWithPassword extends User {
@@ -48,19 +49,25 @@ export default function UsersScreen() {
   );
   
   const handleAddUser = async (data: UserFormData) => {
+    console.log('🚀 [UsersScreen.handleAddUser] Starting user addition', data);
+
     if (!data.password) {
+      console.error('❌ [UsersScreen.handleAddUser] No password provided');
       return;
     }
 
     try {
+      console.log('🔥 [UsersScreen.handleAddUser] Calling addUser hook');
       const newUser = await addUser(
         data.email,
         data.password,
         data.nickname,
         data.role,
         data.color,
-        data.storeId
+        data.storeId,
+        data.hourlyWage
       );
+      console.log('✅ [UsersScreen.handleAddUser] User added successfully:', newUser);
 
       if (newUser) {
         // パスワード情報をローカルに保存（必要に応じて）
@@ -70,9 +77,11 @@ export default function UsersScreen() {
         }));
         
         // 成功時：フォームを閉じて一覧表示に戻る
+        console.log('✅ [UsersScreen.handleAddUser] Closing form');
         setIsAddingUser(false);
       }
     } catch (err) {
+      console.error('❌ [UsersScreen.handleAddUser] Error occurred:', err);
       // エラーの場合はフォームを開いたままにして、ユーザーが再試行できるようにする
     }
   };

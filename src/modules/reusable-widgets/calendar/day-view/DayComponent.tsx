@@ -23,7 +23,7 @@ export const DayComponent = memo<DayComponentPropsExtended>(
           borderRadius: Math.min(dayWidth, dayHeight) / 2,
         },
         dayText: {
-          fontSize: isSmallScreen ? 12 : 14, // フォントサイズをさらに小さく
+          fontSize: isSmallScreen ? 15 : 14, // フォントサイズをさらに小さく
           letterSpacing: -1.0, // 文字間隔を狭める
           ...(responsiveSize?.day || {}),
         },
@@ -71,7 +71,7 @@ export const DayComponent = memo<DayComponentPropsExtended>(
               fontFamily:
                 "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
               fontWeight: isToday ? "700" : "500",
-              fontSize: isToday ? 16 : 14,
+              fontSize: isToday ? 20 : 18,
               backgroundColor:
                 isToday && !isSelected ? "#F2F6FF" : "transparent", // 今日のセルを淡色でハイライト
               borderRadius: 8,
@@ -93,7 +93,7 @@ export const DayComponent = memo<DayComponentPropsExtended>(
                   {
                     backgroundColor: dot.color,
                     marginHorizontal: 1,
-                  }
+                  },
                 ]}
               />
             ))}

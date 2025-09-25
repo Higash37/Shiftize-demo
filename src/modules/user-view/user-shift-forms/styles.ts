@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { colors } from '@/common/common-constants/ThemeConstants';
+import { StyleSheet } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 export const styles = StyleSheet.create({
   container: {
@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
     color: colors.text.primary,
   },
@@ -25,16 +25,16 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginBottom: 8,
     borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   dateText: {
     fontSize: 16,
   },
   removeButton: {
-    color: '#ff6b6b',
-    fontWeight: 'bold',
+    color: "#ff6b6b",
+    fontWeight: "bold",
   },
   pickerContainer: {
     backgroundColor: colors.surface,

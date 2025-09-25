@@ -132,9 +132,9 @@ export const shiftListViewStyles = StyleSheet.create({
   },
   calendarContainer: {
     flex: IS_TABLET ? 1 : undefined,
-    minWidth: IS_TABLET ? 340 : undefined,
-    maxWidth: IS_TABLET ? 480 : undefined, // カレンダーの最大幅を設定
-    width: IS_TABLET ? undefined : "96%", // 小さい画面では96%に合わせる
+    minWidth: IS_TABLET ? 400 : undefined, // 最小幅を拡大
+    maxWidth: IS_TABLET ? 600 : undefined, // 最大幅を拡大
+    width: IS_TABLET ? undefined : "98%", // 小さい画面では98%に拡大
     marginBottom: 4, // マージンを最小化
     alignItems: "center",
     alignSelf: "center", // 中央揃え
@@ -142,19 +142,19 @@ export const shiftListViewStyles = StyleSheet.create({
     margin: 0,
   },
   calendarContainerCompact: {
-    marginTop: -60,
+    marginTop: -40,
     marginBottom: 0,
   },
   listContainer: {
     flex: IS_TABLET ? 1 : undefined,
-    width: "96%", // カレンダーと同じ幅に固定
-    minWidth: IS_TABLET ? 320 : undefined,
-    maxWidth: 480, // カレンダーと同じ最大幅に設定
+    width: "98%", // カレンダーと同じ幅に拡大
+    minWidth: IS_TABLET ? 400 : undefined, // カレンダーと同じ最小幅
+    maxWidth: 600, // カレンダーと同じ最大幅に設定
     paddingHorizontal: 0,
     paddingLeft: 0,
     marginLeft: 0,
     marginRight: 0,
-    marginTop: -50,
+    marginTop: -40,
     alignSelf: "center", // 中央揃え
   },
   listContentContainer: {

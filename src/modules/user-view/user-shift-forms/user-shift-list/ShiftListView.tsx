@@ -248,7 +248,9 @@ export const UserShiftList = () => {
 
   useEffect(() => {
     if (!selectedDate) return;
-    const selectedShift = monthlyShifts.find((shift) => shift.date === selectedDate);
+    const selectedShift = monthlyShifts.find(
+      (shift) => shift.date === selectedDate
+    );
     if (!selectedShift) return;
     const targetY = shiftPositionsRef.current[selectedShift.id];
     if (typeof targetY !== "number") return;
@@ -399,12 +401,12 @@ export const UserShiftList = () => {
             onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
             responsiveSize={{
               container: {
-                width: "96%",
-                maxWidth: 480,
+                width: "98%",
+                maxWidth: 600,
                 paddingVertical: 0,
               },
-              day: { fontSize: 24, fontWeight: "700" },
-              scale: 0.7,
+              day: { fontSize: 32, fontWeight: "700" },
+              scale: 0.8, // スケールも少し大きくしてバランス調整
             }}
           />
         </View>
@@ -455,14 +457,17 @@ export const UserShiftList = () => {
                     key={shift.id}
                     style={{ width: "100%" }} // 親Viewの幅を100%に設定
                     onLayout={({ nativeEvent }) => {
-                      shiftPositionsRef.current[shift.id] = nativeEvent.layout.y;
+                      shiftPositionsRef.current[shift.id] =
+                        nativeEvent.layout.y;
                     }}
                   >
                     <ShiftListItem
                       shift={shift as unknown as ShiftItem}
                       isSelected={isSelected}
                       selectedDate={selectedDate}
-                      onPress={() => handleShiftPress(shift as unknown as ShiftItem)}
+                      onPress={() =>
+                        handleShiftPress(shift as unknown as ShiftItem)
+                      }
                       onDetailsPress={() => {
                         setSelectedShiftId(isSelected ? null : shift.id);
                       }}
@@ -554,7 +559,8 @@ export const UserShiftList = () => {
                 marginBottom: 12,
               }}
             >
-              シフト確宁E            </Text>
+              シフト確定{" "}
+            </Text>
 
             <Text
               style={{
@@ -612,7 +618,8 @@ export const UserShiftList = () => {
                     fontWeight: "600",
                   }}
                 >
-                  決宁E                </Text>
+                  決定{" "}
+                </Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

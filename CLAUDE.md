@@ -61,6 +61,63 @@ npm test src/common/common-utils/security/
 
 ---
 
+## 📦 バージョン管理システム
+
+### 🏷️ バージョン管理方針
+- **シンプル設計**: package.jsonを直接読み込み、アプリ内に自動反映
+- **セマンティックバージョニング**: major.minor.patch形式でバージョン管理
+- **ワンコマンドリリース**: バージョンアップ・コミット・プッシュを一括実行
+
+### 📋 バージョンアップコマンド
+
+```bash
+# パッチリリース (1.0.0 → 1.0.1) - バグフィックス・小さな改修
+npm run release:patch
+
+# マイナーリリース (1.0.0 → 1.1.0) - 新機能追加・互換性のある変更
+npm run release:minor
+
+# メジャーリリース (1.0.0 → 2.0.0) - 破壊的変更・大きなアップデート
+npm run release:major
+```
+
+### 🔧 バージョン管理の内部実装
+- **AppVersion.ts**: package.jsonを直接インポートしてバージョン情報を管理
+- **設定画面**: AppVersion.tsクラス経由でバージョン表示
+- **自動コミット**: バージョンアップ時に自動でGitコミット・プッシュ実行
+
+### 📝 使用例
+```bash
+# 新機能追加後のリリース
+npm run release:minor
+
+# このコマンドで以下が自動実行される：
+# 1. package.jsonのバージョンを1.0.0 → 1.1.0に更新
+# 2. 変更をgit add
+# 3. コミットメッセージ「chore: bump version to 1.1.0」で自動コミット
+# 4. git push実行
+# 5. アプリの設定画面に新バージョンが自動反映
+```
+
+### 🎯 実装のポイント
+```typescript
+// AppVersion.ts - シンプルなpackage.json直接読み込み
+// @ts-ignore
+import packageJson from "../../../../package.json";
+
+export class AppVersion {
+  static getVersion(): string {
+    return packageJson.version;
+  }
+
+  static getFormattedVersion(): string {
+    return `Version ${packageJson.version}`;
+  }
+}
+```
+
+---
+
 ## 📝 開発履歴
 
 ### Phase 1: セキュリティ強化 (2025-01-27 完了)
