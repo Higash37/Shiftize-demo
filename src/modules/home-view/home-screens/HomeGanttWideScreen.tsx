@@ -19,6 +19,7 @@ interface Props {
   sampleSchedule: SampleScheduleColumn[];
   showFirst: boolean; // 追加
   onCellPress?: (userName: string) => void; // 追加
+  CELL_WIDTH: number; // 追加
 }
 
 export const HomeGanttWideScreen: React.FC<Props> = ({
@@ -29,6 +30,7 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
   sampleSchedule,
   showFirst, // 追加
   onCellPress, // 追加
+  CELL_WIDTH, // 追加
 }) => {
   const { width: windowWidth } = useWindowDimensions();
   const renderTable = (names: string[], times: string[]) => {

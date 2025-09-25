@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import type { MarkedDates } from "react-native-calendars";
+import type { MarkedDates } from "react-native-calendars/src/types";
 import { View, ViewStyle } from "react-native";
 import { format } from "date-fns";
 import { colors } from "@/common/common-theme/ThemeColors";
@@ -128,14 +128,6 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         ...existingMark,
         marked: true,
         dotColor: dotColor,
-        dotStyle: {
-          width: 4,
-          height: 4,
-          borderRadius: 2,
-          backgroundColor: isPastShift ? dotColor : "transparent",
-          borderWidth: isPastShift ? 0 : 1,
-          borderColor: dotColor,
-        },
         selected: selectedDate === shift.date,
         selectedColor: colors.primary + "20",
       };
