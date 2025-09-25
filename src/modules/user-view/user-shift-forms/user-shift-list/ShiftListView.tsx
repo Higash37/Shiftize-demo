@@ -459,10 +459,10 @@ export const UserShiftList = () => {
                     }}
                   >
                     <ShiftListItem
-                      shift={shift}
+                      shift={shift as unknown as ShiftItem}
                       isSelected={isSelected}
                       selectedDate={selectedDate}
-                      onPress={() => handleShiftPress(shift)}
+                      onPress={() => handleShiftPress(shift as unknown as ShiftItem)}
                       onDetailsPress={() => {
                         setSelectedShiftId(isSelected ? null : shift.id);
                       }}

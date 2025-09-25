@@ -106,10 +106,14 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   const statusConfigs = DEFAULT_SHIFT_STATUS_CONFIG;
 
   const getStatusConfig = (status: ShiftStatus): ShiftStatusConfig => {
-    return (
-      statusConfigs.find((config) => config.status === status) ||
-      statusConfigs[0]
-    );
+    const found = statusConfigs.find((config) => config.status === status);
+    return found ?? statusConfigs[0] ?? {
+      status: 'draft',
+      label: '下書き',
+      color: '#9CA3AF',
+      canEdit: true,
+      description: 'デフォルト状態'
+    };
   };
   
   // シフト編集
