@@ -10,6 +10,9 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.header.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.header.separator,
+    position: "relative",
+    zIndex: 10,
+    elevation: 4,
     ...(Platform.OS === "web" && ({
       backdropFilter: "blur(18px)",
     } as any)),
