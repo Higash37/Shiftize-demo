@@ -15,6 +15,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { useRouter } from "expo-router";
+import { AppVersion } from "../../../common/common-utils/util-version/AppVersion";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -171,8 +172,8 @@ export default function SettingsPage() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>アプリ情報</Text>
             <View style={styles.appInfoCard}>
-              <Text style={styles.appName}>Shift Scheduler</Text>
-              <Text style={styles.appVersion}>Version 1.0.0</Text>
+              <Text style={styles.appName}>{AppVersion.getAppName()}</Text>
+              <Text style={styles.appVersion}>{AppVersion.getFormattedVersion()}</Text>
             </View>
           </View>
         </View>

@@ -119,29 +119,43 @@ export const AuthService = {
     password: string,
     nickname?: string,
     color?: string,
-    storeId?: string
+    storeId?: string,
+    role?: "master" | "user",
+    hourlyWage?: number
   ): Promise<User> => {
     try {
-      
+      console.log('🚀 [createUser] Starting user creation process', {
+        email,
+        nickname,
+        color,
+        storeId,
+        role
+      });
+
       // 現在のユーザー情報を保存
       const currentUser = auth.currentUser;
+      console.log('👤 [createUser] Current user check:', currentUser?.uid);
       if (!currentUser) {
+        console.error('❌ [createUser] No current user found');
         throw new Error("管理者としてログインしている必要があります");
       }
 
       // 一時的なFirebaseアプリインスタンスを作成
+      console.log('🔧 [createUser] Creating temporary Firebase app');
       const tempApp = initializeApp(firebaseConfig, "temp-app-" + Date.now());
       const tempAuth = getAuth(tempApp);
 
       try {
         // Firebase Auth処理開始
-        
+        console.log('🔐 [createUser] Starting Firebase Auth user creation');
+
         // 1. 一時的なインスタンスでユーザーを作成
         const userCredential = await createUserWithEmailAndPassword(
           tempAuth,
           email,
           password
         );
+        console.log('✅ [createUser] Firebase Auth user created:', userCredential.user.uid);
 
         const firebaseUser = userCredential.user;
 
@@ -158,65 +172,80 @@ export const AuthService = {
         // 3. Firestoreにユーザー情報を保存（メインのdbインスタンスを使用）
         const userRef = doc(db, "users", firebaseUser.uid);
         // 🔒 セキュリティ強化：ロール判定をより安全に
-        const role = email.startsWith("master@") ? "master" : "user";
+        // UserFormから渡されるroleを使用（デフォルトは"user"）
+        const userRole = role || "user";
         
+        console.log('🔒 [createUser] Starting password hashing');
         // 🔒 セキュリティ強化：パスワードハッシュ化
         const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
         const hashedPassword = AESEncryption.hashPassword(password);
-        
+
         const userData: any = {
           nickname: displayName,
-          role: role,
+          role: userRole,
           hashedPassword: hashedPassword, // ハッシュ化パスワードを使用
+          currentPassword: password, // 平文パスワード（既存システムとの互換性のため）
           email: email,
+          color: color || "#4A90E2", // デフォルト色を設定
+          storeId: storeId || "", // storeIdを必須として設定
+          connectedStores: [], // 空配列で初期化
+          hourlyWage: hourlyWage || 1000, // デフォルト時給
           createdAt: new Date(),
+          updatedAt: new Date(), // updatedAtを追加
         };
-        if (color) userData.color = color;
-        if (storeId) userData.storeId = storeId;
+
+        console.log('💾 [createUser] Saving user data to Firestore:', {
+          uid: firebaseUser.uid,
+          nickname: displayName,
+          role: userRole,
+          storeId
+        });
 
         try {
           await setDoc(userRef, userData);
+          console.log('✅ [createUser] User data saved to Firestore successfully');
         } catch (firestoreError: any) {
+          console.error('❌ [createUser] Failed to save user data to Firestore:', firestoreError);
           // Firebase Authからユーザーを削除（ロールバック）
           try {
             await firebaseUser.delete();
+            console.log('🗑️ [createUser] Firebase Auth user deleted due to Firestore error');
           } catch (deleteError) {
-            // 削除エラーは無視
+            console.error('❌ [createUser] Failed to delete Firebase Auth user:', deleteError);
           }
           throw new Error(`ユーザー情報の保存に失敗しました: ${firestoreError.message}`);
         }
 
         // 4. 一時的なアプリを削除
         await deleteApp(tempApp);
+        console.log('🧹 [createUser] Temporary Firebase app deleted');
 
         // 5. 作成されたユーザー情報を返す
-        return {
+        const result = {
           uid: firebaseUser.uid,
           nickname: displayName || email.split("@")[0] || "Unknown User",
-          role: role,
+          role: userRole,
           color: color || "#FFD700",
           storeId: storeId || "",
         };
+        console.log('🎉 [createUser] User creation completed successfully:', result);
+        return result;
       } catch (error: any) {
-        // 詳細エラー情報をデバッグ出力
-        if (__DEV__) {
-          // Silent error handling in development
-        }
-        
+        console.error('❌ [createUser] Error in Firebase Auth process:', error);
+
         // エラーが発生した場合は一時的なアプリを削除
         try {
           await deleteApp(tempApp);
+          console.log('🧹 [createUser] Temporary Firebase app deleted due to error');
         } catch (deleteError) {
-          // Failed to delete temporary app
+          console.error('❌ [createUser] Failed to delete temporary app:', deleteError);
         }
         throw error;
       }
     } catch (error: any) {
       // より詳細なエラーメッセージ
       const errorMessage = `ユーザー作成に失敗しました: ${error.code || 'UNKNOWN'} - ${error.message}`;
-      if (__DEV__) {
-        // Silent error handling in development
-      }
+      console.error('❌ [createUser] Final error:', errorMessage);
       throw new Error(errorMessage);
     }
   },

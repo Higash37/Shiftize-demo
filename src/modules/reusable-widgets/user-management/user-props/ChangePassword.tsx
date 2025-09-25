@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Modal, TouchableOpacity, Dimensions } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { changePassword } from "@/services/firebase/firebase";
@@ -77,60 +77,77 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>パスワード変更</Text>
-
-      <Input
-        label="現在のパスワード"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-        placeholder="現在のパスワードを入力"
-        secureTextEntry
-      />
-
-      <Input
-        label="新しいパスワード"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        placeholder="新しいパスワードを入力（6文字以上）"
-        secureTextEntry
-      />
-
-      <Input
-        label="新しいパスワード（確認）"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        placeholder="新しいパスワードを再入力"
-        secureTextEntry
-      />
-
-      {message ? (
-        <Text
-          style={[
-            styles.message,
-            isSuccess ? styles.successMessage : styles.errorMessage,
-          ]}
+    <Modal
+      visible={true}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onComplete}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={onComplete}
+      >
+        <TouchableOpacity
+          style={styles.modalContent}
+          activeOpacity={1}
+          onPress={() => {}} // 内側をタップしても閉じない
         >
-          {message}
-        </Text>
-      ) : null}
+          <Text style={styles.title}>パスワード変更</Text>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="パスワードを変更"
-          onPress={handleChangePassword}
-          loading={isLoading}
-          disabled={isLoading}
-        />
-        <Button
-          title="キャンセル"
-          onPress={onComplete || (() => {})}
-          disabled={isLoading}
-          style={{ marginTop: 8 }}
-          variant="secondary"
-        />
-      </View>
-    </View>
+          <Input
+            label="現在のパスワード"
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            placeholder="現在のパスワードを入力"
+            secureTextEntry
+          />
+
+          <Input
+            label="新しいパスワード"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="新しいパスワードを入力（6文字以上）"
+            secureTextEntry
+          />
+
+          <Input
+            label="新しいパスワード（確認）"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="新しいパスワードを再入力"
+            secureTextEntry
+          />
+
+          {message ? (
+            <Text
+              style={[
+                styles.message,
+                isSuccess ? styles.successMessage : styles.errorMessage,
+              ]}
+            >
+              {message}
+            </Text>
+          ) : null}
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="パスワードを変更"
+              onPress={handleChangePassword}
+              loading={isLoading}
+              disabled={isLoading}
+            />
+            <Button
+              title="キャンセル"
+              onPress={onComplete || (() => {})}
+              disabled={isLoading}
+              style={{ marginTop: 8 }}
+              variant="secondary"
+            />
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
   );
 };
 

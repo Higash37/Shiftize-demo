@@ -1,6 +1,6 @@
 {
   "name": "shift-scheduler-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -12,7 +12,13 @@
     "build": "cross-env EXPO_WEB_SUPPRESS_WARNINGS=1 expo export -p web",
     "build:functions": "cd functions && npm run build",
     "build:all": "npm run build:functions && npm run build",
-    "vercel-build": "expo export -p web --output-dir dist"
+    "vercel-build": "expo export -p web --output-dir dist",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "release:patch": "npm run version:patch && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push",
+    "release:minor": "npm run version:minor && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push",
+    "release:major": "npm run version:major && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

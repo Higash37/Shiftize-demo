@@ -36,7 +36,15 @@ LocaleConfig.locales.ja = {
     "11月",
     "12月",
   ],
-  dayNames: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+  dayNames: [
+    "日曜日",
+    "月曜日",
+    "火曜日",
+    "水曜日",
+    "木曜日",
+    "金曜日",
+    "土曜日",
+  ],
   dayNamesShort: ["日", "月", "火", "水", "木", "金", "土"],
   today: "今日",
 };
@@ -139,7 +147,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   // propMarkedDatesが提供されている場合はそれを使用、そうでなければ内部のmarkedDatesを使用
   const finalMarkedDates: MarkedDates =
     (propMarkedDates as MarkedDates | undefined) || markedDates;
-  
+
   if (propMarkedDates) {
     const sampleKey = Object.keys(propMarkedDates)[0];
     if (sampleKey) {
@@ -170,7 +178,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         onDayPress={onDayPress}
         {...(onMonthChange && { onMonthChange })}
         markedDates={finalMarkedDates}
-        markingType={'multi-dot'} // multi-dot機能を有効化
+        markingType={"multi-dot"} // multi-dot機能を有効化
         enableSwipeMonths={true}
         style={[
           styles.calendar,
@@ -211,10 +219,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           textDayFontWeight: "500",
           textMonthFontWeight: "600",
           textDayHeaderFontWeight: "600",
-          textDayFontSize: 20,
-          textMonthFontSize: 20,
-          textDayHeaderFontSize: 18,
-
+          textDayFontSize: 28,
+          textMonthFontSize: 30,
+          textDayHeaderFontSize: 20,
         }}
         dayComponent={({ date, state, marking }: DayComponentProps) => (
           <DayComponent

@@ -15,6 +15,28 @@
 - `npm run build:all`: sequentially builds Firebase functions and the web bundle for deployment.
 - `npx playwright test`: executes the E2E suite defined in `playwright.config.ts`.
 
+## Version Management Commands
+- `npm run release:patch`: increments patch version (1.0.0 → 1.0.1) for bug fixes, commits with automated message, and pushes to repository.
+- `npm run release:minor`: increments minor version (1.0.0 → 1.1.0) for new features, commits with automated message, and pushes to repository.
+- `npm run release:major`: increments major version (1.0.0 → 2.0.0) for breaking changes, commits with automated message, and pushes to repository.
+- Version info automatically reflects in app settings screen via `AppVersion.ts` utility that directly imports `package.json`.
+
+### Version Management Implementation Details
+```typescript
+// AppVersion.ts - Simple direct package.json import approach
+// @ts-ignore
+import packageJson from "../../../../package.json";
+
+export class AppVersion {
+  static getVersion(): string { return packageJson.version; }
+  static getFormattedVersion(): string { return `Version ${packageJson.version}`; }
+  static getAppName(): string { return "Shiftize -シフタイズ-"; }
+}
+```
+- Settings screen (`src/app/(main)/user/settings.tsx`) displays app name and version dynamically
+- No complex build scripts needed - package.json changes automatically reflect in app
+- Uses `@ts-ignore` to bypass TypeScript import restrictions for JSON files
+
 ## Coding Style & Naming Conventions
 - TypeScript is strict (`tsconfig.json`); favor typed React function components and hooks.
 - Follow the ESLint ruleset (`eslint.config.js`) and run `npx eslint src --max-warnings=0` before committing.
