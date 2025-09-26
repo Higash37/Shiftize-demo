@@ -127,6 +127,7 @@ const Pricing = () => {
               月額払い
             </span>
             <button
+              type="button"
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 isYearly ? "bg-blue-600" : "bg-white"
               }`}
@@ -272,7 +273,10 @@ const Pricing = () => {
                   </ul>
 
                   {/* CTA Button */}
-                  <button className={`w-full ${buttonClasses[plan.color]}`}>
+                  <button
+                    type="button"
+                    className={`w-full ${buttonClasses[plan.color]}`}
+                  >
                     {plan.cta}
                   </button>
                 </div>
@@ -301,7 +305,9 @@ const Pricing = () => {
               SLA保証
             </span>
           </div>
-          <button className="btn-secondary">お問い合わせ</button>
+          <button type="button" className="btn-secondary">
+            お問い合わせ
+          </button>
         </div>
 
         {/* FAQ */}
@@ -312,9 +318,7 @@ const Pricing = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             {faq.map((item) => (
               <div key={item.question} className="card p-6">
-                <h4 className="font-bold text-black mb-3">
-                  {item.question}
-                </h4>
+                <h4 className="font-bold text-black mb-3">{item.question}</h4>
                 <p className="text-black/80 leading-relaxed">{item.answer}</p>
               </div>
             ))}

@@ -65,3 +65,10 @@ export class AppVersion {
 | Teacher settings screens | Swap residual `#f5f5f5` surfaces in user/teacher settings (`user-shift-forms` styles, modal sheets) for theme tokens. | TBD | Backlog |
 | Legacy lint cleanup | Refactor `gantt-chart-common` and `user-shift-forms` legacy modules to eliminate unused code/`any` usage and clear remaining ESLint violations. | TBD | Backlog |
 
+
+## Agent Progress
+- 2025-09-26: SimpleLanding リファクタリングを開始。データ/型/スタイルを分離し、テーマカラーへ置換。Lint (`SimpleLanding*`) がパスする状態を確認。
+- 2025-09-26: AppSpecifications をデータ・型・スタイルへ分離し、テーマトークンを適用。Lint OK。
+- 2025-09-26: Changelogをデータ/型/スタイル分離し、文言を英語化。Lint OK。
+- 2025-09-26: DevelopmentStoryをデータ/型/スタイル分離し、英語コピーとテーマカラーを適用。Lint OK。
+- 2025-09-26: Features ウィジェットをデータ/型分離し、英語コピーへ更新。Lint OK。

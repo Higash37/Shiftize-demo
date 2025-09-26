@@ -72,6 +72,7 @@ const Screenshots = () => {
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           {viewOptions.map((option) => (
             <button
+              type="button"
               key={option.key}
               className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeView === option.key
@@ -155,9 +156,7 @@ const Screenshots = () => {
                               />
                             </svg>
                           </div>
-                          <span className="text-black text-sm">
-                            {feature}
-                          </span>
+                          <span className="text-black text-sm">{feature}</span>
                         </div>
                       )
                     )}
@@ -229,7 +228,7 @@ const Screenshots = () => {
 
         {/* Call to Action */}
         <div className="text-center mt-12">
-          <button className="btn-primary text-lg">
+          <button type="button" className="btn-primary text-lg">
             <svg
               className="w-5 h-5 mr-2 inline"
               fill="none"

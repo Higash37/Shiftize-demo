@@ -67,7 +67,10 @@ const Header = () => {
             >
               料金
             </a>
-            <Link href="/(auth)/login?demo=true" className="btn-secondary text-sm py-2 px-4">
+            <Link
+              href="/(auth)/login?demo=true"
+              className="btn-secondary text-sm py-2 px-4"
+            >
               デモを試す
             </Link>
             <Link href="/(main)" className="btn-primary text-sm py-2 px-4">
@@ -77,6 +80,7 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <button
+            type="button"
             className="md:hidden p-2 rounded-lg hover:bg-white transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="メニューを開く"
