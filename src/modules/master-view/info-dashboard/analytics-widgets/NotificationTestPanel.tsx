@@ -3,27 +3,27 @@
  * 開発時のテスト・デバッグ用コンポーネント
  */
 
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { colors, shadows } from '@/common/common-constants/ThemeConstants';
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { usePushNotifications } from "@/common/common-hooks/usePushNotifications";
+import { colors, shadows } from "@/common/common-constants/ThemeConstants";
 
 interface NotificationTestPanelProps {
   isVisible?: boolean;
 }
 
-export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({ 
-  isVisible = false 
+export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
+  isVisible = false,
 }) => {
-  const { 
-    isInitialized, 
-    hasPermission, 
-    pushToken, 
+  const {
+    isInitialized,
+    hasPermission,
+    pushToken,
     error,
     sendTestNotification,
-    getDebugInfo 
+    getDebugInfo,
   } = usePushNotifications();
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isVisible) return null;
@@ -35,9 +35,9 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
     try {
       setIsLoading(true);
       await sendTestNotification();
-      Alert.alert('成功', 'テスト通知を送信しました！');
+      Alert.alert("成功", "テスト通知を送信しました！");
     } catch (error: any) {
-      Alert.alert('エラー', `通知送信に失敗しました: ${error.message}`);
+      Alert.alert("エラー", `通知送信に失敗しました: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -49,13 +49,14 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
   const handleShowDebugInfo = async () => {
     try {
       const debugInfo = await getDebugInfo();
-      Alert.alert(
-        'デバッグ情報',
-        JSON.stringify(debugInfo, null, 2),
-        [{ text: 'OK' }]
-      );
+      Alert.alert("デバッグ情報", JSON.stringify(debugInfo, null, 2), [
+        { text: "OK" },
+      ]);
     } catch (error: any) {
-      Alert.alert('エラー', `デバッグ情報の取得に失敗しました: ${error.message}`);
+      Alert.alert(
+        "エラー",
+        `デバッグ情報の取得に失敗しました: ${error.message}`
+      );
     }
   };
 
@@ -67,28 +68,22 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
 
       {/* 状態表示 */}
       <View style={styles.statusContainer}>
-        <StatusItem 
-          label="初期化状態" 
-          value={isInitialized ? '完了' : '未完了'}
+        <StatusItem
+          label="初期化状態"
+          value={isInitialized ? "完了" : "未完了"}
           isGood={isInitialized}
         />
-        <StatusItem 
-          label="権限状態" 
-          value={hasPermission ? '許可済み' : '未許可'}
+        <StatusItem
+          label="権限状態"
+          value={hasPermission ? "許可済み" : "未許可"}
           isGood={hasPermission}
         />
-        <StatusItem 
-          label="プッシュトークン" 
-          value={pushToken ? '取得済み' : '未取得'}
+        <StatusItem
+          label="プッシュトークン"
+          value={pushToken ? "取得済み" : "未取得"}
           isGood={!!pushToken}
         />
-        {error && (
-          <StatusItem 
-            label="エラー" 
-            value={error}
-            isGood={false}
-          />
-        )}
+        {error && <StatusItem label="エラー" value={error} isGood={false} />}
       </View>
 
       {/* ボタン */}
@@ -99,7 +94,7 @@ export const NotificationTestPanel: React.FC<NotificationTestPanelProps> = ({
           disabled={!isInitialized || isLoading}
         >
           <Text style={styles.buttonText}>
-            {isLoading ? '送信中...' : 'テスト通知送信'}
+            {isLoading ? "送信中..." : "テスト通知送信"}
           </Text>
         </TouchableOpacity>
 
@@ -134,10 +129,12 @@ const StatusItem: React.FC<{
 }> = ({ label, value, isGood }) => (
   <View style={styles.statusItem}>
     <Text style={styles.statusLabel}>{label}:</Text>
-    <Text style={[
-      styles.statusValue, 
-      { color: isGood ? colors.success : colors.error }
-    ]}>
+    <Text
+      style={[
+        styles.statusValue,
+        { color: isGood ? colors.success : colors.error },
+      ]}
+    >
       {value}
     </Text>
   </View>
@@ -151,47 +148,47 @@ const styles = StyleSheet.create({
     margin: 16,
     ...shadows.card,
   },
-  
+
   header: {
     marginBottom: 16,
   },
-  
+
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.text.primary,
-    textAlign: 'center',
+    textAlign: "center",
   },
-  
+
   statusContainer: {
     marginBottom: 16,
   },
-  
+
   statusItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 4,
   },
-  
+
   statusLabel: {
     fontSize: 14,
     color: colors.text.secondary,
     flex: 1,
   },
-  
+
   statusValue: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     flex: 2,
-    textAlign: 'right',
+    textAlign: "right",
   },
-  
+
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
-  
+
   button: {
     flex: 1,
     paddingVertical: 12,
@@ -199,37 +196,37 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginHorizontal: 4,
   },
-  
+
   testButton: {
     backgroundColor: colors.primary,
   },
-  
+
   debugButton: {
     backgroundColor: colors.secondary,
   },
-  
+
   buttonText: {
     color: colors.background,
     fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
-  
+
   tokenContainer: {
     backgroundColor: colors.background,
     padding: 12,
     borderRadius: 8,
   },
-  
+
   tokenLabel: {
     fontSize: 12,
     color: colors.text.secondary,
     marginBottom: 4,
   },
-  
+
   tokenText: {
     fontSize: 10,
     color: colors.text.primary,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 });

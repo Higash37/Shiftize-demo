@@ -80,8 +80,12 @@ export default function ChangelogPage() {
 
         <View style={styles.changelogSection}>
           {filteredChangelog.map((item, index) => {
-            const categoryInfo = categoryMap.get(item.category) ?? categories[0];
+            const categoryInfo = categoryMap.get(item.category) ?? categories.find(cat => cat.id === "all") ?? categories[0];
             const statusInfo = statusMeta[item.status];
+
+            if (!categoryInfo) {
+              return null; // Skip rendering if no category info found
+            }
 
             return (
               <View key={item.version} style={styles.changelogItem}>

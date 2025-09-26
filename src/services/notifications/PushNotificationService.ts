@@ -45,7 +45,7 @@ export class PushNotificationService {
         return false;
       }
 
-      if (!Device || !Device.isDevice) {
+      if (!Device?.isDevice) {
         return false;
       }
 
@@ -63,6 +63,7 @@ export class PushNotificationService {
 
       return true;
     } catch (error) {
+      console.warn('Failed to request push notification permissions:', error);
       return false;
     }
   }
@@ -76,7 +77,7 @@ export class PushNotificationService {
         return null;
       }
 
-      if (!Device || !Device.isDevice) {
+      if (!Device?.isDevice) {
         return null;
       }
 
@@ -87,27 +88,18 @@ export class PushNotificationService {
 
       return token.data;
     } catch (error) {
+      console.warn('Failed to get Expo push token:', error);
       return null;
     }
   }
 
   /**
    * FCM Registration Token を取得（Android/iOS用）
+   * @deprecated 現在未実装 - 将来的に@react-native-firebase/messagingで実装予定
+   * @throws {Error} 未実装エラー
    */
   static async getFCMToken(): Promise<string | null> {
-    try {
-      // Web プラットフォームの場合、FCMトークンを取得
-      if (Platform.OS === 'web') {
-        // Web用のFCM実装は後で追加
-        return null;
-      }
-
-      // React Native用のFCMトークン取得
-      // @react-native-firebase/messaging が必要
-      return null;
-    } catch (error) {
-      return null;
-    }
+    throw new Error('FCM token functionality not yet implemented. Use getExpoPushToken() instead.');
   }
 
   /**
@@ -146,6 +138,7 @@ export class PushNotificationService {
       await setDoc(doc(db, 'pushTokens', userId), tokenData);
 
     } catch (error) {
+      console.warn('Failed to save user push token:', error);
       throw error;
     }
   }
@@ -174,6 +167,7 @@ export class PushNotificationService {
       });
 
     } catch (error) {
+      console.warn('Failed to show local notification:', error);
       throw error;
     }
   }
@@ -190,6 +184,7 @@ export class PushNotificationService {
       }
       return null;
     } catch (error) {
+      console.warn('Failed to get user push token:', error);
       return null;
     }
   }
@@ -233,9 +228,10 @@ export class PushNotificationService {
         body: JSON.stringify(messages),
       });
 
-      const result = await response.json();
+      await response.json();
 
     } catch (error) {
+      console.warn('Failed to send push notification:', error);
       throw error;
     }
   }
@@ -269,6 +265,7 @@ export class PushNotificationService {
         platform: Platform.OS,
       };
     } catch (error) {
+      console.warn('Failed to get debug info:', error);
       return {
         isDevice: false,
         permissions: null,

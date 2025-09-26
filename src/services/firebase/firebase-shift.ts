@@ -19,8 +19,7 @@ import {
 
 import { Shift } from "@/common/common-models/ModelIndex";
 import { db } from "./firebase-core";
-import { ShiftNotificationService } from "../notifications/ShiftNotificationService";
-import { EmailNotificationService } from "../notifications/EmailNotificationService";
+import { ShiftNotificationService, EmailNotificationService } from "@/services/notifications";
 import { Platform } from "react-native";
 
 /**
