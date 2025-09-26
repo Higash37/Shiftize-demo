@@ -3,9 +3,16 @@
  * Web版・PWA用のメール通知機能
  */
 
-import { doc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebase-core';
-import { Shift } from '@/common/common-models/ModelIndex';
+import {
+  doc,
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../firebase/firebase-core";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 export interface EmailNotificationData {
   to: string[];
@@ -18,28 +25,29 @@ export interface NotificationRecipient {
   userId: string;
   email: string;
   nickname: string;
-  role: 'master' | 'user';
+  role: "master" | "user";
 }
 
 export class EmailNotificationService {
-
   /**
    * シフト作成時のメール通知
    * → 教室長（master）にメール送信
    */
-  static async notifyShiftCreatedByEmail(shift: Shift, creatorNickname: string): Promise<void> {
+  static async notifyShiftCreatedByEmail(
+    shift: Shift,
+    creatorNickname: string
+  ): Promise<void> {
     try {
-
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
-      
+
       if (masters.length === 0) {
         return;
       }
 
       // 新しいEmailServiceテンプレートを使用
-      const { EmailService } = await import('@/lib/email-service');
-      
+      const { EmailService } = await import("@/services/notifications");
+
       const shiftData = {
         shiftDate: shift.date,
         startTime: shift.startTime,
@@ -48,11 +56,11 @@ export class EmailNotificationService {
       };
 
       const emailData: EmailNotificationData = {
-        to: masters.map(m => m.email),
+        to: masters.map((m) => m.email),
         subject: `新しいシフトが追加されました - ${shift.date}`,
         html: EmailService.generateEmailTemplate(
-          '新しいシフトが追加されました',
-          '📅',
+          "新しいシフトが追加されました",
+          "📅",
           `<p><strong>${creatorNickname}</strong>さんが新しいシフトを作成しました。</p><p>アプリで詳細を確認し、必要に応じて承認を行ってください。</p>`,
           shiftData
         ),
@@ -61,9 +69,8 @@ export class EmailNotificationService {
 
       // メール送信（実装方法は後で選択）
       await this.sendEmail(emailData);
-
-
     } catch (error) {
+      console.warn("Failed to send shift creation email notification:", error);
     }
   }
 
@@ -77,7 +84,6 @@ export class EmailNotificationService {
     reason?: string
   ): Promise<void> {
     try {
-
       // シフト作成者の情報を取得
       const userInfo = await this.getUserInfo(shift.userId);
       if (!userInfo) {
@@ -85,33 +91,34 @@ export class EmailNotificationService {
       }
 
       // 新しいEmailServiceテンプレートを使用
-      const { EmailService } = await import('@/lib/email-service');
-      
+      const { EmailService } = await import("@/services/notifications");
+
       const shiftData = {
         shiftDate: shift.date,
         startTime: shift.startTime,
         endTime: shift.endTime,
         userNickname: userInfo.nickname,
         masterNickname: deletedByNickname,
-        reason: reason || '',
+        reason: reason || "",
       };
 
       const emailData: EmailNotificationData = {
         to: [userInfo.email],
         subject: `シフトが削除されました - ${shift.date}`,
         html: EmailService.generateEmailTemplate(
-          'シフトが削除されました',
-          '🗑️',
+          "シフトが削除されました",
+          "🗑️",
           `<p>こんにちは、<strong>${userInfo.nickname}</strong>さん</p><p><strong>${deletedByNickname}</strong>さんがあなたの以下のシフトを削除しました。</p><p>ご質問がある場合は、${deletedByNickname}さんまたは管理者にお問い合わせください。</p>`,
           shiftData
         ),
-        text: `${deletedByNickname}さんがあなたの${shift.date}のシフトを削除しました。${reason ? `理由: ${reason}` : ''}`,
+        text:
+          `${deletedByNickname}さんがあなたの${shift.date}のシフトを削除しました。` +
+          (reason ? `理由: ${reason}` : ""),
       };
 
       await this.sendEmail(emailData);
-
-
     } catch (error) {
+      console.warn("Failed to send shift deletion email notification:", error);
     }
   }
 
@@ -124,7 +131,6 @@ export class EmailNotificationService {
     approverNickname: string
   ): Promise<void> {
     try {
-
       // シフト作成者の情報を取得
       const userInfo = await this.getUserInfo(shift.userId);
       if (!userInfo) {
@@ -132,23 +138,23 @@ export class EmailNotificationService {
       }
 
       // 新しいEmailServiceテンプレートを使用
-      const { EmailService } = await import('@/lib/email-service');
-      
+      const { EmailService } = await import("@/services/notifications");
+
       const shiftData = {
         shiftDate: shift.date,
         startTime: shift.startTime,
         endTime: shift.endTime,
         userNickname: userInfo.nickname,
         masterNickname: approverNickname,
-        status: '承認済み',
+        status: "承認済み",
       };
 
       const emailData: EmailNotificationData = {
         to: [userInfo.email],
         subject: `シフトが承認されました - ${shift.date}`,
         html: EmailService.generateEmailTemplate(
-          'シフトが承認されました',
-          'Check',
+          "シフトが承認されました",
+          "Check",
           `<p>こんにちは、<strong>${userInfo.nickname}</strong>さん</p><p><strong>${approverNickname}</strong>さんがあなたのシフトを承認しました！</p><p>シフトが確定しました。当日の勤務をよろしくお願いします。</p>`,
           shiftData
         ),
@@ -156,9 +162,8 @@ export class EmailNotificationService {
       };
 
       await this.sendEmail(emailData);
-
-
     } catch (error) {
+      console.warn("Failed to send shift approval email notification:", error);
     }
   }
 
@@ -169,29 +174,24 @@ export class EmailNotificationService {
   /**
    * 店舗の教室長（master）一覧を取得
    */
-  private static async getStoreMasters(storeId: string, excludeUserId?: string): Promise<NotificationRecipient[]> {
+  private static async getStoreMasters(
+    storeId: string,
+    excludeUserId?: string
+  ): Promise<NotificationRecipient[]> {
     try {
-      const usersRef = collection(db, 'users');
+      const usersRef = collection(db, "users");
       const mastersQuery = query(
         usersRef,
-        where('storeId', '==', storeId),
-        where('role', '==', 'master')
+        where("storeId", "==", storeId),
+        where("role", "==", "master")
       );
 
       const snapshot = await getDocs(mastersQuery);
       const masters: NotificationRecipient[] = [];
 
-
-      snapshot.docs.forEach(doc => {
+      snapshot.docs.forEach((doc) => {
         const data = doc.data();
-        const user = {
-          storeId: data["storeId"],
-          role: data["role"],
-          deleted: data["deleted"],
-          email: data["email"],
-          nickname: data["nickname"]
-        };
-        
+
         // 削除されたユーザーをスキップ
         if (data["deleted"] === true) {
           return;
@@ -206,15 +206,15 @@ export class EmailNotificationService {
           masters.push({
             userId: doc.id,
             email: data["email"],
-            nickname: data["nickname"] || 'Unknown',
+            nickname: data["nickname"] || "Unknown",
             role: data["role"],
           });
         }
       });
 
       return masters;
-
     } catch (error) {
+      console.warn("Failed to get store masters:", error);
       return [];
     }
   }
@@ -222,9 +222,11 @@ export class EmailNotificationService {
   /**
    * 特定ユーザーの情報を取得
    */
-  private static async getUserInfo(userId: string): Promise<NotificationRecipient | null> {
+  private static async getUserInfo(
+    userId: string
+  ): Promise<NotificationRecipient | null> {
     try {
-      const userRef = doc(db, 'users', userId);
+      const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
@@ -233,14 +235,15 @@ export class EmailNotificationService {
           return {
             userId,
             email: data["email"],
-            nickname: data["nickname"] || 'Unknown',
-            role: data["role"] || 'user',
+            nickname: data["nickname"] || "Unknown",
+            role: data["role"] || "user",
           };
         }
       }
 
       return null;
     } catch (error) {
+      console.warn("Failed to get user info:", error);
       return null;
     }
   }
@@ -248,11 +251,13 @@ export class EmailNotificationService {
   /**
    * メール送信（新しいemail-serviceを使用）
    */
-  private static async sendEmail(emailData: EmailNotificationData): Promise<void> {
+  private static async sendEmail(
+    emailData: EmailNotificationData
+  ): Promise<void> {
     try {
       // 新しいEmailServiceを使用
-      const { EmailService } = await import('@/lib/email-service');
-      
+      const { EmailService } = await import("@/services/notifications");
+
       const success = await EmailService.sendEmail({
         to: emailData.to,
         subject: emailData.subject,
@@ -261,14 +266,10 @@ export class EmailNotificationService {
       });
 
       if (!success) {
-        throw new Error('EmailService returned false');
+        throw new Error("EmailService returned false");
       }
-
-
     } catch (error) {
-      
-      // フォールバック: コンソールログ（開発時）
+      console.warn("Failed to send email via EmailService:", error);
     }
   }
-
 }

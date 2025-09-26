@@ -66,9 +66,32 @@ export class AppVersion {
 | Legacy lint cleanup | Refactor `gantt-chart-common` and `user-shift-forms` legacy modules to eliminate unused code/`any` usage and clear remaining ESLint violations. | TBD | Backlog |
 
 
+## AI Agent Configuration & Management
+
+### Claude Code Agent Types
+- **general-purpose**: Complex questions, code search, multi-step tasks
+- **statusline-setup**: Configure Claude Code status line settings
+- **output-style-setup**: Create Claude Code output styles
+- **error-warning-fixer**: Fix errors, warnings, alerts, TypeScript/linting issues
+- **code-refactor-security**: Refactor code for best practices and security
+- **shift-app-release-manager**: Manage releases, versioning, changelog for shift scheduler app
+
+### AI Agent Usage Guidelines
+- Use Task tool to launch specialized agents based on task requirements
+- Launch multiple agents concurrently for optimal performance
+- Provide detailed task descriptions for autonomous execution
+- Agents are stateless - include all necessary context in prompts
+
+### AI Development Workflow
+1. **Code Generation**: Write initial implementation
+2. **Error Fixing**: Use error-warning-fixer agent for issues
+3. **Refactoring**: Use code-refactor-security agent for optimization
+4. **Release Management**: Use shift-app-release-manager for versioning
+
 ## Agent Progress
 - 2025-09-26: SimpleLanding リファクタリングを開始。データ/型/スタイルを分離し、テーマカラーへ置換。Lint (`SimpleLanding*`) がパスする状態を確認。
 - 2025-09-26: AppSpecifications をデータ・型・スタイルへ分離し、テーマトークンを適用。Lint OK。
 - 2025-09-26: Changelogをデータ/型/スタイル分離し、文言を英語化。Lint OK。
 - 2025-09-26: DevelopmentStoryをデータ/型/スタイル分離し、英語コピーとテーマカラーを適用。Lint OK。
 - 2025-09-26: Features ウィジェットをデータ/型分離し、英語コピーへ更新。Lint OK。
+- 2025-09-27: AI agent documentation section added to AGENTS.md for better development workflow management.

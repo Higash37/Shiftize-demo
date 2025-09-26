@@ -6,7 +6,7 @@ export const developmentPhases: DevelopmentPhase[] = [
     phase: "1",
     title: "Discovery & Planning",
     duration: "2 months",
-    icon: "target",
+    icon: "track-changes",
     color: colors.primary,
     backgroundColor: "rgba(10, 132, 255, 0.08)",
     description:
@@ -139,7 +139,7 @@ export const insights: Insight[] = [
     description: "Embraced deliberate practice and design critiques every sprint.",
   },
   {
-    icon: "target",
+    icon: "track-changes",
     title: "Customer Focus",
     description: "Validated every milestone with real academy workflows.",
   },

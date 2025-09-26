@@ -3,38 +3,49 @@
  * シフトイベント（作成・削除・承認）時のプッシュ通知を管理
  */
 
-import { PushNotificationService, NotificationData } from './PushNotificationService';
-import { doc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebase-core';
-import { Shift } from '@/common/common-models/ModelIndex';
+import {
+  PushNotificationService,
+  NotificationData,
+} from "./PushNotificationService";
+import {
+  doc,
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../firebase/firebase-core";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 export interface NotificationRecipient {
   userId: string;
   nickname: string;
-  role: 'master' | 'user';
+  role: "master" | "user";
 }
 
 export class ShiftNotificationService {
-
   /**
    * シフト作成時の通知
    * → 教室長（master）に通知
    */
-  static async notifyShiftCreated(shift: Shift, creatorNickname: string): Promise<void> {
+  static async notifyShiftCreated(
+    shift: Shift,
+    creatorNickname: string
+  ): Promise<void> {
     try {
-
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
-      
+
       if (masters.length === 0) {
         return;
       }
 
       const notification: NotificationData = {
-        title: '新しいシフトが追加されました',
+        title: "新しいシフトが追加されました",
         body: `${creatorNickname}さんが${shift.date}のシフトを作成しました`,
         data: {
-          type: 'shift_created',
+          type: "shift_created",
           shiftId: shift.id,
           date: shift.date,
           creatorId: shift.userId,
@@ -43,12 +54,13 @@ export class ShiftNotificationService {
       };
 
       // 教室長たちに通知送信
-      const masterIds = masters.map(m => m.userId);
-      await PushNotificationService.sendPushNotification(masterIds, notification);
-
-
+      const masterIds = masters.map((m) => m.userId);
+      await PushNotificationService.sendPushNotification(
+        masterIds,
+        notification
+      );
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send shift creation notification:", error);
     }
   }
 
@@ -62,31 +74,33 @@ export class ShiftNotificationService {
     reason?: string
   ): Promise<void> {
     try {
-
-      // シフト作成者が削除実行者と同じ場合は通知しない（自分で削除した場合）
-      if (shift.userId === shift.userId) {
-        return;
-      }
+      // 自分で削除した場合は通知しない（実際の削除実行者IDが必要）
+      // if (shift.userId === deletedByUserId) {
+      //   return;
+      // }
 
       const notification: NotificationData = {
-        title: 'シフトが削除されました',
-        body: `${deletedByNickname}さんがあなたの${shift.date}のシフトを削除しました${reason ? `: ${reason}` : ''}`,
+        title: "シフトが削除されました",
+        body:
+          `${deletedByNickname}さんがあなたの${shift.date}のシフトを削除しました` +
+          (reason ? `: ${reason}` : ""),
         data: {
-          type: 'shift_deleted',
+          type: "shift_deleted",
           shiftId: shift.id,
           date: shift.date,
           deletedBy: deletedByNickname,
           storeId: shift.storeId,
-          reason: reason || '',
+          reason: reason || "",
         },
       };
 
       // シフト作成者に通知送信
-      await PushNotificationService.sendPushNotification([shift.userId], notification);
-
-
+      await PushNotificationService.sendPushNotification(
+        [shift.userId],
+        notification
+      );
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send shift deletion notification:", error);
     }
   }
 
@@ -100,12 +114,11 @@ export class ShiftNotificationService {
     userNickname: string
   ): Promise<void> {
     try {
-
       const notification: NotificationData = {
-        title: 'シフトが承認されました',
+        title: "シフトが承認されました",
         body: `${approverNickname}さんがあなたの${shift.date}のシフトを承認しました`,
         data: {
-          type: 'shift_approved',
+          type: "shift_approved",
           shiftId: shift.id,
           date: shift.date,
           approver: approverNickname,
@@ -114,11 +127,12 @@ export class ShiftNotificationService {
       };
 
       // シフト作成者に通知送信
-      await PushNotificationService.sendPushNotification([shift.userId], notification);
-
-
+      await PushNotificationService.sendPushNotification(
+        [shift.userId],
+        notification
+      );
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send shift approval notification:", error);
     }
   }
 
@@ -132,19 +146,18 @@ export class ShiftNotificationService {
     changeReason: string
   ): Promise<void> {
     try {
-
       // 同じ店舗の教室長（master）を取得
       const masters = await this.getStoreMasters(shift.storeId, shift.userId);
-      
+
       if (masters.length === 0) {
         return;
       }
 
       const notification: NotificationData = {
-        title: 'シフト変更要求があります',
+        title: "シフト変更要求があります",
         body: `${requesterNickname}さんが${shift.date}のシフト変更を要求しました: ${changeReason}`,
         data: {
-          type: 'shift_change_requested',
+          type: "shift_change_requested",
           shiftId: shift.id,
           date: shift.date,
           requesterId: shift.userId,
@@ -154,34 +167,38 @@ export class ShiftNotificationService {
       };
 
       // 教室長たちに通知送信
-      const masterIds = masters.map(m => m.userId);
-      await PushNotificationService.sendPushNotification(masterIds, notification);
-
-
+      const masterIds = masters.map((m) => m.userId);
+      await PushNotificationService.sendPushNotification(
+        masterIds,
+        notification
+      );
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send shift change request notification:", error);
     }
   }
 
   /**
    * 店舗の教室長（master）一覧を取得
    */
-  private static async getStoreMasters(storeId: string, excludeUserId?: string): Promise<NotificationRecipient[]> {
+  private static async getStoreMasters(
+    storeId: string,
+    excludeUserId?: string
+  ): Promise<NotificationRecipient[]> {
     try {
-      const usersRef = collection(db, 'users');
+      const usersRef = collection(db, "users");
       const mastersQuery = query(
         usersRef,
-        where('storeId', '==', storeId),
-        where('role', '==', 'master'),
-        where('deleted', '==', false)
+        where("storeId", "==", storeId),
+        where("role", "==", "master"),
+        where("deleted", "==", false)
       );
 
       const snapshot = await getDocs(mastersQuery);
       const masters: NotificationRecipient[] = [];
 
-      snapshot.docs.forEach(doc => {
+      snapshot.docs.forEach((doc) => {
         const data = doc.data();
-        
+
         // 除外ユーザーをスキップ
         if (excludeUserId && doc.id === excludeUserId) {
           return;
@@ -189,14 +206,14 @@ export class ShiftNotificationService {
 
         masters.push({
           userId: doc.id,
-          nickname: data["nickname"] || 'Unknown',
+          nickname: data["nickname"] || "Unknown",
           role: data["role"],
         });
       });
 
       return masters;
-
     } catch (error) {
+      console.warn("Failed to get store masters:", error);
       return [];
     }
   }
@@ -204,22 +221,25 @@ export class ShiftNotificationService {
   /**
    * 特定ユーザーの情報を取得
    */
-  private static async getUserInfo(userId: string): Promise<NotificationRecipient | null> {
+  private static async getUserInfo(
+    userId: string
+  ): Promise<NotificationRecipient | null> {
     try {
-      const userRef = doc(db, 'users', userId);
+      const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
         const data = userSnap.data();
         return {
           userId,
-          nickname: data["nickname"] || 'Unknown',
-          role: data["role"] || 'user',
+          nickname: data["nickname"] || "Unknown",
+          role: data["role"] || "user",
         };
       }
 
       return null;
     } catch (error) {
+      console.warn("Failed to get user info:", error);
       return null;
     }
   }
@@ -233,12 +253,11 @@ export class ShiftNotificationService {
     recipients: string[]
   ): Promise<void> {
     try {
-
       const notification: NotificationData = {
-        title: '🚨 緊急シフト通知',
+        title: "🚨 緊急シフト通知",
         body: message,
         data: {
-          type: 'urgent_shift_change',
+          type: "urgent_shift_change",
           shiftId: shift.id,
           date: shift.date,
           storeId: shift.storeId,
@@ -246,11 +265,12 @@ export class ShiftNotificationService {
         },
       };
 
-      await PushNotificationService.sendPushNotification(recipients, notification);
-
-
+      await PushNotificationService.sendPushNotification(
+        recipients,
+        notification
+      );
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send urgent shift change notification:", error);
     }
   }
 
@@ -259,36 +279,33 @@ export class ShiftNotificationService {
    */
   static async sendWeeklyShiftReminder(storeId: string): Promise<void> {
     try {
-
       // 店舗の全ユーザーを取得
-      const usersRef = collection(db, 'users');
+      const usersRef = collection(db, "users");
       const usersQuery = query(
         usersRef,
-        where('storeId', '==', storeId),
-        where('deleted', '==', false)
+        where("storeId", "==", storeId),
+        where("deleted", "==", false)
       );
 
       const snapshot = await getDocs(usersQuery);
-      const userIds = snapshot.docs.map(doc => doc.id);
+      const userIds = snapshot.docs.map((doc) => doc.id);
 
       if (userIds.length === 0) {
         return;
       }
 
       const notification: NotificationData = {
-        title: '週次シフト確認',
-        body: '来週のシフトを確認してください。変更がある場合は早めにお知らせください。',
+        title: "週次シフト確認",
+        body: "来週のシフトを確認してください。変更がある場合は早めにお知らせください。",
         data: {
-          type: 'weekly_reminder',
+          type: "weekly_reminder",
           storeId,
         },
       };
 
       await PushNotificationService.sendPushNotification(userIds, notification);
-
-
     } catch (error) {
-      // Error handled silently
+      console.warn("Failed to send weekly shift reminder:", error);
     }
   }
 }

@@ -7,66 +7,66 @@ import { View, AppState, Platform } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { usePushNotifications } from "@/common/common-hooks/usePushNotifications";
 import { VersionManager } from "@/services/version/VersionManager";
 
 // Web環境での開発警告を抑制
-if (Platform.OS === 'web' && __DEV__) {
+if (Platform.OS === "web" && __DEV__) {
   // LogBox警告を無視
-  const { LogBox } = require('react-native');
+  const { LogBox } = require("react-native");
   LogBox.ignoreAllLogs(true); // 開発中は全ログを無視
   LogBox.ignoreLogs([
-    'shadow* style props are deprecated', 
+    "shadow* style props are deprecated",
     'Use "boxShadow"',
     '"shadow*" style props are deprecated. Use "boxShadow".',
     '"shadow*" style props are deprecated',
     /shadow.*deprecated/i,
     /boxShadow/i,
-    'Layout children must be of type Screen',
-    'props.pointerEvents is deprecated',
-    'props.pointerEvents is deprecated. Use style.pointerEvents',
+    "Layout children must be of type Screen",
+    "props.pointerEvents is deprecated",
+    "props.pointerEvents is deprecated. Use style.pointerEvents",
     /props\.pointerEvents is deprecated/,
-    'Image: style.tintColor is deprecated',
-    'Added non-passive event listener',
+    "Image: style.tintColor is deprecated",
+    "Added non-passive event listener",
     /Added non-passive event listener/,
-    'message handler took',
+    "message handler took",
     /message handler took/,
-    '[Violation]',
+    "[Violation]",
     /\[Violation\]/,
     /style\.tintColor is deprecated/,
-    'Please use props.tintColor',
+    "Please use props.tintColor",
   ]);
 
   // Console全体を無効化（開発中のみ）
   // React Native Web警告を抑制
   const originalWarn = console.warn;
   const originalError = console.error;
-  
+
   console.warn = (...args: any[]) => {
-    const message = args[0]?.toString?.() || '';
+    const message = args[0]?.toString?.() || "";
     if (
-      message.includes('Added non-passive event listener') ||
-      message.includes('[Violation]') ||
-      message.includes('message handler took')
+      message.includes("Added non-passive event listener") ||
+      message.includes("[Violation]") ||
+      message.includes("message handler took")
     ) {
       return; // 特定の警告をスキップ
     }
     // originalWarn(...args); // 開発中は全警告を無効
   };
-  
+
   console.error = (...args: any[]) => {
-    const message = args[0]?.toString?.() || '';
-    if (message.includes('[Violation]')) {
+    const message = args[0]?.toString?.() || "";
+    if (message.includes("[Violation]")) {
       return; // Violation警告をスキップ
     }
     // 重要なエラーのみ表示
     originalError(...args);
   };
-  
+
   const noop = () => {};
   console.error = (message, ...args) => {
     // 🔒 SECURITY: 機密情報の漏洩を防ぐため、開発環境のみで詳細表示
-    if (typeof message === 'string' && !message.includes('deprecated')) {
+    if (typeof message === "string" && !message.includes("deprecated")) {
       if (__DEV__) {
       } else {
         // 本番環境では最小限のエラーログのみ
@@ -80,25 +80,25 @@ function RootLayoutNav() {
   const { user, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  
+
   // 🔔 プッシュ通知初期化
   usePushNotifications();
 
   // 🔄 バージョンチェックとキャッシュ管理
   useEffect(() => {
     // Web環境でのみバージョンチェックを実行
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       // アプリ起動時に即座にチェック
       VersionManager.checkForUpdatesOnStartup();
-      
+
       // 定期的なバージョンチェックを開始（1分ごと）
       VersionManager.startVersionCheck(() => {
         // オプショナルアップデート時の通知
-        if (confirm('新しいバージョンが利用可能です。今すぐ更新しますか？')) {
+        if (confirm("新しいバージョンが利用可能です。今すぐ更新しますか？")) {
           window.location.reload();
         }
       });
-      
+
       // クリーンアップ
       return () => {
         VersionManager.stopVersionCheck();
@@ -107,7 +107,6 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-
     if (loading) {
       return;
     }
@@ -115,14 +114,14 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const inLandingGroup = segments[0] === "(landing)";
     // (main) グループ内のページを正しく判定
-    const inMainGroup = segments[0] === "(main)" ||
-                       segments[0] === "user" ||
-                       segments[0] === "master" ||
-                       segments[0] === "user-settings" ||
-                       segments.includes("user") ||
-                       segments.includes("master");
+    const inMainGroup =
+      segments[0] === "(main)" ||
+      segments[0] === "user" ||
+      segments[0] === "master" ||
+      segments[0] === "user-settings" ||
+      segments.includes("user") ||
+      segments.includes("master");
     const atRoot = segments.length < 1;
-
 
     // ルートページまたはランディングページは認証に関係なく常にアクセス可能
     if (inLandingGroup || atRoot) {
@@ -134,9 +133,10 @@ function RootLayoutNav() {
       // 未認証ユーザーの場合
       if (inMainGroup) {
         // 現在のパスを保存してログインページへ
-        const currentPath = segments.join('/');
-        const urlParams = typeof window !== 'undefined' ? window.location.search : '';
-        const redirectPath = encodeURIComponent('/' + currentPath + urlParams);
+        const currentPath = segments.join("/");
+        const urlParams =
+          typeof window !== "undefined" ? window.location.search : "";
+        const redirectPath = encodeURIComponent("/" + currentPath + urlParams);
         router.replace(`/(auth)/login?redirect=${redirectPath}`);
         return;
       }
@@ -144,10 +144,9 @@ function RootLayoutNav() {
     } else {
       if (inAuthGroup) {
         // 認証済みユーザーが認証画面にいる場合
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           const urlParams = new URLSearchParams(window.location.search);
-          const redirectPath = urlParams.get('redirect');
-
+          const redirectPath = urlParams.get("redirect");
 
           if (redirectPath) {
             const decodedPath = decodeURIComponent(redirectPath);
@@ -159,9 +158,11 @@ function RootLayoutNav() {
 
         // リダイレクトパスがない場合のみデフォルトのホーム画面へ
         // ただし、既に他のページにいる場合は強制リダイレクトしない
-        const currentSegments = segments.filter(seg => seg && seg !== '(auth)');
+        const currentSegments = segments.filter(
+          (seg) => seg && seg !== "(auth)"
+        );
 
-        if (currentSegments.length === 0 || segments.includes('login')) {
+        if (currentSegments.length === 0 || segments.includes("login")) {
           if (role === "master") {
             router.replace("/(main)/master/home");
           } else if (role === "user") {
@@ -189,9 +190,12 @@ function RootLayoutNav() {
         timeoutId = setTimeout(() => {
           if (!user && !loading && !inAuthGroup) {
             // 現在のパスとパラメータを保存してリダイレクト
-            const currentPath = segments.join('/');
-            const urlParams = typeof window !== 'undefined' ? window.location.search : '';
-            const redirectPath = encodeURIComponent('/' + currentPath + urlParams);
+            const currentPath = segments.join("/");
+            const urlParams =
+              typeof window !== "undefined" ? window.location.search : "";
+            const redirectPath = encodeURIComponent(
+              "/" + currentPath + urlParams
+            );
             router.replace(`/(auth)/login?redirect=${redirectPath}`);
           }
         }, 1000); // 1秒待機
@@ -236,10 +240,10 @@ export default function RootLayout() {
             notification: colors.primary,
           },
           fonts: {
-            regular: { fontFamily: 'System', fontWeight: '400' },
-            medium: { fontFamily: 'System', fontWeight: '500' },
-            bold: { fontFamily: 'System', fontWeight: '700' },
-            heavy: { fontFamily: 'System', fontWeight: '900' },
+            regular: { fontFamily: "System", fontWeight: "400" },
+            medium: { fontFamily: "System", fontWeight: "500" },
+            bold: { fontFamily: "System", fontWeight: "700" },
+            heavy: { fontFamily: "System", fontWeight: "900" },
           },
         }}
       >

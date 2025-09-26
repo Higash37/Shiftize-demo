@@ -143,6 +143,7 @@ export const securityData: SecuritySpecification[] = [
   {
         category: "データ暗号化",
         level: "最高レベル",
+        tone: "success",
         specifications: [
           "AES-256暗号化: 個人情報の完全暗号化",
           "データベース暗号化: Firestore保存時暗号化",
@@ -153,6 +154,7 @@ export const securityData: SecuritySpecification[] = [
       {
         category: "GDPR準拠",
         level: "完全対応",
+        tone: "success",
         specifications: [
           "データ削除権: ユーザーデータの完全削除機能",
           "同意管理: データ処理に対する明示的同意取得",
@@ -163,6 +165,7 @@ export const securityData: SecuritySpecification[] = [
       {
         category: "アクセスセキュリティ",
         level: "エンタープライズ級",
+        tone: "primary",
         specifications: [
           "Firebase Security Rules: 店舗分離＋ロールベースアクセス制御",
           "入力値検証: XSS・SQLインジェクション対策",

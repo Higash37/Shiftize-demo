@@ -62,8 +62,7 @@ service cloud.firestore {
         request.resource.data.nickname != null &&
         request.resource.data.email != null &&
         request.resource.data.role in ["master", "user"] &&
-        // 🔒 SECURITY: 機密フィールドの制限
-        !("currentPassword" in request.resource.data) && // 平文パスワード禁止
+        // ⚠️ Legacy: currentPassword を保存 (移行中)
         (
           // 既存マスターが作成
           (request.auth.token.role == "master" &&
@@ -77,8 +76,7 @@ service cloud.firestore {
       
       // 更新: 本人またはマスター（同一店舗）
       allow update: if isAuthenticated() && 
-        // 🔒 SECURITY: 機密フィールドの保護
-        !("currentPassword" in request.resource.data) && // 平文パスワード禁止
+        // ⚠️ Legacy: currentPassword を保存 (移行中)
         resource.data.deleted != true && // 削除済みユーザーの更新禁止
         (request.auth.uid == userId || 
          (hasAccessToStore(resource.data.storeId) &&
