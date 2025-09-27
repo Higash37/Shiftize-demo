@@ -183,20 +183,16 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
                       <View style={styles.timeSelectContainer}>
                         <Text style={styles.timeLabel}>開始</Text>
                         <TimeSelect
-                          value={classItem.startTime}
-                          onChange={(value) =>
-                            handleTimeChange("classStart", value, index)
-                          }
+                          value={classItem.startTime || ""}
+                          onChange={(value) => handleTimeChange("classStart", value, index)}
                         />
                       </View>
                       <Text style={styles.timeSeparator}>～</Text>
                       <View style={styles.timeSelectContainer}>
                         <Text style={styles.timeLabel}>終了</Text>
                         <TimeSelect
-                          value={classItem.endTime}
-                          onChange={(value) =>
-                            handleTimeChange("classEnd", value, index)
-                          }
+                          value={classItem.endTime || ""}
+                          onChange={(value) => handleTimeChange("classEnd", value, index)}
                         />
                       </View>
                     </View>

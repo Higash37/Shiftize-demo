@@ -236,9 +236,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     } else if (type === "classStart" && index !== undefined) {
       const updatedClasses = [...shiftData.classes];
       updatedClasses[index] = {
-        startTime: value,
-        endTime: updatedClasses[index]?.endTime ?? "",
         ...updatedClasses[index],
+        startTime: value,
+        endTime: updatedClasses[index]?.endTime || "",
       };
       setShiftData((prev) => ({
         ...prev,
@@ -248,9 +248,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     } else if (type === "classEnd" && index !== undefined) {
       const updatedClasses = [...shiftData.classes];
       updatedClasses[index] = {
-        startTime: updatedClasses[index]?.startTime ?? "",
-        endTime: value,
         ...updatedClasses[index],
+        startTime: updatedClasses[index]?.startTime || "",
+        endTime: value,
       };
       setShiftData((prev) => ({
         ...prev,
@@ -276,8 +276,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       setErrorMessage("13:00~17:00のようにまとめてください");
       return;
     }
-    const defaultStartTime = selectedStartTime;
-    const defaultEndTime = selectedEndTime;
+    // 授業時間は適切なデフォルト値で初期化（シフト時間とは異なる）
+    const defaultStartTime = "14:00"; // シフト時間とは異なるデフォルト値
+    const defaultEndTime = "15:00";   // 1時間の授業として設定
     const newClass = {
       startTime: defaultStartTime,
       endTime: defaultEndTime,

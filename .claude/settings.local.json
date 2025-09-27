@@ -6,7 +6,6 @@
       "Bash(npx expo start:*)",
       "Bash(rm:*)",
       "Bash(pkill:*)",
-      "Bash(npm run dev:*)",
       "Bash(claude --version)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
@@ -60,14 +59,9 @@
       "Bash(git add:*)",
       "Bash(git push:*)"
     ],
-    "deny": [],
+    "deny": ["Bash(npm run dev:*)"],
     "defaultMode": "acceptEdits"
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "playwright",
-    "firebase",
-    "filesystem",
-    "git"
-  ]
+  "enabledMcpjsonServers": ["playwright", "firebase", "filesystem", "git"]
 }
