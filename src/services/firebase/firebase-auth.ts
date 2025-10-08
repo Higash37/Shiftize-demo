@@ -124,30 +124,19 @@ export const AuthService = {
     hourlyWage?: number
   ): Promise<User> => {
     try {
-      console.log('🚀 [createUser] Starting user creation process', {
-        email,
-        nickname,
-        color,
-        storeId,
-        role
-      });
-
       // 現在のユーザー情報を保存
       const currentUser = auth.currentUser;
-      console.log('👤 [createUser] Current user check:', currentUser?.uid);
       if (!currentUser) {
         console.error('❌ [createUser] No current user found');
         throw new Error("管理者としてログインしている必要があります");
       }
 
       // 一時的なFirebaseアプリインスタンスを作成
-      console.log('🔧 [createUser] Creating temporary Firebase app');
       const tempApp = initializeApp(firebaseConfig, "temp-app-" + Date.now());
       const tempAuth = getAuth(tempApp);
 
       try {
         // Firebase Auth処理開始
-        console.log('🔐 [createUser] Starting Firebase Auth user creation');
 
         // 1. 一時的なインスタンスでユーザーを作成
         const userCredential = await createUserWithEmailAndPassword(
@@ -155,7 +144,6 @@ export const AuthService = {
           email,
           password
         );
-        console.log('✅ [createUser] Firebase Auth user created:', userCredential.user.uid);
 
         const firebaseUser = userCredential.user;
 
@@ -175,7 +163,6 @@ export const AuthService = {
         // UserFormから渡されるroleを使用（デフォルトは"user"）
         const userRole = role || "user";
         
-        console.log('🔒 [createUser] Starting password hashing');
         // 🔒 セキュリティ強化：パスワードハッシュ化
         const { AESEncryption } = await import("@/common/common-utils/security/encryptionUtils");
         const hashedPassword = AESEncryption.hashPassword(password);
@@ -194,22 +181,13 @@ export const AuthService = {
           updatedAt: new Date(), // updatedAtを追加
         };
 
-        console.log('💾 [createUser] Saving user data to Firestore:', {
-          uid: firebaseUser.uid,
-          nickname: displayName,
-          role: userRole,
-          storeId
-        });
-
         try {
           await setDoc(userRef, userData);
-          console.log('✅ [createUser] User data saved to Firestore successfully');
         } catch (firestoreError: any) {
           console.error('❌ [createUser] Failed to save user data to Firestore:', firestoreError);
           // Firebase Authからユーザーを削除（ロールバック）
           try {
             await firebaseUser.delete();
-            console.log('🗑️ [createUser] Firebase Auth user deleted due to Firestore error');
           } catch (deleteError) {
             console.error('❌ [createUser] Failed to delete Firebase Auth user:', deleteError);
           }
@@ -218,7 +196,6 @@ export const AuthService = {
 
         // 4. 一時的なアプリを削除
         await deleteApp(tempApp);
-        console.log('🧹 [createUser] Temporary Firebase app deleted');
 
         // 5. 作成されたユーザー情報を返す
         const result = {
@@ -228,7 +205,6 @@ export const AuthService = {
           color: color || "#FFD700",
           storeId: storeId || "",
         };
-        console.log('🎉 [createUser] User creation completed successfully:', result);
         return result;
       } catch (error: any) {
         console.error('❌ [createUser] Error in Firebase Auth process:', error);
@@ -236,7 +212,6 @@ export const AuthService = {
         // エラーが発生した場合は一時的なアプリを削除
         try {
           await deleteApp(tempApp);
-          console.log('🧹 [createUser] Temporary Firebase app deleted due to error');
         } catch (deleteError) {
           console.error('❌ [createUser] Failed to delete temporary app:', deleteError);
         }

@@ -49,7 +49,6 @@ export default function UsersScreen() {
   );
   
   const handleAddUser = async (data: UserFormData) => {
-    console.log('🚀 [UsersScreen.handleAddUser] Starting user addition', data);
 
     if (!data.password) {
       console.error('❌ [UsersScreen.handleAddUser] No password provided');
@@ -57,7 +56,6 @@ export default function UsersScreen() {
     }
 
     try {
-      console.log('🔥 [UsersScreen.handleAddUser] Calling addUser hook');
       const newUser = await addUser(
         data.email,
         data.password,
@@ -67,7 +65,6 @@ export default function UsersScreen() {
         data.storeId,
         data.hourlyWage
       );
-      console.log('✅ [UsersScreen.handleAddUser] User added successfully:', newUser);
 
       if (newUser) {
         // パスワード情報をローカルに保存（必要に応じて）
@@ -77,7 +74,6 @@ export default function UsersScreen() {
         }));
         
         // 成功時：フォームを閉じて一覧表示に戻る
-        console.log('✅ [UsersScreen.handleAddUser] Closing form');
         setIsAddingUser(false);
       }
     } catch (err) {

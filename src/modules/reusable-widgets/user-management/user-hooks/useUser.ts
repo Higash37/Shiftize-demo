@@ -46,14 +46,6 @@ export const useUser = (storeId?: string) => {
     hourlyWage?: number
   ) => {
     try {
-      console.log('🚀 [useUser.addUser] Starting user creation process', {
-        email,
-        nickname,
-        role,
-        color,
-        storeId
-      });
-
       setLoading(true);
       setError(null);
 
@@ -71,13 +63,11 @@ export const useUser = (storeId?: string) => {
       }
 
       if (role === "master") {
-        console.log('👑 [useUser.addUser] Checking for existing master user');
         const hasMaster = await checkMasterExists();
         if (hasMaster) {
           console.error('❌ [useUser.addUser] Master user already exists');
           throw new Error("マスターユーザーは既に存在します");
         }
-        console.log('✅ [useUser.addUser] No master user exists, proceeding');
       }
 
       // 実際のメールアドレスが提供された場合はそれを使用、なければ自動生成
@@ -90,27 +80,22 @@ export const useUser = (storeId?: string) => {
           : `${sanitizeForEmail(storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`
       );
 
-      console.log('📧 [useUser.addUser] Generated email:', userEmail);
 
       // Firebase接続テスト
-      console.log('🔌 [useUser.addUser] Testing Firebase connection');
       try {
-        const { db } = await import("@/services/firebase/firebase");
-        console.log('✅ [useUser.addUser] Firebase database connected:', !!db);
+        await import("@/services/firebase/firebase");
       } catch (dbError) {
         console.error('❌ [useUser.addUser] Firebase connection failed:', dbError);
         throw new Error("Firebaseへの接続に失敗しました");
       }
 
       // メールアドレスの重複チェック（タイムアウト付き）
-      console.log('🔍 [useUser.addUser] Checking email existence with timeout');
       try {
         const emailExists = await checkEmailExists(userEmail);
         if (emailExists) {
           console.error('❌ [useUser.addUser] Email already exists:', userEmail);
           throw new Error(email ? "このメールアドレスは既に使用されています" : "このニックネームは既に使用されています");
         }
-        console.log('✅ [useUser.addUser] Email is available');
       } catch (emailCheckError: any) {
         if (emailCheckError.message === 'Query timeout after 10 seconds') {
           console.warn('⚠️ [useUser.addUser] Email check timed out, proceeding anyway');
@@ -120,7 +105,6 @@ export const useUser = (storeId?: string) => {
         }
       }
       
-      console.log('🔥 [useUser.addUser] Calling createUser service');
       const newUser = await createUser(
         userEmail,
         password,
@@ -130,12 +114,9 @@ export const useUser = (storeId?: string) => {
         role,
         hourlyWage
       );
-      console.log('✅ [useUser.addUser] User created successfully:', newUser);
 
       // リストを更新
-      console.log('🔄 [useUser.addUser] Refreshing user list');
       await fetchUsers();
-      console.log('✅ [useUser.addUser] User list refreshed');
       return newUser;
     } catch (err: any) {
       console.error('❌ [useUser.addUser] Error occurred:', err);
