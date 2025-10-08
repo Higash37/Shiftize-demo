@@ -103,15 +103,10 @@ export const UserService = {
    */
   checkMasterExists: async (): Promise<boolean> => {
     try {
-      console.log('👑 [checkMasterExists] Starting master existence check');
       const usersRef = collection(db, "users");
-      console.log('📚 [checkMasterExists] Got users collection reference');
       const masterQuery = query(usersRef, where("role", "==", "master"));
-      console.log('📋 [checkMasterExists] Created query for master role');
       const masterSnapshot = await getDocs(masterQuery);
-      console.log('📊 [checkMasterExists] Query executed, snapshot size:', masterSnapshot.size);
       const exists = !masterSnapshot.empty;
-      console.log('✅ [checkMasterExists] Master exists check result:', exists);
       return exists;
     } catch (error) {
       console.error('❌ [checkMasterExists] Error occurred:', error);
@@ -124,11 +119,8 @@ export const UserService = {
    */
   checkEmailExists: async (email: string): Promise<boolean> => {
     try {
-      console.log('🔍 [checkEmailExists] Starting email existence check for:', email);
       const usersRef = collection(db, "users");
-      console.log('📚 [checkEmailExists] Got users collection reference');
       const emailQuery = query(usersRef, where("email", "==", email));
-      console.log('📋 [checkEmailExists] Created query for email');
 
       // タイムアウト付きクエリ実行
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -140,9 +132,7 @@ export const UserService = {
         timeoutPromise
       ]);
 
-      console.log('📊 [checkEmailExists] Query executed, snapshot size:', emailSnapshot.size);
       const exists = !emailSnapshot.empty;
-      console.log('✅ [checkEmailExists] Email exists check result:', exists);
       return exists;
     } catch (error) {
       console.error('❌ [checkEmailExists] Error occurred:', error);
