@@ -140,7 +140,7 @@ export function LineNotificationModal({
 
           {/* 募集シフト数表示 */}
           <View style={styles.countContainer}>
-            <AntDesign name="bells" size={20} color={colors.primary} />
+            <AntDesign name="bell" size={20} color={colors.primary} />
             <Text style={styles.countText}>
               現在の募集シフト: {recruitmentCount}件
             </Text>

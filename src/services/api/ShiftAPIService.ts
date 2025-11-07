@@ -6,6 +6,7 @@
  */
 
 import { Shift } from '@/common/common-models/ModelIndex';
+import { ShiftHistoryActor } from '@/services/shift-history/shiftHistoryLogger';
 import { ShiftService } from '@/services/firebase/firebase-shift';
 import {
   GetShiftsParams,
@@ -101,7 +102,7 @@ export class ShiftAPIService {
   /**
    * 新しいシフトを作成
    */
-  static async createShift(shiftData: CreateShiftRequest): Promise<string> {
+  static async createShift(shiftData: CreateShiftRequest, actor?: ShiftHistoryActor): Promise<string> {
     try {
       if (USE_API_ENDPOINTS) {
         // フェーズ2以降: APIエンドポイント
@@ -112,7 +113,7 @@ export class ShiftAPIService {
         return response.data;
       } else {
         // フェーズ1: Firebase直接呼び出し
-        return await ShiftService.addShift(shiftData as Omit<Shift, 'id'>);
+        return await ShiftService.addShift(shiftData as Omit<Shift, 'id'>, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの作成に失敗しました');
@@ -122,7 +123,7 @@ export class ShiftAPIService {
   /**
    * シフトを更新
    */
-  static async updateShift(shiftId: string, updateData: UpdateShiftRequest): Promise<void> {
+  static async updateShift(shiftId: string, updateData: UpdateShiftRequest, actor?: ShiftHistoryActor): Promise<void> {
     try {
       if (USE_API_ENDPOINTS) {
         // フェーズ2以降: APIエンドポイント
@@ -132,7 +133,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.updateShift(shiftId, updateData as Partial<Shift>);
+        await ShiftService.updateShift(shiftId, updateData as Partial<Shift>, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの更新に失敗しました');
@@ -142,7 +143,7 @@ export class ShiftAPIService {
   /**
    * シフトを削除
    */
-  static async deleteShift(shiftId: string, deletedBy?: { nickname: string; userId: string }, reason?: string): Promise<void> {
+  static async deleteShift(shiftId: string, deletedBy?: { nickname: string; userId: string }, reason?: string, actor?: ShiftHistoryActor): Promise<void> {
     try {
       if (USE_API_ENDPOINTS) {
         // フェーズ2以降: APIエンドポイント
@@ -155,7 +156,10 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.markShiftAsDeleted(shiftId, deletedBy, reason);
+        const historyActor = actor ?? (deletedBy
+          ? { userId: deletedBy.userId || "", nickname: deletedBy.nickname || "", role: 'master' as const }
+          : undefined);
+        await ShiftService.markShiftAsDeleted(shiftId, historyActor, reason);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの削除に失敗しました');
@@ -165,7 +169,7 @@ export class ShiftAPIService {
   /**
    * シフト変更を承認
    */
-  static async approveShiftChanges(shiftId: string): Promise<void> {
+  static async approveShiftChanges(shiftId: string, actor?: ShiftHistoryActor): Promise<void> {
     try {
       if (USE_API_ENDPOINTS) {
         // フェーズ2以降: APIエンドポイント
@@ -174,7 +178,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.approveShiftChanges(shiftId);
+        await ShiftService.approveShiftChanges(shiftId, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフト変更の承認に失敗しました');
@@ -206,7 +210,8 @@ export class ShiftAPIService {
   static async updateShiftWithTasks(
     shiftId: string,
     tasks: { [key: string]: { count: number; time: number } },
-    comments: string
+    comments: string,
+    actor?: ShiftHistoryActor
   ): Promise<void> {
     try {
       if (USE_API_ENDPOINTS) {
@@ -217,7 +222,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.updateShiftWithTasks(shiftId, tasks, comments);
+        await ShiftService.updateShiftWithTasks(shiftId, tasks, comments, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトタスクの更新に失敗しました');
@@ -364,3 +369,4 @@ export class ShiftAPIService {
     };
   }
 }
+

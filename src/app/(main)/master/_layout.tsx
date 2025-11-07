@@ -4,6 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { Routes } from "@/common/common-constants/RouteConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
@@ -32,25 +33,13 @@ export default function MasterLayout() {
   }, []);
 
   useEffect(() => {
-    // ユーザーの認証状態が確定するまで待機
     if (loading) return;
 
-    // 未認証の場合はログインページへリダイレクト
-    if (!user) {
-      router.replace("/(auth)/login");
-      return;
-    } // ユーザーロールが不適切な場合はリダイレクト
-    if (role !== "master") {
-      router.replace("/(main)/user/home");
-      return;
+    // ユーザーロールが不適切な場合はリダイレクト
+    if (user && role !== "master") {
+      router.replace(Routes.main.user.home);
     }
-
-    // 認証済みユーザーがauthグループにいる場合はメインページへリダイレクト
-    const inAuthGroup = segments[0] === "(auth)";
-    if (inAuthGroup) {
-      router.replace("/(main)/master/home");
-    }
-  }, [user, loading, role, segments]);
+  }, [user, loading, role, router]);
 
   // ローディング中は待機画面を表示
   if (loading) {

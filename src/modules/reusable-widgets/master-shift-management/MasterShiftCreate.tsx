@@ -620,7 +620,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
                     }))
                   }
                 >
-                  <AntDesign name="pluscircle" size={22} color="#fff" />
+                  <AntDesign name="plus-circle" size={22} color="#fff" />
                   <Text style={styles.addButtonText}>授業を追加</Text>
                 </TouchableOpacity>
               </View>
@@ -705,7 +705,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
                     setShowUserPicker(false);
                   }}
                 >
-                  <AntDesign name="bells" size={18} color={colors.primary} />
+                  <AntDesign name="bell" size={18} color={colors.primary} />
                   <Text style={[styles.dropdownItemText, styles.recruitmentText]}>
                     募集シフトとして作成
                   </Text>

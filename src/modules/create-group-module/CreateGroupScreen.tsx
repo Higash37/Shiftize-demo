@@ -4,13 +4,13 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   useWindowDimensions,
   Platform,
   Alert,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
@@ -140,7 +140,10 @@ export const CreateGroupScreen: React.FC = () => {
       nickname: "",
       password: "",
       role: "user",
-      color: PRESET_COLORS[initialMembers.length % PRESET_COLORS.length] || PRESET_COLORS[0] || "#FFD700",
+      color:
+        PRESET_COLORS[initialMembers.length % PRESET_COLORS.length] ||
+        PRESET_COLORS[0] ||
+        "#FFD700",
     };
     setInitialMembers([...initialMembers, newMember]);
   };
@@ -178,7 +181,10 @@ export const CreateGroupScreen: React.FC = () => {
       return false;
     }
     // メールアドレスのバリデーション（入力されている場合のみ）
-    if (form.adminEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail)) {
+    if (
+      form.adminEmail &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail)
+    ) {
       Alert.alert("エラー", "有効なメールアドレスを入力してください");
       return false;
     }
@@ -239,15 +245,18 @@ export const CreateGroupScreen: React.FC = () => {
         adminNickname: form.adminNickname,
         ...(form.adminEmail.trim() && { adminEmail: form.adminEmail }), // 実際のメールアドレス（任意）
         adminPassword: form.adminPassword,
-        initialMembers: initialMembers.length > 0 
-          ? initialMembers.map((member) => ({
-              nickname: member.nickname,
-              password: member.password,
-              role: member.role,
-              color: member.color,
-              ...(member.hourlyWage !== undefined && { hourlyWage: member.hourlyWage }),
-            }))
-          : [],
+        initialMembers:
+          initialMembers.length > 0
+            ? initialMembers.map((member) => ({
+                nickname: member.nickname,
+                password: member.password,
+                role: member.role,
+                color: member.color,
+                ...(member.hourlyWage !== undefined && {
+                  hourlyWage: member.hourlyWage,
+                }),
+              }))
+            : [],
       });
 
       if (result.success) {
@@ -422,9 +431,7 @@ export const CreateGroupScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 value={form.adminEmail}
-                onChangeText={(value) =>
-                  handleInputChange("adminEmail", value)
-                }
+                onChangeText={(value) => handleInputChange("adminEmail", value)}
                 placeholder="example@email.com"
                 placeholderTextColor="#999"
                 keyboardType="email-address"
@@ -433,7 +440,8 @@ export const CreateGroupScreen: React.FC = () => {
               />
               {!form.adminEmail && (
                 <Text style={styles.inputHelper}>
-                  未入力の場合、自動生成されます：{getCurrentStoreId()}{form.adminNickname}@example.com
+                  未入力の場合、自動生成されます：{getCurrentStoreId()}
+                  {form.adminNickname}@example.com
                 </Text>
               )}
             </View>

@@ -202,7 +202,7 @@ export const LineAuthModal: React.FC<LineAuthModalProps> = ({
   const renderWaitingStep = () => (
     <View style={styles.stepContainer}>
       <View style={styles.header}>
-        <AntDesign name="clockcircle" size={32} color={colors.primary} />
+        <AntDesign name="clock-circle" size={32} color={colors.primary} />
         <Text style={styles.title}>認証コード送信</Text>
       </View>
       
@@ -216,7 +216,7 @@ export const LineAuthModal: React.FC<LineAuthModalProps> = ({
           style={styles.copyButton}
           onPress={copyAuthCode}
         >
-          <AntDesign name="copy1" size={20} color={colors.primary} />
+          <AntDesign name="copy" size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
       

@@ -94,7 +94,7 @@ export function ServiceIntroModal({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <View style={styles.logoContainer}>
-                <AntDesign name="appstore-o" size={24} color={colors.primary} />
+                <AntDesign name="appstore" size={24} color={colors.primary} />
               </View>
               <View>
                 <Text style={styles.title}>Shiftize</Text>

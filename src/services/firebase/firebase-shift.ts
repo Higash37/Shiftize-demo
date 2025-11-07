@@ -15,12 +15,114 @@ import {
   getDoc,
   serverTimestamp,
   where,
+  Timestamp,
 } from "firebase/firestore";
 
-import { Shift } from "@/common/common-models/ModelIndex";
+import { Shift, ShiftItem, ShiftStatus, ShiftType } from "@/common/common-models/ModelIndex";
 import { db } from "./firebase-core";
 import { ShiftNotificationService, EmailNotificationService } from "@/services/notifications";
 import { Platform } from "react-native";
+import {
+  logShiftChange,
+  determineActionType,
+  ShiftHistoryActor,
+} from "@/services/shift-history/shiftHistoryLogger";
+
+const toDate = (value: unknown): Date => {
+  if (!value) {
+    return new Date();
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  if (value instanceof Timestamp) {
+    return value.toDate();
+  }
+  if (typeof value === "number") {
+    return new Date(value);
+  }
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+      return new Date(parsed);
+    }
+  }
+  return new Date();
+};
+
+const toShiftItem = (id: string, data: Partial<Shift>): ShiftItem => {
+  const ensureString = (value?: string | null) => value ?? "";
+  const ensureDuration = (value: unknown) => {
+    if (value === undefined || value === null) {
+      return "";
+    }
+    return typeof value === "string" ? value : String(value);
+  };
+
+  const requestedChanges = (data as any)?.requestedChanges;
+  let normalizedRequestedChanges: any = undefined;
+  if (Array.isArray(requestedChanges) && requestedChanges.length > 0) {
+    normalizedRequestedChanges = requestedChanges[0];
+  } else if (requestedChanges && typeof requestedChanges === "object") {
+    normalizedRequestedChanges = requestedChanges;
+  }
+
+  return {
+    id,
+    userId: ensureString(data.userId),
+    storeId: ensureString(data.storeId),
+    nickname: ensureString(data.nickname),
+    date: ensureString(data.date),
+    startTime: ensureString(data.startTime),
+    endTime: ensureString(data.endTime),
+    type: (data.type as ShiftType) || "user",
+    ...(data.subject !== undefined && { subject: data.subject }),
+    ...(data.notes !== undefined && { notes: data.notes }),
+    isCompleted: Boolean(
+      data.isCompleted ?? ((data.status as ShiftStatus | undefined) === "completed")
+    ),
+    status: (data.status as ShiftStatus) || "draft",
+    duration: ensureDuration(data.duration),
+    createdAt: toDate((data as any)?.createdAt),
+    updatedAt: toDate((data as any)?.updatedAt),
+    ...(data.classes !== undefined && { classes: data.classes }),
+    ...(data.extendedTasks !== undefined && { extendedTasks: data.extendedTasks }),
+    ...(normalizedRequestedChanges !== undefined && { requestedChanges: normalizedRequestedChanges }),
+  };
+};
+
+const mergeShiftForLogging = (
+  id: string,
+  prevData: Shift | null | undefined,
+  updates: Partial<Shift> | null | undefined
+): { prev: ShiftItem | null; next: ShiftItem | null } => {
+  const prev = prevData ? toShiftItem(id, prevData) : null;
+  if (!updates) {
+    return { prev, next: prev };
+  }
+  const merged: Partial<Shift> = {
+    ...(prevData || {}),
+    ...updates,
+  };
+  return {
+    prev,
+    next: toShiftItem(id, merged),
+  };
+};
+
+const emitShiftLog = async (
+  action: ReturnType<typeof determineActionType>,
+  actor: ShiftHistoryActor,
+  storeId: string,
+  nextShift: ShiftItem | null,
+  prevShift: ShiftItem | null,
+  metadata?: Record<string, unknown>
+) => {
+  if (!storeId) {
+    return;
+  }
+  await logShiftChange(action, actor, storeId, nextShift || undefined, prevShift || undefined, metadata);
+};
 
 /**
  * シフト関連のサービス
@@ -83,7 +185,7 @@ export const ShiftService = {
   /**
    * 新しいシフトを追加します
    */
-  addShift: async (shift: Omit<Shift, "id">): Promise<string> => {
+  addShift: async (shift: Omit<Shift, "id">, actor?: ShiftHistoryActor): Promise<string> => {
     try {
       const shiftsRef = collection(db, "shifts");
       const docRef = await addDoc(shiftsRef, {
@@ -115,6 +217,20 @@ export const ShiftService = {
       } catch (notificationError) {
       }
 
+      if (actor) {
+        const { next } = mergeShiftForLogging(docRef.id, null, {
+          ...shift,
+          id: docRef.id,
+          status: shift.status || "draft",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as Shift);
+        if (next) {
+          const action = determineActionType(null, next, actor);
+          await emitShiftLog(action, actor, next.storeId, next, null);
+        }
+      }
+
       return docRef.id;
     } catch (error) {
       throw error;
@@ -124,13 +240,29 @@ export const ShiftService = {
   /**
    * 既存のシフトを更新します
    */
-  updateShift: async (id: string, shift: Partial<Shift>): Promise<void> => {
+  updateShift: async (id: string, shift: Partial<Shift>, actor?: ShiftHistoryActor): Promise<void> => {
     try {
       const shiftRef = doc(db, "shifts", id);
+      const previousSnapshot = await getDoc(shiftRef);
+      const previousData = previousSnapshot.exists()
+        ? (previousSnapshot.data() as Shift)
+        : null;
+
       await updateDoc(shiftRef, {
         ...shift,
         updatedAt: serverTimestamp(),
       });
+
+      if (actor && previousData) {
+        const { prev, next } = mergeShiftForLogging(id, previousData, {
+          ...shift,
+          updatedAt: new Date(),
+        } as Shift);
+        if (next) {
+          const action = determineActionType(prev, next, actor);
+          await emitShiftLog(action, actor, next.storeId || prev?.storeId || "", next, prev);
+        }
+      }
     } catch (error) {
       throw error;
     }
@@ -139,7 +271,7 @@ export const ShiftService = {
   /**
    * シフトを削除します
    */
-  markShiftAsDeleted: async (id: string, deletedBy?: { nickname: string; userId: string }, reason?: string): Promise<void> => {
+  markShiftAsDeleted: async (id: string, deletedBy?: ShiftHistoryActor, reason?: string): Promise<void> => {
     try {
       if (__DEV__) {
       }
@@ -176,6 +308,14 @@ export const ShiftService = {
       }
       
       await deleteDoc(shiftRef);
+
+      if (deletedBy && shiftData) {
+        const { prev } = mergeShiftForLogging(id, shiftData as Shift, null);
+        if (prev) {
+          const action = determineActionType(prev, null, deletedBy);
+          await emitShiftLog(action, deletedBy, prev.storeId, null, prev, reason ? { reason } : undefined);
+        }
+      }
     } catch (error) {
       throw error;
     }
@@ -184,7 +324,7 @@ export const ShiftService = {
   /**
    * シフト変更を承認します
    */
-  approveShiftChanges: async (id: string, approver?: { nickname: string; userId: string }): Promise<void> => {
+  approveShiftChanges: async (id: string, approver?: ShiftHistoryActor): Promise<void> => {
     try {
       if (__DEV__) {
       }
@@ -236,6 +376,25 @@ export const ShiftService = {
           // console.error('Approval notification failed:', notificationError);
         }
       }
+
+      if (approver && shiftData && (isPendingToApproved || hasRequestedChanges)) {
+        const updates: Partial<Shift> = hasRequestedChanges
+          ? {
+              ...(shiftData["requestedChanges"] || {}),
+              status: "approved",
+              requestedChanges: undefined,
+              updatedAt: new Date(),
+            }
+          : {
+              status: "approved",
+              updatedAt: new Date(),
+            };
+        const { prev, next } = mergeShiftForLogging(id, shiftData as Shift, updates as Shift);
+        if (next) {
+          const action = determineActionType(prev, next, approver);
+          await emitShiftLog(action, approver, next.storeId || prev?.storeId || "", next, prev);
+        }
+      }
     } catch (error) {
       throw error;
     }
@@ -262,16 +421,35 @@ export const ShiftService = {
   updateShiftWithTasks: async (
     id: string,
     tasks: { [key: string]: { count: number; time: number } },
-    comments: string
+    comments: string,
+    actor?: ShiftHistoryActor
   ): Promise<void> => {
     try {
       const shiftRef = doc(db, "shifts", id);
+      const previousSnapshot = await getDoc(shiftRef);
+      const previousData = previousSnapshot.exists()
+        ? (previousSnapshot.data() as Shift)
+        : null;
+
       await updateDoc(shiftRef, {
         tasks,
         comments,
-        status: "completed", // ステータスを完了に更新
+        status: "completed",
         updatedAt: serverTimestamp(),
       });
+
+      if (actor && previousData) {
+        const { prev, next } = mergeShiftForLogging(id, previousData, {
+          tasks,
+          comments,
+          status: "completed",
+          updatedAt: new Date(),
+        } as Partial<Shift>);
+        if (next) {
+          const action = determineActionType(prev, next, actor);
+          await emitShiftLog(action, actor, next.storeId || prev?.storeId || "", next, prev);
+        }
+      }
     } catch (error) {
       throw error;
     }

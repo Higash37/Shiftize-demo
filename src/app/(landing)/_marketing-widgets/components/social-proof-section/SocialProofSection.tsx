@@ -40,7 +40,7 @@ export const SocialProofSection: React.FC = () => {
         onPress={() => router.push("/(auth)")}
       >
         <Text style={styles.miniCTAText}>実績を見て始めてみる</Text>
-        <AntDesign name="arrowright" size={14} color="#3b82f6" />
+        <AntDesign name="arrow-right" size={14} color="#3b82f6" />
       </TouchableOpacity>
     </View>
   );

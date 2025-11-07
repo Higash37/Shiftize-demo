@@ -4,6 +4,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { Routes } from "@/common/common-constants/RouteConstants";
 import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
@@ -15,29 +16,15 @@ export default function userLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-    // ユーザーの認証状態が確定するまで待機
     if (loading) return;
-
-    // 未認証の場合はログインページへリダイレクト
-    if (!user) {
-      router.replace("/(auth)/login");
-      return;
-    }
 
     // ユーザーロールが不適切な場合はリダイレクト
     // ただし、募集シフトページ(recruitment)はmasterも閲覧可能
     const isRecruitmentPage = segments.includes("recruitment");
-    if (role !== "user" && !isRecruitmentPage) {
-      router.replace("/(main)/master/home");
-      return;
+    if (user && role !== "user" && !isRecruitmentPage) {
+      router.replace(Routes.main.master.home);
     }
-
-    // 認証済みユーザーがauthグループにいる場合はメインページへリダイレクト
-    const inAuthGroup = segments[0] === "(auth)";
-    if (inAuthGroup) {
-      router.replace("/(main)/user/home");
-    }
-  }, [user, loading, role, segments]);
+  }, [user, loading, role, segments, router]);
 
   // ローディング中は待機画面を表示
   if (loading) {

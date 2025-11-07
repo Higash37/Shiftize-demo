@@ -38,7 +38,7 @@ export function Header({
     );
 
     const unsubscribe = onSnapshot(
-      q, 
+      q,
       (snapshot) => {
         const shifts: RecruitmentShift[] = [];
         snapshot.forEach((doc) => {
@@ -49,12 +49,12 @@ export function Header({
         const unappliedCount = shifts.filter(
           (shift) => !shift.applications?.some((app) => app.userId === user.uid)
         ).length;
-        
+
         setUnreadCount(unappliedCount);
       },
       (error) => {
         // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === 'permission-denied') {
+        if (error.code === "permission-denied") {
           setUnreadCount(0);
           return;
         }
@@ -70,7 +70,7 @@ export function Header({
       await signOut();
       router.replace("/(auth)/login");
     } catch (error) {
-      // Error signing out
+      console.error("Error signing out:", error);
     }
   };
 
@@ -87,7 +87,11 @@ export function Header({
       <View style={styles.leftContainer}>
         {showBackButton && (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <AntDesign name="arrowleft" size={24} color={colors.text.primary} />
+            <AntDesign
+              name="arrow-left"
+              size={24}
+              color={colors.text.primary}
+            />
           </TouchableOpacity>
         )}
         <Text style={styles.title}>{title}</Text>
@@ -97,22 +101,26 @@ export function Header({
           onPress={() => setShowRecruitmentModal(true)}
           style={styles.notificationButton}
         >
-          <AntDesign name="bells" size={24} color={colors.text.primary} />
+          <AntDesign name="bell" size={24} color={colors.text.primary} />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
             </View>
           )}
         </TouchableOpacity>
-        
+
         {/* サービス紹介ボタン */}
         <TouchableOpacity
           onPress={() => setShowServiceIntro(true)}
           style={styles.signOutButton}
         >
-          <AntDesign name="questioncircleo" size={24} color={colors.text.primary} />
+          <AntDesign
+            name="question-circle"
+            size={24}
+            color={colors.text.primary}
+          />
         </TouchableOpacity>
-        
+
         {onPressSettings && (
           <TouchableOpacity
             onPress={onPressSettings}

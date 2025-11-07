@@ -270,7 +270,7 @@ export const StoreConnectionModal: React.FC<StoreConnectionModalProps> = ({
                     activeOpacity={0.7}
                   >
                     <Text style={styles.passwordText}>{generatedPassword}</Text>
-                    <AntDesign name="copy1" size={20} color={colors.primary} />
+                    <AntDesign name="copy" size={20} color={colors.primary} />
                   </TouchableOpacity>
                   <Text style={styles.passwordNote}>
                     有効期限: 24時間 | タップしてコピー

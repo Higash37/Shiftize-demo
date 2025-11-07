@@ -272,7 +272,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
             },
           ]}
         >
-          <AntDesign name="checkcircle" size={48} color="white" />
+          <AntDesign name="check-circle" size={48} color="white" />
           <Text style={styles.successText}>
             {isEditMode ? "更新しました" : "作成しました"}
           </Text>

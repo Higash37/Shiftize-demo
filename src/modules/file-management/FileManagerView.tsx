@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, Fragment } from "react";
+import React, { useState, useEffect, useCallback, Fragment, useMemo } from "react";
 import {
   View,
   Alert,
@@ -36,6 +36,10 @@ export function FileManagerView({
   showBreadcrumbs = true,
 }: FileManagerViewProps) {
   const { user } = useAuth();
+  const storeId = useMemo(() => {
+    const id = user?.storeId?.trim();
+    return id && id.length > 0 ? id : "1456";
+  }, [user?.storeId]);
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -59,14 +63,14 @@ export function FileManagerView({
   // 既存Storageファイルとの同期
   // コレクション診断と復旧
   const diagnosisAndRecover = useCallback(async () => {
-    if (!user?.storeId) return;
+    if (!storeId) return;
 
     try {
       setIsLoading(true);
 
       // 診断レポートを生成
       const report = await CollectionRecoveryService.generateDiagnosticReport(
-        user.storeId
+        storeId
       );
 
       // filesコレクションをチェック
@@ -84,7 +88,7 @@ export function FileManagerView({
                 try {
                   const result =
                     await CollectionRecoveryService.recoverFilesFromStorage(
-                      user.storeId!
+                      storeId
                     );
                   Alert.alert(
                     "復旧完了",
@@ -110,32 +114,32 @@ export function FileManagerView({
     } finally {
       setIsLoading(false);
     }
-  }, [user?.storeId, currentFolderId]);
+  }, [storeId, currentFolderId]);
 
   // データ読み込み
   const loadData = useCallback(
     async (folderId: string | null = null) => {
-      if (!user?.storeId) return;
+      if (!storeId) return;
 
       setIsLoading(true);
       try {
 
         // フォルダ一覧を階層構造で取得
         const hierarchicalFolders =
-          await FolderService.getAllFoldersHierarchical(user.storeId);
+          await FolderService.getAllFoldersHierarchical(storeId);
         setFolders(hierarchicalFolders);
 
         // ファイル一覧を取得
         if (folderId) {
           const folderFiles = await FileService.getFilesByFolder(
             folderId,
-            user?.storeId || "",
+            storeId,
             sortOptions
           );
           setFiles(folderFiles);
         } else {
           // ルートフォルダの場合はfolderIdが空文字のファイルのみを表示
-          const rootFiles = await FileService.getFilesByFolder("", user?.storeId || "", sortOptions);
+          const rootFiles = await FileService.getFilesByFolder("", storeId, sortOptions);
           setFiles(rootFiles);
         }
 
@@ -152,7 +156,7 @@ export function FileManagerView({
         setIsLoading(false);
       }
     },
-    [user?.storeId, sortOptions]
+    [storeId, sortOptions]
   );
 
   // 初期データ読み込み
@@ -206,13 +210,13 @@ export function FileManagerView({
   // フォルダ作成処理
   const handleCreateFolder = useCallback(
     async (name: string) => {
-      if (!user?.storeId || !user.uid) return;
+      if (!storeId || !user?.uid) return;
 
       try {
         await FolderService.createFolder(
           name,
           currentFolderId || undefined,
-          user.storeId,
+          storeId,
           user.uid
         );
         await loadData(currentFolderId);
@@ -221,7 +225,7 @@ export function FileManagerView({
         throw error;
       }
     },
-    [user?.storeId, user?.uid, currentFolderId, loadData]
+    [storeId, user?.uid, currentFolderId, loadData]
   );
 
   // アップロード完了処理
@@ -512,10 +516,6 @@ export function FileManagerView({
     );
   };
 
-  if (!user?.storeId) {
-    return null;
-  }
-
   if (isMobile) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -551,7 +551,7 @@ export function FileManagerView({
         <FileUploadModal
           visible={showUploadModal}
           folderId={uploadModalFolderId ?? ""}
-          storeId={user.storeId}
+          storeId={storeId}
           onClose={() => {
             setShowUploadModal(false);
             setUploadModalFolderId(null);
@@ -732,14 +732,14 @@ export function FileManagerView({
         {renderFileList()}
       </View>
 
-      <FileUploadModal
-        visible={showUploadModal}
-        folderId={uploadModalFolderId ?? ""}
-        storeId={user.storeId}
-        onClose={() => {
-          setShowUploadModal(false);
-          setUploadModalFolderId(null);
-        }}
+        <FileUploadModal
+          visible={showUploadModal}
+          folderId={uploadModalFolderId ?? ""}
+          storeId={storeId}
+          onClose={() => {
+            setShowUploadModal(false);
+            setUploadModalFolderId(null);
+          }}
         onUploadComplete={handleUploadComplete}
       />
 
