@@ -4,10 +4,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
@@ -40,13 +40,13 @@ export const WelcomeScreen: React.FC = () => {
         <View style={styles.headerContainer}>
           {/* Left: Spacer */}
           <View style={styles.headerSpacer} />
-          
+
           {/* Center: Title */}
           <View style={styles.titleContainer}>
             <Text style={styles.logo}>Shiftize</Text>
             <Text style={styles.subtitle}>シフト管理をもっと簡単に</Text>
           </View>
-          
+
           {/* Right: Icons */}
           <View style={styles.headerIcons}>
             {/* Help/Support Icon */}
@@ -54,9 +54,9 @@ export const WelcomeScreen: React.FC = () => {
               style={styles.iconButton}
               onPress={() => setShowServiceIntro(true)}
             >
-              <AntDesign name="questioncircleo" size={24} color="white" />
+              <AntDesign name="question-circle" size={24} color="white" />
             </TouchableOpacity>
-            
+
             {/* Landing Page Icon */}
             <TouchableOpacity
               style={styles.iconButton}

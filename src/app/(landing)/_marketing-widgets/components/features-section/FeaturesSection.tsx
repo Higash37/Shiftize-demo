@@ -174,7 +174,7 @@ export const FeaturesSection: React.FC = () => {
           >
             <Text style={styles.urgencyCTAButtonText}>無料で始める</Text>
             <View style={styles.urgencyCTAArrow}>
-              <AntDesign name="arrowright" size={18} color="#ffffff" />
+              <AntDesign name="arrow-right" size={18} color="#ffffff" />
             </View>
           </TouchableOpacity>
           <Text style={styles.urgencyCTANote}>

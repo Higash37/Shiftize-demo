@@ -168,14 +168,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               const storeData = storeDoc.data();
               allStores.push({
                 storeId: connectedStoreId,
-                storeName: storeData['storeName'] || storeData['name'] || "連携店舗",
-                adminUid: storeData['adminUid'] || "",
-                adminNickname: storeData['adminNickname'] || "",
+                storeName:
+                  storeData["storeName"] || storeData["name"] || "連携店舗",
+                adminUid: storeData["adminUid"] || "",
+                adminNickname: storeData["adminNickname"] || "",
                 isActive: true,
-                createdAt: storeData['createdAt'] || new Date(),
+                createdAt: storeData["createdAt"] || new Date(),
               });
             }
-          } catch (error) {}
+          } catch (error) {
+            console.error("Error processing store:", error);
+          }
         }
 
         setConnectedStores(allStores);
@@ -184,7 +187,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         if (allStores.length > 0) {
           setSelectedStoreId(userData.storeId ?? allStores[0]?.storeId ?? "");
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error fetching connected stores:", error);
+      }
     };
 
     if (user?.uid && userData) {
@@ -278,7 +283,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
     // 授業時間は適切なデフォルト値で初期化（シフト時間とは異なる）
     const defaultStartTime = "14:00"; // シフト時間とは異なるデフォルト値
-    const defaultEndTime = "15:00";   // 1時間の授業として設定
+    const defaultEndTime = "15:00"; // 1時間の授業として設定
     const newClass = {
       startTime: defaultStartTime,
       endTime: defaultEndTime,
@@ -328,8 +333,12 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     for (let i = 0; i < shiftData.classes.length; i++) {
       const classItem = shiftData.classes[i];
       if (!classItem) continue;
-      const classStartTime = new Date(`2000-01-01T${classItem.startTime ?? "00:00"}`);
-      const classEndTime = new Date(`2000-01-01T${classItem.endTime ?? "00:00"}`);
+      const classStartTime = new Date(
+        `2000-01-01T${classItem.startTime ?? "00:00"}`
+      );
+      const classEndTime = new Date(
+        `2000-01-01T${classItem.endTime ?? "00:00"}`
+      );
 
       if (classStartTime >= classEndTime) {
         setErrorMessage(
@@ -430,7 +439,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       if (shiftDoc.exists()) {
         const shiftData = shiftDoc.data();
 
-        if (shiftData['status'] === "pending") {
+        if (shiftData["status"] === "pending") {
           // 承認待ちの場合は即時削除
           await updateDoc(doc(db, "shifts", initialShiftId), {
             status: "deleted",

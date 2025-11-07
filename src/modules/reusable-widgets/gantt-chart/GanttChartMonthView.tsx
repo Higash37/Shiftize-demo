@@ -77,6 +77,7 @@ import BatchConfirmModal from "./view-modals/BatchConfirmModal";
 import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
 import { ShiftHistoryModal } from "./view-modals/ShiftHistoryModal";
+import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLogger";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -520,6 +521,48 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
       setShowEditModal(true);
     },
     [users]
+  );
+
+  const handleHistoryEntryAction = useCallback(
+    (entry: ShiftHistoryEntry) => {
+      if (!entry) {
+        return;
+      }
+
+      const existingShift = entry.shiftId
+        ? shifts.find((shiftItem) => shiftItem.id === entry.shiftId)
+        : undefined;
+
+      if (existingShift) {
+        handleShiftPress(existingShift);
+        setShowHistoryModal(false);
+        setShowEditModal(true);
+        return;
+      }
+
+      const snapshot = entry.nextSnapshot || entry.prevSnapshot;
+      if (!snapshot) {
+        return;
+      }
+
+      const fallbackDate = snapshot.date || entry.date;
+
+      setEditingShift(null);
+      setNewShiftData({
+        date: fallbackDate,
+        startTime: snapshot.startTime || "09:00",
+        endTime: snapshot.endTime || "11:00",
+        userId: snapshot.userId || "",
+        nickname: snapshot.nickname || "",
+        status: (snapshot.status as ShiftStatus) || "pending",
+        classes: (snapshot.classes as ClassTimeSlot[] | undefined) || [],
+        extendedTasks: (snapshot.extendedTasks as any[]) || [],
+      });
+      setShowHistoryModal(false);
+      setShowEditModal(false);
+      setShowAddModal(true);
+    },
+    [handleShiftPress, setShowAddModal, setShowEditModal, setShowHistoryModal, setNewShiftData, shifts]
   );
 
   // 空白セルをクリックした時の処理（シフト追加モーダル表示）
@@ -1043,6 +1086,7 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         onClose={() => setShowHistoryModal(false)}
         storeId={user?.storeId || ""}
         selectedDate={selectedDate}
+        onEntryAction={handleHistoryEntryAction}
       />
 
     </View>

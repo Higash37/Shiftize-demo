@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   Platform,
   useWindowDimensions,
-  SafeAreaView,
   StyleSheet,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
@@ -36,8 +36,8 @@ export default function Login() {
       setShowDemoModal(true);
       // demoパラメータのみを削除し、redirectパラメータは保持
       const newParams = new URLSearchParams();
-      if (params['redirect']) {
-        newParams.set('redirect', params['redirect'] as string);
+      if (params["redirect"]) {
+        newParams.set("redirect", params["redirect"] as string);
       }
       const redirectUrl = newParams.toString()
         ? `/(auth)/login?${newParams.toString()}`
@@ -72,7 +72,8 @@ export default function Login() {
       // ナビゲーション処理を待つために少し待機
       await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
-      // Silent error handling for login
+      // Handle login errors appropriately
+      console.error("Login error:", error);
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
       );
@@ -150,7 +151,7 @@ export default function Login() {
               style={styles.iconButton}
               onPress={() => setShowServiceIntro(true)}
             >
-              <AntDesign name="questioncircleo" size={24} color="white" />
+              <AntDesign name="question-circle" size={24} color="white" />
             </TouchableOpacity>
             {/* Welcome Page Icon */}
             <TouchableOpacity

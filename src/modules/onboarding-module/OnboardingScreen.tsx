@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { OnboardingStorage } from "@/services/storage/onboarding";
 import { colors } from "@/common/common-constants/ColorConstants";
@@ -68,7 +68,10 @@ export const OnboardingScreen: React.FC = () => {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: slide?.backgroundColor ?? '#ffffff' }]}
+      style={[
+        styles.container,
+        { backgroundColor: slide?.backgroundColor ?? "#ffffff" },
+      ]}
     >
       <SafeAreaView style={styles.safeArea}>
         {/* Skip Button */}
@@ -78,8 +81,8 @@ export const OnboardingScreen: React.FC = () => {
 
         {/* Content */}
         <View style={styles.content}>
-          <Text style={styles.title}>{slide?.title ?? ''}</Text>
-          <Text style={styles.description}>{slide?.description ?? ''}</Text>
+          <Text style={styles.title}>{slide?.title ?? ""}</Text>
+          <Text style={styles.description}>{slide?.description ?? ""}</Text>
         </View>
 
         {/* Indicators */}

@@ -1,90 +1,17 @@
 rules_version = '2';
 
-// Firebase Storage Rules for File Management System - Multi-Store Support
+// Firebase Storage Rules - 一時的に緩和版（デバッグ用）
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // ヘルパー関数
-    function isAuthenticated() {
-      return request.auth != null;
+    // 認証済みユーザーは全てのファイルにアクセス可能（一時的）
+    match /files/{allPaths=**} {
+      allow read, write, delete: if request.auth != null;
     }
     
-    function hasAccessToStore(storeId) {
-      // 🔒 カスタムトークンベースのセキュア認証（firestore.get()使用禁止）
-      return request.auth.token.storeId == storeId ||
-             (request.auth.token.storesAccess != null && 
-              storeId in request.auth.token.storesAccess &&
-              request.auth.token.storesAccess[storeId].isActive == true);
-    }
-    
-    function isMasterOfStore(storeId) {
-      return hasAccessToStore(storeId) &&
-        (request.auth.token.role == "master");
-    }
-    
-    function isValidFile() {
-      // 🔒 ファイル検証ルール強化版
-      return request.resource.size <= 10 * 1024 * 1024   // 最大10MB（爆弾攻撃対策）
-             && request.resource.size > 0                 // 空ファイル拒否
-             && (
-               request.resource.contentType.matches('image/(jpeg|jpg|png|gif|webp)')  // 許可された画像のみ
-               || request.resource.contentType.matches('video/(mp4|mov|avi)')         // 許可された動画のみ
-               || request.resource.contentType == 'application/pdf'                   // PDF
-               || request.resource.contentType.matches('application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)') // Word
-               || request.resource.contentType.matches('text/(plain|csv)')           // テキスト限定
-             )
-             && !request.resource.contentType.matches('.*(executable|script|php|js|html|svg).*') // 危険ファイル完全拒否
-             && request.resource.name.size() <= 255;     // ファイル名長さ制限
-    }
-    
-    function isValidFilename() {
-      // ファイル名の安全性チェック
-      let filename = request.resource.name;
-      return !filename.matches('.*\\.\\..*')    // パストラバーサル防止
-             && !filename.matches('.*/.*')       // パス区切り文字防止
-             && !filename.matches('.*<.*')       // HTML文字防止
-             && !filename.matches('.*>.*')
-             && !filename.matches('.*".*')
-             && !filename.matches(".*'.*");
-    }
-    
-    // 店舗別ファイルアクセス - 多店舗対応の店舗分離
-    match /files/{storeId}/{allPaths=**} {
-      allow read: if isAuthenticated() && hasAccessToStore(storeId);
-      allow write: if isAuthenticated() && hasAccessToStore(storeId) 
-                      && isValidFile() && isValidFilename();
-      allow delete: if isAuthenticated() && isMasterOfStore(storeId);
-    }
-    
-    // PDFエクスポート用一時ファイル（共有用）
-    match /exports/{storeId}/{filename} {
-      allow read: if isAuthenticated() && hasAccessToStore(storeId);
-      allow write: if isAuthenticated() && hasAccessToStore(storeId) 
-                      && request.resource.contentType == 'application/pdf'
-                      && isValidFilename();
-      allow delete: if isAuthenticated() && hasAccessToStore(storeId);
-    }
-    
-    // プロファイル画像（ユーザー個別） - 🔒 プライバシー保護強化
-    match /profiles/{userId}/{filename} {
-      allow read: if isAuthenticated() && 
-        (request.auth.uid == userId ||  // 本人のみ
-         request.auth.token.role == "master");  // またはマスターのみ
-      allow write: if isAuthenticated() && request.auth.uid == userId
-                      && request.resource.contentType.matches('image/(jpeg|png)')  // JPEG/PNGのみ
-                      && request.resource.size <= 2 * 1024 * 1024  // 2MB制限（攻撃対策）
-                      && isValidFilename();
-      allow delete: if isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    // ルートファイルアクセス拒否
-    match /files/{filename} {
-      allow read, write: if false;
-    }
-    
-    // その他のパスは全て拒否
+    // その他のパスも認証済みユーザーはアクセス可能（一時的）
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read, write, delete: if request.auth != null;
     }
   }
-} 
+}

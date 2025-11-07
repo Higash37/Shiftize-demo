@@ -167,8 +167,19 @@ service cloud.firestore {
 
     // シフト変更ログコレクション - 店舗分離、マスターのみアクセス可能
     match /shiftChangeLogs/{docId} {
+      // 読み取り: マスターのみ、自分の店舗のデータのみ
+      // クエリでwhere("storeId", "==", storeId)を使っているので、
+      // ドキュメントのstoreIdが認証トークンのstoreIdと一致するか確認
       allow read: if isAuthenticated() && 
-        isMasterOfStore(resource.data.storeId);
+        request.auth.token.role == "master" &&
+        (
+          // メインのstoreIdと一致
+          resource.data.storeId == request.auth.token.storeId ||
+          // または、連携店舗アクセス権限がある場合
+          (request.auth.token.storesAccess != null && 
+           resource.data.storeId in request.auth.token.storesAccess &&
+           request.auth.token.storesAccess[resource.data.storeId].isActive == true)
+        );
       allow create: if isAuthenticated() && 
         hasAccessToStore(request.resource.data.storeId);
       allow update, delete: if false; // 追記専用

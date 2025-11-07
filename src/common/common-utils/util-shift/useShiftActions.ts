@@ -15,6 +15,13 @@ export const useShift = (storeId?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, role } = useAuth();
+  const shiftActor = user
+    ? {
+        userId: user.uid,
+        nickname: user.nickname || "������",
+        role: (role === "master" ? "master" : "teacher") as "master" | "teacher"
+      }
+    : null;
 
   const fetchShifts = useCallback(async () => {
     if (!user) {
@@ -96,7 +103,7 @@ export const useShift = (storeId?: string) => {
       // 🔄 新APIサービス使用
       // 型変換: ShiftAPIServiceは内部でShiftServiceを呼び出すため、
       // 元のShift型をそのまま渡せる
-      await ShiftAPIService.createShift(shiftWithStoreId as any);
+      await ShiftAPIService.createShift(shiftWithStoreId as any, shiftActor || undefined);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -118,7 +125,7 @@ export const useShift = (storeId?: string) => {
         ],
       };
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, updatedData);
+      await ShiftAPIService.updateShift(shiftId, updatedData, shiftActor || undefined);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -129,7 +136,7 @@ export const useShift = (storeId?: string) => {
     try {
       // 🔄 新APIサービス使用（通知付き削除）
       const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
-      await ShiftAPIService.deleteShift(shiftId, deletedBy, reason);
+      await ShiftAPIService.deleteShift(shiftId, deletedBy, reason, shiftActor || undefined);
       await fetchShifts();
     } catch (error) {
       throw error;
@@ -139,7 +146,7 @@ export const useShift = (storeId?: string) => {
   const approveShift = async (shiftId: string) => {
     try {
       // 🔄 新APIサービス使用
-      await ShiftAPIService.approveShiftChanges(shiftId); // マスターが承認する関数を呼び出し
+      await ShiftAPIService.approveShiftChanges(shiftId, shiftActor || undefined); // マスターが承認する関数を呼び出し
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;
@@ -149,7 +156,7 @@ export const useShift = (storeId?: string) => {
   const updateShiftStatus = async (shiftId: string, status: ShiftStatus) => {
     try {
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, { status });
+      await ShiftAPIService.updateShift(shiftId, { status }, shiftActor || undefined);
       await fetchShifts(); // データを即時更新
     } catch (error) {
       throw error;

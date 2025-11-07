@@ -4,11 +4,11 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   Platform,
   useWindowDimensions,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
@@ -140,9 +140,9 @@ export const AddEmailScreen: React.FC = () => {
           {/* 注意事項 */}
           <View style={styles.warningContainer}>
             <Text style={styles.warningText}>
-              ⚠️ 追加後は以下の2つの方法でログインできます：{"\n"}
-              • 自動生成メール: {currentUser?.email}{"\n"}
-              • 実際のメール: 上記で入力したメールアドレス
+              ⚠️ 追加後は以下の2つの方法でログインできます：{"\n"}•
+              自動生成メール: {currentUser?.email}
+              {"\n"}• 実際のメール: 上記で入力したメールアドレス
             </Text>
           </View>
 

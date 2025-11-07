@@ -122,14 +122,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onDemoClick }) => {
             <Text style={styles.heroPrimaryButtonText}>
               今すぐ無料で始める
             </Text>
-            <AntDesign name="arrowright" size={16} color="#ffffff" />
+            <AntDesign name="arrow-right" size={16} color="#ffffff" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.heroSecondaryButton}
             onPress={onDemoClick}
           >
-            <AntDesign name="playcircleo" size={16} color="#3b82f6" />
+            <AntDesign name="play-circle" size={16} color="#3b82f6" />
             <Text style={styles.heroSecondaryButtonText}>デモを見る</Text>
           </TouchableOpacity>
         </View>

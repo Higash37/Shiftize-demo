@@ -93,7 +93,7 @@ const SimpleLanding: React.FC = () => {
                   <Text style={styles.finalCTAButtonSubtext}>3 分で完了</Text>
                 </View>
                 <View style={styles.finalCTAButtonArrow}>
-                  <AntDesign name="arrowright" size={24} color="#ffffff" />
+                  <AntDesign name="arrow-right" size={24} color="#ffffff" />
                 </View>
               </TouchableOpacity>
 

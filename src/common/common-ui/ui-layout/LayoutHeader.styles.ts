@@ -20,15 +20,25 @@ export const styles = StyleSheet.create({
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
+  headerCompact: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
   leftContainer: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
+  leftContainerCompact: {
+    marginRight: 8,
+  },
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  rightContainerCompact: {
+    gap: 4,
   },
   backButton: {
     padding: 8,
@@ -39,11 +49,18 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.text.primary,
   },
+  titleCompact: {
+    fontSize: 20,
+  },
   signOutButton: {
     padding: 8,
   },
   serviceIntroButton: {
     padding: 8,
+  },
+  compactActionButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 6,
   },
   // 店舗切り替え関連のスタイル
   storeButton: {
@@ -54,11 +71,20 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
+    flexShrink: 1,
+  },
+  storeButtonCompact: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   storeButtonText: {
     color: colors.text.white,
     fontSize: 14,
     fontWeight: "600",
+    flexShrink: 1,
+  },
+  storeButtonTextCompact: {
+    fontSize: 12,
   },
   kanbanButton: {
     padding: 8,
@@ -168,3 +194,4 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+

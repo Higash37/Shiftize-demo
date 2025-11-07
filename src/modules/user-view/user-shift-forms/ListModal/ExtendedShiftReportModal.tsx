@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { ExtendedTaskService } from "@/services/firebase/firebase-extended-task";
 import { ShiftService } from "@/services/firebase/firebase-shift";
+import { useAuth } from "@/services/auth/useAuth";
 import {
   ExtendedTask,
   TaskExecution,
@@ -28,6 +29,7 @@ interface ExtendedShiftReportModalProps {
 export const ExtendedShiftReportModal: React.FC<
   ExtendedShiftReportModalProps
 > = ({ visible, shift, storeId, onClose, onReported }) => {
+  const { user } = useAuth();
   const styles = useExtendedShiftReportStyles();
 
   const [availableTasks, setAvailableTasks] = useState<ExtendedTask[]>([]);
@@ -169,7 +171,12 @@ export const ExtendedShiftReportModal: React.FC<
       await ShiftService.updateShiftWithTasks(
         shift.id,
         formattedTasks,
-        comments
+        comments,
+        {
+          userId: user?.uid || shift?.userId || "",
+          nickname: user?.nickname || shift?.nickname || "������",
+          role: ((user?.role as "master" | "teacher") || "teacher") as "master" | "teacher"
+        }
       );
 
       Alert.alert("完了", "シフト報告を送信しました");

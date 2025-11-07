@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { modalStyles } from "./ModalStyles";
 import { ShiftService } from "../../../../services/firebase/firebase-shift";
+import { useAuth } from "@/services/auth/useAuth";
 
 type TaskCounts = {
   [key: string]: {
@@ -36,6 +37,7 @@ const ShiftReportModal = ({
   fetchShifts: () => void;
   setTaskCounts: React.Dispatch<React.SetStateAction<TaskCounts>>;
 }) => {
+  const { user } = useAuth();
   const handleReportSubmit = async () => {
     if (modalShift) {
       try {
@@ -53,7 +55,12 @@ const ShiftReportModal = ({
         await ShiftService.updateShiftWithTasks(
           modalShift.id,
           formattedTasks,
-          comments
+          comments,
+          {
+            userId: user?.uid || modalShift?.userId || "",
+            nickname: user?.nickname || modalShift?.nickname || "������",
+            role: ((user?.role as "master" | "teacher") || "teacher") as "master" | "teacher"
+          }
         );
 
         fetchShifts();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Modal,
   FlatList,
   Alert,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -38,6 +39,8 @@ export function MasterHeader({
 }: MasterHeaderProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isCompactLayout = width < 900;
   const [userStoreAccess, setUserStoreAccess] =
     useState<UserStoreAccess | null>(null);
   const [showStoreSelector, setShowStoreSelector] = useState(false);
@@ -47,6 +50,37 @@ export function MasterHeader({
   const [recruitmentCount, setRecruitmentCount] = useState(0);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
   const [showLineNotification, setShowLineNotification] = useState(false);
+
+  const storeButtonStyles = useMemo(
+    () => [
+      styles.storeButton,
+      { backgroundColor: "#1565C0" },
+      isCompactLayout && styles.storeButtonCompact,
+    ],
+    [isCompactLayout]
+  );
+
+  const storeButtonTextStyles = useMemo(
+    () => [
+      styles.storeButtonText,
+      { color: "#FFFFFF" },
+      isCompactLayout && styles.storeButtonTextCompact,
+    ],
+    [isCompactLayout]
+  );
+
+  const storeButtonLabel = useMemo(() => {
+    if (!currentStoreInfo) {
+      return "教室";
+    }
+
+    if (!isCompactLayout) {
+      return `教室${currentStoreInfo}`;
+    }
+
+    const shortId = currentStoreInfo.slice(-4);
+    return `教室${shortId}`;
+  }, [currentStoreInfo, isCompactLayout]);
 
   // ユーザーの店舗アクセス権限を取得
   useEffect(() => {
@@ -94,13 +128,13 @@ export function MasterHeader({
     );
 
     const unsubscribe = onSnapshot(
-      q, 
+      q,
       (snapshot) => {
         setRecruitmentCount(snapshot.size);
       },
       (error) => {
         // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === 'permission-denied') {
+        if (error.code === "permission-denied") {
           setRecruitmentCount(0);
           return;
         }
@@ -124,7 +158,7 @@ export function MasterHeader({
       await auth.signOut();
       router.replace("/(auth)/login");
     } catch (error) {
-      // Error signing out
+      console.error("Error signing out:", error);
     }
   };
 
@@ -189,23 +223,28 @@ export function MasterHeader({
     : [];
 
   return (
-    <View style={styles.header}>
-      <View style={styles.leftContainer}>
+    <View style={[styles.header, isCompactLayout && styles.headerCompact]}>
+      <View
+        style={[styles.leftContainer, isCompactLayout && styles.leftContainerCompact]}
+      >
         {showBackButton && (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <AntDesign name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
         )}
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, isCompactLayout && styles.titleCompact]}>
+          {title}
+        </Text>
       </View>
-
-      <View style={styles.rightContainer}>
+      <View
+        style={[styles.rightContainer, isCompactLayout && styles.rightContainerCompact]}
+      >
         {/* 募集シフト通知ボタン */}
         <TouchableOpacity
           onPress={() => setShowRecruitmentModal(true)}
-          style={styles.notificationButton}
+          style={[styles.notificationButton, isCompactLayout && styles.compactActionButton]}
         >
-          <AntDesign name="bells" size={24} color={colors.primary} />
+          <AntDesign name="bell" size={24} color={colors.primary} />
           {recruitmentCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{recruitmentCount}</Text>
@@ -216,26 +255,30 @@ export function MasterHeader({
         {/* LINE通知送信ボタン */}
         <TouchableOpacity
           onPress={() => setShowLineNotification(true)}
-          style={styles.lineNotificationButton}
+          style={[styles.lineNotificationButton, isCompactLayout && styles.compactActionButton]}
         >
-          <AntDesign name="message1" size={24} color={colors.success} />
+          <AntDesign name="message" size={24} color={colors.success} />
         </TouchableOpacity>
 
         {/* カンバンタスク管理ボタン */}
         <TouchableOpacity
-          onPress={() => router.push("/(main)/master/kanban-task")}
-          style={styles.kanbanButton}
+          onPress={() => router.push("/(main)/master/master-kanban-task")}
+          style={[styles.kanbanButton, isCompactLayout && styles.compactActionButton]}
         >
-          <AntDesign name="appstore-o" size={24} color={colors.primary} />
+          <AntDesign name="appstore" size={24} color={colors.primary} />
         </TouchableOpacity>
 
         {/* 店舗管理ボタン - 常にクリック可能 */}
         <TouchableOpacity
           onPress={() => setShowStoreSelector(true)}
-          style={[styles.storeButton, { backgroundColor: "#1565C0" }]}
+          style={storeButtonStyles}
         >
-          <Text style={[styles.storeButtonText, { color: "#FFFFFF" }]}>
-            教室{currentStoreInfo}
+          <Text
+            style={storeButtonTextStyles}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {storeButtonLabel}
           </Text>
           <AntDesign
             name={availableStores.length > 1 ? "down" : "setting"}
@@ -245,15 +288,18 @@ export function MasterHeader({
         </TouchableOpacity>
 
         {/* サービス紹介ボタン */}
-        <TouchableOpacity 
-          onPress={() => setShowServiceIntro(true)} 
-          style={styles.serviceIntroButton}
+        <TouchableOpacity
+          onPress={() => setShowServiceIntro(true)}
+          style={[styles.serviceIntroButton, isCompactLayout && styles.compactActionButton]}
         >
-          <AntDesign name="questioncircleo" size={24} color={colors.primary} />
+          <AntDesign name="question-circle" size={24} color={colors.primary} />
         </TouchableOpacity>
 
         {/* サインアウトボタン */}
-        <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+        <TouchableOpacity
+          onPress={handleSignOut}
+          style={[styles.signOutButton, isCompactLayout && styles.compactActionButton]}
+        >
           <AntDesign name="logout" size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
@@ -330,7 +376,7 @@ export function MasterHeader({
                 );
                 setUserStoreAccess(storeAccess);
               } catch (error) {
-                // Error reloading store access
+                console.error("Error reloading store access:", error);
               }
             };
             fetchUserStoreAccess();
@@ -362,3 +408,4 @@ export function MasterHeader({
   );
 }
 export default MasterHeader;
+

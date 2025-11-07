@@ -5,7 +5,7 @@ import {
   Timestamp 
 } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
-import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
 
 export type ShiftActionType = 
   | "create"
@@ -36,17 +36,23 @@ export interface ShiftHistoryEntry {
     endTime?: string;
     userId?: string;
     userNickname?: string;
+    status?: ShiftStatus;
     statusLabel?: string;
+    type?: string;
   };
   next?: {
     startTime?: string;
     endTime?: string;
     userId?: string;
     userNickname?: string;
+    status?: ShiftStatus;
     statusLabel?: string;
+    type?: string;
   };
   summary: string;
   notes?: string;
+  prevSnapshot?: Partial<ShiftItem>;
+  nextSnapshot?: Partial<ShiftItem>;
 }
 
 // ステータスラベルの変換
@@ -59,6 +65,39 @@ const getStatusLabel = (status: string): string => {
     completed: "完了",
   };
   return statusMap[status] || status;
+};
+
+const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
+  const snapshot: Partial<ShiftItem> = {
+    id: shift.id,
+    storeId: shift.storeId,
+    userId: shift.userId,
+    nickname: shift.nickname,
+    date: shift.date,
+    startTime: shift.startTime,
+    endTime: shift.endTime,
+    status: shift.status,
+    type: shift.type,
+  };
+  
+  // undefinedの場合はプロパティを除外
+  if (shift.subject !== undefined) {
+    snapshot.subject = shift.subject;
+  }
+  
+  if (shift.notes !== undefined) {
+    snapshot.notes = shift.notes;
+  }
+  
+  if (shift.classes !== undefined) {
+    snapshot.classes = shift.classes;
+  }
+  
+  if (shift.extendedTasks !== undefined) {
+    snapshot.extendedTasks = shift.extendedTasks;
+  }
+  
+  return snapshot;
 };
 
 // アクションに基づいた要約文の生成
@@ -112,6 +151,11 @@ export const logShiftChange = async (
   metadata?: any
 ): Promise<void> => {
   try {
+    if (!storeId) {
+      console.warn("logShiftChange: storeId is missing, skipping history log");
+      return;
+    }
+
     // ログエントリの準備
     const entry: ShiftHistoryEntry = {
       storeId,
@@ -130,8 +174,11 @@ export const logShiftChange = async (
         endTime: prevShift.endTime,
         userId: prevShift.userId,
         userNickname: prevShift.nickname,
+        status: prevShift.status,
         statusLabel: getStatusLabel(prevShift.status),
+        type: prevShift.type,
       };
+      entry.prevSnapshot = toHistorySnapshot(prevShift);
     }
 
     if (shift) {
@@ -140,8 +187,11 @@ export const logShiftChange = async (
         endTime: shift.endTime,
         userId: shift.userId,
         userNickname: shift.nickname,
+        status: shift.status,
         statusLabel: getStatusLabel(shift.status),
+        type: shift.type,
       };
+      entry.nextSnapshot = toHistorySnapshot(shift);
     }
 
     // 要約文を生成
@@ -168,7 +218,14 @@ export const logShiftChange = async (
     });
     
     await addDoc(collection(db, "shiftChangeLogs"), dataToSave);
-  } catch (error) {
+  } catch (error: any) {
+    // ログ記録の失敗をコンソールに記録（通常の操作は継続）
+    console.error("Shift history logging failed:", error);
+    console.error("Error code:", error?.code);
+    console.error("Error message:", error?.message);
+    console.error("Action:", action);
+    console.error("StoreId:", storeId);
+    console.error("Actor:", actor);
     // ログ記録の失敗は通常の操作を妨げないようにする
     // Silent error handling for shift change logging
   }

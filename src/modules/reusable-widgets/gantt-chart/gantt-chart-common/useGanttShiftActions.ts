@@ -95,8 +95,9 @@ export function useGanttShiftActions({
         if (editingShift.status !== newShiftData.status && newShiftData.status === "approved") {
           // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
           await ShiftService.approveShiftChanges(editingShift.id, {
-            nickname: (user as any)?.nickname || "教室長",
-            userId: user?.uid || ""
+            userId: user?.uid || "",
+            nickname: (user as any)?.nickname || "������",
+            role: ((user?.role as "master" | "teacher") || "master")
           });
           
           // ステータス以外の変更がある場合は追加で更新
@@ -107,28 +108,6 @@ export function useGanttShiftActions({
               userColor: userColor || "#4A90E2",
               updatedAt: serverTimestamp(),
             });
-          }
-          
-          // 変更ログを記録
-          if (user && user.storeId) {
-            const nextShiftData: ShiftItem = { ...editingShift, ...newShiftData };
-            const actionType = determineActionType(prevShiftData, nextShiftData, {
-              userId: user.uid,
-              nickname: user.nickname || "教室長",
-              role: (user.role as "master" | "teacher") || "master"
-            });
-            
-            await logShiftChange(
-              actionType,
-              {
-                userId: user.uid,
-                nickname: user.nickname || "教室長",
-                role: (user.role as "master" | "teacher") || "master"
-              },
-              user.storeId,
-              nextShiftData,
-              prevShiftData
-            );
           }
         } else {
           // その他の変更は直接更新
@@ -300,8 +279,9 @@ export function useGanttShiftActions({
       // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
       if (status === "approved") {
         await ShiftService.approveShiftChanges(shiftId, {
-          nickname: (user as any).nickname || "教室長",
-          userId: user.uid
+          userId: user.uid,
+          nickname: (user as any)?.nickname || "������",
+          role: ((user?.role as "master" | "teacher") || "master")
         });
       } else {
         // その他のステータス変更は直接更新

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   useWindowDimensions,
   Platform,
   Alert,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
@@ -27,15 +27,15 @@ export const CreateGroupSuccessScreen: React.FC = () => {
 
   // URL パラメーターからデータを取得
   const params = useLocalSearchParams();
-  const groupName = (params['groupName'] as string) || "";
-  const storeId = (params['storeId'] as string) || "";
-  const memberCount = parseInt((params['memberCount'] as string) || "0");
-  const adminNickname = (params['adminNickname'] as string) || "";
-  const adminPassword = (params['adminPassword'] as string) || "";
+  const groupName = (params["groupName"] as string) || "";
+  const storeId = (params["storeId"] as string) || "";
+  const memberCount = parseInt((params["memberCount"] as string) || "0");
+  const adminNickname = (params["adminNickname"] as string) || "";
+  const adminPassword = (params["adminPassword"] as string) || "";
 
   // メンバーデータをパース
-  const membersData = params['membersData']
-    ? JSON.parse(params['membersData'] as string)
+  const membersData = params["membersData"]
+    ? JSON.parse(params["membersData"] as string)
     : [];
 
   const [showPasswords, setShowPasswords] = useState(false);
