@@ -1,16 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import SimpleHeader from "./SimpleHeader";
 import { DemoModal } from "./DemoModal";
-import { HeroSection } from "./components/hero-section";
-import { SocialProofSection } from "./components/social-proof-section";
-import { FeaturesSection } from "./components/features-section";
-import { SecuritySection } from "./components/security-section";
-import { InteractiveDemoSection } from "./components/interactive-demo-section";
+import { SectionLoadingFallback } from "./components/SectionLoadingFallback";
 import { styles } from "./SimpleLanding.styles";
+
+// セクションコンポーネントを遅延読み込み
+const HeroSection = lazy(() => 
+  import("./components/hero-section").then(module => ({ default: module.HeroSection }))
+);
+const SocialProofSection = lazy(() => 
+  import("./components/social-proof-section").then(module => ({ default: module.SocialProofSection }))
+);
+const FeaturesSection = lazy(() => 
+  import("./components/features-section").then(module => ({ default: module.FeaturesSection }))
+);
+const SecuritySection = lazy(() => 
+  import("./components/security-section").then(module => ({ default: module.SecuritySection }))
+);
+const InteractiveDemoSection = lazy(() => 
+  import("./components/interactive-demo-section").then(module => ({ default: module.InteractiveDemoSection }))
+);
 import {
   finalCtaFeatures,
   navigationMenu,
@@ -67,11 +80,21 @@ const SimpleLanding: React.FC = () => {
         )}
 
         <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-          <HeroSection onDemoClick={() => setDemoModalVisible(true)} />
-          <SocialProofSection />
-          <FeaturesSection />
-          <SecuritySection />
-          <InteractiveDemoSection onDemoClick={() => setDemoModalVisible(true)} />
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <HeroSection onDemoClick={() => setDemoModalVisible(true)} />
+          </Suspense>
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <SocialProofSection />
+          </Suspense>
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <FeaturesSection />
+          </Suspense>
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <SecuritySection />
+          </Suspense>
+          <Suspense fallback={<SectionLoadingFallback />}>
+            <InteractiveDemoSection onDemoClick={() => setDemoModalVisible(true)} />
+          </Suspense>
 
           <View style={styles.finalCTA}>
             <View style={styles.finalCTAContent}>

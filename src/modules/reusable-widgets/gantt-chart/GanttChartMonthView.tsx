@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import {
   View,
@@ -65,18 +65,28 @@ import {
   GanttChartInfo,
   EmptyCell,
 } from "./gantt-chart-common/components";
-import { EditShiftModalView } from "./view-modals/EditShiftModalView";
-import { AddShiftModalView } from "./view-modals/AddShiftModalView";
-import { PayrollDetailModal } from "./view-modals/PayrollDetailModal";
+// モーダルコンポーネントを遅延読み込み
+const EditShiftModalView = lazy(() => 
+  import("./view-modals/EditShiftModalView").then(module => ({ default: module.EditShiftModalView }))
+);
+const AddShiftModalView = lazy(() => 
+  import("./view-modals/AddShiftModalView").then(module => ({ default: module.AddShiftModalView }))
+);
+const PayrollDetailModal = lazy(() => 
+  import("./view-modals/PayrollDetailModal").then(module => ({ default: module.PayrollDetailModal }))
+);
+const BatchConfirmModal = lazy(() => import("./view-modals/BatchConfirmModal"));
+const ShiftHistoryModal = lazy(() => 
+  import("./view-modals/ShiftHistoryModal").then(module => ({ default: module.ShiftHistoryModal }))
+);
+
 import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
 import { GanttChartBody } from "./gantt-chart-common/GanttChartBody";
 import { CalendarView } from "./gantt-chart-common/CalendarView";
 import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions";
-import BatchConfirmModal from "./view-modals/BatchConfirmModal";
 import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
-import { ShiftHistoryModal } from "./view-modals/ShiftHistoryModal";
 import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLogger";
 
 export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
@@ -795,16 +805,20 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         />
       )}
       {/* バッチ確認モーダル */}
-      <BatchConfirmModal
-        visible={batchModal.visible}
-        type={batchModal.type}
-        shifts={shifts}
-        isLoading={isLoading}
-        styles={styles}
-        setBatchModal={setBatchModal}
-        setIsLoading={setIsLoading}
-        {...(refreshPage && { refreshPage })}
-      />
+      {batchModal.visible && (
+        <Suspense fallback={null}>
+          <BatchConfirmModal
+            visible={batchModal.visible}
+            type={batchModal.type}
+            shifts={shifts}
+            isLoading={isLoading}
+            styles={styles}
+            setBatchModal={setBatchModal}
+            setIsLoading={setIsLoading}
+            {...(refreshPage && { refreshPage })}
+          />
+        </Suspense>
+      )}
       {/* 本体 - ビューモードとデバイスに応じて切り替え */}
       {deviceType === "mobile" ? (
         /* モバイル用縦型ビュー */
@@ -1028,66 +1042,82 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
         />
       )}
       {/* シフト編集モーダル */}
-      <EditShiftModalView
-        visible={showEditModal}
-        newShiftData={newShiftData}
-        users={users}
-        timeOptions={timeOptions}
-        statusConfigs={statusConfigs}
-        isLoading={isLoading}
-        styles={styles}
-        extendedTasks={[]} // 拡張タスクのテンプレート（必要に応じて実際のデータに置き換え）
-        onChange={(field, value) =>
-          setNewShiftData({ ...newShiftData, [field]: value })
-        }
-        onClose={() => setShowEditModal(false)}
-        onSave={handleSaveShift}
-        onDelete={async () => {
-          if (editingShift) {
-            await handleDeleteShift(editingShift.id); // 非同期処理に対応
-          }
-        }}
-      />
+      {showEditModal && (
+        <Suspense fallback={null}>
+          <EditShiftModalView
+            visible={showEditModal}
+            newShiftData={newShiftData}
+            users={users}
+            timeOptions={timeOptions}
+            statusConfigs={statusConfigs}
+            isLoading={isLoading}
+            styles={styles}
+            extendedTasks={[]} // 拡張タスクのテンプレート（必要に応じて実際のデータに置き換え）
+            onChange={(field, value) =>
+              setNewShiftData({ ...newShiftData, [field]: value })
+            }
+            onClose={() => setShowEditModal(false)}
+            onSave={handleSaveShift}
+            onDelete={async () => {
+              if (editingShift) {
+                await handleDeleteShift(editingShift.id); // 非同期処理に対応
+              }
+            }}
+          />
+        </Suspense>
+      )}
       {/* シフト追加モーダル */}
-      <AddShiftModalView
-        visible={showAddModal}
-        newShiftData={newShiftData}
-        users={users}
-        timeOptions={timeOptions}
-        statusConfigs={statusConfigs}
-        isLoading={isLoading}
-        styles={styles}
-        extendedTasks={[]} // 拡張タスクのテンプレート
-        onChange={(field, value) => {
-          if (field === "userData") {
-            setNewShiftData({
-              ...newShiftData,
-              userId: value.userId,
-              nickname: value.nickname,
-            });
-          } else {
-            setNewShiftData({ ...newShiftData, [field]: value });
-          }
-        }}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleSaveShift}
-      />
+      {showAddModal && (
+        <Suspense fallback={null}>
+          <AddShiftModalView
+            visible={showAddModal}
+            newShiftData={newShiftData}
+            users={users}
+            timeOptions={timeOptions}
+            statusConfigs={statusConfigs}
+            isLoading={isLoading}
+            styles={styles}
+            extendedTasks={[]} // 拡張タスクのテンプレート
+            onChange={(field, value) => {
+              if (field === "userData") {
+                setNewShiftData({
+                  ...newShiftData,
+                  userId: value.userId,
+                  nickname: value.nickname,
+                });
+              } else {
+                setNewShiftData({ ...newShiftData, [field]: value });
+              }
+            }}
+            onClose={() => setShowAddModal(false)}
+            onSave={handleSaveShift}
+          />
+        </Suspense>
+      )}
       {/* 給与詳細モーダル */}
-      <PayrollDetailModal
-        visible={showPayrollModal}
-        onClose={() => setShowPayrollModal(false)}
-        shifts={shifts}
-        users={users}
-        selectedDate={selectedDate}
-      />
+      {showPayrollModal && (
+        <Suspense fallback={null}>
+          <PayrollDetailModal
+            visible={showPayrollModal}
+            onClose={() => setShowPayrollModal(false)}
+            shifts={shifts}
+            users={users}
+            selectedDate={selectedDate}
+          />
+        </Suspense>
+      )}
       {/* 履歴モーダル */}
-      <ShiftHistoryModal
-        visible={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
-        storeId={user?.storeId || ""}
-        selectedDate={selectedDate}
-        onEntryAction={handleHistoryEntryAction}
-      />
+      {showHistoryModal && (
+        <Suspense fallback={null}>
+          <ShiftHistoryModal
+            visible={showHistoryModal}
+            onClose={() => setShowHistoryModal(false)}
+            storeId={user?.storeId || ""}
+            selectedDate={selectedDate}
+            onEntryAction={handleHistoryEntryAction}
+          />
+        </Suspense>
+      )}
 
     </View>
   );

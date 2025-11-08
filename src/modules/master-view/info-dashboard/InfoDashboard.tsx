@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
@@ -18,15 +19,27 @@ import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { useAuth } from "@/services/auth/useAuth";
 
-import {
-  BudgetSection,
-  StaffEfficiencyTab,
-  CostAnalysisTab,
-  ShiftMetricsTab,
-  ProductivityTab,
-  TrendAnalysisTab,
-} from "./analytics-widgets";
-import { TaskManagementIntegratedTab } from "./analytics-widgets/TaskManagementIntegratedTab";
+import { BudgetSection } from "./analytics-widgets";
+
+// タブコンテンツを遅延読み込み
+const StaffEfficiencyTab = lazy(() => 
+  import("./analytics-widgets/StaffEfficiencyTab").then(module => ({ default: module.StaffEfficiencyTab }))
+);
+const CostAnalysisTab = lazy(() => 
+  import("./analytics-widgets/CostAnalysisTab").then(module => ({ default: module.CostAnalysisTab }))
+);
+const ShiftMetricsTab = lazy(() => 
+  import("./analytics-widgets/ShiftMetricsTab").then(module => ({ default: module.ShiftMetricsTab }))
+);
+const ProductivityTab = lazy(() => 
+  import("./analytics-widgets/ProductivityTab").then(module => ({ default: module.ProductivityTab }))
+);
+const TrendAnalysisTab = lazy(() => 
+  import("./analytics-widgets/TrendAnalysisTab").then(module => ({ default: module.TrendAnalysisTab }))
+);
+const TaskManagementIntegratedTab = lazy(() => 
+  import("./analytics-widgets/TaskManagementIntegratedTab").then(module => ({ default: module.TaskManagementIntegratedTab }))
+);
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
@@ -193,25 +206,57 @@ export const InfoDashboard: React.FC = () => {
       budgetUsage: realData.budgetUsage,
     };
 
+    const loadingFallback = (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 40 }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+
     switch (activeTab) {
       case "efficiency":
-        return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />
+          </Suspense>
+        );
       case "cost":
-        return <CostAnalysisTab budget={monthlyBudget} {...commonProps} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <CostAnalysisTab budget={monthlyBudget} {...commonProps} />
+          </Suspense>
+        );
       case "shift":
-        return <ShiftMetricsTab {...commonProps} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ShiftMetricsTab {...commonProps} />
+          </Suspense>
+        );
       case "productivity":
-        return <ProductivityTab {...commonProps} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ProductivityTab {...commonProps} />
+          </Suspense>
+        );
       case "trend":
-        return <TrendAnalysisTab shifts={shifts} users={users} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <TrendAnalysisTab shifts={shifts} users={users} />
+          </Suspense>
+        );
       case "tasks":
         return (
-          <TaskManagementIntegratedTab
-            storeId={user?.storeId || "default-store"}
-          />
+          <Suspense fallback={loadingFallback}>
+            <TaskManagementIntegratedTab
+              storeId={user?.storeId || "default-store"}
+            />
+          </Suspense>
         );
       default:
-        return <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />;
+        return (
+          <Suspense fallback={loadingFallback}>
+            <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />
+          </Suspense>
+        );
     }
   };
 
