@@ -41,7 +41,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const shiftRefs = useRef<{ [key: string]: React.RefObject<View> }>({}).current;
+  const shiftRefs = useRef<{ [key: string]: View | null }>({}).current;
 
   // 現在の月の文字列を生成（月変更で更新されるように状態管理）
   const [currentMonth, setCurrentMonth] = useState(format(selectedDate, "yyyy-MM-dd"));
@@ -162,14 +162,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     if (selectedShift && shiftRefs[selectedShift.id]) {
       // 少し遅延を入れてスクロールを実行（レイアウト計算のため）
       setTimeout(() => {
-        shiftRefs[selectedShift.id]?.measureLayout(
-          // @ts-ignore
-          scrollViewRef.current?._nativeRef,
-          (x: number, y: number) => {
-            scrollViewRef.current?.scrollTo({ y, animated: true });
-          },
-          () => {}
-        );
+        const shiftRef = shiftRefs[selectedShift.id];
+        if (shiftRef && 'measureLayout' in shiftRef && typeof shiftRef.measureLayout === 'function') {
+          shiftRef.measureLayout(
+            // @ts-ignore
+            scrollViewRef.current?._nativeRef,
+            (x: number, y: number) => {
+              scrollViewRef.current?.scrollTo({ y, animated: true });
+            },
+            () => {}
+          );
+        }
       }, 100);
     }
   };
@@ -234,9 +237,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <TouchableOpacity
                     key={shift.id}
                     ref={(ref) => {
-                      if (ref) {
-                        shiftRefs[shift.id] = ref;
-                      }
+                      shiftRefs[shift.id] = ref;
                     }}
                     style={{
                       flexDirection: "row",

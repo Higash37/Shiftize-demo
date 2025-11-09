@@ -68,7 +68,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   colorMode = "status", // デフォルトはステータス色
 }) => {
   // 行の高さを動的に計算（デフォルト65px）
-  const rowHeight = styles.shiftRow?.height || 65;
+  const rowHeight = styles['shiftRow']?.height || 65;
   const mergedCellHeight =
     typeof rowHeight === "number" ? rowHeight * groupSize : 65 * groupSize;
 
@@ -78,7 +78,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   if (group && group.length > 0) {
     // シフトがある日
     return (
-      <View key={date} style={[styles.shiftRow, { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
+      <View key={date} style={[styles['shiftRow'], { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
         {/* 日付セルは同じ日付の最初の行のみ表示 */}
         {isFirstInGroup && (
           <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
@@ -88,7 +88,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
               styles={{
                 ...styles,
                 dateCell: {
-                  ...styles.dateCell,
+                  ...styles['dateCell'],
                   height: mergedCellHeight, // 複数行分の高さ
                 },
               }}
@@ -132,7 +132,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   } else {
     // シフトがない日
     return (
-      <View key={date} style={[styles.shiftRow, { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
+      <View key={date} style={[styles['shiftRow'], { backgroundColor: dateBackgroundColor, flexDirection: "row", alignItems: "flex-start" }]}>
         {/* 日付セルは同じ日付の最初の行のみ表示 */}
         {isFirstInGroup && (
           <View style={{ position: "absolute", left: 0, top: 0, zIndex: 10 }}>
@@ -142,7 +142,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
               styles={{
                 ...styles,
                 dateCell: {
-                  ...styles.dateCell,
+                  ...styles['dateCell'],
                   height: mergedCellHeight, // 複数行分の高さ
                 },
               }}
@@ -162,7 +162,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
             handleEmptyCellClick={handleEmptyCellClick}
           />
         </View>
-        <View style={[styles.emptyInfoCell, { width: infoColumnWidth, height: rowHeight }]} />
+        <View style={[styles['emptyInfoCell'], { width: infoColumnWidth, height: rowHeight }]} />
       </View>
     );
   }
