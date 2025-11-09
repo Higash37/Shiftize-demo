@@ -49,7 +49,7 @@ export const DateCell: React.FC<DateCellProps> = ({
   return (
     <View
       style={[
-        styles.dateCell,
+        styles['dateCell'],
         {
           width: dateColumnWidth,
           borderWidth: 1,
@@ -60,10 +60,10 @@ export const DateCell: React.FC<DateCellProps> = ({
         },
       ]}
     >
-      <Text style={[styles.dateDayText, { color: textColor }]}>
+      <Text style={[styles['dateDayText'], { color: textColor }]}>
         {dayOfMonth}
       </Text>
-      <Text style={[styles.dateWeekText, { color: textColor }]}>
+      <Text style={[styles['dateWeekText'], { color: textColor }]}>
         {dayOfWeek}
       </Text>
     </View>
@@ -217,7 +217,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
 
   return (
     <View
-      style={[styles.ganttCell, { width: ganttColumnWidth, height: "100%" }]}
+      style={[styles['ganttCell'], { width: ganttColumnWidth, height: "100%" }]}
     >
       {/* グリッド全体をタップ可能にする（View/編集共通） */}
       <TouchableOpacity
@@ -230,7 +230,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         }}
         activeOpacity={0.7}
       />
-      <View style={styles.ganttBgRow}>
+      <View style={styles['ganttBgRow']}>
         {halfHourLines.map((t, i) => {
           const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
           const isHourMark = t.endsWith(":00");
@@ -309,7 +309,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           <TouchableOpacity
             key={shift.id}
             style={[
-              styles.shiftBar,
+              styles['shiftBar'],
               {
                 left: startPos,
                 width: Math.max(barWidth, minWidthForShift), // 動的な最小幅
@@ -371,7 +371,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     />
                     <Text
                       style={[
-                        styles.shiftBarText,
+                        styles['shiftBarText'],
                         {
                           fontSize: 13,
                           fontWeight: "bold",
@@ -394,7 +394,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   >
                     <Text
                       style={[
-                        styles.shiftTimeText,
+                        styles['shiftTimeText'],
                         {
                           fontSize: 12,
                           color: "#666",
@@ -435,7 +435,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     />
                     <Text
                       style={[
-                        styles.shiftBarText,
+                        styles['shiftBarText'],
                         {
                           fontSize: 14,
                           fontWeight: "bold",
@@ -459,7 +459,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   >
                     <Text
                       style={[
-                        styles.shiftTimeText,
+                        styles['shiftTimeText'],
                         {
                           fontSize: 15, // 11から22に拡大（約2倍）
                           fontWeight: "bold", // 太字にして見やすくする
@@ -809,21 +809,21 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
     setCurrentMonth(newMonth);
 
     if (onMonthChange) {
-      onMonthChange(newMonth);
+      onMonthChange({ year: newMonth.getFullYear(), month: newMonth.getMonth() });
     }
   };
 
   const handleDateSelect = (date: Date) => {
     setCurrentMonth(date);
     if (onMonthChange) {
-      onMonthChange(date);
+      onMonthChange({ year: date.getFullYear(), month: date.getMonth() });
     }
   };
 
   return (
     <View
       style={[
-        styles.infoCell,
+        styles['infoCell'],
         {
           width: infoColumnWidth,
           backgroundColor: "#ffffff",

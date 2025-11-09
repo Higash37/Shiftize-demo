@@ -1,16 +1,16 @@
 /**
  * 最適化されたImageコンポーネント
- * 
+ *
  * - 遅延読み込み（lazy loading）
  * - 非同期デコード（decoding="async"）
  * - エラーハンドリング
  * - プレースホルダー表示
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Image, ImageProps, View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from "react";
+import { Image, ImageProps, View, StyleSheet, Platform } from "react-native";
 
-interface OptimizedImageProps extends Omit<ImageProps, 'source'> {
+interface OptimizedImageProps extends Omit<ImageProps, "source" | "src"> {
   src: string | { uri: string };
   alt?: string;
   placeholder?: React.ReactNode;
@@ -41,7 +41,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     // React NativeではIntersection Observerが使えないため、
     // スクロールイベントで簡易的に実装
     // Webの場合はネイティブのloading="lazy"を使用
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       // Webの場合はネイティブの遅延読み込みを使用
       setShouldLoad(true);
       return;
@@ -74,7 +74,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setHasError(true);
   };
 
-  const source = typeof src === 'string' ? { uri: src } : src;
+  const source = typeof src === "string" ? { uri: src } : src;
 
   // エラー時のフォールバック表示
   if (hasError && fallback) {
@@ -82,22 +82,24 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   }
 
   // Web用のimgタグ（ネイティブの遅延読み込みを使用）
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     return (
       <View style={style} ref={imageRef}>
-        {isLoading && placeholder && <View style={StyleSheet.absoluteFill}>{placeholder}</View>}
+        {isLoading && placeholder && (
+          <View style={StyleSheet.absoluteFill}>{placeholder}</View>
+        )}
         {/* @ts-ignore - Web専用プロパティ */}
         <img
-          src={typeof src === 'string' ? src : src.uri}
+          src={typeof src === "string" ? src : src.uri}
           alt={alt}
-          loading={lazy ? 'lazy' : 'eager'}
+          loading={lazy ? "lazy" : "eager"}
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
           }}
         />
       </View>
@@ -122,9 +124,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         />
       )}
       {hasError && fallback && (
-        <View style={StyleSheet.absoluteFill}>
-          {fallback}
-        </View>
+        <View style={StyleSheet.absoluteFill}>{fallback}</View>
       )}
     </View>
   );
@@ -132,16 +132,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
 const styles = StyleSheet.create({
   placeholderContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f3f4f6',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f3f4f6",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   imageLoading: {
     opacity: 0,
   },
 });
-

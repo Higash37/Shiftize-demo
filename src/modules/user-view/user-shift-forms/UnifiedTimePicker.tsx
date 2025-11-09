@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Platform, TouchableOpacity, Text, Modal, NativeSyntheticEvent, DateTimePickerEvent } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { View, Platform, TouchableOpacity, Text, Modal, NativeSyntheticEvent } from "react-native";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";

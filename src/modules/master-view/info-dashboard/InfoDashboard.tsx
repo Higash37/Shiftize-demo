@@ -593,12 +593,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary + "40",
   },
-  loadingText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.surface,
-    marginLeft: 6,
-  },
   // モーダル関連のスタイル
   modalOverlay: {
     flex: 1,
