@@ -15,7 +15,7 @@ interface CalendarViewProps {
   users: Array<{ uid: string; nickname: string; color?: string; hourlyWage?: number }>;
   selectedDate: Date;
   onShiftPress?: (shift: ShiftItem) => void;
-  onMonthChange?: (year: number, month: number) => void;
+  onMonthChange?: (month: { year: number; month: number }) => void;
   styles: ReturnType<typeof StyleSheet.create>;
 }
 
@@ -183,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     if (onMonthChange) {
       // 月の最初の日に設定して親コンポーネントのselectedDateを更新
       const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-      onMonthChange(date.getFullYear(), date.getMonth());
+      onMonthChange({ year: date.getFullYear(), month: date.getMonth() });
     }
   };
 
