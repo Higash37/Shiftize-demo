@@ -10,7 +10,7 @@ const IS_PC = SCREEN_WIDTH > 1024;
 export const recruitmentApplicationStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
   loadingContainer: {
     flex: 1,
@@ -122,7 +122,7 @@ export const recruitmentApplicationStyles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
   },
   optionText: {
     fontSize: IS_SMALL_DEVICE ? 14 : 16,
@@ -153,7 +153,7 @@ export const recruitmentApplicationStyles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 6,
     padding: 8,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     fontSize: IS_SMALL_DEVICE ? 14 : 16,
     color: colors.text.primary,
   },
@@ -167,7 +167,7 @@ export const recruitmentApplicationStyles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 6,
     padding: 8,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     fontSize: IS_SMALL_DEVICE ? 12 : 14,
     color: colors.text.primary,
     textAlignVertical: "top",
@@ -208,7 +208,7 @@ export const recruitmentApplicationStyles = StyleSheet.create({
     elevation: 0,
   },
   submitButtonText: {
-    color: "white",
+    color: colors.text.white,
     fontSize: IS_SMALL_DEVICE ? 16 : 18,
     fontWeight: "600",
     letterSpacing: 0.3,

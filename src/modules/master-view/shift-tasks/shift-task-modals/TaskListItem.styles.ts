@@ -12,7 +12,7 @@ export const useTaskListItemStyles = () => {
       ...shadows.listItem,
     },
     inactiveContainer: {
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       opacity: 0.7,
     },
     header: {
@@ -75,7 +75,7 @@ export const useTaskListItemStyles = () => {
       fontWeight: "600",
     },
     tagBadge: {
-      backgroundColor: "#e3f2fd",
+      backgroundColor: colors.selected,
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 12,

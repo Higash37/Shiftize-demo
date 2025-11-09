@@ -3,21 +3,13 @@ import { Slot } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { StatusBar } from "expo-status-bar";
 import { View, Platform } from "react-native";
-import { useFonts } from "expo-font";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { usePushNotifications } from "@/common/common-hooks/usePushNotifications";
 import { useRouteGuard } from "@/common/common-hooks/useRouteGuard";
 import { VersionManager } from "@/services/version/VersionManager";
-import {
-  AntDesign,
-  MaterialIcons,
-  Ionicons,
-  FontAwesome,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { useBasicFonts } from "@/common/common-utils/performance/fontLoader";
 
 function RootLayoutNav() {
   // 🔔 プッシュ通知初期化
@@ -67,14 +59,9 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    ...AntDesign.font,
-    ...MaterialIcons.font,
-    ...Ionicons.font,
-    ...FontAwesome.font,
-    ...FontAwesome5.font,
-    ...MaterialCommunityIcons.font,
-  });
+  // 基本的なフォント（よく使われるもの）のみを初期読み込み
+  // 拡張フォントは必要に応じて各コンポーネントで遅延読み込み
+  const [fontsLoaded, fontError] = useBasicFonts();
 
   if (!fontsLoaded && !fontError) {
     return null;

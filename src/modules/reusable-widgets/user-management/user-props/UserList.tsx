@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { styles } from "./UserList.styles";
 import { UserListProps } from "../user-types/components";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
+import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
 /**
  * ユーザー一覧表示コンポーネント
@@ -33,6 +35,9 @@ export const UserList: React.FC<UserListProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  // MaterialCommunityIconsフォントを遅延読み込み
+  const [fontsLoaded] = useExtendedFonts();
 
   // レスポンシブ設定
   const isTablet = width >= 768;
@@ -181,6 +186,7 @@ export const UserList: React.FC<UserListProps> = ({
             </Text>
           </View>
         }
+        {...getOptimizedFlatListProps()}
       />
       {showDeleteModal && deleteTarget && (
         <View style={styles.modalOverlay}>

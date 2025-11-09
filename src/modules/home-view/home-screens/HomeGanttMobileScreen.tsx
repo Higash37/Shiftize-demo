@@ -274,7 +274,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
           borderBottomColor: colors.border,
         }}>
           <TouchableOpacity
-            style={[buttonStyle, { backgroundColor: '#4CAF50' }]}
+            style={[buttonStyle, { backgroundColor: colors.success }]}
             onPress={() => setBatchModal({ visible: true, type: "approve" })}
           >
             <Ionicons name="checkmark-circle-outline" size={16} color="white" />
@@ -282,7 +282,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[buttonStyle, { backgroundColor: '#f44336' }]}
+            style={[buttonStyle, { backgroundColor: colors.error }]}
             onPress={() => setBatchModal({ visible: true, type: "delete" })}
           >
             <Ionicons name="trash-outline" size={16} color="white" />

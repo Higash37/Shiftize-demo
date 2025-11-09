@@ -14,6 +14,9 @@ export * from "./ui-feedback";
 // レイアウトコンポーネント
 export * from "./ui-layout";
 
+// 画像コンポーネント
+export * from "./ui-image";
+
 // その他の個別コンポーネント
 export { default as CustomScrollView } from "./ui-scroll/ScrollViewComponent";
 

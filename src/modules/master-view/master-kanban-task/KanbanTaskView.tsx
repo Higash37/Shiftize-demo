@@ -319,7 +319,7 @@ export const KanbanTaskView: React.FC = () => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/* ヘッダー */}
       <View
         style={{

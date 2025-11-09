@@ -91,8 +91,31 @@ const Screenshots = () => {
         <div className="max-w-6xl mx-auto">
           <div className="card p-0 overflow-hidden">
             <div className="relative">
-              {/* Placeholder for screenshot */}
-              <div className="bg-gradient-to-br from-white to-white aspect-video flex items-center justify-center">
+              {/* Screenshot Image with lazy loading */}
+              <img
+                src={screenshots[activeView]?.image || "/api/placeholder/800/500"}
+                alt={screenshots[activeView]?.title || "スクリーンショット"}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto aspect-video object-cover"
+                style={{
+                  backgroundColor: "#f3f4f6",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onError={(e) => {
+                  // エラー時はプレースホルダーを表示
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const placeholder = target.parentElement?.querySelector(".screenshot-placeholder");
+                  if (placeholder) {
+                    (placeholder as HTMLElement).style.display = "flex";
+                  }
+                }}
+              />
+              {/* Fallback placeholder */}
+              <div className="screenshot-placeholder bg-gradient-to-br from-white to-white aspect-video flex items-center justify-center" style={{ display: "none" }}>
                 <div className="text-center">
                   <div className="text-6xl mb-4">
                     {viewOptions.find((v) => v.key === activeView)?.icon}

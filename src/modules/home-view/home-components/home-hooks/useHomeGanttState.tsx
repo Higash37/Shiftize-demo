@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 // 9:00～22:00の30分刻みの時間ラベル
 const allTimes: string[] = [];
@@ -96,7 +97,7 @@ export function useHomeGanttState() {
             end,
             task: "スタッフ", // Textコンポーネントを文字列に変更
             date: selectedDateStr,
-            color: "#1976d2",
+            color: colors.primary,
             type: staff.type || "user",
             textColor: "#fff",
           });

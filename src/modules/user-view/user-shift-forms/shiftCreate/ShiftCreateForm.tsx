@@ -18,7 +18,7 @@ import { designSystem } from "@/common/common-constants/DesignSystem";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";
-import type { Shift } from "@/common/common-models/ModelIndex";
+import type { Shift, ClassTimeSlot } from "@/common/common-models/ModelIndex";
 import type { FlexAlignType } from "react-native";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 import {
@@ -73,7 +73,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     initialStartTime || ""
   );
   const [selectedEndTime, setSelectedEndTime] = useState(initialEndTime || "");
-  const [selectedClasses, setSelectedClasses] = useState<any[]>(() => {
+  const [selectedClasses, setSelectedClasses] = useState<ClassTimeSlot[]>(() => {
     if (initialClasses) {
       try {
         return JSON.parse(initialClasses);

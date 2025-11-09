@@ -402,7 +402,7 @@ export const TaskPerformanceTab: React.FC<TaskPerformanceTabProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,

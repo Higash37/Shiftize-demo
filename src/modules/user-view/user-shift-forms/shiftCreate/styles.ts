@@ -9,7 +9,7 @@ const IS_TABLET = SCREEN_WIDTH > 768;
 export const shiftCreateFormStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
   loadingContainer: {
     flex: 1,
@@ -78,7 +78,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
     borderRadius: 4,
   },
   addButtonText: {
-    color: "white",
+    color: colors.text.white,
     marginLeft: 4,
     fontSize: IS_SMALL_DEVICE ? 12 : 14,
   },
@@ -150,12 +150,12 @@ export const shiftCreateFormStyles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
-    color: "white",
+    color: colors.text.white,
     fontSize: IS_SMALL_DEVICE ? 16 : 18,
     fontWeight: "bold",
   },
   deleteButton: {
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     padding: IS_SMALL_DEVICE ? 12 : 16,
     borderRadius: 8,
     alignItems: "center",
@@ -183,7 +183,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
     alignItems: "center",
   },
   successText: {
-    color: "white",
+    color: colors.text.white,
     fontSize: 24,
     fontWeight: "bold",
     marginTop: 16,
@@ -216,7 +216,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
   },
   splashText: {
     fontSize: 24,
-    color: "#333",
+    color: colors.text.primary,
   },
   // 店舗選択関連のスタイル
   storeSelectContainer: {
@@ -242,7 +242,7 @@ export const shiftCreateFormStyles = StyleSheet.create({
     textAlign: "center",
   },
   storeSelectTextSelected: {
-    color: "#fff",
+    color: colors.text.white,
     fontWeight: "bold",
   },
 });

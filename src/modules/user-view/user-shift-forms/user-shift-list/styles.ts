@@ -120,7 +120,7 @@ export const shiftListItemStyles = StyleSheet.create({
 export const shiftListViewStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     flexDirection: IS_TABLET ? "row" : "column", // タブレット以上で2カラム
     alignItems: IS_TABLET ? "flex-start" : "stretch",
     justifyContent: "flex-start",
@@ -207,7 +207,7 @@ export const modalStyles = {
   },
   modalContent: {
     width: windowWidth * 0.8, // 修正: width を数値型に変更
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 20,
     alignItems: "center" as const,
@@ -228,7 +228,7 @@ export const modalStyles = {
     alignItems: "center" as const,
   },
   modalButtonText: {
-    color: "white",
+    color: colors.text.white,
     fontSize: 16,
   },
 };

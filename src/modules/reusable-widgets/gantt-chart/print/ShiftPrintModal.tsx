@@ -1965,7 +1965,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
     flex: 1,
   },
   headerButtons: {
@@ -1982,16 +1982,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   previewButtonActive: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
   },
   previewButtonText: {
-    color: "#666",
+    color: colors.text.secondary,
     fontWeight: "500",
     marginLeft: 4,
     fontSize: 12,
   },
   previewButtonTextActive: {
-    color: "#007AFF",
+    color: colors.primary,
   },
   saveButton: {
     flexDirection: "row",
@@ -2024,7 +2024,7 @@ const styles = StyleSheet.create({
   printButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
@@ -2046,7 +2046,7 @@ const styles = StyleSheet.create({
   selectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
   },
   selectionButtons: {
     flexDirection: "row",
@@ -2059,7 +2059,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   selectButtonText: {
-    color: "#666",
+    color: colors.text.secondary,
     fontWeight: "500",
   },
   mainContent: {
@@ -2080,7 +2080,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e0e0e0",
   },
   userItemSelected: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
   },
   userInfo: {
     flex: 1,
@@ -2088,21 +2088,21 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
   },
   userNameSelected: {
-    color: "#007AFF",
+    color: colors.primary,
   },
   shiftCount: {
     fontSize: 14,
-    color: "#666",
+    color: colors.text.secondary,
     marginTop: 2,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: "#007AFF",
+    borderColor: colors.primary,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
@@ -2116,7 +2116,7 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
     marginBottom: 12,
   },
   previewList: {
@@ -2134,11 +2134,11 @@ const styles = StyleSheet.create({
   previewUserName: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#333",
+    color: colors.text.primary,
   },
   previewShiftCount: {
     fontSize: 12,
-    color: "#666",
+    color: colors.text.secondary,
   },
   fullPreviewContainer: {
     flex: 1,
@@ -2206,16 +2206,16 @@ const styles = StyleSheet.create({
   },
   previewShiftDate: {
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
     fontSize: 10,
   },
   previewShiftTime: {
-    color: "#555",
+    color: colors.text.secondary,
     fontSize: 10,
   },
   previewNoShifts: {
     fontSize: 10,
-    color: "#666",
+    color: colors.text.secondary,
     textAlign: "center",
     marginTop: 10,
   },
@@ -2228,7 +2228,7 @@ const styles = StyleSheet.create({
   },
   previewNotesTitle: {
     fontWeight: "bold",
-    color: "#666",
+    color: colors.text.secondary,
     fontSize: 10,
     textAlign: "center",
     marginBottom: 4,
@@ -2252,7 +2252,7 @@ const styles = StyleSheet.create({
   formatSelectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
   },
   formatButtons: {
     flexDirection: "row",
@@ -2267,11 +2267,11 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   formatButtonActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   formatButtonText: {
-    color: "#666",
+    color: colors.text.secondary,
     fontWeight: "500",
     fontSize: 12,
   },

@@ -9,6 +9,7 @@ import { ColorToggleButton } from "./ColorToggleButton";
 import { ViewToggleButton } from "./ViewToggleButton";
 import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./UnifiedButtonStyles";
 import { PeriodSettingModal } from "../modals/PeriodSettingModal";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -21,7 +22,7 @@ interface MonthSelectorBarProps {
   isLoading: boolean;
   totalAmount?: number; // 追加：合計金額
   totalHours?: number; // 追加：合計時間
-  shifts?: any[]; // 追加：シフトデータ
+  shifts?: ShiftItem[]; // 追加：シフトデータ
   users?: Array<{ uid: string; nickname: string; color?: string; hourlyWage?: number }>; // 追加：ユーザーデータ
   colorMode?: "status" | "user"; // 追加：色表示モード
   onColorModeToggle?: () => void; // 追加：色モード切替

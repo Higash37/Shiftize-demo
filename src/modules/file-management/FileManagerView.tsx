@@ -25,6 +25,7 @@ import { FileExplorer } from "./file-browser-ui/FileExplorer/FileExplorer";
 import { FileUploadModal } from "./file-browser-ui/FileUploadModal/FileUploadModal";
 import { CreateFolderModal } from "./file-browser-ui/CreateFolderModal/CreateFolderModal";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 interface FileManagerViewProps {
   hideHeader?: boolean;
@@ -453,7 +454,7 @@ export function FileManagerView({
                 borderBottomColor: '#f0f0f0',
                 flexDirection: 'row',
                 alignItems: 'flex-start',
-                backgroundColor: selectedItems.has(`${isFolder ? 'folder' : 'file'}-${item.id}`) ? '#e3f2fd' : '#fff',
+                backgroundColor: selectedItems.has(`${isFolder ? 'folder' : 'file'}-${item.id}`) ? colors.selected : colors.surface,
               }}
               onPress={() => {
                 if (isFolder) {
@@ -512,6 +513,7 @@ export function FileManagerView({
         }}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={true}
+        {...getOptimizedFlatListProps()}
       />
     );
   };

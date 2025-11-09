@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -100,111 +100,114 @@ export const InfoDashboard: React.FC = () => {
   const { shifts, loading: shiftsLoading } = useShiftsRealtime(user?.storeId);
   const { users, loading: usersLoading } = useUsers(user?.storeId);
 
-  // 現在の月のデータを計算
-  const currentDate = new Date();
-  const currentMonthShifts = shifts.filter((shift) => {
-    const shiftDate = new Date(shift.date);
-    return (
-      shiftDate.getMonth() === currentDate.getMonth() &&
-      shiftDate.getFullYear() === currentDate.getFullYear() &&
-      (shift.status === "approved" ||
-        shift.status === "pending" ||
-        shift.status === "completed")
-    );
-  });
-
-  // 実際の集計データを計算（ガントチャートと同じロジック）
-  const realData = {
-    totalHours: 0,
-    totalCost: 0,
-    budgetUsage: 0, // 後で計算
-    staffCount: users.length,
-    completedShifts: currentMonthShifts.filter(
-      (shift) => shift.status === "completed"
-    ).length,
-    totalShifts: currentMonthShifts.length,
-  };
-
-  // 正確な時間とコスト計算
-  let totalMinutes = 0;
-  let totalAmount = 0;
-
-  currentMonthShifts.forEach((shift) => {
-    // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
-    const user = users.find((u) => u.uid === shift.userId);
-    const hourlyWage = user?.hourlyWage || 1100;
-
-    // 授業時間を除外したシフト時間の計算
-    const { totalMinutes: workMinutes, totalWage: workWage } =
-      calculateTotalWage(
-        {
-          startTime: shift.startTime,
-          endTime: shift.endTime,
-          classes: shift.classes || [],
-        },
-        hourlyWage
+  // 現在の月のデータを計算（メモ化）
+  const currentMonthShifts = useMemo(() => {
+    const currentDate = new Date();
+    return shifts.filter((shift) => {
+      const shiftDate = new Date(shift.date);
+      return (
+        shiftDate.getMonth() === currentDate.getMonth() &&
+        shiftDate.getFullYear() === currentDate.getFullYear() &&
+        (shift.status === "approved" ||
+          shift.status === "pending" ||
+          shift.status === "completed")
       );
+    });
+  }, [shifts]);
 
-    totalMinutes += workMinutes;
-    totalAmount += workWage;
-  });
+  // 実際の集計データを計算（ガントチャートと同じロジック、メモ化）
+  const realData = useMemo(() => {
+    let totalMinutes = 0;
+    let totalAmount = 0;
 
-  realData.totalHours = totalMinutes / 60;
-  realData.totalCost = Math.round(totalAmount);
+    currentMonthShifts.forEach((shift) => {
+      // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
+      const shiftUser = users.find((u) => u.uid === shift.userId);
+      const hourlyWage = shiftUser?.hourlyWage || 1100;
 
-  // 予算使用率を計算
-  realData.budgetUsage = (realData.totalCost / monthlyBudget) * 100;
+      // 授業時間を除外したシフト時間の計算
+      const { totalMinutes: workMinutes, totalWage: workWage } =
+        calculateTotalWage(
+          {
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            classes: shift.classes || [],
+          },
+          hourlyWage
+        );
 
-  // 予算使用率の色を動的に決定
-  const getBudgetStatusColor = (usageRate: number) => {
+      totalMinutes += workMinutes;
+      totalAmount += workWage;
+    });
+
+    const totalHours = totalMinutes / 60;
+    const totalCost = Math.round(totalAmount);
+    const budgetUsage = (totalCost / monthlyBudget) * 100;
+
+    return {
+      totalHours,
+      totalCost,
+      budgetUsage,
+      staffCount: users.length,
+      completedShifts: currentMonthShifts.filter(
+        (shift) => shift.status === "completed"
+      ).length,
+      totalShifts: currentMonthShifts.length,
+    };
+  }, [currentMonthShifts, users, monthlyBudget]);
+
+  // 予算使用率の色を動的に決定（メモ化）
+  const getBudgetStatusColor = useCallback((usageRate: number) => {
     if (usageRate >= 90) return "#E53E3E"; // 赤色：危険
     if (usageRate >= 75) return "#FF9800"; // オレンジ色：注意
     if (usageRate >= 50) return "#2196F3"; // 青色：適正
     return "#4CAF50"; // 緑色：余裕あり
-  };
+  }, []);
 
-  const getBudgetStatusIcon = (usageRate: number) => {
+  const getBudgetStatusIcon = useCallback((usageRate: number) => {
     if (usageRate >= 90) return "warning";
     if (usageRate >= 75) return "priority-high";
     if (usageRate >= 50) return "info";
     return "check-circle";
-  };
+  }, []);
 
-  const getBudgetStatusText = (usageRate: number) => {
+  const getBudgetStatusText = useCallback((usageRate: number) => {
     if (usageRate >= 90) return "予算超過危険";
     if (usageRate >= 75) return "予算注意";
     if (usageRate >= 50) return "予算適正";
     return "予算余裕あり";
-  };
+  }, []);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat("ja-JP", {
       style: "currency",
       currency: "JPY",
     }).format(amount);
-  };
+  }, []);
 
-  const handleBudgetSave = () => {
+  const handleBudgetSave = useCallback(() => {
     const numericValue = parseInt(budgetInputValue.replace(/,/g, ""), 10);
     if (!isNaN(numericValue)) {
       setMonthlyBudget(numericValue);
     }
     setShowBudgetModal(false);
-  };
+  }, [budgetInputValue]);
 
-  const openBudgetModal = () => {
+  const openBudgetModal = useCallback(() => {
     setBudgetInputValue(monthlyBudget.toString());
     setShowBudgetModal(true);
-  };
+  }, [monthlyBudget]);
 
-  const renderTabContent = () => {
-    const commonProps = {
-      shifts,
-      users,
-      totalHours: realData.totalHours,
-      totalCost: realData.totalCost,
-      budgetUsage: realData.budgetUsage,
-    };
+  // 共通プロップスをメモ化
+  const commonProps = useMemo(() => ({
+    shifts,
+    users,
+    totalHours: realData.totalHours,
+    totalCost: realData.totalCost,
+    budgetUsage: realData.budgetUsage,
+  }), [shifts, users, realData.totalHours, realData.totalCost, realData.budgetUsage]);
+
+  const renderTabContent = useCallback(() => {
 
     const loadingFallback = (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 40 }}>
@@ -258,7 +261,38 @@ export const InfoDashboard: React.FC = () => {
           </Suspense>
         );
     }
-  };
+  }, [activeTab, monthlyBudget, commonProps, user?.storeId]);
+
+  // ローディング中の早期リターンで不要なレンダリングを防ぐ
+  if (shiftsLoading || usersLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>データ読み込み中...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // データがない場合の早期リターン
+  if (shifts.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.noDataContainer}>
+          <MaterialIcons
+            name="info"
+            size={48}
+            color={colors.text.disabled}
+          />
+          <Text style={styles.noDataTitle}>シフトデータがありません</Text>
+          <Text style={styles.noDataDescription}>
+            シフトを登録すると、ここに分析データが表示されます。
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -350,32 +384,8 @@ export const InfoDashboard: React.FC = () => {
           style={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          {shifts.length === 0 && !shiftsLoading ? (
-            <View style={styles.noDataContainer}>
-              <MaterialIcons
-                name="info"
-                size={48}
-                color={colors.text.disabled}
-              />
-              <Text style={styles.noDataTitle}>シフトデータがありません</Text>
-              <Text style={styles.noDataDescription}>
-                シフトを登録すると、ここに分析データが表示されます。
-              </Text>
-            </View>
-          ) : (
-            renderTabContent()
-          )}
+          {renderTabContent()}
         </ScrollView>
-
-        {/* データ読み込み中の表示 */}
-        {(shiftsLoading || usersLoading) && (
-          <View style={styles.loadingOverlay}>
-            <View style={styles.loadingBadge}>
-              <MaterialIcons name="sync" size={16} color={colors.primary} />
-              <Text style={styles.loadingText}>データ読み込み中...</Text>
-            </View>
-          </View>
-        )}
 
         {/* 予算編集モーダル */}
         <Modal
@@ -527,6 +537,18 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: layout.padding.medium,
+  },
+  // ローディング表示のスタイル
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: layout.padding.xlarge * 2,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.text.secondary,
+    marginTop: layout.padding.medium,
   },
   // データなし表示のスタイル
   noDataContainer: {

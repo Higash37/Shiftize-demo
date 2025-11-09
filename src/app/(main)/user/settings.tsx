@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,12 @@ import {
   Platform,
 } from "react-native";
 import { Header } from "@/common/common-ui/ui-layout";
-import { LineAuthModal } from "@/modules/reusable-widgets/line-integration/LineAuthModal";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
+
+// LineAuthModalを遅延読み込み
+const LineAuthModal = lazy(() => 
+  import("@/modules/reusable-widgets/line-integration/LineAuthModal").then(module => ({ default: module.LineAuthModal }))
+);
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -180,15 +184,17 @@ export default function SettingsPage() {
       </ScrollView>
 
       {/* LINE連携モーダル - 現在無効化 */}
-      {false && (
-        <LineAuthModal
-          visible={showLineAuthModal}
-          onClose={() => setShowLineAuthModal(false)}
-          onSuccess={() => {
-            setShowLineAuthModal(false);
-            Alert.alert("成功", "LINE連携が完了しました！");
-          }}
-        />
+      {false && showLineAuthModal && (
+        <Suspense fallback={null}>
+          <LineAuthModal
+            visible={showLineAuthModal}
+            onClose={() => setShowLineAuthModal(false)}
+            onSuccess={() => {
+              setShowLineAuthModal(false);
+              Alert.alert("成功", "LINE連携が完了しました！");
+            }}
+          />
+        </Suspense>
       )}
 
       {/* パスワード変更モーダル */}

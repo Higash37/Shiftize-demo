@@ -1,6 +1,6 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { IS_SMALL_DEVICE } from "../../../common/common-utils/util-style/responsive";
-import { shadows } from "@/common/common-constants/ThemeConstants";
+import { shadows, colors } from "@/common/common-constants/ThemeConstants";
 
 const screenWidth = Dimensions.get("window").width;
 const columnWidth = (screenWidth - 60) / 3; // 3カラム + マージン
@@ -8,7 +8,7 @@ const columnWidth = (screenWidth - 60) / 3; // 3カラム + マージン
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
   },
   loadingContainer: {
     flex: 1,

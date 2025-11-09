@@ -30,14 +30,14 @@ export const styles = StyleSheet.create({
   modalTitle: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#1976d2",
+    color: colors.primary,
   },
   listContainer: {
     paddingBottom: 20,
     width: "100%",
   },
   shiftItem: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -45,9 +45,9 @@ export const styles = StyleSheet.create({
     ...shadows.card,
   },
   shiftItemApplied: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
     borderWidth: 2,
-    borderColor: "#1976d2",
+    borderColor: colors.primary,
   },
   shiftHeader: {
     flexDirection: "row",
@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
   },
   shiftTime: {
     fontSize: 15,
-    color: "#1976d2",
+    color: colors.primary,
     fontWeight: "500",
   },
   shiftSubject: {
@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   applyButton: {
-    backgroundColor: "#1976d2",
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 20,
@@ -152,7 +152,7 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 12,
-    backgroundColor: "#fafafa",
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },

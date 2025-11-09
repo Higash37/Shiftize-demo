@@ -4,12 +4,19 @@ import { modalStyles } from "./ModalStyles";
 import { designSystem } from "@/common/common-constants/DesignSystem";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
-const ShiftModal = ({
+interface ShiftModalProps {
+  isModalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
+  handleReportShift: () => void;
+  handleEditShift: () => void;
+}
+
+const ShiftModal: React.FC<ShiftModalProps> = ({
   isModalVisible,
   setModalVisible,
   handleReportShift,
   handleEditShift,
-}: any) => {
+}) => {
   return (
     <Modal
       visible={isModalVisible}

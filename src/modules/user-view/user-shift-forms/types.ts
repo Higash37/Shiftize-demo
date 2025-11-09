@@ -1,6 +1,7 @@
 /**
  * User shift forms types
  */
+import { StyleSheet, ViewStyle, TextStyle } from "react-native";
 
 export interface TimeSlot {
   start: string;
@@ -40,25 +41,25 @@ export interface SelectedDateListProps {
 }
 
 export interface SelectedDateListStyles {
-  container: any;
-  label: any;
-  calendar: any;
-  title: any;
-  noneText: any;
-  item: any;
-  removeText: any;
-  picker: any;
+  container: ViewStyle;
+  label: TextStyle;
+  calendar: ViewStyle;
+  title: TextStyle;
+  noneText: TextStyle;
+  item: ViewStyle;
+  removeText: TextStyle;
+  picker: ViewStyle;
 }
 
 export interface ShiftDateSelectorStyles {
-  container: any;
-  label: any;
-  calendar: any;
-  picker: any;
+  container: ViewStyle;
+  label: TextStyle;
+  calendar: ViewStyle;
+  picker: ViewStyle;
 }
 
 export interface MultiDatePickerStyles {
-  container: any;
-  label: any;
-  calendar: any;
+  container: ViewStyle;
+  label: TextStyle;
+  calendar: ViewStyle;
 }

@@ -10,6 +10,7 @@ import {
 } from "@/common/common-models/model-shift/shiftTypes";
 import { TaskAnalytics } from "@/common/common-utils/util-task/taskAnalytics";
 import { useTaskCardViewStyles } from "./TaskCardView.styles";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 interface TaskCardViewProps {
   tasks: ExtendedTask[];
@@ -366,6 +367,7 @@ export const TaskCardView: React.FC<TaskCardViewProps> = ({
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      {...getOptimizedFlatListProps()}
     />
   );
 };

@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
-import { shadows } from "@/common/common-constants/ShadowConstants";
+import { shadows, colors } from "@/common/common-constants/ThemeConstants";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_TABLET = SCREEN_WIDTH >= 768 && SCREEN_WIDTH < 1000;
@@ -7,10 +7,10 @@ const IS_TABLET = SCREEN_WIDTH >= 768 && SCREEN_WIDTH < 1000;
 export const loginFormStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: IS_TABLET ? "#eef2f7" : "#f5f5f5",
+    backgroundColor: IS_TABLET ? colors.surfaceElevated : colors.surface,
   },
   header: {
-    backgroundColor: IS_TABLET ? "#0d47a1" : "#1565C0", // タブレットは少し濃い青
+    backgroundColor: colors.primary, // タブレットは少し濃い青
     width: "100%",
     ...(IS_TABLET && {
       paddingVertical: 40,
@@ -26,7 +26,7 @@ export const loginFormStyles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: IS_TABLET ? 38 : 20,
     fontWeight: "bold",
     ...(IS_TABLET && {
@@ -55,14 +55,14 @@ export const loginFormStyles = StyleSheet.create({
     paddingTop: IS_TABLET ? "8%" : "3%",
   },
   formContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: IS_TABLET ? 20 : 12,
     padding: IS_TABLET ? 56 : 24,
     width: "100%",
     ...(IS_TABLET ? shadows.large : shadows.medium),
     ...(IS_TABLET && {
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.8)",
+      borderColor: colors.border,
     }),
   },
   loginTitle: {
@@ -71,7 +71,7 @@ export const loginFormStyles = StyleSheet.create({
     marginBottom: IS_TABLET ? 48 : 24,
     textAlign: "center",
     ...(IS_TABLET && {
-      color: "#0d47a1",
+      color: colors.primary,
       letterSpacing: 1,
     }),
   },
@@ -84,7 +84,7 @@ export const loginFormStyles = StyleSheet.create({
   label: {
     fontSize: IS_TABLET ? 20 : 14,
     fontWeight: IS_TABLET ? "600" : "500",
-    color: IS_TABLET ? "#0d47a1" : "#333",
+    color: IS_TABLET ? colors.primary : colors.text.primary,
     ...(IS_TABLET && {
       marginBottom: 8,
       letterSpacing: 0.5,
@@ -92,11 +92,11 @@ export const loginFormStyles = StyleSheet.create({
   },
   input: {
     borderWidth: IS_TABLET ? 2 : 1,
-    borderColor: IS_TABLET ? "#bbdefb" : "#ddd",
+    borderColor: IS_TABLET ? colors.selected : colors.border,
     borderRadius: IS_TABLET ? 12 : 6,
     padding: IS_TABLET ? 22 : 12,
     fontSize: IS_TABLET ? 24 : 16,
-    backgroundColor: IS_TABLET ? "#f8faff" : "#fafafa",
+    backgroundColor: IS_TABLET ? colors.selected : colors.surface,
     ...(IS_TABLET && {
       ...shadows.small,
     }),
@@ -110,29 +110,29 @@ export const loginFormStyles = StyleSheet.create({
     width: IS_TABLET ? 32 : 20,
     height: IS_TABLET ? 32 : 20,
     borderWidth: IS_TABLET ? 3 : 2,
-    borderColor: IS_TABLET ? "#0d47a1" : "#666",
+    borderColor: IS_TABLET ? colors.primary : colors.text.secondary,
     borderRadius: IS_TABLET ? 8 : 4,
     justifyContent: "center",
     alignItems: "center",
   },
   checkboxChecked: {
-    backgroundColor: IS_TABLET ? "#0d47a1" : "#1565C0",
-    borderColor: IS_TABLET ? "#0d47a1" : "#1565C0",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   checkmark: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: IS_TABLET ? 20 : 14,
     fontWeight: "bold",
   },
   rememberMeText: {
-    color: IS_TABLET ? "#333" : "#666",
+    color: IS_TABLET ? colors.text.primary : colors.text.secondary,
     fontSize: IS_TABLET ? 20 : 14,
     ...(IS_TABLET && {
       fontWeight: "500",
     }),
   },
   loginButton: {
-    backgroundColor: IS_TABLET ? "#0d47a1" : "#1565C0",
+    backgroundColor: colors.primary,
     padding: IS_TABLET ? 24 : 12,
     borderRadius: IS_TABLET ? 14 : 6,
     alignItems: "center",
@@ -142,16 +142,16 @@ export const loginFormStyles = StyleSheet.create({
         cursor: "pointer",
         transition: "all 0.3s ease",
         ":hover": {
-          backgroundColor: "#083080",
+          backgroundColor: colors.primary + "DD",
           transform: [{ scale: 1.02 }],
         },
       }),
   },
   loginButtonDisabled: {
-    backgroundColor: IS_TABLET ? "#9e9e9e" : "#ccc",
+    backgroundColor: colors.text.disabled,
   },
   loginButtonText: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: IS_TABLET ? 26 : 16,
     fontWeight: IS_TABLET ? "700" : "600",
     ...(IS_TABLET && {
@@ -162,12 +162,12 @@ export const loginFormStyles = StyleSheet.create({
     alignItems: "center",
   },
   forgotPasswordText: {
-    color: "#1565C0",
+    color: colors.primary,
     fontSize: 14,
     textDecorationLine: "underline",
   },
   maintenanceText: {
-    color: IS_TABLET ? "#455a64" : "#666",
+    color: IS_TABLET ? colors.text.secondary : colors.text.secondary,
     fontSize: IS_TABLET ? 16 : 12,
     textAlign: "center",
     marginTop: IS_TABLET ? 32 : 16,
@@ -183,7 +183,7 @@ export const loginFormStyles = StyleSheet.create({
   },
   storeIdDisplay: {
     fontSize: 16,
-    color: "#1565C0",
+    color: colors.primary,
     fontWeight: "bold",
     textDecorationLine: "underline",
   },
@@ -191,13 +191,13 @@ export const loginFormStyles = StyleSheet.create({
     marginLeft: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: "#1565C0",
+    backgroundColor: colors.primary,
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
   },
   confirmButtonText: {
-    color: "#fff",
+    color: colors.text.white,
     fontSize: 14,
     fontWeight: "bold",
   },

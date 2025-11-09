@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   ActivityIndicator,
+  ViewStyle,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
@@ -19,7 +20,7 @@ import type { ShiftData } from "./types";
 import { StoreInfo } from "@/services/firebase/firebase-multistore";
 
 interface ShiftCreateFormContentProps {
-  containerStyle: any; // Replace 'any' with the appropriate type
+  containerStyle: ViewStyle;
   selectedDate: string;
   setShowCalendar: (value: boolean) => void;
   handleDateSelect: (dates: string[]) => void; // Update type to accept multiple dates

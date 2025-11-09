@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   selectedUserRow: {
-    backgroundColor: "#e3f2fd",
-    borderColor: "#2196f3",
+    backgroundColor: colors.selected,
+    borderColor: colors.primary,
     borderWidth: 2,
   },
   leftSection: {

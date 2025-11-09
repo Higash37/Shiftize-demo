@@ -14,7 +14,7 @@ import { useAuth } from "@/services/auth/useAuth";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
 
-export const ShiftListItem: React.FC<ShiftListItemProps> = ({
+const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   shift,
   isSelected,
   selectedDate,
@@ -26,7 +26,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
   const [storeName, setStoreName] = useState<string>("");
   const [isFromOtherStore, setIsFromOtherStore] = useState(false);
 
-  // 店舗名を取得
+  // 店舗名を取得（依存配列を最適化）
   useEffect(() => {
     const fetchStoreName = async () => {
       if (!user?.uid || !("storeId" in shift) || !shift.storeId) return;
@@ -63,7 +63,7 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
     };
 
     fetchStoreName();
-  }, [user?.uid, shift]);
+  }, [user?.uid, shift.storeId]);
 
   return (
     <View style={{ width: "100%" }}>
@@ -153,3 +153,6 @@ export const ShiftListItem: React.FC<ShiftListItemProps> = ({
     </View>
   );
 };
+
+// React.memoでラップしてメモ化
+export const ShiftListItem = React.memo(ShiftListItemComponent);

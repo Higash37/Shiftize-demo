@@ -5,7 +5,7 @@ export const useTaskCreateModalStyles = () => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       alignItems: "center",
     },
     modalContent: {
@@ -136,9 +136,9 @@ export const useTaskCreateModalStyles = () => {
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 20,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "#e0e0e0",
+      borderColor: colors.border,
     },
     optionChipSelected: {
       backgroundColor: colors.primary,

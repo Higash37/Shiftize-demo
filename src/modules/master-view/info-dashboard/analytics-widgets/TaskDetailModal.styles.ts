@@ -5,7 +5,7 @@ export const useTaskDetailModalStyles = () => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     header: {
       flexDirection: "row",
@@ -54,7 +54,7 @@ export const useTaskDetailModalStyles = () => {
     },
     tabButtonText: {
       fontSize: 12,
-      color: "#666",
+      color: colors.text.secondary,
       fontWeight: "500",
     },
     tabButtonTextActive: {
@@ -138,7 +138,7 @@ export const useTaskDetailModalStyles = () => {
       gap: 8,
     },
     tag: {
-      backgroundColor: "#e3f2fd",
+      backgroundColor: colors.selected,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
@@ -193,11 +193,11 @@ export const useTaskDetailModalStyles = () => {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 6,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     editButtonText: {
       fontSize: 14,
-      color: "#666",
+      color: colors.text.secondary,
       fontWeight: "500",
     },
     manualInput: {
@@ -220,10 +220,10 @@ export const useTaskDetailModalStyles = () => {
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: 6,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     cancelButtonText: {
-      color: "#666",
+      color: colors.text.secondary,
       fontWeight: "600",
     },
     saveButton: {
@@ -344,7 +344,7 @@ export const useTaskDetailModalStyles = () => {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 12,

@@ -343,7 +343,7 @@ export const styles = StyleSheet.create({
   },
 
   selectedListItem: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
   },
 
   checkbox: {

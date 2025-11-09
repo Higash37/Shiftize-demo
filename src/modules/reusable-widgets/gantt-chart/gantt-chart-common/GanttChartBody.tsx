@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useCallback } from "react";
-import { FlatList, ListRenderItemInfo, View } from "react-native";
+import { FlatList, ListRenderItemInfo, View, NativeScrollEvent, NativeSyntheticEvent, StyleSheet } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
 import { GanttChartInfo } from "./components";
 import {
@@ -7,6 +7,7 @@ import {
   ShiftStatus,
   ShiftStatusConfig,
 } from "@/common/common-models/ModelIndex";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 interface GanttChartBodyProps {
   days: string[];
@@ -26,7 +27,7 @@ interface GanttChartBodyProps {
     newEndTime: string
   ) => void;
   onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   statusStyles?: (status: string) => { borderColor: string; color: string };
@@ -35,7 +36,7 @@ interface GanttChartBodyProps {
   allShifts?: ShiftItem[];
   selectedDate?: Date;
   onDateSelect?: (date: string) => void;
-  onMonthChange?: (month: any) => void;
+  onMonthChange?: (month: { year: number; month: number }) => void;
 }
 
 interface RowData {
@@ -115,7 +116,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
   const lastScrollOffset = useRef(0);
 
   // スクロール位置を記録
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     lastScrollOffset.current = event.nativeEvent.contentOffset.y;
   };
 
@@ -153,6 +154,7 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
           onScroll={handleScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={true}
+          {...getOptimizedFlatListProps()}
           // 安定したキーを生成（シフトIDまたは日付とグループ情報）
           keyExtractor={(
             item: RowData & { isFirstInGroup: boolean; groupSize: number },
@@ -192,9 +194,6 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
               colorMode={colorMode}
             />
           )}
-          initialNumToRender={20}
-          windowSize={21}
-          removeClippedSubviews={false}
           maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 0

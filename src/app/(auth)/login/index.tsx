@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,11 @@ import { designSystem } from "@/common/common-constants/DesignSystem";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
-import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
+
+// ServiceIntroModalを遅延読み込み
+const ServiceIntroModal = lazy(() => 
+  import("@/modules/reusable-widgets/service-intro/ServiceIntroModal").then(module => ({ default: module.ServiceIntroModal }))
+);
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -179,10 +183,14 @@ export default function Login() {
       </View>
 
       {/* サービス紹介モーダル */}
-      <ServiceIntroModal
-        visible={showServiceIntro}
-        onClose={() => setShowServiceIntro(false)}
-      />
+      {showServiceIntro && (
+        <Suspense fallback={null}>
+          <ServiceIntroModal
+            visible={showServiceIntro}
+            onClose={() => setShowServiceIntro(false)}
+          />
+        </Suspense>
+      )}
     </SafeAreaView>
   );
 }

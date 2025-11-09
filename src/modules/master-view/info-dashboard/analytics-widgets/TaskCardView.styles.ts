@@ -21,7 +21,7 @@ export const useTaskCardViewStyles = () => {
       minHeight: 280,
     },
     cardInactive: {
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       opacity: 0.7,
     },
     cardHeader: {
@@ -60,7 +60,7 @@ export const useTaskCardViewStyles = () => {
       color: colors.text.secondary,
       marginTop: 2,
       fontWeight: "600",
-      backgroundColor: "#f0f0f0",
+      backgroundColor: colors.surface,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 8,
@@ -141,7 +141,7 @@ export const useTaskCardViewStyles = () => {
       marginBottom: 8,
     },
     tag: {
-      backgroundColor: "#e3f2fd",
+      backgroundColor: colors.selected,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 8,
@@ -222,7 +222,7 @@ export const useTaskCardViewStyles = () => {
     quickAction: {
       padding: 6,
       borderRadius: 6,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     emptyContainer: {
       flex: 1,

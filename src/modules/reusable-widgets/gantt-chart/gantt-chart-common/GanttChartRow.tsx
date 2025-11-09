@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   ShiftItem,
   ShiftStatus,
@@ -31,7 +31,7 @@ interface GanttChartRowProps {
     newEndTime: string
   ) => void;
   onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   statusStyles?: (status: ShiftStatus) => {
@@ -45,7 +45,7 @@ interface GanttChartRowProps {
 
 export { GanttChartRowProps };
 
-export const GanttChartRow: React.FC<GanttChartRowProps> = ({
+const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   date,
   group,
   dateColumnWidth,
@@ -167,3 +167,6 @@ export const GanttChartRow: React.FC<GanttChartRowProps> = ({
     );
   }
 };
+
+// React.memoでラップしてメモ化
+export const GanttChartRow = React.memo(GanttChartRowComponent);

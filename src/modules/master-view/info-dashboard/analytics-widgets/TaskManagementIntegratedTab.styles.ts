@@ -5,7 +5,7 @@ export const useTaskManagementIntegratedStyles = () => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
     },
     loadingContainer: {
       flex: 1,
@@ -65,7 +65,7 @@ export const useTaskManagementIntegratedStyles = () => {
       paddingVertical: 8,
       paddingHorizontal: 12,
       borderRadius: 6,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       gap: 4,
     },
     viewButtonActive: {
@@ -90,7 +90,7 @@ export const useTaskManagementIntegratedStyles = () => {
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderRadius: 8,
       paddingHorizontal: 12,
       paddingVertical: 8,
@@ -113,9 +113,9 @@ export const useTaskManagementIntegratedStyles = () => {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "#e0e0e0",
+      borderColor: colors.border,
     },
     filterChipActive: {
       backgroundColor: colors.primary,

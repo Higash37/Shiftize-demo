@@ -1,16 +1,11 @@
-import React, { useState, Suspense, lazy } from "react";
-import { View, ActivityIndicator } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { GanttChartMonthView } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView";
 import { TaskCreateModal } from "@/modules/master-view/shift-tasks/shift-task-modals/TaskCreateModal";
 import { ganttViewViewStyles as styles } from "./GanttViewView.styles";
 import type { GanttViewViewProps } from "./GanttViewView.types";
-
-// GanttChartMonthViewを遅延読み込み
-const GanttChartMonthView = lazy(() => 
-  import("@/modules/reusable-widgets/gantt-chart/GanttChartMonthView").then(module => ({ default: module.GanttChartMonthView }))
-);
 
 export const GanttViewView: React.FC<GanttViewViewProps> = ({
   shifts,
@@ -68,25 +63,19 @@ export const GanttViewView: React.FC<GanttViewViewProps> = ({
       />
 
       {/* ガントチャート表示（スマホでは自動的にMobileVerticalViewに切り替わる） */}
-      <Suspense fallback={
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      }>
-        <GanttChartMonthView
-          shifts={shifts}
-          days={days}
-          users={users}
-          onShiftPress={onShiftPress}
-          onShiftUpdate={onShiftUpdate}
-          onMonthChange={onMonthChange}
-          onTaskAdd={handleTaskAdd}
-          classTimes={[]}
-          selectedDate={
-            new Date(currentYearMonth.year, currentYearMonth.month, 1)
-          }
-        />
-      </Suspense>
+      <GanttChartMonthView
+        shifts={shifts}
+        days={days}
+        users={users}
+        onShiftPress={onShiftPress}
+        onShiftUpdate={onShiftUpdate}
+        onMonthChange={onMonthChange}
+        onTaskAdd={handleTaskAdd}
+        classTimes={[]}
+        selectedDate={
+          new Date(currentYearMonth.year, currentYearMonth.month, 1)
+        }
+      />
 
       {/* タスク作成モーダル */}
       <TaskCreateModal

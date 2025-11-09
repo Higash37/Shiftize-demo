@@ -23,6 +23,7 @@ import {
   DeleteShiftResponse,
   APIErrorResponse
 } from './api-contracts/api-responses';
+import { apiCache } from './apiCache';
 
 /**
  * 環境変数による段階的移行制御
@@ -261,14 +262,32 @@ export class ShiftAPIService {
 
   /**
    * APIエンドポイントからデータを取得（フェーズ2実装完了）
+   * キャッシュ機能と重複リクエスト防止機能を統合
    */
   private static async fetchFromAPI(endpoint: string, options: {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     params?: Record<string, any>;
     body?: Record<string, any>;
     headers?: Record<string, string>;
+    skipCache?: boolean; // キャッシュをスキップするオプション
   }): Promise<any> {
     try {
+      const cacheKey = `${options.method}:${endpoint}:${JSON.stringify(options.params || {})}`;
+
+      // GETリクエストの場合、キャッシュから取得を試みる
+      if (options.method === 'GET' && !options.skipCache) {
+        const cached = apiCache.get(endpoint, options.method, options.params);
+        if (cached !== null) {
+          return cached;
+        }
+
+        // 重複リクエストをチェック
+        const pendingRequest = apiCache.getPendingRequest(cacheKey);
+        if (pendingRequest) {
+          return await pendingRequest;
+        }
+      }
+
       // 認証トークンを取得
       const auth = await import('@/services/auth/useAuth');
       const token = await auth.getAuthToken?.(); // 実装に依存
@@ -302,25 +321,46 @@ export class ShiftAPIService {
         fetchOptions.body = JSON.stringify(options.body);
       }
       
-      
-      // API リクエスト実行
-      const response = await fetch(url, fetchOptions);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      // API リクエスト実行（Promiseを作成して重複リクエスト防止に登録）
+      const requestPromise = (async () => {
+        const response = await fetch(url, fetchOptions);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        // APIレスポンスの形式確認
+        if (result.success === false) {
+          throw new Error(result.error || 'API request failed');
+        }
+        
+        // dataプロパティがある場合はそれを返す、ない場合は全体を返す
+        const data = result.data !== undefined ? result.data : result;
+        
+        // GETリクエストの場合、キャッシュに保存
+        if (options.method === 'GET' && !options.skipCache) {
+          apiCache.set(endpoint, options.method, data, options.params);
+        }
+        
+        // POST/PUT/DELETEの場合、関連するキャッシュをクリア
+        if (['POST', 'PUT', 'DELETE'].includes(options.method)) {
+          // エンドポイントに関連するキャッシュをクリア
+          // 例: /api/shifts へのPOST/PUT/DELETEの場合、/api/shifts のGETキャッシュをクリア
+          apiCache.clear(endpoint, 'GET');
+        }
+        
+        return data;
+      })();
+
+      // GETリクエストの場合、重複リクエスト防止に登録
+      if (options.method === 'GET' && !options.skipCache) {
+        apiCache.setPendingRequest(cacheKey, requestPromise);
       }
       
-      const result = await response.json();
-      
-      // APIレスポンスの形式確認
-      if (result.success === false) {
-        throw new Error(result.error || 'API request failed');
-      }
-      
-      
-      // dataプロパティがある場合はそれを返す、ない場合は全体を返す
-      return result.data !== undefined ? result.data : result;
+      return await requestPromise;
       
     } catch (error: any) {
       throw error;
