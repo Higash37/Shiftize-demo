@@ -485,11 +485,11 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           {selectedUserId === "recruitment" && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>ステータス</Text>
-              <View style={[styles.pickerContainer, { backgroundColor: "#e3f2fd" }]}>
+              <View style={[styles.pickerContainer, { backgroundColor: colors.selected }]}>
                 <Text style={{ 
                   padding: 16, 
                   fontSize: 16, 
-                  color: "#1976d2", 
+                  color: colors.primary, 
                   fontWeight: "600" 
                 }}>
                   募集中

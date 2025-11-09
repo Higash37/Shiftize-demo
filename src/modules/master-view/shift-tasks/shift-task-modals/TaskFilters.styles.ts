@@ -14,7 +14,7 @@ export const useTaskFiltersStyles = () => {
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderRadius: 8,
       paddingHorizontal: 12,
       paddingVertical: 8,
@@ -46,9 +46,9 @@ export const useTaskFiltersStyles = () => {
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "#e0e0e0",
+      borderColor: colors.border,
     },
     filterChipActive: {
       backgroundColor: colors.primary,
@@ -64,7 +64,7 @@ export const useTaskFiltersStyles = () => {
     },
     statusFilterContainer: {
       flexDirection: "row",
-      backgroundColor: "#f5f5f5",
+      backgroundColor: colors.surface,
       borderRadius: 8,
       padding: 2,
     },

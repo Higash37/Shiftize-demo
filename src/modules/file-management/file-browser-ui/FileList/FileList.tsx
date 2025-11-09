@@ -5,6 +5,7 @@ import {
   FileItem,
   FileSortOptions 
 } from "@/common/common-models/ModelIndex";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 interface FileListProps {
   folders: Folder[];
@@ -61,10 +62,7 @@ export function FileList({
         }}
         keyExtractor={(item) => `${item.itemType}-${item.id}`}
         showsVerticalScrollIndicator={true}
-        removeClippedSubviews={false}
-        initialNumToRender={20}
-        maxToRenderPerBatch={10}
-        windowSize={10}
+        {...getOptimizedFlatListProps()}
       />
     );
   }
@@ -103,10 +101,7 @@ export function FileList({
       }}
       keyExtractor={(item) => `${item.itemType}-${item.id}`}
       showsVerticalScrollIndicator={true}
-      removeClippedSubviews={false}
-      initialNumToRender={20}
-      maxToRenderPerBatch={10}
-      windowSize={10}
+      {...getOptimizedFlatListProps()}
     />
   );
 }

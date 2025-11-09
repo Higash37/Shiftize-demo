@@ -16,6 +16,7 @@ import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftCon
 import { TeacherStatusService, TeacherStatus } from "@/services/teacher-status/TeacherStatusService";
 import { useAuth } from "@/services/auth/useAuth";
 import { DatePickerModal } from "@/modules/reusable-widgets/calendar/modals/DatePickerModal";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 interface PeriodSettingModalProps {
   visible: boolean;
@@ -851,17 +852,17 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   tabButtonActive: {
-    borderBottomColor: "#1976d2",
+    borderBottomColor: colors.primary,
   },
   tabButtonText: {
     fontSize: 16,
     fontWeight: "400",
-    color: "#666",
+    color: colors.text.secondary,
   },
   tabButtonTextActive: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1976d2",
+    color: colors.primary,
   },
 
   // 講師カードスタイル（PayrollList 2列グリッド準拠）

@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { styles, calendarTheme } from "./MultiDatePicker.styles";
 import { MultiDatePickerProps } from "./types";
+import type { DateData } from "react-native-calendars";
 
 /**
  * MultiDatePicker - 複数日付選択カレンダーコンポーネント
@@ -42,7 +43,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
     <View style={styles.container}>
       <Text style={styles.label}>📅 指導予定日を選択（複数可）</Text>
       <Calendar
-        onDayPress={(day: any) => toggleDate(day.dateString)}
+        onDayPress={(day: DateData) => toggleDate(day.dateString)}
         markedDates={marked}
         theme={calendarTheme}
         style={styles.calendar}

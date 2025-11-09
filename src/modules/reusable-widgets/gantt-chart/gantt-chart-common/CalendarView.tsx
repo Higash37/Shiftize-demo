@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { View, ScrollView, Text, TouchableOpacity } from "react-native";
+import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { PayrollList } from "./PayrollList";
@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { getStatusColor, getStatusText } from "../../calendar/calendar-utils/calendar.utils";
+import type { MarkedDates } from "react-native-calendars/src/types";
 
 interface CalendarViewProps {
   shifts: ShiftItem[];
@@ -15,7 +16,7 @@ interface CalendarViewProps {
   selectedDate: Date;
   onShiftPress?: (shift: ShiftItem) => void;
   onMonthChange?: (year: number, month: number) => void;
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
@@ -40,7 +41,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const shiftRefs = useRef<{ [key: string]: any }>({}).current;
+  const shiftRefs = useRef<{ [key: string]: React.RefObject<View> }>({}).current;
 
   // 現在の月の文字列を生成（月変更で更新されるように状態管理）
   const [currentMonth, setCurrentMonth] = useState(format(selectedDate, "yyyy-MM-dd"));
@@ -54,7 +55,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // マークされた日付を生成（ShiftCalendarと同じロジック使用）
   const markedDates = useMemo(() => {
-    const marks: { [key: string]: any } = {};
+    const marks: MarkedDates = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -69,7 +70,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
     
     // 日付ごとにシフトをグループ化（選択されたユーザーでフィルタリング）
-    const shiftsByDate: Record<string, any[]> = {};
+    const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
         // 選択されたユーザーがいる場合はそのユーザーのシフトのみ表示
@@ -142,7 +143,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [shifts, selectedDate, selectedUserId]);
 
-  const handleDayPress = (day: any) => {
+  const handleDayPress = (day: { dateString: string }) => {
     const targetDate = day.dateString;
     
     // 同じ日付をもう一度押したときに選択を解除
@@ -173,7 +174,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     }
   };
 
-  const handleMonthChange = (month: any) => {
+  const handleMonthChange = (month: { dateString: string }) => {
     const date = new Date(month.dateString);
     setCurrentMonth(month.dateString); // カレンダーの表示月を更新
     if (onMonthChange) {

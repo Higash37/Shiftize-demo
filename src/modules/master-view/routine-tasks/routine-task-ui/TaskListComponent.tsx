@@ -1,6 +1,7 @@
 import React from "react";
 import { FlatList, StyleSheet } from "react-native";
 import TaskCardComponent from "./TaskCardComponent";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 export interface Task {
   id: string;
@@ -34,6 +35,7 @@ const TaskListComponent: React.FC<TaskListComponentProps> = ({
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       contentContainerStyle={styles.listContainer}
+      {...getOptimizedFlatListProps()}
     />
   );
 };

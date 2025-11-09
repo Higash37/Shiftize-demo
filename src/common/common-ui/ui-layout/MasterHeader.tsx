@@ -54,7 +54,7 @@ export function MasterHeader({
   const storeButtonStyles = useMemo(
     () => [
       styles.storeButton,
-      { backgroundColor: "#1565C0" },
+      { backgroundColor: colors.primary },
       isCompactLayout && styles.storeButtonCompact,
     ],
     [isCompactLayout]

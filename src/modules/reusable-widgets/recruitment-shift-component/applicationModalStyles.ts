@@ -29,10 +29,10 @@ export const styles = StyleSheet.create({
   modalTitle: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#1976d2",
+    color: colors.primary,
   },
   shiftInfo: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
@@ -40,13 +40,13 @@ export const styles = StyleSheet.create({
   },
   shiftInfoLabel: {
     fontSize: 12,
-    color: "#666",
+    color: colors.text.secondary,
     marginBottom: 4,
   },
   shiftInfoText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1976d2",
+    color: colors.primary,
   },
   shiftInfoSubject: {
     fontSize: 14,
@@ -85,11 +85,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: colors.border,
   },
   timeButtonText: {
     fontSize: 16,
@@ -109,13 +109,13 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   notesInput: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: "#333",
+    color: colors.text.primary,
     minHeight: 80,
     textAlignVertical: "top",
   },
@@ -133,7 +133,7 @@ export const styles = StyleSheet.create({
     ...shadows.button,
   },
   cancelButton: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     marginRight: 8,
   },
   cancelButtonText: {
@@ -142,7 +142,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   submitButton: {
-    backgroundColor: "#1976d2",
+    backgroundColor: colors.primary,
     marginLeft: 8,
   },
   submitButtonText: {

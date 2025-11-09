@@ -356,9 +356,9 @@ export const ShiftHolidaySettingsView: React.FC<
                     height: 20,
                     borderRadius: 10,
                     borderWidth: 2,
-                    borderColor: "#1976D2",
+                    borderColor: colors.primary,
                     marginRight: 8,
-                    backgroundColor: !isSpecialDay ? "#1976D2" : "transparent",
+                    backgroundColor: !isSpecialDay ? colors.primary : "transparent",
                   }}
                 />
                 <Text>祝日</Text>
@@ -377,9 +377,9 @@ export const ShiftHolidaySettingsView: React.FC<
                     height: 20,
                     borderRadius: 10,
                     borderWidth: 2,
-                    borderColor: "#1976D2",
+                    borderColor: colors.primary,
                     marginRight: 8,
-                    backgroundColor: isSpecialDay ? "#1976D2" : "transparent",
+                    backgroundColor: isSpecialDay ? colors.primary : "transparent",
                   }}
                 />
                 <Text>特別日</Text>
@@ -408,14 +408,14 @@ export const ShiftHolidaySettingsView: React.FC<
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: "#1976D2",
+                  backgroundColor: colors.primary,
                   borderRadius: 8,
                   marginLeft: 8,
                   alignItems: "center",
                 }}
                 onPress={addHoliday}
               >
-                <Text style={{ color: "white", fontWeight: "600" }}>追加</Text>
+                <Text style={{ color: colors.text.white, fontWeight: "600" }}>追加</Text>
               </TouchableOpacity>
             </View>
           </View>

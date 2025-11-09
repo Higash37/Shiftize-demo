@@ -4,9 +4,13 @@ import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import SimpleHeader from "./SimpleHeader";
-import { DemoModal } from "./DemoModal";
 import { SectionLoadingFallback } from "./components/SectionLoadingFallback";
 import { styles } from "./SimpleLanding.styles";
+
+// DemoModalを遅延読み込み
+const DemoModal = lazy(() => 
+  import("./DemoModal").then(module => ({ default: module.DemoModal }))
+);
 
 // セクションコンポーネントを遅延読み込み
 const HeroSection = lazy(() => 
@@ -168,7 +172,11 @@ const SimpleLanding: React.FC = () => {
         )}
       </View>
 
-      <DemoModal visible={demoModalVisible} onClose={() => setDemoModalVisible(false)} />
+      {demoModalVisible && (
+        <Suspense fallback={null}>
+          <DemoModal visible={demoModalVisible} onClose={() => setDemoModalVisible(false)} />
+        </Suspense>
+      )}
     </View>
   );
 };

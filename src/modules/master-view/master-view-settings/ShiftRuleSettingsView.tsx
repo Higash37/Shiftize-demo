@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShiftRuleValuePicker } from "./ShiftRuleValuePicker";
 import { shiftRuleSettingsViewStyles as styles } from "./ShiftRuleSettingsView.styles";
 import type { ShiftRuleSettingsViewProps } from "./ShiftRuleSettingsView.types";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -95,7 +96,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="remove-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color={isDesktop ? "#1976D2" : "#1976D2"}
+                  color={colors.primary}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -117,7 +118,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="add-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             </View>
@@ -138,7 +139,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="remove-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -163,7 +164,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="add-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             </View>
@@ -187,7 +188,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="remove-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -212,7 +213,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="add-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             </View>
@@ -285,7 +286,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                   <Ionicons
                     name="remove-circle-outline"
                     size={isDesktop ? 32 : isTablet ? 30 : 28}
-                    color="#1976D2"
+                    color={colors.primary}
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -310,7 +311,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                   <Ionicons
                     name="add-circle-outline"
                     size={isDesktop ? 32 : isTablet ? 30 : 28}
-                    color="#1976D2"
+                    color={colors.primary}
                   />
                 </TouchableOpacity>
               </View>
@@ -332,7 +333,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="remove-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -354,7 +355,7 @@ export const ShiftRuleSettingsView: React.FC<ShiftRuleSettingsViewProps> = ({
                 <Ionicons
                   name="add-circle-outline"
                   size={isDesktop ? 32 : isTablet ? 30 : 28}
-                  color="#1976D2"
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             </View>

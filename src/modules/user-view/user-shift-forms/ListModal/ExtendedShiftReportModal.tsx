@@ -17,10 +17,11 @@ import {
   TaskExecution,
 } from "@/common/common-models/model-shift/shiftTypes";
 import { useExtendedShiftReportStyles } from "./ExtendedShiftReportModal.styles";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface ExtendedShiftReportModalProps {
   visible: boolean;
-  shift: any;
+  shift: ShiftItem;
   storeId: string;
   onClose: () => void;
   onReported: () => void;
@@ -127,7 +128,7 @@ export const ExtendedShiftReportModal: React.FC<
   const updateTaskExecution = (
     taskId: string,
     field: keyof TaskExecution,
-    value: any
+    value: string | number | undefined
   ) => {
     setTaskExecutions((prev) =>
       prev.map((execution) =>

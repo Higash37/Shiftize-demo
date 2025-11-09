@@ -23,14 +23,14 @@ const styles = StyleSheet.create({
   },
   addShiftButton: {
     display: "none", // +ボタンのみ非表示
-    backgroundColor: "rgba(74, 144, 226, 0.9)", // ブランドカラーを使用
+    backgroundColor: "rgba(10, 132, 255, 0.9)", // colors.primaryの90% opacity
     borderRadius: 20, // より丸みを帯びたデザイン
     padding: 8,
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#4A90E2",
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   modalSubtitle: {
     fontSize: 12,
-    color: "#666",
+    color: colors.text.secondary,
     marginBottom: 4, // 8から4に減らす
     textAlign: "center",
   },
@@ -79,12 +79,12 @@ const styles = StyleSheet.create({
   },
   timeInputLabel: {
     fontSize: 12,
-    color: "#666",
+    color: colors.text.secondary,
     marginBottom: 4,
   },
   timeInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 5,
     padding: 6,
     fontSize: 14,
@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
   timeInputSeparator: {
     marginHorizontal: 8,
     fontSize: 16,
-    color: "#666",
+    color: colors.text.secondary,
   },
   formGroup: {
     marginBottom: 6,
   },
   formLabel: {
     fontSize: 12,
-    color: "#666",
+    color: colors.text.secondary,
     marginBottom: 4,
   },
   pickerContainer: {
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceElevated,
   },
   cancelButtonText: {
-    color: "#666",
+    color: colors.text.secondary,
     fontWeight: "bold",
   },
   saveButtonText: {
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.surfaceElevated,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: colors.border,
     elevation: 2,
     height: 40,
     alignItems: "center",
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerButton: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: colors.primary,
     borderRadius: 8, // 角丸を少し大きく
     paddingHorizontal: 20, // 横幅を大きく
     paddingVertical: 10, // 縦幅も大きく
@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRightWidth: 1,
-    borderRightColor: "#ddd",
+    borderRightColor: colors.border,
   },
   headerGanttCell: {
     flexDirection: "row",
     position: "relative",
     borderRightWidth: 1,
-    borderRightColor: "#ddd",
+    borderRightColor: colors.border,
     height: 40,
   },
   headerInfoCell: {
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
     paddingTop: 12,
   },
   monthSelector: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: colors.border,
   },
   monthNavigator: {
     flexDirection: "row",
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   monthNavButtonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#4A90E2",
+    color: colors.primary,
   },
   monthButton: {
     flexDirection: "row",
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   monthText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text.primary,
   },
   content: {
     flex: 1,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   shiftRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: colors.border,
     minHeight: 70,
     height: 70,
   },
@@ -239,8 +239,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRightWidth: 1,
-    borderRightColor: "#ddd",
-    backgroundColor: "#f9f9f9",
+    borderRightColor: colors.border,
+    backgroundColor: colors.surface,
   },
   dateDayText: {
     fontSize: 18,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     position: "relative",
     height: 65,
     borderRightWidth: 1,
-    borderRightColor: "#ddd",
+    borderRightColor: colors.border,
     overflow: "hidden",
   },
   ganttBgRow: {
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   ganttBgCell: {
     height: "100%",
-    borderRightColor: "#e0e0e0",
+    borderRightColor: colors.border,
   },
   classTimeCell: {
     backgroundColor: "rgba(180, 180, 180, 0.15)",
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     height: 65,
     overflow: "hidden",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: colors.surface,
   },
   infoContent: {
     marginBottom: 0,
@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     marginTop: 1,
     borderWidth: 1.2, // 外枠をしっかり
-    borderColor: "#4CAF50", // ステータス色を使う場合はJS側で上書き
-    backgroundColor: "#f8fafd",
+    borderColor: colors.success, // ステータス色を使う場合はJS側で上書き
+    backgroundColor: colors.selected,
     // 下線は消す（borderBottomWidth, borderBottomColorはJS側で消す）
   },
   infoText: {
@@ -321,23 +321,23 @@ const styles = StyleSheet.create({
   },
   infoTimeText: {
     fontSize: 11,
-    color: "#333",
+    color: colors.text.primary,
     marginBottom: 0,
   },
   statusText: {
     fontSize: 9,
     fontWeight: "500",
-    color: "#555",
+    color: colors.text.secondary,
   },
   emptyCell: {
     height: 65,
     borderRightWidth: 1,
-    borderRightColor: "#ddd",
+    borderRightColor: colors.border,
     position: "relative",
   },
   emptyInfoCell: {
     height: 65,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: colors.surface,
   },
   modalContainer: {
     flex: 1,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
@@ -355,13 +355,13 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 15,
   },
   saveButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: colors.success,
     borderRadius: 5,
     paddingVertical: 10,
     alignItems: "center",
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   costLabel: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1976D2",
+    color: colors.primary,
     textDecorationLine: "underline",
   },
   monthCostContainer: {
@@ -422,14 +422,14 @@ const styles = StyleSheet.create({
   pdfButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
     padding: 8,
     borderRadius: 8,
     marginRight: 8,
   },
   pdfButtonText: {
     marginLeft: 4,
-    color: "#1976d2",
+    color: colors.primary,
     fontWeight: "bold",
   },
 });

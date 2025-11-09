@@ -16,7 +16,7 @@ import {
   subMonths,
 } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ShiftItem, TaskItem } from "@/common/common-models/ModelIndex";
+import { ShiftItem, TaskItem, ShiftTaskSlot } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -25,12 +25,13 @@ import { DatePickerModal } from "../../calendar/modals/DatePickerModal";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { getDateTextColor } from "@/common/common-utils/date/dateUtils";
+import type { MarkedDates } from "react-native-calendars/src/types";
 
 // --- DateCell ---
 export type DateCellProps = {
   date: string;
   dateColumnWidth: number;
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
 };
 export const DateCell: React.FC<DateCellProps> = ({
   date,
@@ -85,7 +86,7 @@ export type GanttChartGridProps = {
     newEndTime: string
   ) => void;
   onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
   getTimeWidth?: (time: string) => number; // 動的幅計算用
@@ -521,7 +522,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
 
                   // extendedTasksをTaskItem形式に変換
                   const extendedTasks = (shift.extendedTasks || []).map(
-                    (taskSlot: any) => {
+                    (taskSlot: ShiftTaskSlot) => {
                       return {
                         id: taskSlot.id,
                         startTime: taskSlot.startTime,
@@ -696,12 +697,12 @@ export type GanttChartInfoProps = {
   onShiftPress?: (shift: ShiftItem) => void;
   onDelete: (shift: ShiftItem) => void;
   infoColumnWidth: number;
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
   onToggleComplete?: (shift: ShiftItem) => void;
   allShifts?: ShiftItem[];
   selectedDate?: Date;
   onDateSelect?: (date: string) => void;
-  onMonthChange?: (month: any) => void;
+  onMonthChange?: (month: { year: number; month: number }) => void;
 };
 export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
   shifts,
@@ -768,8 +769,8 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
 
   // マークされた日付を生成
   const markedDates = React.useMemo(() => {
-    const marks: { [key: string]: any } = {};
-    const shiftsByDate: Record<string, any[]> = {};
+    const marks: MarkedDates = {};
+    const shiftsByDate: Record<string, ShiftItem[]> = {};
 
     allShifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
@@ -981,7 +982,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                               marginTop: 1,
                             }}
                           >
-                            {marking.dots.map((dot: any, index: number) => (
+                            {marking.dots.map((dot: { key?: string; color: string }, index: number) => (
                               <View
                                 key={dot.key || index}
                                 style={{

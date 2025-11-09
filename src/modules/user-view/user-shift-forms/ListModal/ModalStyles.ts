@@ -1,5 +1,6 @@
 import { StyleSheet, ViewStyle, Platform } from "react-native";
 import { shadows } from "@/common/common-constants/ShadowConstants";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 export const modalStyles = StyleSheet.create({
   modalOverlay: {
@@ -11,7 +12,7 @@ export const modalStyles = StyleSheet.create({
   modalContent: {
     width: "90%" as ViewStyle["width"],
     maxWidth: 500,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 20,
     alignItems: "center" as const,
@@ -21,10 +22,10 @@ export const modalStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold" as const,
     marginBottom: 15,
-    color: "#333",
+    color: colors.text.primary,
   },
   modalButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: colors.primary,
     borderRadius: 5,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -33,7 +34,7 @@ export const modalStyles = StyleSheet.create({
     alignItems: "center" as const,
   },
   modalButtonText: {
-    color: "white",
+    color: colors.text.white,
     fontSize: 16,
     fontWeight: "600" as const,
   },
@@ -45,16 +46,16 @@ export const modalStyles = StyleSheet.create({
     marginVertical: 10,
     paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: colors.border,
   },
   taskTitle: {
     fontSize: 16,
-    color: "#333",
+    color: colors.text.primary,
     flex: 1,
   },
   taskText: {
     fontSize: 20,
-    color: "#333",
+    color: colors.text.primary,
     textAlign: "center" as const,
     flex: 1,
   },
@@ -69,7 +70,7 @@ export const modalStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: colors.border,
     borderRadius: 20,
     marginHorizontal: 2,
   },
@@ -79,13 +80,13 @@ export const modalStyles = StyleSheet.create({
   },
   valueTouchable: {
     padding: 10,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 5,
     marginLeft: 10,
   },
   valueText: {
     fontSize: 16,
-    color: "#333",
+    color: colors.text.primary,
   },
   timeControls: {
     flexDirection: "row",

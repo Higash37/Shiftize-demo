@@ -4,6 +4,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMont
 import { ja } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { colors } from "@/common/common-constants/ThemeConstants";
+import type { MarkedDates } from "react-native-calendars/src/types";
 
 interface GanttMiniCalendarProps {
   currentDate: Date;
@@ -60,7 +62,7 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
 
   // ShiftCalendarと同じマーク処理
   const markedDates = useMemo(() => {
-    const marks: { [key: string]: any } = {};
+    const marks: MarkedDates = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -243,14 +245,14 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   today: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: colors.selected,
   },
   selected: {
-    backgroundColor: "#2196f3",
+    backgroundColor: colors.primary,
   },
   dayText: {
     fontSize: 8, // 6から8に拡大
-    color: "#333",
+    color: colors.text.primary,
     fontWeight: "500",
   },
   shiftDot: {
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
   },
   todayText: {
     fontWeight: "bold",
-    color: "#1976d2",
+    color: colors.primary,
   },
   selectedText: {
     color: "#fff",

@@ -10,6 +10,7 @@ import {
 import { modalStyles } from "./ModalStyles";
 import { ShiftService } from "../../../../services/firebase/firebase-shift";
 import { useAuth } from "@/services/auth/useAuth";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 type TaskCounts = {
   [key: string]: {
@@ -33,7 +34,7 @@ const ShiftReportModal = ({
   taskCounts: TaskCounts;
   comments: string;
   setComments: (comments: string) => void;
-  modalShift: any;
+  modalShift: ShiftItem | null;
   fetchShifts: () => void;
   setTaskCounts: React.Dispatch<React.SetStateAction<TaskCounts>>;
 }) => {

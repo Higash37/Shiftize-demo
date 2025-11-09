@@ -13,6 +13,7 @@ import { Picker } from "@react-native-picker/picker";
 import TaskCardComponent from "./routine-task-ui/TaskCardComponent";
 import ModalComponent from "./routine-task-ui/ModalComponent";
 import TaskListStyles from "./task-styles/TaskListStyles";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
 interface Task {
   id: string;
@@ -150,6 +151,7 @@ const TaskList: React.FC<TaskListProps> = ({
           />
         )}
         contentContainerStyle={styles.listContainer}
+        {...getOptimizedFlatListProps()}
       />
       <TouchableOpacity
         style={styles.addButton}

@@ -11,6 +11,7 @@ import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/Serv
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
+import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
 /**
  * Header - 標準のヘッダーコンポーネント
@@ -24,6 +25,10 @@ export function Header({
   onPressSettings,
 }: HeaderProps) {
   const { signOut, user } = useAuth();
+  
+  // FontAwesomeフォントを遅延読み込み
+  const [fontsLoaded] = useExtendedFonts();
+  
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);

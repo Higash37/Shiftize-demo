@@ -89,7 +89,7 @@ import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
 import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLogger";
 
-export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
+const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   shifts,
   days,
   users,
@@ -347,26 +347,26 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
   // 時間セル計算
   const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
   // 前月に移動する関数
-  const handlePrevMonth = () => {
+  const handlePrevMonth = useCallback(() => {
     const newDate = subMonths(selectedDate, 1);
     if (onMonthChange) {
       onMonthChange(newDate.getFullYear(), newDate.getMonth());
     }
-  };
+  }, [selectedDate, onMonthChange]);
   // 翌月に移動する関数
-  const handleNextMonth = () => {
+  const handleNextMonth = useCallback(() => {
     const newDate = addMonths(selectedDate, 1);
     if (onMonthChange) {
       onMonthChange(newDate.getFullYear(), newDate.getMonth());
     }
-  };
+  }, [selectedDate, onMonthChange]);
   // DatePickerModalで日付が選択されたときの処理
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = useCallback((date: Date) => {
     setShowYearMonthPicker(false);
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());
     }
-  };
+  }, [onMonthChange]);
 
   // シフト編集
   const handleEditShift = useCallback((shift: ShiftItem) => {
@@ -1122,3 +1122,6 @@ export const GanttChartMonthView: React.FC<GanttChartMonthViewProps> = ({
     </View>
   );
 };
+
+// React.memoでラップしてメモ化
+export const GanttChartMonthView = React.memo(GanttChartMonthViewComponent);

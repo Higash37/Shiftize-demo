@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { View, ScrollView, Text, TouchableOpacity, Dimensions } from "react-native";
+import { View, ScrollView, Text, TouchableOpacity, Dimensions, StyleSheet } from "react-native";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import type { MarkedDates } from "react-native-calendars/src/types";
 
 interface GoogleCalendarViewProps {
   shifts: ShiftItem[];
@@ -16,7 +17,7 @@ interface GoogleCalendarViewProps {
   onEmptyCellClick?: (date: string, time: string, userId: string) => void;
   onAddShift?: () => void;
   colorMode: "status" | "user";
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
 }
 
 export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
@@ -48,7 +49,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
 
   // マークされた日付を生成
   const markedDates = useMemo(() => {
-    const marks: { [key: string]: any } = {};
+    const marks: MarkedDates = {};
     
     // 選択中の日付のスタイル
     const selectedDateStr = format(selectedDay, "yyyy-MM-dd");
@@ -59,7 +60,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     };
     
     // 日付ごとにシフトをグループ化
-    const shiftsByDate: Record<string, any[]> = {};
+    const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
         const date = shift.date;
@@ -160,12 +161,12 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
     }
   };
 
-  const handleDayPress = (day: any) => {
+  const handleDayPress = (day: { dateString: string }) => {
     const newDate = new Date(day.dateString);
     setSelectedDay(newDate);
   };
 
-  const handleMonthChangeCalendar = (month: any) => {
+  const handleMonthChangeCalendar = (month: { dateString: string }) => {
     const date = new Date(month.dateString);
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());

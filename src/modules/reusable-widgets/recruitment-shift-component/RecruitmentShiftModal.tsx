@@ -18,6 +18,7 @@ import { db } from "@/services/firebase/firebase";
 import { styles } from "./styles";
 import { RecruitmentApplicationModal } from "./RecruitmentApplicationModal";
 import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
 
 interface RecruitmentShiftModalProps {
@@ -367,6 +368,7 @@ export function RecruitmentShiftModal({
                   renderItem={renderShiftItem}
                   contentContainerStyle={styles.listContainer}
                   showsVerticalScrollIndicator={false}
+                  {...getOptimizedFlatListProps()}
                 />
               )
             ) : (

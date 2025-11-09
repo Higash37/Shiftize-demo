@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Platform, TouchableOpacity, Text, Modal } from "react-native";
+import { View, Platform, TouchableOpacity, Text, Modal, NativeSyntheticEvent, DateTimePickerEvent } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";
@@ -18,7 +18,7 @@ export default function UnifiedTimePicker({
 }: Readonly<UnifiedTimePickerProps>) {
   const [showPicker, setShowPicker] = useState(false);
 
-  const handleTimeChange = (event: any, selectedDate?: Date) => {
+  const handleTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === "android") {
       setShowPicker(false);
     }

@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { format, addMonths, subMonths, addDays, subDays } from "date-fns";
@@ -13,6 +14,7 @@ import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { Ionicons } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import type { MarkedDates } from "react-native-calendars/src/types";
 
 interface MobileVerticalViewProps {
   shifts: ShiftItem[];
@@ -29,7 +31,7 @@ interface MobileVerticalViewProps {
   onClassAdd?: (shift: ShiftItem) => void;
   colorMode: "status" | "user";
   getStatusConfig?: (status: string) => { color: string };
-  styles: any;
+  styles: ReturnType<typeof StyleSheet.create>;
 }
 
 export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
@@ -80,7 +82,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
 
   // マークされた日付を生成
   const markedDates = useMemo(() => {
-    const marks: { [key: string]: any } = {};
+    const marks: MarkedDates = {};
 
     // 選択中の日付のスタイル
     if (selectedCalendarDate) {
@@ -92,7 +94,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
     }
 
     // 日付ごとにシフトをグループ化
-    const shiftsByDate: Record<string, any[]> = {};
+    const shiftsByDate: Record<string, ShiftItem[]> = {};
     shifts.forEach((shift) => {
       if (shift.status !== "deleted" && shift.status !== "purged") {
         const date = shift.date;
@@ -169,7 +171,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   );
 
   // カレンダーの日付選択ハンドラー
-  const handleDayPress = (day: any) => {
+  const handleDayPress = (day: { dateString: string }) => {
     const targetDate = day.dateString;
     const selectedDateObj = new Date(targetDate);
     const currentDisplayMonth = new Date(calendarDisplayMonth);
@@ -193,7 +195,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   };
 
   // カレンダーの月変更ハンドラー
-  const handleCalendarMonthChange = (month: any) => {
+  const handleCalendarMonthChange = (month: { dateString: string }) => {
     const date = new Date(month.dateString);
     if (onMonthChange) {
       onMonthChange(date.getFullYear(), date.getMonth());

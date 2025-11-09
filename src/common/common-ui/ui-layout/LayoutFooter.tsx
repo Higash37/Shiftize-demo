@@ -21,6 +21,7 @@ import { FooterProps } from "./LayoutFooter.types";
 import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
 import { useAuth } from "@/services/auth/useAuth";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
+import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -115,6 +116,9 @@ export function Footer({}: FooterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+  
+  // FontAwesome5フォントを遅延読み込み
+  const [fontsLoaded] = useExtendedFonts();
   
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 

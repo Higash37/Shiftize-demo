@@ -14,9 +14,9 @@ export const useExtendedShiftReportStyles = () => {
       alignItems: "center",
       paddingHorizontal: 16,
       paddingVertical: 12,
-      backgroundColor: "white",
+      backgroundColor: colors.surface,
       borderBottomWidth: 1,
-      borderBottomColor: "#e0e0e0",
+      borderBottomColor: colors.border,
     },
     closeButton: {
       padding: 8,
@@ -36,7 +36,7 @@ export const useExtendedShiftReportStyles = () => {
       backgroundColor: colors.text.disabled,
     },
     submitButtonText: {
-      color: "white",
+      color: colors.text.white,
       fontWeight: "600",
     },
     shiftInfo: {
@@ -44,7 +44,7 @@ export const useExtendedShiftReportStyles = () => {
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderBottomWidth: 1,
-      borderBottomColor: "#e0e0e0",
+      borderBottomColor: colors.border,
     },
     shiftInfoText: {
       fontSize: 16,
@@ -68,7 +68,7 @@ export const useExtendedShiftReportStyles = () => {
     noTasksContainer: {
       alignItems: "center",
       paddingVertical: 40,
-      backgroundColor: "white",
+      backgroundColor: colors.surface,
       borderRadius: 8,
     },
     noTasksText: {
@@ -77,7 +77,7 @@ export const useExtendedShiftReportStyles = () => {
       marginTop: 12,
     },
     taskItem: {
-      backgroundColor: "white",
+      backgroundColor: colors.surface,
       borderRadius: 8,
       padding: 16,
       marginBottom: 8,
@@ -124,7 +124,7 @@ export const useExtendedShiftReportStyles = () => {
       borderRadius: 10,
     },
     badgeText: {
-      color: "white",
+      color: colors.text.white,
       fontSize: 10,
       fontWeight: "bold",
     },
@@ -133,14 +133,14 @@ export const useExtendedShiftReportStyles = () => {
       alignItems: "center",
       gap: 4,
       marginBottom: 8,
-      backgroundColor: "#fff3e0",
+      backgroundColor: colors.surfaceElevated,
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 4,
     },
     timeRestrictionText: {
       fontSize: 12,
-      color: "#e65100",
+      color: colors.warning,
       fontWeight: "500",
     },
     baseInfo: {
@@ -151,7 +151,7 @@ export const useExtendedShiftReportStyles = () => {
       color: colors.text.secondary,
     },
     executionInputs: {
-      backgroundColor: "#f8f9fa",
+      backgroundColor: colors.surfaceElevated,
       padding: 12,
       borderRadius: 6,
       marginTop: 8,
@@ -193,18 +193,18 @@ export const useExtendedShiftReportStyles = () => {
     },
     notesInput: {
       borderWidth: 1,
-      borderColor: "#e0e0e0",
+      borderColor: colors.border,
       borderRadius: 6,
       paddingHorizontal: 12,
       paddingVertical: 8,
       fontSize: 14,
-      backgroundColor: "white",
+      backgroundColor: colors.surface,
       textAlignVertical: "top",
     },
     commentsInput: {
-      backgroundColor: "white",
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: "#e0e0e0",
+      borderColor: colors.border,
       borderRadius: 8,
       padding: 12,
       fontSize: 16,

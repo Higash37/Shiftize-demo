@@ -1,12 +1,13 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { colors } from "@/common/common-constants/ThemeConstants";
 
 const LoadingOverlay: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   if (!isLoading) return null;
 
   return (
     <View style={[styles.overlay, { pointerEvents: "auto" }]}>
-      <ActivityIndicator size="large" color="#1976D2" />
+      <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );
 };

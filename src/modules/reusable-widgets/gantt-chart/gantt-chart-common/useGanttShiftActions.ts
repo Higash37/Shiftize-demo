@@ -13,6 +13,7 @@ import {
   ShiftItem,
   ShiftStatus,
   ClassTimeSlot,
+  ShiftTaskSlot,
 } from "@/common/common-models/ModelIndex";
 import { ShiftService } from "@/services/firebase/firebase-shift";
 import { logShiftChange, determineActionType } from "@/services/shift-history/shiftHistoryLogger";
@@ -45,7 +46,7 @@ export function useGanttShiftActions({
         nickname: string;
         status: ShiftStatus;
         classes: ClassTimeSlot[];
-        extendedTasks?: any[]; // 拡張タスク配列を追加
+        extendedTasks?: ShiftTaskSlot[]; // 拡張タスク配列を追加
       }
     ) => {
       // 既に保存処理中の場合はスキップ
