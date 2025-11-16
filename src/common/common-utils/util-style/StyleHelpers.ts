@@ -5,10 +5,18 @@ import { colors } from "../../common-constants/ColorConstants";
 
 /**
  * スタイルユーティリティ関数
- * 動的にスタイルを生成するためのヘルパー関数群
+ *
+ * 動的にスタイルを生成するためのヘルパー関数群。
+ * React NativeのViewStyleを生成・拡張するためのユーティリティです。
  */
 
-// 角丸を適用する関数
+/**
+ * 角丸を適用する関数
+ *
+ * @param baseStyle - ベースとなるスタイル
+ * @param radius - 角丸のサイズ（layout.borderRadiusのキー）
+ * @returns 角丸が適用されたスタイル
+ */
 export const withBorderRadius = (
   baseStyle: ViewStyle,
   radius: keyof typeof layout.borderRadius = "medium"
@@ -17,7 +25,13 @@ export const withBorderRadius = (
   borderRadius: layout.borderRadius[radius],
 });
 
-// シャドウを適用する関数
+/**
+ * シャドウを適用する関数
+ *
+ * @param baseStyle - ベースとなるスタイル
+ * @param shadowType - シャドウのタイプ（shadowsのキー）
+ * @returns シャドウが適用されたスタイル
+ */
 export const withShadow = (
   baseStyle: ViewStyle,
   shadowType: keyof typeof shadows = "medium"
@@ -26,7 +40,13 @@ export const withShadow = (
   ...shadows[shadowType],
 });
 
-// パディングを適用する関数
+/**
+ * パディングを適用する関数
+ *
+ * @param baseStyle - ベースとなるスタイル
+ * @param paddingSize - パディングのサイズ（layout.paddingのキー）
+ * @returns パディングが適用されたスタイル
+ */
 export const withPadding = (
   baseStyle: ViewStyle,
   paddingSize: keyof typeof layout.padding = "medium"
@@ -35,7 +55,14 @@ export const withPadding = (
   padding: layout.padding[paddingSize],
 });
 
-// カードスタイルを生成する関数
+/**
+ * カードスタイルを生成する関数
+ *
+ * @param borderRadius - 角丸のサイズ（layout.borderRadiusのキー）
+ * @param shadowType - シャドウのタイプ（shadowsのキー）
+ * @param backgroundColor - 背景色（デフォルト: colors.background）
+ * @returns カード用のスタイル
+ */
 export const createCardStyle = (
   borderRadius: keyof typeof layout.borderRadius = "medium",
   shadowType: keyof typeof shadows = "card",
@@ -47,7 +74,13 @@ export const createCardStyle = (
   padding: layout.padding.medium,
 });
 
-// ボタンスタイルを生成する関数
+/**
+ * ボタンスタイルを生成する関数
+ *
+ * @param variant - ボタンのバリアント（primary, secondary, outline）
+ * @param size - ボタンのサイズ（small, medium, large）
+ * @returns ボタン用のスタイル
+ */
 export const createButtonStyle = (
   variant: "primary" | "secondary" | "outline" = "primary",
   size: "small" | "medium" | "large" = "medium"
@@ -92,7 +125,13 @@ export const createButtonStyle = (
   };
 };
 
-// ヘッダー用スタイルを生成する関数
+/**
+ * ヘッダー用スタイルを生成する関数
+ *
+ * @param backgroundColor - 背景色（デフォルト: colors.primary）
+ * @param withTopRadius - 上部の角丸を適用するかどうか
+ * @returns ヘッダー用のスタイル
+ */
 export const createHeaderStyle = (
   backgroundColor: string = colors.primary,
   withTopRadius: boolean = false
@@ -110,7 +149,13 @@ export const createHeaderStyle = (
   padding: layout.padding.large,
 });
 
-// フッター用スタイルを生成する関数
+/**
+ * フッター用スタイルを生成する関数
+ *
+ * @param backgroundColor - 背景色（デフォルト: colors.background）
+ * @param withBottomRadius - 下部の角丸を適用するかどうか
+ * @returns フッター用のスタイル
+ */
 export const createFooterStyle = (
   backgroundColor: string = colors.background,
   withBottomRadius: boolean = false
@@ -128,21 +173,45 @@ export const createFooterStyle = (
   padding: layout.padding.medium,
 });
 
-// インプット用スタイルを生成する関数
+/**
+ * インプット用スタイルを生成する関数
+ *
+ * ⚠️ 注意: ボーダーカラーの優先順位は「エラー > フォーカス > デフォルト」です。
+ * エラー状態とフォーカス状態が同時に存在する場合、エラー状態が優先されます。
+ *
+ * @param focused - フォーカス状態かどうか
+ * @param error - エラー状態かどうか
+ * @returns インプット用のスタイル
+ */
 export const createInputStyle = (
   focused: boolean = false,
   error: boolean = false
-): ViewStyle => ({
-  borderRadius: layout.components.input,
-  borderWidth: focused ? 2 : 1,
-  borderColor: error ? colors.error : focused ? colors.primary : colors.border,
-  backgroundColor: colors.background,
-  paddingVertical: layout.padding.medium,
-  paddingHorizontal: layout.padding.medium,
-  ...shadows.small,
-});
+): ViewStyle => {
+  // ボーダーカラーを決定（エラー > フォーカス > デフォルトの優先順位）
+  let borderColor = colors.border;
+  if (error) {
+    borderColor = colors.error;
+  } else if (focused) {
+    borderColor = colors.primary;
+  }
 
-// モーダル用スタイルを生成する関数
+  return {
+    borderRadius: layout.components.input,
+    borderWidth: focused ? 2 : 1,
+    borderColor,
+    backgroundColor: colors.background,
+    paddingVertical: layout.padding.medium,
+    paddingHorizontal: layout.padding.medium,
+    ...shadows.small,
+  };
+};
+
+/**
+ * モーダル用スタイルを生成する関数
+ *
+ * @param fullScreen - フルスクリーンモーダルかどうか
+ * @returns モーダル用のスタイル
+ */
 export const createModalStyle = (fullScreen: boolean = false): ViewStyle => ({
   borderRadius: fullScreen ? 0 : layout.components.modal,
   backgroundColor: colors.background,

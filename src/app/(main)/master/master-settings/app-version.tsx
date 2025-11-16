@@ -45,6 +45,7 @@ export default function AppVersionManager() {
         setNewVersion("1.0.0");
       }
     } catch (error) {
+      console.error("Failed to load current version", error);
     }
   };
 
@@ -80,8 +81,9 @@ export default function AppVersionManager() {
               );
               Alert.alert("成功", "バージョン情報を更新しました");
               await loadCurrentVersion();
-            } catch (error) {
-              Alert.alert("エラー", "更新に失敗しました");
+                        } catch (error) {
+              console.error("Failed to update app version", error);
+              Alert.alert("�G���[", "�X�V�Ɏ��s���܂���");
             } finally {
               setIsLoading(false);
             }

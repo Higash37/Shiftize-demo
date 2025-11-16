@@ -10,11 +10,9 @@ import {
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 import { Alert } from "react-native";
-import { useRouter } from "expo-router";
 
 export default function GanttEditScreen() {
   const { user } = useAuth();
-  const router = useRouter();
   const {
     shifts,
     fetchShiftsByMonth,
@@ -78,11 +76,15 @@ export default function GanttEditScreen() {
 
       // リアルタイムリスナーで自動更新される
     } catch (error) {
+      console.error("Failed to save shift", error);
+      console.error("Failed to update shift time", error);
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
     }
   };
 
-  const handleShiftPress = (shift: ShiftData) => {};
+  const handleShiftPress = (shift: ShiftData) => {
+    void shift;
+  };
 
   const handleShiftSave = async (data: ShiftData) => {
     try {
@@ -139,6 +141,7 @@ export default function GanttEditScreen() {
       }
       // リアルタイムリスナーで自動更新される
     } catch (error) {
+      console.error("Failed to delete shift", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
       throw error;
     }

@@ -4,24 +4,21 @@ import { ShiftAPIService } from "@/services/api";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
-import {
-  Shift,
-  ShiftItem,
-  ShiftStatus,
-} from "@/common/common-models/ModelIndex";
+import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 
 export const useShift = (storeId?: string) => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, role } = useAuth();
-  const shiftActor = user
-    ? {
-        userId: user.uid,
-        nickname: user.nickname || "������",
-        role: (role === "master" ? "master" : "teacher") as "master" | "teacher"
-      }
-    : null;
+  const shiftActor =
+    user && role
+      ? {
+          userId: user.uid,
+          nickname: user.nickname || "未設定",
+          role: role === "master" ? ("master" as const) : ("teacher" as const),
+        }
+      : null;
 
   const fetchShifts = useCallback(async () => {
     if (!user) {
@@ -32,9 +29,6 @@ export const useShift = (storeId?: string) => {
       setLoading(true);
       setError(null);
 
-      // 🔄 デバッグ情報表示
-      const debugInfo = ShiftAPIService.getDebugInfo();
-
       let allShifts: Shift[] = [];
 
       if (role === "master") {
@@ -44,8 +38,8 @@ export const useShift = (storeId?: string) => {
         if (!targetStoreId) {
           throw new Error("Store ID is required");
         }
-        allShifts = await ShiftAPIService.getShifts({ 
-          storeId: targetStoreId 
+        allShifts = await ShiftAPIService.getShifts({
+          storeId: targetStoreId,
         });
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
@@ -57,8 +51,8 @@ export const useShift = (storeId?: string) => {
           // 連携店舗も含むシフトを取得
           // 🔄 新APIサービス使用
           allShifts = await ShiftAPIService.getUserAccessibleShifts({
-            storeId: userData['storeId'],
-            connectedStores: userData['connectedStores'] || [],
+            storeId: userData["storeId"],
+            connectedStores: userData["connectedStores"] || [],
           });
         } else {
           // ユーザーデータが見つからない場合は従来の方法
@@ -67,8 +61,8 @@ export const useShift = (storeId?: string) => {
           if (!targetStoreId) {
             throw new Error("Store ID is required for shift access");
           }
-          allShifts = await ShiftAPIService.getShifts({ 
-            storeId: targetStoreId 
+          allShifts = await ShiftAPIService.getShifts({
+            storeId: targetStoreId,
           });
         }
       }
@@ -79,8 +73,11 @@ export const useShift = (storeId?: string) => {
           : allShifts.filter((shift: Shift) => shift.userId === user?.uid);
 
       setShifts(filteredShifts);
-    } catch (error: any) {
-      setError(error.message || 'シフトの取得に失敗しました');
+    } catch (err) {
+      // ⚠️ シフト取得エラー: API接続エラー、権限エラー、またはデータ形式エラーの可能性があります
+      const errorMessage =
+        err instanceof Error ? err.message : "シフトの取得に失敗しました";
+      setError(errorMessage);
       setShifts([]);
     } finally {
       setLoading(false);
@@ -103,10 +100,17 @@ export const useShift = (storeId?: string) => {
       // 🔄 新APIサービス使用
       // 型変換: ShiftAPIServiceは内部でShiftServiceを呼び出すため、
       // 元のShift型をそのまま渡せる
-      await ShiftAPIService.createShift(shiftWithStoreId as any, shiftActor || undefined);
+      await ShiftAPIService.createShift(
+        shiftWithStoreId as any,
+        shiftActor || undefined
+      );
       await fetchShifts(); // データを即時更新
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      // ⚠️ シフト作成エラー: API接続エラー、バリデーションエラー、または権限エラーの可能性があります
+      if (__DEV__) {
+        console.error("シフト作成エラー:", err);
+      }
+      throw err;
     }
   };
 
@@ -125,41 +129,75 @@ export const useShift = (storeId?: string) => {
         ],
       };
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, updatedData, shiftActor || undefined);
+      await ShiftAPIService.updateShift(
+        shiftId,
+        updatedData,
+        shiftActor || undefined
+      );
       await fetchShifts(); // データを即時更新
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      // ⚠️ シフト編集エラー: API接続エラー、バリデーションエラー、または権限エラーの可能性があります
+      if (__DEV__) {
+        console.error("シフト編集エラー:", err);
+      }
+      throw err;
     }
   };
 
   const markShiftAsDeleted = async (shiftId: string, reason?: string) => {
     try {
       // 🔄 新APIサービス使用（通知付き削除）
-      const deletedBy = user ? { nickname: user.nickname, userId: user.uid } : undefined;
-      await ShiftAPIService.deleteShift(shiftId, deletedBy, reason, shiftActor || undefined);
+      const deletedBy = user
+        ? { nickname: user.nickname, userId: user.uid }
+        : undefined;
+      await ShiftAPIService.deleteShift(
+        shiftId,
+        deletedBy,
+        reason,
+        shiftActor || undefined
+      );
       await fetchShifts();
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      // ⚠️ シフト削除エラー: API接続エラー、権限エラー、またはデータ不存在エラーの可能性があります
+      if (__DEV__) {
+        console.error("シフト削除エラー:", err);
+      }
+      throw err;
     }
   };
 
   const approveShift = async (shiftId: string) => {
     try {
       // 🔄 新APIサービス使用
-      await ShiftAPIService.approveShiftChanges(shiftId, shiftActor || undefined); // マスターが承認する関数を呼び出し
+      await ShiftAPIService.approveShiftChanges(
+        shiftId,
+        shiftActor || undefined
+      ); // マスターが承認する関数を呼び出し
       await fetchShifts(); // データを即時更新
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      // ⚠️ シフト承認エラー: API接続エラー、権限エラー、またはデータ不存在エラーの可能性があります
+      if (__DEV__) {
+        console.error("シフト承認エラー:", err);
+      }
+      throw err;
     }
   };
 
   const updateShiftStatus = async (shiftId: string, status: ShiftStatus) => {
     try {
       // 🔄 新APIサービス使用
-      await ShiftAPIService.updateShift(shiftId, { status }, shiftActor || undefined);
+      await ShiftAPIService.updateShift(
+        shiftId,
+        { status },
+        shiftActor || undefined
+      );
       await fetchShifts(); // データを即時更新
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      // ⚠️ シフトステータス更新エラー: API接続エラー、バリデーションエラー、または権限エラーの可能性があります
+      if (__DEV__) {
+        console.error("シフトステータス更新エラー:", err);
+      }
+      throw err;
     }
   };
 
@@ -178,4 +216,4 @@ export const useShift = (storeId?: string) => {
   };
 };
 
-export type { Shift };
+export type { Shift } from "@/common/common-models/ModelIndex";

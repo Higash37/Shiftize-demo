@@ -1,3 +1,1 @@
-import { OnboardingScreen } from "@/modules/onboarding-module/OnboardingScreen";
-
-export default OnboardingScreen;
+export { OnboardingScreen as default } from "@/modules/onboarding-module/OnboardingScreen";

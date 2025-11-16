@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { colors } from "@/common/common-constants/ColorConstants";

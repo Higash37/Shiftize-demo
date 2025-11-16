@@ -1,8 +1,6 @@
 import { StyleSheet } from "react-native";
 import { theme } from "../../common-theme/ThemeDefinition";
 import { layout } from "../../common-constants/LayoutConstants";
-import { shadows } from "../../common-constants/ShadowConstants";
-import { InputStyleName } from "./FormInput.types";
 
 /**
  * Inputコンポーネントのスタイル定義

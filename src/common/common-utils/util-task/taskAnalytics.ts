@@ -1,43 +1,63 @@
 import {
-  TaskExecution,
   TaskPerformance,
   ExtendedTask,
 } from "@/common/common-models/model-shift/shiftTypes";
 
 /**
  * タスクパフォーマンス分析ユーティリティ
+ *
+ * タスクの実行パフォーマンスを分析し、効率性、積極性、一貫性などの指標を計算します。
  */
 export class TaskAnalytics {
   /**
    * 効率性を計算（基本時間に対する実際時間の比率）
-   * 1.0を超えると効率が良い（予定より早く完了）
+   *
+   * 1.0を超えると効率が良い（予定より早く完了）ことを示します。
+   * 最大値は2.0に制限されています。
+   *
+   * @param baseTimeMinutes - 基本時間（分）
+   * @param actualTimeMinutes - 実際の時間（分）
+   * @returns 効率性スコア（0.0〜2.0）
    */
   static calculateEfficiency(
     baseTimeMinutes: number,
     actualTimeMinutes: number
   ): number {
     if (actualTimeMinutes === 0) return 0;
-    return Math.min(baseTimeMinutes / actualTimeMinutes, 2.0); // 最大2.0に制限
+    return Math.min(baseTimeMinutes / actualTimeMinutes, 2); // 最大2.0に制限
   }
 
   /**
    * 積極性を計算（基本回数に対する実際実行回数の比率）
-   * 1.0を超えると積極的（予定より多く実行）
+   *
+   * 1.0を超えると積極的（予定より多く実行）ことを示します。
+   * 最大値は3.0に制限されています。
+   *
+   * @param baseCountPerShift - シフトあたりの基本実行回数
+   * @param actualCount - 実際の実行回数
+   * @returns 積極性スコア（0.0〜3.0）
    */
   static calculateProactivity(
     baseCountPerShift: number,
     actualCount: number
   ): number {
-    if (baseCountPerShift === 0) return actualCount > 0 ? 2.0 : 0;
-    return Math.min(actualCount / baseCountPerShift, 3.0); // 最大3.0に制限
+    if (baseCountPerShift === 0) return actualCount > 0 ? 2 : 0;
+    return Math.min(actualCount / baseCountPerShift, 3); // 最大3.0に制限
   }
 
   /**
    * 一貫性を計算（実行時間のばらつきの少なさ）
-   * 標準偏差の逆数ベースで計算
+   *
+   * 標準偏差の逆数ベースで計算します。
+   * 標準偏差が小さいほど一貫性が高いことを示します。
+   *
+   * ⚠️ 注意: 実行時間のデータが2件未満の場合は1.0を返します。
+   *
+   * @param executionTimes - 実行時間の配列（分）
+   * @returns 一貫性スコア（0.0〜1.0）
    */
   static calculateConsistency(executionTimes: number[]): number {
-    if (executionTimes.length < 2) return 1.0;
+    if (executionTimes.length < 2) return 1;
 
     const mean =
       executionTimes.reduce((sum, time) => sum + time, 0) /
@@ -48,11 +68,15 @@ export class TaskAnalytics {
     const stdDev = Math.sqrt(variance);
 
     // 標準偏差が小さいほど一貫性が高い
-    return stdDev === 0 ? 1.0 : Math.min(1.0 / (stdDev / mean + 0.1), 1.0);
+    return stdDev === 0 ? 1 : Math.min(1 / (stdDev / mean + 0.1), 1);
   }
 
   /**
    * 頻度率を計算（シフト参加時のタスク実行率）
+   *
+   * @param totalShiftsWorked - 総シフト数
+   * @param shiftsWithTaskExecution - タスクを実行したシフト数
+   * @returns 頻度率（0.0〜1.0）
    */
   static calculateFrequency(
     totalShiftsWorked: number,
@@ -64,17 +88,31 @@ export class TaskAnalytics {
 
   /**
    * 完了率を計算（計画されたタスクの完了割合）
+   *
+   * @param plannedTasks - 計画されたタスク数
+   * @param completedTasks - 完了したタスク数
+   * @returns 完了率（0.0〜1.0）
    */
   static calculateCompletionRate(
     plannedTasks: number,
     completedTasks: number
   ): number {
-    if (plannedTasks === 0) return completedTasks > 0 ? 1.0 : 0;
-    return Math.min(completedTasks / plannedTasks, 1.0);
+    if (plannedTasks === 0) return completedTasks > 0 ? 1 : 0;
+    return Math.min(completedTasks / plannedTasks, 1);
   }
 
   /**
    * 総合スコアを計算（各指標の重み付き平均）
+   *
+   * 各指標に以下の重みを適用します：
+   * - 効率性: 25%
+   * - 積極性: 25%
+   * - 一貫性: 20%
+   * - 頻度: 15%
+   * - 完了率: 15%
+   *
+   * @param performance - タスクパフォーマンスデータ
+   * @returns 総合スコア
    */
   static calculateOverallScore(performance: TaskPerformance): number {
     const weights = {
@@ -96,6 +134,15 @@ export class TaskAnalytics {
 
   /**
    * パフォーマンスレベルを判定
+   *
+   * ⚠️ 注意: スコアの閾値は以下の通りです：
+   * - 1.2以上: 優秀
+   * - 1.0以上: 良好
+   * - 0.8以上: 平均
+   * - 0.8未満: 要改善
+   *
+   * @param overallScore - 総合スコア
+   * @returns パフォーマンスレベル情報
    */
   static getPerformanceLevel(overallScore: number): {
     level: "excellent" | "good" | "average" | "needs_improvement";
@@ -104,7 +151,7 @@ export class TaskAnalytics {
   } {
     if (overallScore >= 1.2) {
       return { level: "excellent", label: "優秀", color: "#4CAF50" };
-    } else if (overallScore >= 1.0) {
+    } else if (overallScore >= 1) {
       return { level: "good", label: "良好", color: "#8BC34A" };
     } else if (overallScore >= 0.8) {
       return { level: "average", label: "平均", color: "#FFC107" };
@@ -115,6 +162,11 @@ export class TaskAnalytics {
 
   /**
    * 改善提案を生成
+   *
+   * パフォーマンス指標が基準値以下の場合、改善提案を生成します。
+   *
+   * @param performance - タスクパフォーマンスデータ
+   * @returns 改善提案の配列
    */
   static generateImprovementSuggestions(
     performance: TaskPerformance
@@ -150,6 +202,11 @@ export class TaskAnalytics {
 
   /**
    * 強みを特定
+   *
+   * パフォーマンス指標が基準値以上の場合、強みとして特定します。
+   *
+   * @param performance - タスクパフォーマンスデータ
+   * @returns 強みの配列
    */
   static identifyStrengths(performance: TaskPerformance): string[] {
     const strengths: string[] = [];
@@ -179,6 +236,13 @@ export class TaskAnalytics {
 
   /**
    * 期間比較分析
+   *
+   * 現在の期間と前の期間のパフォーマンスを比較し、変化を分析します。
+   * 変化が0.05以上の場合にトレンドを判定します。
+   *
+   * @param currentPeriod - 現在の期間のパフォーマンスデータ
+   * @param previousPeriod - 前の期間のパフォーマンスデータ
+   * @returns 各指標の比較結果の配列
    */
   static comparePerformancePeriods(
     currentPeriod: TaskPerformance,
@@ -220,6 +284,14 @@ export class TaskAnalytics {
 
   /**
    * チーム内でのランキング位置を計算
+   *
+   * ⚠️ 注意: ランキングは降順（高いスコアが上位）で計算されます。
+   * 同じスコアの場合は、最初に見つかった位置が使用されます。
+   *
+   * @param userPerformance - ユーザーのパフォーマンスデータ
+   * @param teamPerformances - チーム全体のパフォーマンスデータ配列
+   * @param metric - ランキングを計算する指標
+   * @returns ランキング情報（順位、パーセンタイル、総数）
    */
   static calculateRanking(
     userPerformance: TaskPerformance,
@@ -249,10 +321,25 @@ export class TaskAnalytics {
 
 /**
  * タスク推奨システム
+ *
+ * ユーザーのパフォーマンス履歴と現在の状況に基づいて、適切なタスクを推奨します。
  */
 export class TaskRecommendationSystem {
   /**
    * ユーザーに適したタスクを推奨
+   *
+   * 以下の基準でタスクをスコアリングし、上位5件を返します：
+   * - 優先度（high: 3点、medium: 2点、low: 1点）
+   * - パフォーマンス履歴（効率性×2、積極性×1.5）
+   * - 時間制約（シフト時間の80%以内: +1点）
+   *
+   * ⚠️ 注意: 時間制約のあるタスク（time_specific）は、現在時刻が指定範囲内の場合のみ推奨されます。
+   *
+   * @param availableTasks - 利用可能なタスクの配列
+   * @param userPerformances - ユーザーのパフォーマンス履歴
+   * @param currentTime - 現在時刻（HH:mm形式）
+   * @param shiftDuration - シフト時間（分）
+   * @returns 推奨タスクの配列（最大5件）
    */
   static recommendTasks(
     availableTasks: ExtendedTask[],
@@ -280,8 +367,13 @@ export class TaskRecommendationSystem {
       let score = 0;
 
       // 基本スコア（優先度ベース）
-      score +=
-        task.priority === "high" ? 3 : task.priority === "medium" ? 2 : 1;
+      if (task.priority === "high") {
+        score += 3;
+      } else if (task.priority === "medium") {
+        score += 2;
+      } else {
+        score += 1;
+      }
 
       // パフォーマンス履歴があるタスクを優遇
       if (userPerformance) {
@@ -298,14 +390,20 @@ export class TaskRecommendationSystem {
     });
 
     // スコア順にソートして上位を返す
-    return scoredTasks
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-      .map((item) => item.task);
+    const sortedTasks = [...scoredTasks].sort((a, b) => b.score - a.score);
+    return sortedTasks.slice(0, 5).map((item) => item.task);
   }
 
   /**
    * 時間が範囲内かチェック
+   *
+   * ⚠️ 注意: 開始時刻または終了時刻が指定されていない場合は、常にtrueを返します。
+   * 日付は2000-01-01を使用して時間のみを比較します。
+   *
+   * @param currentTime - 現在時刻（HH:mm形式）
+   * @param startTime - 開始時刻（HH:mm形式、省略可）
+   * @param endTime - 終了時刻（HH:mm形式、省略可）
+   * @returns 時間が範囲内の場合true、それ以外の場合false
    */
   private static isTimeInRange(
     currentTime: string,

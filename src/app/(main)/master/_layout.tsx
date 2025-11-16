@@ -1,19 +1,22 @@
-import { Stack, Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/services/auth/useAuth";
-import { useRouter, useSegments } from "expo-router";
+import { useRouter } from "expo-router";
 import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { Routes } from "@/common/common-constants/RouteConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
 
-// PWAスタンドアローンモードの検出
+type NavigatorWithStandalone = Navigator & { standalone?: boolean };
+
+// PWA�X�^���h�A���[�����[�h�̌��o
 function isStandalonePWA() {
   if (typeof window !== "undefined") {
+    const navigatorStandalone = window.navigator as NavigatorWithStandalone;
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true
+      navigatorStandalone.standalone === true
     );
   }
   return false;
@@ -24,7 +27,6 @@ const { height: screenHeight } = Dimensions.get("window");
 export default function MasterLayout() {
   const { user, loading, role } = useAuth();
   const router = useRouter();
-  const segments = useSegments();
   const [isPWA, setIsPWA] = useState(false);
 
   useEffect(() => {
@@ -185,9 +187,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     height: screenHeight,
   },
-  contentArea: {
-    flex: 1,
-  },
   footerArea: {
     width: "100%",
     position: "relative",
@@ -196,7 +195,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   footerPWA: {
-    position: "absolute" as any,
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,

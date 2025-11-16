@@ -45,7 +45,9 @@ export default function GanttViewScreen() {
     // コールバックの互換性のため関数は残す
   };
 
-  const handleShiftPress = (shift: ShiftData) => {};
+  const handleShiftPress = (shift: ShiftData) => {
+    void shift;
+  };
 
   return (
     <GanttViewView

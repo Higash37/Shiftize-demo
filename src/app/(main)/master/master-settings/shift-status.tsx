@@ -29,6 +29,7 @@ export default function ShiftStatusSettingsScreen() {
         )
       );
     } catch (error) {
+      console.error("Failed to update shift status color", error);
     }
   };
 

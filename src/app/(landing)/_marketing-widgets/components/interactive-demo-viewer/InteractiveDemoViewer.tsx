@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, type ComponentProps } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,22 @@ interface InteractiveDemoViewerProps {
   onDemoClick: () => void;
 }
 
+type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
+
+type ViewType = {
+  id: "desktop" | "mobile" | "calendar" | "tablet" | "google";
+  name: string;
+  icon: MaterialIconName;
+  description: string;
+  features: string[];
+};
+
 export const InteractiveDemoViewer: React.FC<InteractiveDemoViewerProps> = ({
   onDemoClick,
 }) => {
-  const [selectedView, setSelectedView] = useState("desktop");
+  const [selectedView, setSelectedView] = useState<ViewType["id"]>("desktop");
 
-  const viewTypes = [
+  const viewTypes: ViewType[] = [
     {
       id: "desktop",
       name: "デスクトップ版",
@@ -51,7 +61,7 @@ export const InteractiveDemoViewer: React.FC<InteractiveDemoViewerProps> = ({
     },
   ];
 
-  const getMockupContent = (viewId: string) => {
+  const getMockupContent = (viewId: ViewType["id"]) => {
     switch (viewId) {
       case "desktop":
         return (
@@ -152,7 +162,7 @@ export const InteractiveDemoViewer: React.FC<InteractiveDemoViewerProps> = ({
             onPress={() => setSelectedView(view.id)}
           >
             <MaterialIcons
-              name={view.icon as any}
+              name={view.icon}
               size={24}
               color={selectedView === view.id ? "#ffffff" : "#3b82f6"}
             />

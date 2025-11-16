@@ -5,9 +5,6 @@
 // 日付関連ユーティリティ
 export * from "./util-date";
 
-// 時間関連ユーティリティ
-// export * from "./util-time"; // モジュールが見つからないためコメントアウト
-
 // スタイル関連ユーティリティ
 export * from "./util-style";
 

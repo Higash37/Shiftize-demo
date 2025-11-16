@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Image, ImageProps, View, StyleSheet, Platform } from "react-native";
+import "./OptimizedImage.css";
 
 interface OptimizedImageProps extends Omit<ImageProps, "source" | "src"> {
   src: string | { uri: string };
@@ -96,11 +97,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
+          className="optimized-image-web"
         />
       </View>
     );

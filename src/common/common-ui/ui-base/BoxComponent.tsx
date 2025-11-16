@@ -5,6 +5,73 @@ import { styles } from "./BoxStyles";
 import { theme } from "../../common-theme/ThemeDefinition";
 
 /**
+ * シャドウスタイルを取得するヘルパー関数
+ */
+const getShadowStyle = (shadow: string) => {
+  if (shadow === "none") {
+    return null;
+  }
+
+  const shadowMap: Record<string, "sm" | "md" | "lg" | "none"> = {
+    small: "sm",
+    medium: "md",
+    large: "lg",
+  };
+
+  const shadowKey = shadowMap[shadow] || "none";
+  return theme.shadows[shadowKey];
+};
+
+/**
+ * alignItems値を取得するヘルパー関数
+ */
+const getAlignItems = (
+  align: string
+): "flex-start" | "flex-end" | "center" | "stretch" | "baseline" => {
+  const alignMap: Record<
+    string,
+    "flex-start" | "flex-end" | "center" | "stretch" | "baseline"
+  > = {
+    start: "flex-start",
+    end: "flex-end",
+    center: "center",
+    stretch: "stretch",
+    baseline: "baseline",
+  };
+
+  return alignMap[align] || "flex-start";
+};
+
+/**
+ * justifyContent値を取得するヘルパー関数
+ */
+const getJustifyContent = (
+  justify: string
+):
+  | "flex-start"
+  | "flex-end"
+  | "space-between"
+  | "space-around"
+  | "space-evenly" => {
+  const justifyMap: Record<
+    string,
+    | "flex-start"
+    | "flex-end"
+    | "space-between"
+    | "space-around"
+    | "space-evenly"
+  > = {
+    start: "flex-start",
+    end: "flex-end",
+    between: "space-between",
+    around: "space-around",
+    evenly: "space-evenly",
+  };
+
+  return justifyMap[justify] || "flex-start";
+};
+
+/**
  * Box - 汎用的なコンテナコンポーネント
  *
  * 様々なスタイルバリエーションを持ち、コンテンツを囲むための基本的な要素として使用できます。
@@ -38,52 +105,19 @@ const Box: React.FC<BoxProps> = ({
   gap,
   ...props
 }) => {
+  const shadowStyle = getShadowStyle(shadow);
+
   return (
     <View
       style={[
-        styles['base'],
+        styles["base"],
         styles[variant as BoxStyleName],
         styles[`padding_${padding}` as BoxStyleName],
         styles[`margin_${margin}` as BoxStyleName],
-        shadow !== "none" &&
-          theme.shadows[
-            shadow === "small"
-              ? "sm"
-              : shadow === "medium"
-              ? "md"
-              : shadow === "large"
-              ? "lg"
-              : "none"
-          ],
+        shadowStyle,
         direction && { flexDirection: direction },
-        align && {
-          alignItems:
-            align === "start"
-              ? "flex-start"
-              : align === "end"
-              ? "flex-end"
-              : align === "center"
-              ? "center"
-              : align === "stretch"
-              ? "stretch"
-              : align === "baseline"
-              ? "baseline"
-              : "flex-start",
-        },
-        justify && {
-          justifyContent:
-            justify === "start"
-              ? "flex-start"
-              : justify === "end"
-              ? "flex-end"
-              : justify === "between"
-              ? "space-between"
-              : justify === "around"
-              ? "space-around"
-              : justify === "evenly"
-              ? "space-evenly"
-              : justify,
-        },
+        align && { alignItems: getAlignItems(align) },
+        justify && { justifyContent: getJustifyContent(justify) },
         wrap && { flexWrap: wrap },
         flex !== undefined && { flex },
         gap !== undefined && { gap },

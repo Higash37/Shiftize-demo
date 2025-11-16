@@ -11,7 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { auth } from "@/services/firebase/firebase";
+import { auth, db } from "@/services/firebase/firebase";
 import {
   MultiStoreService,
   UserStoreAccess,
@@ -24,8 +24,6 @@ import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-sh
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
 import { LineNotificationModal } from "@/modules/reusable-widgets/line-notification/LineNotificationModal";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
-import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 
 /**
  * MasterHeader - マスター用ヘッダーコンポーネント
@@ -36,7 +34,7 @@ export function MasterHeader({
   title,
   showBackButton = false,
   onBack,
-}: MasterHeaderProps) {
+}: Readonly<MasterHeaderProps>) {
   const router = useRouter();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
@@ -110,6 +108,7 @@ export function MasterHeader({
           );
         }
       } catch (error) {
+        console.warn("Failed to fetch user store access:", error);
         setCurrentStoreInfo(user?.storeId || "");
       }
     };
@@ -136,9 +135,7 @@ export function MasterHeader({
         // 認証エラーの場合は無視（ログアウト時の正常な動作）
         if (error.code === "permission-denied") {
           setRecruitmentCount(0);
-          return;
         }
-        // console.error("MasterHeader realtime error:", error);
       }
     );
 
@@ -185,6 +182,7 @@ export function MasterHeader({
         ]
       );
     } catch (error) {
+      console.error("Error switching store:", error);
       Alert.alert("エラー", "店舗の切り替えに失敗しました");
     }
   };
@@ -225,7 +223,10 @@ export function MasterHeader({
   return (
     <View style={[styles.header, isCompactLayout && styles.headerCompact]}>
       <View
-        style={[styles.leftContainer, isCompactLayout && styles.leftContainerCompact]}
+        style={[
+          styles.leftContainer,
+          isCompactLayout && styles.leftContainerCompact,
+        ]}
       >
         {showBackButton && (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -237,12 +238,18 @@ export function MasterHeader({
         </Text>
       </View>
       <View
-        style={[styles.rightContainer, isCompactLayout && styles.rightContainerCompact]}
+        style={[
+          styles.rightContainer,
+          isCompactLayout && styles.rightContainerCompact,
+        ]}
       >
         {/* 募集シフト通知ボタン */}
         <TouchableOpacity
           onPress={() => setShowRecruitmentModal(true)}
-          style={[styles.notificationButton, isCompactLayout && styles.compactActionButton]}
+          style={[
+            styles.notificationButton,
+            isCompactLayout && styles.compactActionButton,
+          ]}
         >
           <AntDesign name="bell" size={24} color={colors.primary} />
           {recruitmentCount > 0 && (
@@ -255,7 +262,10 @@ export function MasterHeader({
         {/* LINE通知送信ボタン */}
         <TouchableOpacity
           onPress={() => setShowLineNotification(true)}
-          style={[styles.lineNotificationButton, isCompactLayout && styles.compactActionButton]}
+          style={[
+            styles.lineNotificationButton,
+            isCompactLayout && styles.compactActionButton,
+          ]}
         >
           <AntDesign name="message" size={24} color={colors.success} />
         </TouchableOpacity>
@@ -263,7 +273,10 @@ export function MasterHeader({
         {/* カンバンタスク管理ボタン */}
         <TouchableOpacity
           onPress={() => router.push("/(main)/master/master-kanban-task")}
-          style={[styles.kanbanButton, isCompactLayout && styles.compactActionButton]}
+          style={[
+            styles.kanbanButton,
+            isCompactLayout && styles.compactActionButton,
+          ]}
         >
           <AntDesign name="appstore" size={24} color={colors.primary} />
         </TouchableOpacity>
@@ -290,7 +303,10 @@ export function MasterHeader({
         {/* サービス紹介ボタン */}
         <TouchableOpacity
           onPress={() => setShowServiceIntro(true)}
-          style={[styles.serviceIntroButton, isCompactLayout && styles.compactActionButton]}
+          style={[
+            styles.serviceIntroButton,
+            isCompactLayout && styles.compactActionButton,
+          ]}
         >
           <AntDesign name="question-circle" size={24} color={colors.primary} />
         </TouchableOpacity>
@@ -298,7 +314,10 @@ export function MasterHeader({
         {/* サインアウトボタン */}
         <TouchableOpacity
           onPress={handleSignOut}
-          style={[styles.signOutButton, isCompactLayout && styles.compactActionButton]}
+          style={[
+            styles.signOutButton,
+            isCompactLayout && styles.compactActionButton,
+          ]}
         >
           <AntDesign name="logout" size={24} color={colors.text.primary} />
         </TouchableOpacity>
@@ -408,4 +427,3 @@ export function MasterHeader({
   );
 }
 export default MasterHeader;
-

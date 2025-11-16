@@ -1,3 +1,1 @@
-import { CreateGroupScreen } from "@/modules/create-group-module/CreateGroupScreen";
-
-export default CreateGroupScreen;
+export { CreateGroupScreen as default } from "@/modules/create-group-module/CreateGroupScreen";

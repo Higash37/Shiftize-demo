@@ -1,3 +1,1 @@
-import { WelcomeScreen } from "@/modules/welcome-module/WelcomeScreen";
-
-export default WelcomeScreen;
+export { WelcomeScreen as default } from "@/modules/welcome-module/WelcomeScreen";

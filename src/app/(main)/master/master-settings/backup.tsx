@@ -39,6 +39,7 @@ export default function SettingsBackupScreen() {
         });
       }
     } catch (error) {
+      console.error("Failed to export settings", error);
       Alert.alert("エラー", "設定のエクスポートに失敗しました");
     } finally {
       setIsProcessing(false);
@@ -76,6 +77,7 @@ export default function SettingsBackupScreen() {
       await importSettings(settingsJson);
       Alert.alert("インポート完了", "設定を正常にインポートしました");
     } catch (error) {
+      console.error("Failed to import settings", error);
       Alert.alert("エラー", "設定のインポートに失敗しました");
     } finally {
       setIsProcessing(false);
@@ -98,6 +100,7 @@ export default function SettingsBackupScreen() {
               await resetSettings();
               Alert.alert("リセット完了", "設定を初期値にリセットしました");
             } catch (error) {
+              console.error("Failed to reset settings", error);
               Alert.alert("エラー", "設定のリセットに失敗しました");
             } finally {
               setIsProcessing(false);

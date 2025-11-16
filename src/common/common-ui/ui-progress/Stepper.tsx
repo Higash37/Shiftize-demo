@@ -63,19 +63,22 @@ type StepperProps = {
 export const Stepper: React.FC<StepperProps> = ({ currentStep, steps }) => {
   return (
     <View style={styles.container}>
-      {steps.map((step, index) => (
-        <React.Fragment key={index}>
-          <StepItem
-            number={index + 1}
-            label={step.label}
-            completed={step.completed}
-            isActive={currentStep === index}
-          />
-          {index < steps.length - 1 && (
-            <StepConnector completed={step.completed} />
-          )}
-        </React.Fragment>
-      ))}
+      {steps.map((step, index) => {
+        const stepKey = `step-${step.label}-${index}`;
+        return (
+          <React.Fragment key={stepKey}>
+            <StepItem
+              number={index + 1}
+              label={step.label}
+              completed={step.completed}
+              isActive={currentStep === index}
+            />
+            {index < steps.length - 1 && (
+              <StepConnector completed={step.completed} />
+            )}
+          </React.Fragment>
+        );
+      })}
     </View>
   );
 };
