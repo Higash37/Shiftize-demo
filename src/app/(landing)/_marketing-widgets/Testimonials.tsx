@@ -79,7 +79,7 @@ const Testimonials = () => {
               className="card p-8 hover:scale-105 transition-transform"
             >
               {/* Quote Icon */}
-              <div className="text-4xl text-blue-600 mb-4">"</div>
+              <div className="text-4xl text-blue-600 mb-4" aria-hidden="true">&ldquo;</div>
 
               {/* Content */}
               <blockquote className="text-black mb-6 leading-relaxed italic">

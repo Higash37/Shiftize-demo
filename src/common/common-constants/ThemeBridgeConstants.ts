@@ -8,17 +8,19 @@
  */
 
 import { theme as newTheme } from "../common-theme/ThemeDefinition";
-import { colors, typography, layout, shadows } from "./ThemeConstants";
 
 /**
  * 古いテーマシステムのエクスポート（後方互換性のため）
  */
-export { colors, typography, layout, shadows };
+export { colors } from "./ThemeConstants";
+export { typography } from "./ThemeConstants";
+export { layout } from "./ThemeConstants";
+export { shadows } from "./ThemeConstants";
 
 /**
  * 新しいテーマシステムのエクスポート
  */
-export { newTheme };
+export { theme as newTheme } from "../common-theme/ThemeDefinition";
 
 /**
  * レガシーテーマと新テーマの変換マッピング

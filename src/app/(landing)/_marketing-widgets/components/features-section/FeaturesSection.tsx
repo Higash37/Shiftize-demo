@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ComponentProps } from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
@@ -9,12 +9,19 @@ export const FeaturesSection: React.FC = () => {
   const { width: screenWidth } = useWindowDimensions();
 
   // デバイス判定
-  const isDesktop = screenWidth >= 1024;
-  const isTablet = screenWidth >= 768 && screenWidth < 1024;
   const isMobile = screenWidth < 768;
 
   // 授業・シフト両対応機能
-  const enterpriseFeatures = [
+  type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
+  type EnterpriseFeature = {
+    icon: MaterialIconName;
+    title: string;
+    description: string;
+    details: string[];
+    color: string;
+    bgColor: string;
+  };
+  const enterpriseFeatures: EnterpriseFeature[] = [
     {
       icon: "calendar",
       title: "シフト管理機能",
@@ -104,7 +111,7 @@ export const FeaturesSection: React.FC = () => {
             <View style={styles.featureContent}>
               <View style={styles.featureIconWrapper}>
                 <MaterialIcons
-                  name={feature.icon as any}
+                  name={feature.icon}
                   size={40}
                   color={feature.color}
                 />
@@ -142,7 +149,7 @@ export const FeaturesSection: React.FC = () => {
               >
                 <View style={styles.featureVisualContent}>
                   <MaterialIcons
-                    name={feature.icon as any}
+                    name={feature.icon}
                     size={80}
                     color={feature.color}
                   />

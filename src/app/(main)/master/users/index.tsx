@@ -38,7 +38,6 @@ export default function UsersScreen() {
     currentUser?.storeId
   );
   const { width } = useWindowDimensions();
-  const isTablet = width >= 768 && width < 1024;
   const isDesktop = width >= 1024;
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(

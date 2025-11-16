@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
       tablet: "600px",
       desktop: "800px",
       default: "100%",
-    }) as any,
+    }),
   },
   timelineSection: {
     paddingHorizontal: 20,
@@ -259,7 +259,7 @@ export const styles = StyleSheet.create({
       tablet: "45%",
       desktop: "30%",
       default: "100%",
-    }) as any,
+    }),
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,

@@ -195,31 +195,35 @@ export const useAppSettings = () => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         // デフォルト設定と深いマージを実行
+        const shiftRule = data["shiftRule"];
+        const appearance = data["appearance"];
+        const holidays = data["holidays"];
+
         setSettings({
-          shiftRule: {
-            ...DEFAULT_SETTINGS.shiftRule,
-            ...(data['shiftRule'] || {}),
-          },
-          appearance: {
-            ...DEFAULT_SETTINGS.appearance,
-            ...(data['appearance'] || {}),
-          },
-          holidays: {
-            ...DEFAULT_SETTINGS.holidays,
-            ...(data['holidays'] || {}),
-            holidays:
-              data['holidays']?.holidays || DEFAULT_SETTINGS.holidays.holidays,
-            specialDays:
-              data['holidays']?.specialDays ||
-              DEFAULT_SETTINGS.holidays.specialDays,
-          },
+          shiftRule: shiftRule
+            ? { ...DEFAULT_SETTINGS.shiftRule, ...shiftRule }
+            : DEFAULT_SETTINGS.shiftRule,
+          appearance: appearance
+            ? { ...DEFAULT_SETTINGS.appearance, ...appearance }
+            : DEFAULT_SETTINGS.appearance,
+          holidays: holidays
+            ? {
+                ...DEFAULT_SETTINGS.holidays,
+                ...holidays,
+                holidays:
+                  holidays.holidays ?? DEFAULT_SETTINGS.holidays.holidays,
+                specialDays:
+                  holidays.specialDays ?? DEFAULT_SETTINGS.holidays.specialDays,
+              }
+            : DEFAULT_SETTINGS.holidays,
         });
       } else {
         // ドキュメントが存在しない場合はデフォルト設定を使用
         setSettings(DEFAULT_SETTINGS);
       }
       setError(null);
-    } catch (err) {
+    } catch {
+      // ⚠️ Firestore接続エラー: ネットワークエラーや権限エラーの可能性があります
       setError("設定の読み込みに失敗しました");
       // エラー時もデフォルト設定を設定
       setSettings(DEFAULT_SETTINGS);
@@ -241,6 +245,7 @@ export const useAppSettings = () => {
         }));
         setError(null);
       } catch (err) {
+        // ⚠️ Firestore保存エラー: ネットワークエラーや権限エラーの可能性があります
         setError("設定の保存に失敗しました");
         throw err;
       }
@@ -390,6 +395,7 @@ export const useAppSettings = () => {
       setSettings(DEFAULT_SETTINGS);
       setError(null);
     } catch (err) {
+      // ⚠️ Firestoreリセットエラー: ネットワークエラーや権限エラーの可能性があります
       setError("設定のリセットに失敗しました");
       throw err;
     }
@@ -400,7 +406,8 @@ export const useAppSettings = () => {
     try {
       const settingsJson = JSON.stringify(settings, null, 2);
       return settingsJson;
-    } catch (err) {
+    } catch {
+      // ⚠️ JSONシリアライゼーションエラー: 循環参照や無効な値が含まれている可能性があります
       throw new Error("設定のエクスポートに失敗しました");
     }
   }, [settings]);
@@ -434,6 +441,7 @@ export const useAppSettings = () => {
       setSettings(importedSettings);
       setError(null);
     } catch (err) {
+      // ⚠️ インポートエラー: JSONパースエラー、バリデーションエラー、またはFirestore保存エラーの可能性があります
       if (err instanceof Error) {
         setError(err.message);
         throw err;
@@ -452,37 +460,42 @@ export const useAppSettings = () => {
   useEffect(() => {
     const settingsRef = doc(db, "settings", "shiftApp");
     const unsubscribe = onSnapshot(
-      settingsRef, 
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
+      settingsRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
           // デフォルト設定と深いマージを実行
+          const shiftRule = data["shiftRule"];
+          const appearance = data["appearance"];
+          const holidays = data["holidays"];
+
           setSettings({
-            shiftRule: {
-              ...DEFAULT_SETTINGS.shiftRule,
-              ...(data['shiftRule'] || {}),
-            },
-            appearance: {
-              ...DEFAULT_SETTINGS.appearance,
-              ...(data['appearance'] || {}),
-            },
-            holidays: {
-              ...DEFAULT_SETTINGS.holidays,
-              ...(data['holidays'] || {}),
-              holidays:
-                data['holidays']?.holidays || DEFAULT_SETTINGS.holidays.holidays,
-              specialDays:
-                data['holidays']?.specialDays ||
-                DEFAULT_SETTINGS.holidays.specialDays,
-            },
+            shiftRule: shiftRule
+              ? { ...DEFAULT_SETTINGS.shiftRule, ...shiftRule }
+              : DEFAULT_SETTINGS.shiftRule,
+            appearance: appearance
+              ? { ...DEFAULT_SETTINGS.appearance, ...appearance }
+              : DEFAULT_SETTINGS.appearance,
+            holidays: holidays
+              ? {
+                  ...DEFAULT_SETTINGS.holidays,
+                  ...holidays,
+                  holidays:
+                    holidays.holidays ?? DEFAULT_SETTINGS.holidays.holidays,
+                  specialDays:
+                    holidays.specialDays ??
+                    DEFAULT_SETTINGS.holidays.specialDays,
+                }
+              : DEFAULT_SETTINGS.holidays,
           });
         }
       },
       (error) => {
-        // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === 'permission-denied') {
+        // ⚠️ リアルタイム更新エラー: 認証エラーの場合は無視（ログアウト時の正常な動作）
+        if (error.code === "permission-denied") {
           return;
         }
+        // その他のエラー（ネットワークエラーなど）は記録
         setError(error.message);
       }
     );

@@ -39,6 +39,7 @@ export default function ShiftAppearanceSettingsScreen() {
       await updateAppearanceSettings(localSettings);
       Alert.alert("保存完了", "外観設定を保存しました");
     } catch (error) {
+      console.error("Failed to save appearance settings", error);
       Alert.alert("エラー", "設定の保存に失敗しました");
     }
   };

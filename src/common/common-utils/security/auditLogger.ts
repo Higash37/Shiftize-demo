@@ -3,19 +3,19 @@
  * GDPR/CCPA等のプライバシー規制対応
  */
 
-import { SecurityLogger, SecurityEvent } from './securityUtils';
+import { SecurityLogger } from "./securityUtils";
 
 // 監査ログの種類
-export type AuditEventType = 
-  | 'personal_info_access'    // 個人情報アクセス
-  | 'personal_info_create'    // 個人情報作成
-  | 'personal_info_update'    // 個人情報更新  
-  | 'personal_info_delete'    // 個人情報削除
-  | 'encryption_key_access'   // 暗号化キーアクセス
-  | 'data_export'            // データエクスポート
-  | 'admin_access'           // 管理者アクセス
-  | 'consent_given'          // 同意取得
-  | 'consent_withdrawn';     // 同意撤回
+export type AuditEventType =
+  | "personal_info_access" // 個人情報アクセス
+  | "personal_info_create" // 個人情報作成
+  | "personal_info_update" // 個人情報更新
+  | "personal_info_delete" // 個人情報削除
+  | "encryption_key_access" // 暗号化キーアクセス
+  | "data_export" // データエクスポート
+  | "admin_access" // 管理者アクセス
+  | "consent_given" // 同意取得
+  | "consent_withdrawn"; // 同意撤回
 
 // 監査ログエントリ
 export interface AuditLogEntry {
@@ -23,17 +23,17 @@ export interface AuditLogEntry {
   timestamp: Date;
   eventType: AuditEventType;
   userId: string;
-  targetUserId?: string;      // 対象ユーザー（他人の情報にアクセスした場合）
+  targetUserId?: string; // 対象ユーザー（他人の情報にアクセスした場合）
   storeId: string;
-  dataFields?: string[];      // アクセスしたデータフィールド
-  purpose: string;           // アクセス目的
-  legalBasis?: string;       // 法的根拠（GDPR Article 6）
+  dataFields?: string[]; // アクセスしたデータフィールド
+  purpose: string; // アクセス目的
+  legalBasis?: string; // 法的根拠（GDPR Article 6）
   ipAddress?: string;
   userAgent: string;
   sessionId?: string;
-  result: 'success' | 'failure' | 'unauthorized';
+  result: "success" | "failure" | "unauthorized";
   details?: string;
-  retentionUntil?: Date;     // ログ保持期限
+  retentionUntil?: Date; // ログ保持期限
 }
 
 // 監査ログ管理クラス
@@ -45,11 +45,15 @@ class AuditLogger {
   /**
    * 監査ログを記録
    */
-  static logEvent(event: Omit<AuditLogEntry, 'id' | 'timestamp' | 'retentionUntil'>): void {
+  static logEvent(
+    event: Omit<AuditLogEntry, "id" | "timestamp" | "retentionUntil">
+  ): void {
     const logEntry: AuditLogEntry = {
       id: this.generateLogId(),
       timestamp: new Date(),
-      retentionUntil: new Date(Date.now() + this.DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000),
+      retentionUntil: new Date(
+        Date.now() + this.DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000
+      ),
       ...event,
     };
 
@@ -61,9 +65,13 @@ class AuditLogger {
     }
 
     // 重要な監査イベントは即座にSecurityLoggerにも記録
-    if (['personal_info_delete', 'admin_access', 'consent_withdrawn'].includes(event.eventType)) {
+    if (
+      ["personal_info_delete", "admin_access", "consent_withdrawn"].includes(
+        event.eventType
+      )
+    ) {
       SecurityLogger.logEvent({
-        type: 'unauthorized_access',
+        type: "unauthorized_access",
         userId: event.userId,
         details: `Audit: ${event.eventType} - ${event.purpose}`,
         userAgent: event.userAgent,
@@ -72,6 +80,7 @@ class AuditLogger {
 
     // 開発環境でのデバッグ出力
     if (__DEV__) {
+      // デバッグ出力は必要に応じて追加
     }
   }
 
@@ -79,8 +88,8 @@ class AuditLogger {
    * 特定ユーザーの監査ログを取得
    */
   static getUserLogs(userId: string): AuditLogEntry[] {
-    return this.logs.filter(log => 
-      log.userId === userId || log.targetUserId === userId
+    return this.logs.filter(
+      (log) => log.userId === userId || log.targetUserId === userId
     );
   }
 
@@ -88,8 +97,8 @@ class AuditLogger {
    * 期間別監査ログを取得
    */
   static getLogsByDateRange(startDate: Date, endDate: Date): AuditLogEntry[] {
-    return this.logs.filter(log => 
-      log.timestamp >= startDate && log.timestamp <= endDate
+    return this.logs.filter(
+      (log) => log.timestamp >= startDate && log.timestamp <= endDate
     );
   }
 
@@ -97,7 +106,7 @@ class AuditLogger {
    * イベント種別の監査ログを取得
    */
   static getLogsByEventType(eventType: AuditEventType): AuditLogEntry[] {
-    return this.logs.filter(log => log.eventType === eventType);
+    return this.logs.filter((log) => log.eventType === eventType);
   }
 
   /**
@@ -105,8 +114,8 @@ class AuditLogger {
    */
   static cleanupExpiredLogs(): void {
     const now = new Date();
-    this.logs = this.logs.filter(log => 
-      !log.retentionUntil || log.retentionUntil > now
+    this.logs = this.logs.filter(
+      (log) => !log.retentionUntil || log.retentionUntil > now
     );
   }
 
@@ -119,7 +128,7 @@ class AuditLogger {
     generatedAt: Date;
   } {
     const userLogs = this.getUserLogs(userId);
-    
+
     const summary = {
       totalAccesses: userLogs.length,
       accessTypes: userLogs.reduce((acc, log) => {
@@ -127,17 +136,20 @@ class AuditLogger {
         return acc;
       }, {} as Record<string, number>),
       firstAccess: userLogs.length > 0 ? userLogs[0]?.timestamp || null : null,
-      lastAccess: userLogs.length > 0 ? userLogs[userLogs.length - 1]?.timestamp || null : null,
-      dataFieldsAccessed: [...new Set(userLogs.flatMap(log => log.dataFields || []))],
+      lastAccess:
+        userLogs.length > 0 ? userLogs.at(-1)?.timestamp || null : null,
+      dataFieldsAccessed: [
+        ...new Set(userLogs.flatMap((log) => log.dataFields || [])),
+      ],
     };
 
     this.logEvent({
-      eventType: 'data_export',
+      eventType: "data_export",
       userId: userId,
-      storeId: 'system',
-      purpose: 'User requested audit data export (GDPR)',
+      storeId: "system",
+      purpose: "User requested audit data export (GDPR)",
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     });
 
     return {
@@ -148,7 +160,7 @@ class AuditLogger {
   }
 
   private static generateLogId(): string {
-    return `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `audit_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
   }
 
   /**
@@ -161,7 +173,7 @@ class AuditLogger {
     recentActivity: AuditLogEntry[];
   } {
     const recentLogs = this.logs.slice(-100); // 最新100件
-    
+
     return {
       totalLogs: this.logs.length,
       logsByEventType: this.logs.reduce((acc, log) => {
@@ -192,21 +204,24 @@ export class PersonalInfoAudit {
     purpose: string;
     legalBasis?: string;
   }): void {
-    const eventData: Omit<AuditLogEntry, 'id' | 'timestamp' | 'retentionUntil'> = {
-      eventType: 'personal_info_access',
+    const eventData: Omit<
+      AuditLogEntry,
+      "id" | "timestamp" | "retentionUntil"
+    > = {
+      eventType: "personal_info_access",
       userId: params.userId,
       storeId: params.storeId,
       dataFields: params.dataFields,
       purpose: params.purpose,
-      legalBasis: params.legalBasis || 'legitimate_interest',
+      legalBasis: params.legalBasis || "legitimate_interest",
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     };
-    
+
     if (params.targetUserId !== undefined) {
       eventData.targetUserId = params.targetUserId;
     }
-    
+
     AuditLogger.logEvent(eventData);
   }
 
@@ -220,14 +235,14 @@ export class PersonalInfoAudit {
     purpose: string;
   }): void {
     AuditLogger.logEvent({
-      eventType: 'personal_info_update',
+      eventType: "personal_info_update",
       userId: params.userId,
       storeId: params.storeId,
       dataFields: params.dataFields,
       purpose: params.purpose,
-      legalBasis: 'contract',
+      legalBasis: "contract",
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     });
   }
 
@@ -241,14 +256,14 @@ export class PersonalInfoAudit {
     purpose: string;
   }): void {
     AuditLogger.logEvent({
-      eventType: 'consent_given',
+      eventType: "consent_given",
       userId: params.userId,
       storeId: params.storeId,
       purpose: params.purpose,
       details: `Consent type: ${params.consentType}`,
-      legalBasis: 'consent',
+      legalBasis: "consent",
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     });
   }
 
@@ -262,13 +277,15 @@ export class PersonalInfoAudit {
     reason?: string;
   }): void {
     AuditLogger.logEvent({
-      eventType: 'consent_withdrawn',
+      eventType: "consent_withdrawn",
       userId: params.userId,
       storeId: params.storeId,
-      purpose: 'User withdrew consent',
-      details: `Consent type: ${params.consentType}, Reason: ${params.reason || 'Not specified'}`,
+      purpose: "User withdrew consent",
+      details: `Consent type: ${params.consentType}, Reason: ${
+        params.reason || "Not specified"
+      }`,
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     });
   }
 
@@ -283,34 +300,42 @@ export class PersonalInfoAudit {
     dataFields: string[];
   }): void {
     AuditLogger.logEvent({
-      eventType: 'admin_access',
+      eventType: "admin_access",
       userId: params.adminUserId,
       targetUserId: params.targetUserId,
       storeId: params.storeId,
       dataFields: params.dataFields,
       purpose: params.purpose,
-      legalBasis: 'legitimate_interest',
+      legalBasis: "legitimate_interest",
       userAgent: navigator.userAgent,
-      result: 'success',
+      result: "success",
     });
   }
 }
 
 // React Hook for audit logging
 export const usePersonalInfoAudit = () => {
-  const logAccess = (params: Parameters<typeof PersonalInfoAudit.logPersonalInfoAccess>[0]) => {
+  const logAccess = (
+    params: Parameters<typeof PersonalInfoAudit.logPersonalInfoAccess>[0]
+  ) => {
     PersonalInfoAudit.logPersonalInfoAccess(params);
   };
 
-  const logUpdate = (params: Parameters<typeof PersonalInfoAudit.logPersonalInfoUpdate>[0]) => {
+  const logUpdate = (
+    params: Parameters<typeof PersonalInfoAudit.logPersonalInfoUpdate>[0]
+  ) => {
     PersonalInfoAudit.logPersonalInfoUpdate(params);
   };
 
-  const logConsent = (params: Parameters<typeof PersonalInfoAudit.logConsentGiven>[0]) => {
+  const logConsent = (
+    params: Parameters<typeof PersonalInfoAudit.logConsentGiven>[0]
+  ) => {
     PersonalInfoAudit.logConsentGiven(params);
   };
 
-  const logConsentWithdrawal = (params: Parameters<typeof PersonalInfoAudit.logConsentWithdrawn>[0]) => {
+  const logConsentWithdrawal = (
+    params: Parameters<typeof PersonalInfoAudit.logConsentWithdrawn>[0]
+  ) => {
     PersonalInfoAudit.logConsentWithdrawn(params);
   };
 
@@ -323,7 +348,7 @@ export const usePersonalInfoAudit = () => {
 };
 
 // 定期的な監査ログクリーンアップの設定
-if (typeof window !== 'undefined') {
+if (globalThis.window !== undefined) {
   // 1日1回古いログを削除
   setInterval(() => {
     AuditLogger.cleanupExpiredLogs();

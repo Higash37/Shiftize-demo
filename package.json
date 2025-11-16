@@ -12,6 +12,7 @@
     "build": "cross-env EXPO_WEB_SUPPRESS_WARNINGS=1 expo export -p web",
     "build:functions": "cd functions && npm run build",
     "build:all": "npm run build:functions && npm run build",
+    "lint": "npx eslint src --max-warnings=0",
     "vercel-build": "expo export -p web --output-dir dist",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",

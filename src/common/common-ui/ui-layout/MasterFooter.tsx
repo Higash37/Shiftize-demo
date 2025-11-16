@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  Dimensions,
-} from "react-native";
+import { View, TouchableOpacity, Text, Dimensions } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import {
   AntDesign,
@@ -17,7 +12,10 @@ import Toast from "react-native-toast-message";
 import { styles } from "./LayoutFooter.styles";
 import { TabItem } from "./ui-layout-types";
 import { MasterFooterProps } from "./LayoutFooter.types";
-import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import {
+  ShiftSubmissionService,
+  ShiftSubmissionPeriod,
+} from "@/services/shift-submission/ShiftSubmissionService";
 import { useAuth } from "@/services/auth/useAuth";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
@@ -133,10 +131,10 @@ const MASTER_TABS: TabItem[] = [
   },
 ];
 function isStandalonePWA() {
-  if (typeof window !== "undefined") {
+  if (globalThis.window !== undefined) {
     return (
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true
+      globalThis.window.matchMedia("(display-mode: standalone)").matches ||
+      (globalThis.window.navigator as any).standalone === true
     );
   }
   return false;
@@ -147,14 +145,14 @@ function isStandalonePWA() {
  *
  * 管理者画面の下部に表示され、主要な画面間のナビゲーションを提供します。
  */
-export function MasterFooter({}: MasterFooterProps) {
+export function MasterFooter(_props: Readonly<MasterFooterProps>) {
   const router = useRouter();
-  
+
   // FontAwesome5フォントを遅延読み込み
-  const [fontsLoaded] = useExtendedFonts();
+  useExtendedFonts();
   const pathname = usePathname();
   const { user } = useAuth();
-  
+
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 
   useEffect(() => {
@@ -165,9 +163,12 @@ export function MasterFooter({}: MasterFooterProps) {
 
   const loadActivePeriod = async () => {
     try {
-      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      const periods = await ShiftSubmissionService.getActivePeriods(
+        user?.storeId || ""
+      );
       setPeriod(periods.length > 0 ? periods[0] || null : null);
     } catch (error) {
+      console.warn("Failed to load active period:", error);
     }
   };
 
@@ -181,7 +182,6 @@ export function MasterFooter({}: MasterFooterProps) {
     return ShiftSubmissionService.isWithinPeriod(period);
   };
 
-
   const handleTabPress = (tab: TabItem) => {
     if (tab.isUnderDevelopment) {
       Toast.show({
@@ -192,54 +192,56 @@ export function MasterFooter({}: MasterFooterProps) {
       });
       return;
     }
-    
+
     // シフト追加タブの場合は期間チェックのみ実施
     if (tab.name === "create" && period) {
       const canSubmit = isWithinPeriod();
       const daysLeft = getDaysUntilDeadline();
-      
+
       if (!canSubmit) {
         Toast.show({
           type: "error",
           text1: "募集期間外です",
-          text2: daysLeft < 0 ? "募集期間が終了しています" : "まだ募集期間ではありません",
+          text2:
+            daysLeft < 0
+              ? "募集期間が終了しています"
+              : "まだ募集期間ではありません",
           position: "bottom",
         });
         return;
       }
     }
-    
+
     router.push(tab.path);
   };
 
   const isPWA = isStandalonePWA();
 
   return (
-    <>
-      <View
-        style={[
-          styles.footer,
-          {
-            position: "relative",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-around",
-            alignItems: "center",
-            width: "100%",
-            minWidth: "100%",
-            ...(isPWA && {
-              position: "fixed" as any,
-              zIndex: 1000,
-              width: "100vw" as any,
-              minWidth: "100vw" as any,
-              maxWidth: "100vw" as any,
-            }),
-          },
-        ]}
-      >
+    <View
+      style={[
+        styles.footer,
+        {
+          position: "relative",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-around",
+          alignItems: "center",
+          width: "100%",
+          minWidth: "100%",
+          ...(isPWA && {
+            position: "fixed" as any,
+            zIndex: 1000,
+            width: "100vw" as any,
+            minWidth: "100vw" as any,
+            maxWidth: "100vw" as any,
+          }),
+        },
+      ]}
+    >
       {MASTER_TABS.map((tab, index) => {
         const active = pathname === tab.path;
         return (
@@ -272,7 +274,7 @@ export function MasterFooter({}: MasterFooterProps) {
             >
               {tab.label}
             </Text>
-            
+
             {/* シフト追加アイコンの上にツールチップを表示 */}
             {tab.name === "create" && period && (
               <View
@@ -313,23 +315,25 @@ export function MasterFooter({}: MasterFooterProps) {
                     borderTopColor: "#ff9800",
                   }}
                 />
-                
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                  <Ionicons 
-                    name="time-outline" 
-                    size={12} 
-                    color="#fff" 
-                  />
-                  <Text style={{
-                    fontSize: 12,
-                    fontWeight: "500",
-                    color: "#fff"
-                  }}>
-                    {isWithinPeriod() 
-                      ? `締切まで ${getDaysUntilDeadline()}日` 
-                      : getDaysUntilDeadline() < 0 
-                        ? "募集期間終了" 
-                        : "募集期間外"}
+
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+                >
+                  <Ionicons name="time-outline" size={12} color="#fff" />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "500",
+                      color: "#fff",
+                    }}
+                  >
+                    {(() => {
+                      if (isWithinPeriod()) {
+                        return `締切まで ${getDaysUntilDeadline()}日`;
+                      }
+                      const daysLeft = getDaysUntilDeadline();
+                      return daysLeft < 0 ? "募集期間終了" : "募集期間外";
+                    })()}
                   </Text>
                 </View>
               </View>
@@ -338,7 +342,7 @@ export function MasterFooter({}: MasterFooterProps) {
         );
       })}
       {isPWA &&
-        (typeof window !== "undefined" && window.document ? (
+        (globalThis.window?.document ? (
           <div className="pwa-footer-safearea master-footer-pwa" />
         ) : (
           <View
@@ -349,8 +353,7 @@ export function MasterFooter({}: MasterFooterProps) {
             }}
           />
         ))}
-      </View>
-    </>
+    </View>
   );
 }
 

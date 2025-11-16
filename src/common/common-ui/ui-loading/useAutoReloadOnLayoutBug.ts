@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useWindowDimensions, Platform } from "react-native";
 
 /**
@@ -11,7 +11,6 @@ export function useAutoReloadOnLayoutBug(
   maxRetry: number = 2
 ) {
   const { width, height } = useWindowDimensions();
-  const retried = useRef(0);
 
   useEffect(() => {
     if (Platform.OS === "web") {
@@ -20,7 +19,7 @@ export function useAutoReloadOnLayoutBug(
       const count = Number(sessionStorage.getItem(key) || "0");
       if ((width < threshold || height < threshold) && count < maxRetry) {
         sessionStorage.setItem(key, String(count + 1));
-        window.location.reload();
+        globalThis.location.reload();
       }
     }
   }, [width, height, threshold, maxRetry]);

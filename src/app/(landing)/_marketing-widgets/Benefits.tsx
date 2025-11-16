@@ -183,7 +183,7 @@ const Benefits = () => {
         {/* Testimonial Quote */}
         <div className="mt-16 text-center">
           <div className="card p-8 max-w-4xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50">
-            <div className="text-4xl text-blue-600 mb-4">"</div>
+            <div className="text-4xl text-blue-600 mb-4" aria-hidden="true">&ldquo;</div>
             <blockquote className="text-xl text-black italic mb-6">
               導入前は毎週3時間かけてExcelでシフトを作っていましたが、今では30分で完了。
               急な講師の欠勤にも、募集機能で素早く対応できるようになりました。

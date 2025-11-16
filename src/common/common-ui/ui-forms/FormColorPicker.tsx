@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { theme } from "../../common-theme/ThemeDefinition";
 import { designSystem } from "../../common-constants/DesignSystem";
 import { colors } from "../../common-constants/ColorConstants";
 import { shadows } from "../../common-constants/ShadowConstants";

@@ -1,7 +1,6 @@
 /**
  * コンポーネント共通の型定義
  */
-import { ViewStyle, TextStyle } from "react-native";
 
 /**
  * サイズバリエーション
@@ -48,17 +47,7 @@ export type JustifyContent =
 /**
  * 交差軸方向の配置位置（alignItems用）
  */
-export type AlignItems =
-  | "start"
-  | "center"
-  | "end"
-  | "stretch"
-  | "baseline";
-
-/**
- * 配置位置（後方互換性のため）
- */
-export type Alignment = JustifyContent;
+export type AlignItems = "start" | "center" | "end" | "stretch" | "baseline";
 
 /**
  * 方向

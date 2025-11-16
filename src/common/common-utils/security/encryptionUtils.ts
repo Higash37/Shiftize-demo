@@ -90,12 +90,13 @@ export class AESEncryption {
       // セキュリティ警告ログ
       SecurityLogger.logEvent({
         type: "encryption_warning",
-        details: "Deprecated hashPassword method used. Migrate to PasswordHasher."
+        details:
+          "Deprecated hashPassword method used. Migrate to PasswordHasher.",
       });
 
       // ランダムソルト生成（128bit）
       const salt = CryptoJS.lib.WordArray.random(16).toString();
-      
+
       // PBKDF2でハッシュ化（100,000回反復 - 高セキュリティ）
       const hash = CryptoJS.PBKDF2(password, salt, {
         keySize: 256 / 32,
@@ -122,10 +123,11 @@ export class AESEncryption {
       // セキュリティ警告ログ
       SecurityLogger.logEvent({
         type: "encryption_warning",
-        details: "Deprecated verifyPassword method used. Migrate to PasswordHasher."
+        details:
+          "Deprecated verifyPassword method used. Migrate to PasswordHasher.",
       });
 
-      const [salt, hash] = hashedPassword.split(':');
+      const [salt, hash] = hashedPassword.split(":");
       if (!salt || !hash) {
         return false;
       }
@@ -139,6 +141,7 @@ export class AESEncryption {
       // 時間攻撃を防ぐため、常に同じ時間で比較
       return hash === inputHash.toString();
     } catch (error) {
+      console.warn("Password verification failed:", error);
       return false;
     }
   }
@@ -153,7 +156,9 @@ class EncryptionKeyManager {
     // 🚨 セキュリティ警告: Web環境では真の暗号化は不可能
     // クライアントサイド暗号化は無効化し、サーバーサイドに委譲
     if (Platform.OS === "web") {
-      throw new Error("Web環境ではクライアントサイド暗号化は使用できません。サーバーサイド暗号化を使用してください。");
+      throw new Error(
+        "Web環境ではクライアントサイド暗号化は使用できません。サーバーサイド暗号化を使用してください。"
+      );
     }
 
     if (this.cachedKey) {
@@ -373,7 +378,7 @@ export class PersonalDataDeletion {
       await Promise.all(deletePromises);
 
       // 5. Firebase Authアカウントの削除
-      if (auth.currentUser && auth.currentUser.uid === userId) {
+      if (auth.currentUser?.uid === userId) {
         await deleteUser(auth.currentUser);
       }
 

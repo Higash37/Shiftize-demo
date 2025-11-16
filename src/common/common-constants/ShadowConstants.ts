@@ -1,5 +1,4 @@
-import { ViewStyle } from "react-native";
-import { Platform } from "react-native";
+import { ViewStyle, Platform } from "react-native";
 
 export type ShadowsType = {
   none: ViewStyle;
@@ -49,12 +48,12 @@ export const convertShadowForWeb = (shadowStyle: {
     const y = shadowStyle.shadowOffset?.height || 0;
     const blur = shadowStyle.shadowRadius || 0;
     const opacity = shadowStyle.shadowOpacity || 0;
-    
+
     return {
       boxShadow: createWebShadow(color, x, y, blur, opacity),
     } as ViewStyle;
   }
-  
+
   return shadowStyle as ViewStyle;
 };
 
@@ -92,10 +91,10 @@ export const shadows: ShadowsType = {
           shadowRadius: 0,
           elevation: 0,
         },
-  small: createShadow("#000", 0, 1, 1.0, 0.18, 1),
+  small: createShadow("#000", 0, 1, 1, 0.18, 1),
   medium: createShadow("#000", 0, 2, 3.84, 0.25, 3),
   large: createShadow("#000", 0, 4, 4.65, 0.3, 6),
-  xlarge: createShadow("#000", 0, 8, 8.0, 0.35, 10),
+  xlarge: createShadow("#000", 0, 8, 8, 0.35, 10),
   // 特定用途のシャドウ
   card: createShadow("#000", 0, 2, 8, 0.1, 4),
   header: createShadow("#000", 0, 2, 6, 0.15, 4),

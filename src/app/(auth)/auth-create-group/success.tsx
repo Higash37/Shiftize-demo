@@ -1,3 +1,1 @@
-import { CreateGroupSuccessScreen } from "@/modules/create-group-module/CreateGroupSuccessScreen";
-
-export default CreateGroupSuccessScreen;
+export { CreateGroupSuccessScreen as default } from "@/modules/create-group-module/CreateGroupSuccessScreen";

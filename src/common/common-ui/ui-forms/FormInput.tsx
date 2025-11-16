@@ -1,8 +1,5 @@
 import React from "react";
 import { View, TextInput, Text, StyleProp, TextStyle } from "react-native";
-import { theme } from "../../common-theme/ThemeDefinition";
-import { designSystem } from "../../common-constants/DesignSystem";
-import { colors } from "../../common-constants/ColorConstants";
 import { styles } from "./FormInput.styles";
 import { InputProps } from "./FormInput.types";
 

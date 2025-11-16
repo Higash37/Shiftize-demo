@@ -3,14 +3,13 @@
  * APIリクエスト・レスポンス・フォームの検証に使用
  */
 
-import { z } from 'zod';
-import { 
-  UserBaseSchema, 
-  UserWithPasswordSchema,
+import { z } from "zod";
+import {
+  UserBaseSchema,
   ShiftBaseSchema,
   EmailMessageSchema,
-  NotificationDataSchema 
-} from '@/common/common-schemas';
+  NotificationDataSchema,
+} from "@/common/common-schemas";
 
 // ==========================================
 // 🌐 APIリクエスト/レスポンス検証
@@ -23,7 +22,12 @@ export const ApiResponseSchema = z.object({
   success: z.boolean(),
   data: z.unknown().optional(),
   error: z.string().optional(),
-  timestamp: z.string().datetime().optional(),
+  timestamp: z
+    .string()
+    .refine((val) => !Number.isNaN(Date.parse(val)), {
+      message: "Invalid datetime string",
+    })
+    .optional(),
 });
 
 /**
@@ -32,7 +36,12 @@ export const ApiResponseSchema = z.object({
 export const AuthResponseSchema = z.object({
   user: z.object({
     uid: z.string(),
-    email: z.string().email().nullable(),
+    email: z
+      .string()
+      .refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+        message: "Invalid email format",
+      })
+      .nullable(),
     displayName: z.string().nullable(),
   }),
   token: z.string(),
@@ -45,15 +54,19 @@ export const AuthResponseSchema = z.object({
 /**
  * ユーザーデータの検証
  */
-export function validateUser(data: unknown): { success: boolean; data?: any; error?: string } {
+export function validateUser(data: unknown): {
+  success: boolean;
+  data?: any;
+  error?: string;
+} {
   const result = UserBaseSchema.safeParse(data);
-  
+
   if (result.success) {
     return { success: true, data: result.data };
   } else {
     const errorMessage = result.error.issues
-      .map((err: any) => `${err.path.join('.')}: ${err.message}`)
-      .join(', ');
+      .map((err: any) => `${err.path.join(".")}: ${err.message}`)
+      .join(", ");
     return { success: false, error: errorMessage };
   }
 }
@@ -61,15 +74,19 @@ export function validateUser(data: unknown): { success: boolean; data?: any; err
 /**
  * シフトデータの検証
  */
-export function validateShift(data: unknown): { success: boolean; data?: any; error?: string } {
+export function validateShift(data: unknown): {
+  success: boolean;
+  data?: any;
+  error?: string;
+} {
   const result = ShiftBaseSchema.safeParse(data);
-  
+
   if (result.success) {
     return { success: true, data: result.data };
   } else {
     const errorMessage = result.error.issues
-      .map((err: any) => `${err.path.join('.')}: ${err.message}`)
-      .join(', ');
+      .map((err: any) => `${err.path.join(".")}: ${err.message}`)
+      .join(", ");
     return { success: false, error: errorMessage };
   }
 }
@@ -91,7 +108,9 @@ export function validateNotificationData(data: unknown) {
 export function validateEmailMessage(data: unknown) {
   const result = EmailMessageSchema.safeParse(data);
   if (!result.success) {
-    throw new Error(`メールデータが無効です: ${result.error.issues[0]?.message}`);
+    throw new Error(
+      `メールデータが無効です: ${result.error.issues[0]?.message}`
+    );
   }
   return result.data;
 }
@@ -115,13 +134,21 @@ export const userFormResolver = {
 /**
  * 開発時のデータ検証（デバッグ用）
  */
-export function debugValidation<T>(schema: z.ZodSchema<T>, data: unknown, label: string) {
+export function debugValidation<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+  label: string
+) {
   const result = schema.safeParse(data);
-  
-  if (!result.success) {
+
+  if (result.success) {
+    // eslint-disable-next-line no-console
+    console.log(`[${label}] Validation passed`);
   } else {
+    // eslint-disable-next-line no-console
+    console.warn(`[${label}] Validation failed:`, result.error.issues);
   }
-  
+
   return result;
 }
 
@@ -129,10 +156,14 @@ export function debugValidation<T>(schema: z.ZodSchema<T>, data: unknown, label:
 // 🔒 型ガード関数
 // ==========================================
 
-export function isValidUser(data: unknown): data is z.infer<typeof UserBaseSchema> {
+export function isValidUser(
+  data: unknown
+): data is z.infer<typeof UserBaseSchema> {
   return UserBaseSchema.safeParse(data).success;
 }
 
-export function isValidShift(data: unknown): data is z.infer<typeof ShiftBaseSchema> {
+export function isValidShift(
+  data: unknown
+): data is z.infer<typeof ShiftBaseSchema> {
   return ShiftBaseSchema.safeParse(data).success;
 }

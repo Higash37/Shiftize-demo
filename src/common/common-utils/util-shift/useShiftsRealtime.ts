@@ -1,7 +1,53 @@
 import { useState, useEffect, useCallback } from "react";
-import { collection, query, where, onSnapshot, Unsubscribe } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  Unsubscribe,
+  DocumentData,
+} from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
 import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
+
+/**
+ * FirestoreドキュメントからShiftItemに変換するヘルパー関数
+ */
+const mapDocToShiftItem = (doc: {
+  id: string;
+  data: () => DocumentData;
+}): ShiftItem => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    userId: data["userId"] || "",
+    storeId: data["storeId"] || "",
+    nickname: data["nickname"],
+    date: data["date"],
+    startTime: data["startTime"],
+    endTime: data["endTime"],
+    type: data["type"] || "user",
+    subject: data["subject"],
+    isCompleted: data["isCompleted"] || false,
+    status: data["status"] as ShiftStatus,
+    duration: data["duration"]?.toString() || "0",
+    createdAt: data["createdAt"]?.toDate() || new Date(),
+    updatedAt: data["updatedAt"]?.toDate() || new Date(),
+    requestedChanges: data["requestedChanges"]?.map((change: unknown) => {
+      const c = change as { startTime?: string; endTime?: string };
+      return {
+        startTime: c.startTime || "",
+        endTime: c.endTime || "",
+        date: data["date"],
+        subject: data["subject"],
+      };
+    }),
+    classes: Array.isArray(data["classes"]) ? data["classes"] : [],
+    extendedTasks: Array.isArray(data["extendedTasks"])
+      ? data["extendedTasks"]
+      : [],
+  } as ShiftItem;
+};
 
 export const useShiftsRealtime = (storeId?: string) => {
   const [shifts, setShifts] = useState<ShiftItem[]>([]);
@@ -37,36 +83,8 @@ export const useShiftsRealtime = (storeId?: string) => {
           q,
           (querySnapshot) => {
             const shiftsData = querySnapshot.docs
-              .map((doc) => {
-                const data = doc.data();
-                return {
-                  id: doc.id,
-                  userId: data['userId'] || "",
-                  storeId: data['storeId'] || "",
-                  nickname: data['nickname'],
-                  date: data['date'],
-                  startTime: data['startTime'],
-                  endTime: data['endTime'],
-                  type: data['type'] || "user",
-                  subject: data['subject'],
-                  isCompleted: data['isCompleted'] || false,
-                  status: data['status'] as ShiftStatus,
-                  duration: data['duration']?.toString() || "0",
-                  createdAt: data['createdAt']?.toDate() || new Date(),
-                  updatedAt: data['updatedAt']?.toDate() || new Date(),
-                  requestedChanges: data['requestedChanges']?.map((change: any) => ({
-                    startTime: change.startTime,
-                    endTime: change.endTime,
-                    date: data['date'],
-                    subject: data['subject'],
-                  })),
-                  classes: Array.isArray(data['classes']) ? data['classes'] : [],
-                  extendedTasks: Array.isArray(data['extendedTasks'])
-                    ? data['extendedTasks']
-                    : [],
-                } as ShiftItem;
-              })
-              .filter((shift) => shift["storeId"] === storeId)
+              .map((doc) => mapDocToShiftItem(doc))
+              .filter((shift) => shift.storeId === storeId)
               .sort((a, b) => {
                 const dateCompare = a.date.localeCompare(b.date);
                 if (dateCompare === 0) {
@@ -79,13 +97,16 @@ export const useShiftsRealtime = (storeId?: string) => {
             setLoading(false);
           },
           (err) => {
-            // 認証エラーの場合は無視（ログアウト時の正常な動作）
-            if (err.code === 'permission-denied') {
+            // ⚠️ リアルタイム更新エラー: 認証エラーの場合は無視（ログアウト時の正常な動作）
+            if (err.code === "permission-denied") {
               setShifts([]);
               setLoading(false);
               return;
             }
-            // console.error("Firestore realtime error:", err);
+            // その他のエラー（ネットワークエラーなど）は記録
+            if (__DEV__) {
+              console.error("Firestore realtime error:", err);
+            }
             setError(err as Error);
             setLoading(false);
           }
@@ -93,6 +114,7 @@ export const useShiftsRealtime = (storeId?: string) => {
 
         return unsubscribe;
       } catch (err) {
+        // ⚠️ シフト取得エラー: Firestore接続エラー、クエリ構築エラー、または権限エラーの可能性があります
         setError(err as Error);
         setLoading(false);
         return null;
@@ -116,36 +138,8 @@ export const useShiftsRealtime = (storeId?: string) => {
       q,
       (querySnapshot) => {
         const shiftsData = querySnapshot.docs
-          .map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              userId: data['userId'] || "",
-              storeId: data['storeId'] || "",
-              nickname: data['nickname'],
-              date: data['date'],
-              startTime: data['startTime'],
-              endTime: data['endTime'],
-              type: data['type'] || "user",
-              subject: data['subject'],
-              isCompleted: data['isCompleted'] || false,
-              status: data['status'] as ShiftStatus,
-              duration: data['duration']?.toString() || "0",
-              createdAt: data['createdAt']?.toDate() || new Date(),
-              updatedAt: data['updatedAt']?.toDate() || new Date(),
-              requestedChanges: data['requestedChanges']?.map((change: any) => ({
-                startTime: change.startTime,
-                endTime: change.endTime,
-                date: data['date'],
-                subject: data['subject'],
-              })),
-              classes: Array.isArray(data['classes']) ? data['classes'] : [],
-              extendedTasks: Array.isArray(data['extendedTasks'])
-                ? data['extendedTasks']
-                : [],
-            } as ShiftItem;
-          })
-          .filter((shift) => shift["storeId"] === storeId)
+          .map((doc) => mapDocToShiftItem(doc))
+          .filter((shift) => shift.storeId === storeId)
           .sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);
             if (dateCompare === 0) {
@@ -158,7 +152,10 @@ export const useShiftsRealtime = (storeId?: string) => {
         setLoading(false);
       },
       (err) => {
-        // console.error("Firestore realtime error:", err);
+        // ⚠️ リアルタイム更新エラー: ネットワークエラー、権限エラー、またはデータ形式エラーの可能性があります
+        if (__DEV__) {
+          console.error("Firestore realtime error:", err);
+        }
         setError(err as Error);
         setLoading(false);
       }

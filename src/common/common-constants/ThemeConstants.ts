@@ -22,4 +22,7 @@ export const theme: ThemeType = {
 };
 
 // 個別のエクスポート
-export { colors, typography, layout, shadows };
+export { colors } from "./ColorConstants";
+export { typography } from "./TypographyConstants";
+export { layout } from "./LayoutConstants";
+export { shadows } from "./ShadowConstants";

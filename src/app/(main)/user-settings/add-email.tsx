@@ -1,3 +1,1 @@
-import { AddEmailScreen } from "@/modules/user-settings/AddEmailScreen";
-
-export default AddEmailScreen;
+export { AddEmailScreen as default } from "@/modules/user-settings/AddEmailScreen";

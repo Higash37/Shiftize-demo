@@ -23,15 +23,23 @@ export function Header({
   showBackButton = false,
   onBack,
   onPressSettings,
-}: HeaderProps) {
+}: Readonly<HeaderProps>) {
   const { signOut, user } = useAuth();
-  
+
   // FontAwesomeフォントを遅延読み込み
-  const [fontsLoaded] = useExtendedFonts();
-  
+  useExtendedFonts();
+
   const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // ユーザーが応募しているかチェックするヘルパー関数
+  const hasUserApplication = (
+    shift: RecruitmentShift,
+    userId: string
+  ): boolean => {
+    return shift.applications?.some((app) => app.userId === userId) ?? false;
+  };
 
   useEffect(() => {
     if (!user?.storeId) return;
@@ -46,13 +54,13 @@ export function Header({
       q,
       (snapshot) => {
         const shifts: RecruitmentShift[] = [];
-        snapshot.forEach((doc) => {
+        for (const doc of snapshot.docs) {
           shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
-        });
+        }
 
         // 未応募のシフト数をカウント
         const unappliedCount = shifts.filter(
-          (shift) => !shift.applications?.some((app) => app.userId === user.uid)
+          (shift) => !hasUserApplication(shift, user.uid)
         ).length;
 
         setUnreadCount(unappliedCount);
@@ -61,9 +69,7 @@ export function Header({
         // 認証エラーの場合は無視（ログアウト時の正常な動作）
         if (error.code === "permission-denied") {
           setUnreadCount(0);
-          return;
         }
-        // console.error("Header realtime error:", error);
       }
     );
 

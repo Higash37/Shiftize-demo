@@ -1,9 +1,4 @@
-import { ViewStyle } from "react-native";
-import {
-  Size,
-  Variant,
-  BaseComponentProps,
-} from "../componentTypes";
+import { Size, Variant, BaseComponentProps } from "../componentTypes";
 
 /**
  * ボタンのスタイル名

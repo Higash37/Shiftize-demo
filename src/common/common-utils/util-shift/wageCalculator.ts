@@ -4,16 +4,21 @@
 
 /**
  * 時間文字列（HH:mm）から分数に変換する
+ *
+ * @param timeString - HH:mm形式の時間文字列
+ * @returns 分数
+ * @throws TypeError 無効な時間形式の場合
  */
 export const timeStringToMinutes = (timeString: string): number => {
   const [hoursStr, minutesStr] = timeString.split(":");
   const hours = hoursStr ? Number(hoursStr) : 0;
   const minutes = minutesStr ? Number(minutesStr) : 0;
-  
-  if (isNaN(hours) || isNaN(minutes)) {
-    throw new Error("Invalid time format");
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    // ⚠️ 無効な時間形式: 時間文字列が正しいHH:mm形式でない可能性があります
+    throw new TypeError("Invalid time format");
   }
-  
+
   return hours * 60 + minutes;
 };
 
@@ -30,6 +35,13 @@ export const minutesToTimeString = (minutes: number): string => {
 
 /**
  * 2つの時間（HH:mm形式）の間の分数を計算する
+ *
+ * ⚠️ 注意: 終了時間が開始時間より前の場合（例：開始23:00、終了01:00）は翌日とみなします
+ *
+ * @param startTime - 開始時間（HH:mm形式）
+ * @param endTime - 終了時間（HH:mm形式）
+ * @returns 分数
+ * @throws TypeError 無効な時間形式の場合
  */
 export const calculateMinutesBetween = (
   startTime: string,
@@ -145,7 +157,7 @@ export const calculateWorkMinutesExcludingClasses = (
   // 各授業時間との重複分を計算して除外
   let totalOverlapMinutes = 0;
 
-  classes.forEach((classTime) => {
+  for (const classTime of classes) {
     // 授業時間がシフト時間と重複しているか確認
     if (
       isTimeOverlapping(
@@ -164,7 +176,7 @@ export const calculateWorkMinutesExcludingClasses = (
       );
       totalOverlapMinutes += overlapMinutes;
     }
-  });
+  }
 
   // シフト時間から重複時間を引いた分数を返す
   return totalShiftMinutes - totalOverlapMinutes;
@@ -192,9 +204,6 @@ export const calculateTotalWage = (
   );
   const workWage = calculateWage(hourlyWage, workMinutes);
 
-  // シフト全体の時間（参考値）
-  const shiftMinutes = calculateMinutesBetween(shift.startTime, shift.endTime);
-
   const details = [
     {
       type: "シフト（授業除外後）",
@@ -205,9 +214,7 @@ export const calculateTotalWage = (
 
   // 授業時間がある場合、その詳細も追加（参考情報として）
   if (shift.classes && shift.classes.length > 0) {
-    let totalClassMinutes = 0;
-
-    shift.classes.forEach((classTime) => {
+    for (const classTime of shift.classes) {
       // シフト時間内に収まる授業時間のみを考慮
       if (
         isTimeOverlapping(
@@ -223,7 +230,6 @@ export const calculateTotalWage = (
           classTime.startTime,
           classTime.endTime
         );
-        totalClassMinutes += classMinutes;
 
         details.push({
           type: "授業（除外）",
@@ -231,7 +237,7 @@ export const calculateTotalWage = (
           wage: 0, // 授業時間は給与計算に含めない
         });
       }
-    });
+    }
   }
 
   return {
