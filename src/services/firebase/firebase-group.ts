@@ -4,7 +4,13 @@
  * 新規グループの作成とグループ参加機能を提供します。
  */
 
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  getIdToken,
+} from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { AESEncryption } from "@/common/common-utils/security/encryptionUtils";
 
@@ -31,8 +37,41 @@ export interface GroupCreationResult {
   success: boolean;
   storeId: string;
   adminUid: string;
+  adminEmail?: string; // 管理者のメールアドレス
   message: string;
 }
+
+// メール自動生成: {storeId}{nickname}@example.com (マスター・ユーザー共通)
+// 例: 店舗ID「8117」、ニックネーム「いちご」 → 8117いちご@example.com
+const buildGeneratedEmail = (
+  storeId: string,
+  nickname: string,
+  role: "master" | "user"
+): string => {
+  return `${storeId}${nickname}@example.com`;
+};
+
+const createUserWithFallbackEmail = async (
+  storeId: string,
+  nickname: string,
+  role: "master" | "user",
+  password: string
+): Promise<{ user: any; email: string }> => {
+  let email = buildGeneratedEmail(storeId, nickname, role);
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    return { user: credential.user, email };
+  } catch (error: any) {
+    if (error?.code === "auth/email-already-in-use") {
+      // リトライ時は数字サフィックスを追加
+      const retryNickname = `${nickname}${Date.now()}`;
+      email = buildGeneratedEmail(storeId, retryNickname, role);
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      return { user: credential.user, email };
+    }
+    throw error;
+  }
+};
 
 /**
  * グループ管理サービス
@@ -88,31 +127,72 @@ export const GroupService = {
    */
   createGroup: async (data: CreateGroupData): Promise<GroupCreationResult> => {
     try {
+      console.log("🔵 createGroup started with data:", data);
+
       // 1. 店舗IDの重複チェック
+      console.log("🔍 Checking if store ID exists...");
       const storeIdExists = await GroupService.checkStoreIdExists(data.storeId);
+      console.log("📊 Store ID exists:", storeIdExists);
 
       if (storeIdExists) {
         throw new Error("この店舗IDは既に使用されています");
       }
 
       // 2. 管理者用のメールアドレス（実際のメールまたは自動生成）
-      const adminEmail = data.adminEmail || `${data.storeId}${data.adminNickname}@example.com`;
+      // 形式: {storeId}{adminNickname}@example.com (例: 8117いちご@example.com)
+      const adminEmailRequested =
+        data.adminEmail ||
+        buildGeneratedEmail(data.storeId, data.adminNickname, "master");
+      console.log("📧 Admin email:", adminEmailRequested);
 
       // 3. Firebase Authで管理者アカウントを作成
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        adminEmail,
+      console.log("👤 Creating Firebase Auth user...");
+      const { user: adminUser, email: adminEmail } = await createUserWithFallbackEmail(
+        data.storeId,
+        data.adminNickname,
+        "master",
         data.adminPassword
       );
+      console.log("✅ User created with UID:", adminUser.uid, "email:", adminEmail);
 
-      const adminUser = userCredential.user;
+      // 4. 認証状態が反映されるまで待機
+      console.log("⏳ Waiting for auth state to be reflected...");
+      await new Promise<void>((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(
+          auth,
+          (firebaseUser) => {
+            if (firebaseUser && firebaseUser.uid === adminUser.uid) {
+              unsubscribe();
+              resolve();
+            }
+          },
+          (error) => {
+            unsubscribe();
+            reject(error);
+          }
+        );
+        // タイムアウト設定（5秒）
+        setTimeout(() => {
+          unsubscribe();
+          resolve(); // タイムアウトしても続行
+        }, 5000);
+      });
+      console.log("✅ Auth state reflected");
+      // トークン未発行で request.auth が null になるケースを防ぐ
+      await getIdToken(adminUser, true);
+      // 念のため再サインインして Firestore に確実に認証を反映
+      await signInWithEmailAndPassword(auth, adminEmail, data.adminPassword);
+      console.log("🔐 Auth re-validated for Firestore writes. currentUser:", auth.currentUser?.uid);
 
-      // 4. プロフィールを更新（ニックネーム設定）
+      // 5. プロフィールを更新（ニックネーム設定）
+      console.log("📝 Updating user profile...");
       await updateProfile(adminUser, {
         displayName: data.adminNickname,
       });
+      console.log("✅ Profile updated");
 
-      // 5. storesコレクションにグループ情報を保存
+      // 6. storesコレクションにグループ情報を保存
+      console.log("🏪 Creating store document...");
       await setDoc(doc(db, "stores", data.storeId), {
         storeName: data.groupName,
         storeId: data.storeId,
@@ -122,8 +202,10 @@ export const GroupService = {
         updatedAt: serverTimestamp(),
         isActive: true,
       });
+      console.log("✅ Store document created");
 
-      // 6. usersコレクションに管理者情報を保存（パスワードハッシュ化）
+      // 7. usersコレクションに管理者情報を保存（パスワードハッシュ化）
+      console.log("👥 Creating user document...");
       const hashedPassword = AESEncryption.hashPassword(data.adminPassword);
       await setDoc(doc(db, "users", adminUser.uid), {
         uid: adminUser.uid,
@@ -131,15 +213,19 @@ export const GroupService = {
         email: adminEmail,
         role: "master",
         hashedPassword: hashedPassword, // 🔒 ハッシュ化されたパスワード
+        currentPassword: data.adminPassword, // 平文パスワード（既存システムとの互換性のため）
         storeId: data.storeId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isActive: true,
       });
+      console.log("✅ User document created");
 
-      // 7. 初期メンバーを作成（もしあれば）
+      // 8. 初期メンバーを作成（もしあれば）
       if (data.initialMembers && data.initialMembers.length > 0) {
+        let memberIndex = 0;
         for (const member of data.initialMembers) {
+          memberIndex += 1;
           try {
             // バリデーション
             if (
@@ -150,17 +236,14 @@ export const GroupService = {
               continue;
             }
 
-            // メンバー用のメールアドレス生成（店舗ID + ニックネームの順でユニークにする）
-            const memberEmail = `${data.storeId}${member.nickname}@example.com`;
-
-            // Firebase Authでメンバーアカウント作成
-            const memberCredential = await createUserWithEmailAndPassword(
-              auth,
-              memberEmail,
+            // メンバー用のメールアドレス生成
+            // 形式: {storeId}{nickname}@example.com (例: 8117三橋@example.com)
+            const { user: memberUser, email: memberEmail } = await createUserWithFallbackEmail(
+              data.storeId,
+              member.nickname,
+              member.role,
               member.password
             );
-
-            const memberUser = memberCredential.user;
 
             // プロフィール更新
             await updateProfile(memberUser, {
@@ -175,6 +258,7 @@ export const GroupService = {
               email: memberEmail,
               role: member.role,
               hashedPassword: memberHashedPassword, // 🔒 ハッシュ化されたパスワード
+              currentPassword: member.password, // 平文パスワード（既存システムとの互換性のため）
               color: member.color,
               hourlyWage: member.hourlyWage || null,
               storeId: data.storeId,
@@ -186,12 +270,22 @@ export const GroupService = {
             // 個別のメンバー作成失敗は全体の失敗にしない
           }
         }
+
+        // メンバー作成でセッションが切り替わるため、管理者に戻しておく
+        if (!auth.currentUser || auth.currentUser.uid !== adminUser.uid) {
+          try {
+            await signInWithEmailAndPassword(auth, adminEmail, data.adminPassword);
+          } catch (restoreError) {
+            console.warn("⚠️ Failed to restore admin session:", restoreError);
+          }
+        }
       }
 
       return {
         success: true,
         storeId: data.storeId,
         adminUid: adminUser.uid,
+        adminEmail: adminEmail, // 実際に作成されたメールアドレス
         message: "グループが正常に作成されました",
       };
     } catch (error: any) {

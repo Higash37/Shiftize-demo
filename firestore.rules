@@ -10,9 +10,12 @@ service cloud.firestore {
     function hasAccessToStore(storeId) {
       // 🔒 セキュア化：カスタムトークンベース（get()完全排除）
       // ✅ SECURITY: 追加の検証層
+      // 新規ユーザー（カスタムクレームなし）の場合はfalseを返す
       return isAuthenticated() &&
              storeId != null &&
              storeId != "" &&
+             // カスタムクレームが存在する場合のみチェック
+             request.auth.token.storeId != null &&
              (request.auth.token.storeId == storeId ||
              (request.auth.token.storesAccess != null && 
               storeId in request.auth.token.storesAccess &&
@@ -30,8 +33,21 @@ service cloud.firestore {
     // 新規教室（store）作成の管理
     function canCreateNewStore() {
       // 認証されたユーザーで、まだどの店舗にも属していない
-      return isAuthenticated() && 
-             (request.auth.token.storeId == null || request.auth.token.storeId == "");
+      // 🔒 SECURITY: 新規作成ユーザーはカスタムクレームを持たないため、認証のみチェック
+      // 新規ユーザーはカスタムクレーム（storeId, role等）を持たないため、
+      // トークンの有無に関わらず認証されていれば許可
+      // 注意: Firestoreルールでは存在しないプロパティはnullを返すため、
+      // storeIdがnullまたは空文字列の場合を新規ユーザーとみなす
+      // ただし、存在しないプロパティにアクセスするとエラーになる可能性があるため、
+      // より安全な方法として、認証されているユーザーがadminUidとして自分自身を設定する場合のみ許可
+      // これにより、新規ユーザーでも確実にストアを作成できる
+      // 新規ユーザーはカスタムクレームを持たないため、storeIdが存在しないかnullの場合を許可
+      return isAuthenticated() &&
+             // カスタムクレームがない場合（新規ユーザー）を許可
+             // request.auth.token 自体がnullになるケースも許可
+             ((request.auth.token == null) ||
+              request.auth.token.storeId == null || 
+              request.auth.token.storeId == "");
     }
 
     // ユーザー管理 - 店舗分離 + 権限制御
@@ -53,27 +69,25 @@ service cloud.firestore {
         // storeIdでフィルタされたクエリのみ許可
         resource.data.storeId == request.auth.token.storeId &&
         hasAccessToStore(request.auth.token.storeId);
-      
-      // 作成: 認証されたマスターユーザーが作成可能 OR 新規教室作成
-      allow create: if isAuthenticated() && 
+
+      // 作成: 認証されたマスターユーザーが作成可能 OR 新規グループ作成
+      allow create: if isAuthenticated() &&
+        request.resource.data.uid == userId &&
         request.resource.data.storeId != null &&
         request.resource.data.storeId != "" &&
-        // 🔒 SECURITY: 必須フィールドの検証
         request.resource.data.nickname != null &&
         request.resource.data.email != null &&
         request.resource.data.role in ["master", "user"] &&
-        // ⚠️ Legacy: currentPassword を保存 (移行中)
         (
           // 既存マスターが作成
           (request.auth.token.role == "master" &&
-           hasAccessToStore(request.resource.data.storeId))
-          ||
-          // 新規教室作成（マスターユーザー）
-          (request.auth.uid == userId && 
+           hasAccessToStore(request.resource.data.storeId)) ||
+          // 新規グループ作成（マスターユーザー）
+          (request.auth.uid == userId &&
            request.resource.data.role == "master" &&
            canCreateNewStore())
         );
-      
+
       // 更新: 本人またはマスター（同一店舗）
       allow update: if isAuthenticated() && 
         // ⚠️ Legacy: currentPassword を保存 (移行中)
@@ -96,9 +110,20 @@ service cloud.firestore {
 
     // 店舗情報 - 新規作成を許可
     match /stores/{storeId} {
-      allow read: if hasAccessToStore(storeId);
-      allow create: if isAuthenticated() && 
-        (canCreateNewStore() || isMasterOfStore(storeId));
+      // get: 店舗IDの存在確認用（未認証でも許可 - 新規グループ作成時の重複チェック用）
+      allow get: if true;
+
+      // list: 認証済みユーザーのみ
+      allow list: if hasAccessToStore(storeId);
+
+      // 作成: 新規グループ作成時のみ許可（管理者が自分自身をadminUidとして設定）
+      allow create: if isAuthenticated() &&
+        request.resource.data.adminUid == request.auth.uid &&
+        request.resource.data.storeId == storeId &&
+        request.resource.data.storeName != null &&
+        request.resource.data.isActive == true &&
+        canCreateNewStore();
+
       allow update, delete: if isMasterOfStore(storeId);
     }
 

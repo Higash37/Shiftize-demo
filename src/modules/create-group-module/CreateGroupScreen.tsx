@@ -23,6 +23,8 @@ import {
   type InitialMember as GroupInitialMember,
 } from "@/services/firebase/firebase-group";
 import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker.constants";
+import { useAuth } from "@/services/auth/useAuth";
+import { Routes } from "@/common/common-constants/RouteConstants";
 
 interface GroupCreationForm {
   groupName: string;
@@ -45,6 +47,7 @@ export const CreateGroupScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const isWeb = Platform.OS === "web";
   const isDesktop = isWeb && width > 768;
+  const { signIn } = useAuth();
 
   const [form, setForm] = useState<GroupCreationForm>({
     groupName: "",
@@ -232,13 +235,20 @@ export const CreateGroupScreen: React.FC = () => {
   };
 
   const handleCreateGroup = async () => {
-    if (!validateForm()) return;
+    console.log("🔵 handleCreateGroup called");
+    if (!validateForm()) {
+      console.log("❌ Validation failed");
+      return;
+    }
 
+    console.log("✅ Validation passed");
     setLoading(true);
     try {
       const currentStoreId = getCurrentStoreId();
+      console.log("🏪 Store ID:", currentStoreId);
 
       // Firebase を使用してグループを作成
+      console.log("🚀 Calling GroupService.createGroup...");
       const result = await GroupService.createGroup({
         groupName: form.groupName,
         storeId: currentStoreId,
@@ -259,35 +269,47 @@ export const CreateGroupScreen: React.FC = () => {
             : [],
       });
 
+      console.log("📦 Result:", result);
+
       if (result.success) {
-        // 成功画面に遷移（パラメーターを渡す）
-        router.replace({
-          pathname: "/(auth)/create-group/success",
-          params: {
-            groupName: form.groupName,
-            storeId: result.storeId,
-            memberCount: initialMembers.length.toString(),
-            adminNickname: form.adminNickname,
-            adminPassword: form.adminPassword,
-            membersData: JSON.stringify(
-              initialMembers.map((member) => ({
-                nickname: member.nickname,
-                password: member.password,
-                role: member.role,
-                color: member.color,
-              }))
-            ),
-          },
-        });
+        console.log("✅ Group creation successful, navigating...");
+
+        try {
+          // 管理者として自動ログイン（secureLogin経由でカスタムトークン取得）
+          console.log("🔐 Auto-login as master...");
+          const adminEmail = result.adminEmail || `${result.storeId}-admin@example.com`;
+          console.log("📧 Admin email for login:", adminEmail);
+          await signIn(adminEmail, form.adminPassword, result.storeId);
+          console.log("✅ Auto-login successful");
+
+          // マスターホーム画面に遷移
+          router.replace(Routes.main.master.home);
+        } catch (loginError) {
+          console.error("❌ Auto-login failed:", loginError);
+          // ログインに失敗した場合、手動ログインを促す
+          Alert.alert(
+            "グループ作成成功",
+            `グループが作成されました。\n\n店舗ID: ${result.storeId}\n管理者: ${form.adminNickname}\n\nログイン画面から店舗IDとパスワードでログインしてください。`,
+            [
+              {
+                text: "OK",
+                onPress: () => router.replace(Routes.auth.login),
+              },
+            ]
+          );
+        }
       } else {
+        console.log("❌ Group creation failed:", result.message);
         Alert.alert("エラー", result.message);
       }
     } catch (error) {
+      console.error("💥 Error in handleCreateGroup:", error);
       Alert.alert(
         "エラー",
         "グループの作成に失敗しました。再度お試しください。"
       );
     } finally {
+      console.log("🏁 setLoading(false)");
       setLoading(false);
     }
   };
