@@ -57,7 +57,6 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@eslint/js": "^9.24.0",
-    "@playwright/test": "1.54.2",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "24.1.0",
     "@types/react": "~19.1.12",
