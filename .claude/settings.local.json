@@ -57,11 +57,22 @@
       "Bash(gh issue create:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)"
     ],
-    "deny": ["Bash(npm run dev:*)"],
+    "deny": [
+      "Bash(npm run dev:*)"
+    ],
     "defaultMode": "acceptEdits"
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright", "firebase", "filesystem", "git"]
+  "enabledMcpjsonServers": [
+    "playwright",
+    "firebase",
+    "filesystem",
+    "git",
+    "sonarqube",
+    "serena"
+  ]
 }

@@ -13,7 +13,6 @@ import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
@@ -130,7 +129,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     borderBottomLeftRadius: layout.borderRadius.large,
     borderBottomRightRadius: layout.borderRadius.large,
-    minHeight: Platform.OS === "web" ? 120 : undefined, // PWA時の固定高さ
+    minHeight: Platform.OS === "web" ? 80 : undefined, // PWA時の固定高さ
   },
   headerContainer: {
     flexDirection: "row",
