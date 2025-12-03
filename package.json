@@ -1,5 +1,5 @@
 {
-  "name": "shift-scheduler-app",
+  "name": "Shiftize",
   "version": "1.2.0",
   "main": "expo-router/entry",
   "scripts": {

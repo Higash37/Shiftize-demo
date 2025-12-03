@@ -1,0 +1,363 @@
+[1mdiff --git a/.claude/settings.local.json b/.claude/settings.local.json[m
+[1mindex 86923b8..c92d963 100644[m
+[1m--- a/.claude/settings.local.json[m
+[1m+++ b/.claude/settings.local.json[m
+[36m@@ -57,11 +57,20 @@[m
+       "Bash(gh issue create:*)",[m
+       "Bash(git checkout:*)",[m
+       "Bash(git add:*)",[m
+[31m-      "Bash(git push:*)"[m
+[32m+[m[32m      "Bash(git push:*)",[m
+[32m+[m[32m      "Bash(git commit:*)",[m
+[32m+[m[32m      "Bash(git pull:*)"[m
+[32m+[m[32m    ],[m
+[32m+[m[32m    "deny": [[m
+[32m+[m[32m      "Bash(npm run dev:*)"[m
+     ],[m
+[31m-    "deny": ["Bash(npm run dev:*)"],[m
+     "defaultMode": "acceptEdits"[m
+   },[m
+   "enableAllProjectMcpServers": true,[m
+[31m-  "enabledMcpjsonServers": ["playwright", "firebase", "filesystem", "git"][m
+[32m+[m[32m  "enabledMcpjsonServers": [[m
+[32m+[m[32m    "playwright",[m
+[32m+[m[32m    "firebase",[m
+[32m+[m[32m    "filesystem",[m
+[32m+[m[32m    "git"[m
+[32m+[m[32m  ][m
+ }[m
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex d38927d..d243e5c 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -1,5 +1,5 @@[m
+ {[m
+[31m-  "name": "shift-scheduler-app",[m
+[32m+[m[32m  "name": "Shiftize",[m
+   "version": "1.2.0",[m
+   "lockfileVersion": 3,[m
+   "requires": true,[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 828cb74..da9f9b6 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -1,5 +1,5 @@[m
+ {[m
+[31m-  "name": "shift-scheduler-app",[m
+[32m+[m[32m  "name": "Shiftize",[m
+   "version": "1.2.0",[m
+   "main": "expo-router/entry",[m
+   "scripts": {[m
+[1mdiff --git a/playwright.config.ts b/playwright.config.ts[m
+[1mdeleted file mode 100644[m
+[1mindex 98c0705..0000000[m
+[1m--- a/playwright.config.ts[m
+[1m+++ /dev/null[m
+[36m@@ -1,76 +0,0 @@[m
+[31m-import { defineConfig, devices } from '@playwright/test';[m
+[31m-[m
+[31m-/**[m
+[31m- * Read environment variables from file.[m
+[31m- * https://github.com/motdotla/dotenv[m
+[31m- */[m
+[31m-[m
+[31m-/**[m
+[31m- * See https://playwright.dev/docs/test-configuration.[m
+[31m- */[m
+[31m-export default defineConfig({[m
+[31m-  testDir: './tests',[m
+[31m-  /* Run tests in files in parallel */[m
+[31m-  fullyParallel: true,[m
+[31m-  /* Fail the build on CI if you accidentally left test.only in the source code. */[m
+[31m-  forbidOnly: !!process.env['CI'],[m
+[31m-  /* Retry on CI only */[m
+[31m-  retries: process.env['CI'] ? 2 : 0,[m
+[31m-  /* Opt out of parallel tests on CI. */[m
+[31m-  ...(process.env['CI'] ? { workers: 1 } : {}),[m
+[31m-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */[m
+[31m-  reporter: 'html',[m
+[31m-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */[m
+[31m-  use: {[m
+[31m-    /* Base URL to use in actions like `await page.goto('/')`. */[m
+[31m-    // baseURL: 'http://localhost:3000',[m
+[31m-[m
+[31m-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */[m
+[31m-    trace: 'on-first-retry',[m
+[31m-  },[m
+[31m-[m
+[31m-  /* Configure projects for major browsers */[m
+[31m-  projects: [[m
+[31m-    {[m
+[31m-      name: 'chromium',[m
+[31m-      use: { ...devices['Desktop Chrome'] },[m
+[31m-    },[m
+[31m-[m
+[31m-    {[m
+[31m-      name: 'firefox',[m
+[31m-      use: { ...devices['Desktop Firefox'] },[m
+[31m-    },[m
+[31m-[m
+[31m-    {[m
+[31m-      name: 'webkit',[m
+[31m-      use: { ...devices['Desktop Safari'] },[m
+[31m-    },[m
+[31m-[m
+[31m-    /* Test against mobile viewports. */[m
+[31m-    // {[m
+[31m-    //   name: 'Mobile Chrome',[m
+[31m-    //   use: { ...devices['Pixel 5'] },[m
+[31m-    // },[m
+[31m-    // {[m
+[31m-    //   name: 'Mobile Safari',[m
+[31m-    //   use: { ...devices['iPhone 12'] },[m
+[31m-    // },[m
+[31m-[m
+[31m-    /* Test against branded browsers. */[m
+[31m-    // {[m
+[31m-    //   name: 'Microsoft Edge',[m
+[31m-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },[m
+[31m-    // },[m
+[31m-    // {[m
+[31m-    //   name: 'Google Chrome',[m
+[31m-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },[m
+[31m-    // },[m
+[31m-  ],[m
+[31m-[m
+[31m-  /* Run your local dev server before starting the tests */[m
+[31m-  // webServer: {[m
+[31m-  //   command: 'npm run start',[m
+[31m-  //   url: 'http://localhost:3000',[m
+[31m-  //   reuseExistingServer: !process.env['CI'],[m
+[31m-  // },[m
+[31m-});[m
+[1mdiff --git a/src/common/common-constants/LayoutConstants.ts b/src/common/common-constants/LayoutConstants.ts[m
+[1mindex 44881de..c032d75 100644[m
+[1m--- a/src/common/common-constants/LayoutConstants.ts[m
+[1m+++ b/src/common/common-constants/LayoutConstants.ts[m
+[36m@@ -45,7 +45,7 @@[m [mexport const layout: LayoutType = {[m
+   padding: {[m
+     small: 8,[m
+     medium: 16,[m
+[31m-    large: 24,[m
+[32m+[m[32m    large: 10,[m
+     xlarge: 32,[m
+   },[m
+   borderRadius: {[m
+[1mdiff --git a/src/common/common-ui/ui-layout/LayoutFooter.styles.ts b/src/common/common-ui/ui-layout/LayoutFooter.styles.ts[m
+[1mindex ed5199d..756a58a 100644[m
+[1m--- a/src/common/common-ui/ui-layout/LayoutFooter.styles.ts[m
+[1m+++ b/src/common/common-ui/ui-layout/LayoutFooter.styles.ts[m
+[36m@@ -16,16 +16,17 @@[m [mexport const styles = StyleSheet.create({[m
+     borderTopRightRadius: 16,[m
+     justifyContent: "space-around", // タブを均等に配置[m
+     alignItems: "center", // 縦方向の中央揃え[m
+[31m-    minHeight: 60, // 最小高さを保証[m
+[32m+[m[32m    minHeight: 40, // 最小高さを保証[m
+     paddingHorizontal: 12, // 左右の余白[m
+[31m-    paddingVertical: 6,[m
+[31m-    ...(Platform.OS === "web" && ({[m
+[31m-      position: "relative" as any,[m
+[31m-      bottom: 0,[m
+[31m-      left: 0,[m
+[31m-      right: 0,[m
+[31m-      backdropFilter: "blur(18px)",[m
+[31m-    } as any)),[m
+[32m+[m[32m    paddingVertical: 2,[m
+[32m+[m[32m    ...(Platform.OS === "web" &&[m
+[32m+[m[32m      ({[m
+[32m+[m[32m        position: "relative" as any,[m
+[32m+[m[32m        bottom: 0,[m
+[32m+[m[32m        left: 0,[m
+[32m+[m[32m        right: 0,[m
+[32m+[m[32m        backdropFilter: "blur(18px)",[m
+[32m+[m[32m      } as any)),[m
+   },[m
+   tab: {[m
+     flex: 1,[m
+[1mdiff --git a/src/common/common-ui/ui-layout/LayoutHeader.styles.ts b/src/common/common-ui/ui-layout/LayoutHeader.styles.ts[m
+[1mindex f5ec8c8..f0d347b 100644[m
+[1m--- a/src/common/common-ui/ui-layout/LayoutHeader.styles.ts[m
+[1m+++ b/src/common/common-ui/ui-layout/LayoutHeader.styles.ts[m
+[36m@@ -6,40 +6,41 @@[m [mexport const styles = StyleSheet.create({[m
+     flexDirection: "row",[m
+     justifyContent: "space-between",[m
+     alignItems: "center",[m
+[31m-    padding: 12,[m
+[32m+[m[32m    padding: 5,[m[41m[m
+     backgroundColor: colors.header.background,[m
+     borderBottomWidth: StyleSheet.hairlineWidth,[m
+     borderBottomColor: colors.header.separator,[m
+     position: "relative",[m
+     zIndex: 10,[m
+     elevation: 4,[m
+[31m-    ...(Platform.OS === "web" && ({[m
+[31m-      backdropFilter: "blur(18px)",[m
+[31m-    } as any)),[m
+[32m+[m[32m    ...(Platform.OS === "web" &&[m[41m[m
+[32m+[m[32m      ({[m[41m[m
+[32m+[m[32m        backdropFilter: "blur(18px)",[m[41m[m
+[32m+[m[32m      } as any)),[m[41m[m
+     width: "100%", // ヘッダーを画面幅いっぱいに[m
+     borderBottomLeftRadius: 16,[m
+     borderBottomRightRadius: 16,[m
+   },[m
+[31m-  headerCompact: {[m
+[31m-    paddingHorizontal: 8,[m
+[31m-    paddingVertical: 8,[m
+[31m-  },[m
+[32m+[m[32m  headerCompact: {[m[41m[m
+[32m+[m[32m    paddingHorizontal: 8,[m[41m[m
+[32m+[m[32m    paddingVertical: 8,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+   leftContainer: {[m
+     flexDirection: "row",[m
+     alignItems: "center",[m
+     flex: 1,[m
+   },[m
+[31m-  leftContainerCompact: {[m
+[31m-    marginRight: 8,[m
+[31m-  },[m
+[32m+[m[32m  leftContainerCompact: {[m[41m[m
+[32m+[m[32m    marginRight: 8,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+   rightContainer: {[m
+     flexDirection: "row",[m
+     alignItems: "center",[m
+     gap: 8,[m
+   },[m
+[31m-  rightContainerCompact: {[m
+[31m-    gap: 4,[m
+[31m-  },[m
+[32m+[m[32m  rightContainerCompact: {[m[41m[m
+[32m+[m[32m    gap: 4,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+   backButton: {[m
+     padding: 8,[m
+     marginRight: 8,[m
+[36m@@ -58,34 +59,34 @@[m [mexport const styles = StyleSheet.create({[m
+   serviceIntroButton: {[m
+     padding: 8,[m
+   },[m
+[31m-  compactActionButton: {[m
+[31m-    paddingHorizontal: 6,[m
+[31m-    paddingVertical: 6,[m
+[31m-  },[m
+[32m+[m[32m  compactActionButton: {[m[41m[m
+[32m+[m[32m    paddingHorizontal: 6,[m[41m[m
+[32m+[m[32m    paddingVertical: 6,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+   // 店舗切り替え関連のスタイル[m
+[31m-  storeButton: {[m
+[31m-    flexDirection: "row",[m
+[31m-    alignItems: "center",[m
+[31m-    backgroundColor: colors.primary,[m
+[31m-    paddingHorizontal: 12,[m
+[31m-    paddingVertical: 6,[m
+[31m-    borderRadius: 8,[m
+[31m-    gap: 4,[m
+[31m-    flexShrink: 1,[m
+[31m-  },[m
+[31m-  storeButtonCompact: {[m
+[31m-    paddingHorizontal: 10,[m
+[31m-    paddingVertical: 4,[m
+[31m-  },[m
+[31m-  storeButtonText: {[m
+[31m-    color: colors.text.white,[m
+[31m-    fontSize: 14,[m
+[31m-    fontWeight: "600",[m
+[31m-    flexShrink: 1,[m
+[31m-  },[m
+[31m-  storeButtonTextCompact: {[m
+[31m-    fontSize: 12,[m
+[31m-  },[m
+[32m+[m[32m  storeButton: {[m[41m[m
+[32m+[m[32m    flexDirection: "row",[m[41m[m
+[32m+[m[32m    alignItems: "center",[m[41m[m
+[32m+[m[32m    backgroundColor: colors.primary,[m[41m[m
+[32m+[m[32m    paddingHorizontal: 12,[m[41m[m
+[32m+[m[32m    paddingVertical: 6,[m[41m[m
+[32m+[m[32m    borderRadius: 8,[m[41m[m
+[32m+[m[32m    gap: 4,[m[41m[m
+[32m+[m[32m    flexShrink: 1,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+[32m+[m[32m  storeButtonCompact: {[m[41m[m
+[32m+[m[32m    paddingHorizontal: 10,[m[41m[m
+[32m+[m[32m    paddingVertical: 4,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+[32m+[m[32m  storeButtonText: {[m[41m[m
+[32m+[m[32m    color: colors.text.white,[m[41m[m
+[32m+[m[32m    fontSize: 14,[m[41m[m
+[32m+[m[32m    fontWeight: "600",[m[41m[m
+[32m+[m[32m    flexShrink: 1,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+[32m+[m[32m  storeButtonTextCompact: {[m[41m[m
+[32m+[m[32m    fontSize: 12,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+   kanbanButton: {[m
+     padding: 8,[m
+     marginRight: 4,[m
+[36m@@ -194,4 +195,3 @@[m [mexport const styles = StyleSheet.create({[m
+     marginTop: 2,[m
+   },[m
+ });[m
+[31m-[m
+[1mdiff --git a/src/modules/master-view/masterHome/MasterHomeView.styles.ts b/src/modules/master-view/masterHome/MasterHomeView.styles.ts[m
+[1mindex 31e7990..bd20f3e 100644[m
+[1m--- a/src/modules/master-view/masterHome/MasterHomeView.styles.ts[m
+[1m+++ b/src/modules/master-view/masterHome/MasterHomeView.styles.ts[m
+[36m@@ -18,9 +18,9 @@[m [mexport const masterHomeViewStyles = StyleSheet.create({[m
+     alignItems: "center",[m
+     justifyContent: "center",[m
+     alignSelf: "center",[m
+[31m-    marginTop: IS_TABLET ? 40 : 20,[m
+[31m-    marginBottom: IS_TABLET ? 40 : 20,[m
+[31m-    minHeight: 320, // 高さバグ対策[m
+[32m+[m[32m    marginTop: IS_TABLET ? 40 : 10,[m
+[32m+[m[32m    marginBottom: IS_TABLET ? 40 : 10,[m
+[32m+[m[32m    minHeight: 250, // 高さバグ対策[m
+   },[m
+   title: {[m
+     fontSize: IS_TABLET ? 32 : theme.typography.fontSize.large,[m
+[1mdiff --git a/src/modules/welcome-module/WelcomeScreen.tsx b/src/modules/welcome-module/WelcomeScreen.tsx[m
+[1mindex d8c6187..dcc29b0 100644[m
+[1m--- a/src/modules/welcome-module/WelcomeScreen.tsx[m
+[1m+++ b/src/modules/welcome-module/WelcomeScreen.tsx[m
+[36m@@ -13,7 +13,6 @@[m [mimport { AntDesign } from "@expo/vector-icons";[m
+ import { colors } from "@/common/common-constants/ColorConstants";[m
+ import { typography } from "@/common/common-constants/TypographyConstants";[m
+ import { layout } from "@/common/common-constants/LayoutConstants";[m
+[31m-import { shadows } from "@/common/common-constants/ShadowConstants";[m
+ import Button from "@/common/common-ui/ui-forms/FormButton";[m
+ import Box from "@/common/common-ui/ui-base/BoxComponent";[m
+ import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";[m
+[36m@@ -130,7 +129,7 @@[m [mconst styles = StyleSheet.create({[m
+     borderTopRightRadius: 0,[m
+     borderBottomLeftRadius: layout.borderRadius.large,[m
+     borderBottomRightRadius: layout.borderRadius.large,[m
+[31m-    minHeight: Platform.OS === "web" ? 120 : undefined, // PWA時の固定高さ[m
+[32m+[m[32m    minHeight: Platform.OS === "web" ? 80 : undefined, // PWA時の固定高さ[m
+   },[m
+   headerContainer: {[m
+     flexDirection: "row",[m
+[1mdiff --git a/temp_package.json b/temp_package.json[m
+[1mindex 81320f0..55b81b5 100644[m
+[1m--- a/temp_package.json[m
+[1m+++ b/temp_package.json[m
+[36m@@ -1,5 +1,5 @@[m
+ {[m
+[31m-  "name": "shift-scheduler-app",[m
+[32m+[m[32m  "name": "Shiftize",[m[41m[m
+   "version": "1.1.0",[m
+   "main": "expo-router/entry",[m
+   "scripts": {[m
+[1mdiff --git a/tsconfig.json b/tsconfig.json[m
+[1mindex 0d43111..0193ffd 100644[m
+[1m--- a/tsconfig.json[m
+[1m+++ b/tsconfig.json[m
+[36m@@ -37,5 +37,5 @@[m
+     "**/*.tsx",[m
+     "src/common/common-utils/util-shift/useShift"[m
+   ],[m
+[31m-  "exclude": ["functions/**/*"][m
+[32m+[m[32m  "exclude": ["functions/**/*", "playwright.config.ts"][m
+ }[m

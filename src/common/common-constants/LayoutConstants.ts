@@ -45,7 +45,7 @@ export const layout: LayoutType = {
   padding: {
     small: 8,
     medium: 16,
-    large: 24,
+    large: 10,
     xlarge: 32,
   },
   borderRadius: {

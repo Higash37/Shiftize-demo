@@ -6,16 +6,17 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: 5,
     backgroundColor: colors.header.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.header.separator,
     position: "relative",
     zIndex: 10,
     elevation: 4,
-    ...(Platform.OS === "web" && ({
-      backdropFilter: "blur(18px)",
-    } as any)),
+    ...(Platform.OS === "web" &&
+      ({
+        backdropFilter: "blur(18px)",
+      } as any)),
     width: "100%", // ヘッダーを画面幅いっぱいに
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
@@ -194,4 +195,3 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-

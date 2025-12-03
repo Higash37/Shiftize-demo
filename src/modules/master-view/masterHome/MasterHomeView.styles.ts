@@ -18,9 +18,9 @@ export const masterHomeViewStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
-    marginTop: IS_TABLET ? 40 : 20,
-    marginBottom: IS_TABLET ? 40 : 20,
-    minHeight: 320, // 高さバグ対策
+    marginTop: IS_TABLET ? 40 : 10,
+    marginBottom: IS_TABLET ? 40 : 10,
+    minHeight: 250, // 高さバグ対策
   },
   title: {
     fontSize: IS_TABLET ? 32 : theme.typography.fontSize.large,
