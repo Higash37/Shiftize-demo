@@ -45,18 +45,26 @@ export const DayComponent = memo<DayComponentPropsExtended>(
           styles.dayContainer,
           dynamicStyles.dayContainer,
           {
-            // 最左列（日曜）は縦線なし、それ以外は縦線
+            // 選択中はすべての境界線を0にして、白い線が表示されないようにする
             borderLeftWidth:
-              date &&
-              date.dateString &&
-              new Date(date.dateString).getDay() === 0
+              isSelected ||
+              (date &&
+                date.dateString &&
+                (new Date(date.dateString).getDay() === 0 || state === "today"))
                 ? 0
                 : 1,
-            borderLeftColor: "#E5E5E5",
-            borderRightWidth: 0,
+            borderLeftColor: isSelected ? "transparent" : "#E5E5E5",
+            // 選択中は右側に青い境界線を追加して、隣のグレーの線を覆う
+            borderRightWidth: isSelected ? 2 : 0,
+            borderRightColor: isSelected ? "#007AFF" : "transparent",
+            borderTopWidth: 0,
             borderBottomWidth: 0,
             borderRadius: 0,
             backgroundColor: isSelected ? "#007AFF" : "transparent",
+            // 選択された日付を右側に広げて、隣のセルの線を完全に覆う
+            paddingRight: isSelected ? 1 : 0,
+            marginRight: isSelected ? -1 : 0,
+            zIndex: isSelected ? 10 : 0,
           },
         ]}
         onPress={() => date && onPress(date.dateString)}

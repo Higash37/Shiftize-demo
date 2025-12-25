@@ -1,12 +1,12 @@
 import { DayComponentProps } from "../calendar-types/common.types";
 import { ViewStyle } from "react-native";
-import { Shift } from "@/common/common-models/ModelIndex";
+import { Shift, ShiftItem } from "@/common/common-models/ModelIndex";
 
 /**
  * ShiftCalendarのProps型定義
  */
 export interface ShiftCalendarProps {
-  shifts: Shift[];
+  shifts: Shift[] | ShiftItem[];
   selectedDate: string;
   currentMonth: string;
   currentUserStoreId?: string; // 現在のユーザーの店舗ID

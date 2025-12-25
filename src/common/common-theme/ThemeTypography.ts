@@ -9,6 +9,7 @@ export const typography = {
     light: '300',
     regular: '400',
     medium: '500',
+    semibold: '600',
     bold: '700',
   },
   lineHeight: {
@@ -18,7 +19,12 @@ export const typography = {
     xlarge: 28,
   },
   fontFamily: {
-    regular: 'System',
-    bold: 'System',
+    regular: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    bold: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  letterSpacing: {
+    tight: -0.5,
+    normal: 0,
+    wide: 0.5,
   },
 };

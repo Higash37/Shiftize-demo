@@ -36,33 +36,6 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
       },
     ]}
   >
-    {/* 左端：前半/後半ボタン */}
-    {isMobile && (
-      <View
-        style={{
-          position: "absolute",
-          left: 16,
-          zIndex: 1,
-        }}
-      >
-        <Pressable
-          onPress={onToggleHalf}
-          style={{
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: colors.primary + "66",
-            backgroundColor: colors.primary + "1A",
-            paddingHorizontal: 10,
-            paddingVertical: 8,
-          }}
-        >
-          <Text style={{ color: colors.primary, fontWeight: "bold" }}>
-            {showFirst ? "前半" : "後半"}
-          </Text>
-        </Pressable>
-      </View>
-    )}
-
     {/* 中央：年月ピッカー＋日付ナビ（常に中央配置） */}
     <View
       style={{

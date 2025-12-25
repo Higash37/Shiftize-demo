@@ -264,7 +264,7 @@ export const styles = StyleSheet.create({
   containerMax: {
     maxWidth: responsiveStyles.maxWidth(),
     alignSelf: "center",
-    width: responsiveStyles.pcWidth(),
+    width: responsiveStyles.pcWidth() as any,
   },
 });
 

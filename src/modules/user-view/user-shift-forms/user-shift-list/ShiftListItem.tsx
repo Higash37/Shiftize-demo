@@ -21,6 +21,7 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   onPress,
   onDetailsPress,
   children,
+  showNickname = false,
 }) => {
   const { user } = useAuth();
   const [storeName, setStoreName] = useState<string>("");
@@ -85,6 +86,12 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
                   })}
                 </Text>
               </View>
+              {/* マスター用: ニックネーム表示 */}
+              {showNickname && shift.nickname && (
+                <View style={styles.nicknameContainer}>
+                  <Text style={styles.nicknameText}>{shift.nickname}</Text>
+                </View>
+              )}
               {/* ステータスラベルを固定幅に */}
               <View style={styles.statusContainer}>
                 <Text

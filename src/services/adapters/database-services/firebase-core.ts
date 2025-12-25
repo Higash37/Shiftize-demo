@@ -11,7 +11,8 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// Firebase Storageは凍結中（Supabaseへの移行予定）
+// import { getStorage } from "firebase/storage";
 import { Platform } from "react-native";
 
 /**
@@ -37,7 +38,8 @@ const FirebaseCore = (() => {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const storage = getStorage(app);
+  // Firebase Storageは凍結中（Supabaseへの移行予定）
+  // const storage = getStorage(app);
 
   // Web環境での認証永続化設定
   if (Platform.OS === "web") {
@@ -50,7 +52,8 @@ const FirebaseCore = (() => {
     app,
     auth,
     db,
-    storage,
+    // Firebase Storageは凍結中（Supabaseへの移行予定）
+    // storage,
     firebaseConfig,
   };
 })();
@@ -58,6 +61,7 @@ const FirebaseCore = (() => {
 // Firebase認証とデータベース参照をエクスポート
 export const auth = FirebaseCore.auth;
 export const db = FirebaseCore.db;
-export const storage = FirebaseCore.storage;
+// Firebase Storageは凍結中（Supabaseへの移行予定）
+// export const storage = FirebaseCore.storage;
 export const app = FirebaseCore.app;
 export const firebaseConfig = FirebaseCore.firebaseConfig;

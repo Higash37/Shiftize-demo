@@ -5,25 +5,37 @@ import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/
 import { useAuth } from "@/services/auth/useAuth";
 import { colors } from "@/common/common-constants/ThemeConstants";
 
-// 9:00～22:00の30分刻みの時間ラベル
+// 0:00～24:00の30分刻みの時間ラベル（ゼロパディング付き）
 const allTimes: string[] = [];
-for (let h = 9; h <= 22; h++) {
-  allTimes.push(`${h}:00`);
-  if (h !== 22) allTimes.push(`${h}:30`);
+const pad = (n: number) => n.toString().padStart(2, "0");
+for (let h = 0; h < 24; h++) {
+  allTimes.push(`${pad(h)}:00`);
+  allTimes.push(`${pad(h)}:30`);
 }
+allTimes.push("24:00"); // 終了時刻として24:00を追加
 
 export function useHomeGanttState() {
   const { user } = useAuth();
-  const { shifts, loading: _loading, fetchShiftsByMonth } = useShiftsRealtime(user?.storeId); // リアルタイムリスナーにより実質不要
+  const {
+    shifts,
+    loading: _loading,
+    fetchShiftsByMonth,
+  } = useShiftsRealtime(user?.storeId); // リアルタイムリスナーにより実質不要
   const { users } = useUsers();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showFirst, setShowFirst] = useState(false); // デフォルトで後半を表示
   const [modalUser, setModalUser] = useState<string | null>(null);
   const [currentYearMonth, setCurrentYearMonth] = useState(() => ({
     year: new Date().getFullYear(),
     month: new Date().getMonth(),
   }));
+
+  // マスター以外の場合は自分のシフト（承認済みのみ）でフィルタリング
+  const filteredShifts = user?.role === "master"
+    ? shifts
+    : shifts.filter(
+        (s) => s.userId === user?.uid && s.status === "approved"
+      );
 
   useEffect(() => {
     // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
@@ -38,7 +50,6 @@ export function useHomeGanttState() {
   }, [selectedDate]);
 
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
-  const pad = (n: number) => n.toString().padStart(2, "0");
   const localDateStr = `${selectedDate.getFullYear()}-${pad(
     selectedDate.getMonth() + 1
   )}-${pad(selectedDate.getDate())}`;
@@ -66,13 +77,24 @@ export function useHomeGanttState() {
         const start = allTimes[i];
         const end = allTimes[i + 1];
         const staff = staffShifts.find(
-          (s) => start && s.startTime && s.endTime && start >= s.startTime && start < s.endTime
+          (s) =>
+            start &&
+            s.startTime &&
+            s.endTime &&
+            start >= s.startTime &&
+            start < s.endTime
         );
         let classSlot = null;
         for (const s of classShifts) {
           if (s.classes) {
             for (const c of s.classes) {
-              if (start && c.startTime && c.endTime && start >= c.startTime && start < c.endTime) {
+              if (
+                start &&
+                c.startTime &&
+                c.endTime &&
+                start >= c.startTime &&
+                start < c.endTime
+              ) {
                 classSlot = { ...s, classTime: c };
                 break;
               }
@@ -107,20 +129,6 @@ export function useHomeGanttState() {
     });
   }
 
-  const mid = Math.ceil(allTimes.length / 2);
-  const timesFirst = allTimes.slice(0, mid);
-  const timesSecond = allTimes.slice(mid - 1);
-
-  const hasSlotInTimes = (name: string, times: string[]) =>
-    buildScheduleColumns([name])[0]?.slots.some((s) =>
-      times.some((t) => t && s.start && s.end && t >= s.start && t < s.end && s.task)
-    ) || false;
-  const filteredNamesFirst = allNames.filter((name) =>
-    hasSlotInTimes(name, timesFirst)
-  );
-  const filteredNamesSecond = allNames.filter((name) =>
-    hasSlotInTimes(name, timesSecond)
-  );
   const scheduleForSelectedDate = buildScheduleColumns(allNames).map(
     (column) => ({
       ...column,
@@ -133,30 +141,20 @@ export function useHomeGanttState() {
     setSelectedDate,
     showDatePicker,
     setShowDatePicker,
-    showFirst,
-    setShowFirst,
     modalUser,
     setModalUser,
-    timesFirst,
-    timesSecond,
-    filteredNamesFirst,
-    filteredNamesSecond,
     scheduleForSelectedDate,
-    CELL_WIDTH: Math.max(
-      36,
-      Math.min(
-        50,
-        Math.floor(
-          (typeof window !== "undefined" ? window.innerWidth : 360) /
-            (allTimes.length + 1)
-        )
-      )
-    ),
+    allTimes, // 00:00-24:00の全時間配列
+    CELL_WIDTH: 100, // 固定幅
     isTablet:
       typeof window !== "undefined" &&
       window.innerWidth >= 768 &&
       window.innerWidth <= 1024,
-    isWide: typeof window !== "undefined" && window.innerWidth >= 768,
+    isWide: typeof window !== "undefined" && window.innerWidth > 1024,
+    shifts: filteredShifts, // フィルタリング済みシフトデータ（カレンダーのドット表示用）
+    shiftsForDate, // 選択された日付のシフトデータ（時計ウィジェット用）
+    currentYearMonth, // 現在の年月
+    currentUserStoreId: user?.storeId, // ユーザーの店舗ID
     // loading: リアルタイムリスナーにより不要
   };
 }

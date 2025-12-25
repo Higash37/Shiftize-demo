@@ -11,7 +11,8 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// Firebase Storageは凍結中（Supabaseへの移行予定）
+// import { getStorage } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { Platform } from "react-native";
 
@@ -39,7 +40,8 @@ const FirebaseCore = (() => {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const storage = getStorage(app);
+  // Firebase Storageは凍結中（Supabaseへの移行予定）
+  // const storage = getStorage(app);
   const functions = getFunctions(app, 'asia-northeast1');
 
   // Analytics・Performance（Lazy Loading）
@@ -85,7 +87,8 @@ const FirebaseCore = (() => {
     app,
     auth,
     db,
-    storage,
+    // Firebase Storageは凍結中（Supabaseへの移行予定）
+    // storage,
     functions,
     getAnalyticsInstance,
     getPerformanceInstance,
@@ -96,7 +99,8 @@ const FirebaseCore = (() => {
 // Firebase認証とデータベース参照をエクスポート
 export const auth = FirebaseCore.auth;
 export const db = FirebaseCore.db;
-export const storage = FirebaseCore.storage;
+// Firebase Storageは凍結中（Supabaseへの移行予定）
+// export const storage = FirebaseCore.storage;
 export const functions = FirebaseCore.functions;
 export const getAnalytics = FirebaseCore.getAnalyticsInstance;
 export const getPerformance = FirebaseCore.getPerformanceInstance;

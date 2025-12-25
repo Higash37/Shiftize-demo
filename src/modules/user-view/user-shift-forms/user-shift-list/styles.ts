@@ -49,6 +49,14 @@ export const shiftListItemStyles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.text.primary,
   },
+  nicknameContainer: {
+    marginRight: 6,
+  },
+  nicknameText: {
+    fontSize: IS_SMALL_DEVICE ? 14 : 16,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
   statusContainer: {
     width: IS_SMALL_DEVICE ? 70 : 80, // 幅をさらに縮小
     marginRight: 3, // マージンをさらに縮小

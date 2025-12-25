@@ -23,7 +23,7 @@ export const FeaturesSection: React.FC = () => {
   };
   const enterpriseFeatures: EnterpriseFeature[] = [
     {
-      icon: "calendar",
+      icon: "calendar-today",
       title: "シフト管理機能",
       description: "直感的なガントチャート表示でシフトを効率的に管理",
       details: [

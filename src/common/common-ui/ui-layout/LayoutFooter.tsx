@@ -45,19 +45,20 @@ const user_TABS: TabItem[] = [
     ),
     isUnderDevelopment: false,
   },
-  {
-    name: "files",
-    label: "ファイル",
-    path: "/user/files",
-    icon: (active: boolean) => (
-      <MaterialIcons
-        name="folder"
-        size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
-      />
-    ),
-    isUnderDevelopment: false,
-  },
+  // ファイル機能は凍結中（使用率が低いため）
+  // {
+  //   name: "files",
+  //   label: "ファイル",
+  //   path: "/user/files",
+  //   icon: (active: boolean) => (
+  //     <MaterialIcons
+  //       name="folder"
+  //       size={IS_SMALL_DEVICE ? 20 : 24}
+  //       color={active ? colors.primary : colors.text.secondary}
+  //     />
+  //   ),
+  //   isUnderDevelopment: false,
+  // },
   {
     name: "create",
     label: "シフト追加",

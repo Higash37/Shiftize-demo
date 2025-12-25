@@ -1037,7 +1037,10 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           users={usersWithRole}
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
-          {...(onMonthChange && { onMonthChange })}
+          {...(onMonthChange && {
+            onMonthChange: (month: { year: number; month: number }) =>
+              onMonthChange(month.year, month.month)
+          })}
           styles={styles}
         />
       )}
