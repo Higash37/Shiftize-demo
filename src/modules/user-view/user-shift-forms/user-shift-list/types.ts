@@ -12,4 +12,5 @@ export interface ShiftListItemProps {
   onPress: () => void;
   onDetailsPress: () => void;
   children?: React.ReactNode;
+  showNickname?: boolean; // マスター用: ニックネームを表示するか
 }

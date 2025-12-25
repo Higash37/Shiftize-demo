@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: 2,
+    bottom: -8,
     alignSelf: "center",
   },
   selectedDay: {

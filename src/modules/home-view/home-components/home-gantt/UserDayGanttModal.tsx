@@ -89,37 +89,44 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                   maxHeight: 320,
                 }}
               >
-                {slotRows.map((row, idx) => (
-                  <View
-                    key={idx}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginBottom: 4,
-                      backgroundColor: row.color,
-                    }}
-                  >
-                    <Text
+                {slotRows.map((row, idx) => {
+                  // スタッフシフトの場合は白文字、それ以外は通常の文字色
+                  const isStaffSlot = row.type !== "class" && row.task;
+                  const textColor = isStaffSlot ? "#FFFFFF" : row.task ? colors.text.primary : colors.text.secondary;
+                  const timeColor = isStaffSlot ? "#FFFFFF" : colors.primary;
+
+                  return (
+                    <View
+                      key={idx}
                       style={{
-                        color: colors.primary,
-                        fontWeight: "bold",
-                        minWidth: 90,
-                        textAlign: "center", // 中央揃え
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 4,
+                        backgroundColor: row.color,
                       }}
                     >
-                      {row.start}~{row.end}
-                    </Text>
-                    <Text
-                      style={{
-                        color: row.task ? colors.text.primary : colors.text.secondary,
-                        fontSize: 15,
-                        marginLeft: 8,
-                      }}
-                    >
-                      {row.task}
-                    </Text>
-                  </View>
-                ))}
+                      <Text
+                        style={{
+                          color: timeColor,
+                          fontWeight: "bold",
+                          minWidth: 90,
+                          textAlign: "center", // 中央揃え
+                        }}
+                      >
+                        {row.start}~{row.end}
+                      </Text>
+                      <Text
+                        style={{
+                          color: textColor,
+                          fontSize: 15,
+                          marginLeft: 8,
+                        }}
+                      >
+                        {row.task}
+                      </Text>
+                    </View>
+                  );
+                })}
               </ScrollView>
             </View>
           </TouchableWithoutFeedback>

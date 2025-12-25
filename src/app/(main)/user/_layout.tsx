@@ -2,8 +2,7 @@ import { Stack } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter, useSegments } from "expo-router";
-import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { View, Dimensions, StyleSheet } from "react-native";
 import { Routes } from "@/common/common-constants/RouteConstants";
 import { Footer } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
@@ -11,7 +10,7 @@ import Toast from "react-native-toast-message";
 const { height: screenHeight } = Dimensions.get("window");
 
 export default function userLayout() {
-  const { user, loading, role } = useAuth();
+  const { user, role } = useAuth();
   const router = useRouter();
   const segments = useSegments();
   const isRecruitmentPage = useMemo(
@@ -20,30 +19,12 @@ export default function userLayout() {
   );
 
   useEffect(() => {
-    if (loading) return;
-
     // ユーザーロールが不適切な場合はリダイレクト
     // ただし、募集シフトページ(recruitment)はmasterも閲覧可能
     if (user && role !== "user" && !isRecruitmentPage) {
       router.replace(Routes.main.master.home);
     }
-  }, [user, loading, role, isRecruitmentPage, router]);
-
-  // ローディング中は待機画面を表示
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+  }, [user, role, isRecruitmentPage, router]);
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
   // ただし、募集シフトページはmasterもアクセス可能

@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
       tablet: "600px",
       desktop: "800px",
       default: "100%",
-    }),
+    }) as any,
   },
   timelineSection: {
     paddingHorizontal: 20,

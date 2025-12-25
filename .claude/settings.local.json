@@ -68,11 +68,8 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "playwright",
     "firebase",
-    "filesystem",
     "git",
-    "sonarqube",
-    "serena"
+    "sonarqube"
   ]
 }

@@ -270,17 +270,6 @@ export function MasterHeader({
           <AntDesign name="message" size={24} color={colors.success} />
         </TouchableOpacity>
 
-        {/* カンバンタスク管理ボタン */}
-        <TouchableOpacity
-          onPress={() => router.push("/(main)/master/master-kanban-task")}
-          style={[
-            styles.kanbanButton,
-            isCompactLayout && styles.compactActionButton,
-          ]}
-        >
-          <AntDesign name="appstore" size={24} color={colors.primary} />
-        </TouchableOpacity>
-
         {/* 店舗管理ボタン - 常にクリック可能 */}
         <TouchableOpacity
           onPress={() => setShowStoreSelector(true)}

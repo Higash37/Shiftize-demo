@@ -38,19 +38,20 @@ const MASTER_TABS: TabItem[] = [
     ),
     isUnderDevelopment: false,
   },
-  {
-    name: "files",
-    label: "ファイル",
-    path: "/master/files",
-    icon: (active: boolean) => (
-      <MaterialIcons
-        name="folder"
-        size={24}
-        color={active ? colors.primary : colors.text.secondary}
-      />
-    ),
-    isUnderDevelopment: false,
-  },
+  // ファイル機能は凍結中（使用率が低いため）
+  // {
+  //   name: "files",
+  //   label: "ファイル",
+  //   path: "/master/files",
+  //   icon: (active: boolean) => (
+  //     <MaterialIcons
+  //       name="folder"
+  //       size={24}
+  //       color={active ? colors.primary : colors.text.secondary}
+  //     />
+  //   ),
+  //   isUnderDevelopment: false,
+  // },
   {
     name: "info",
     label: "インフォ",
@@ -67,7 +68,7 @@ const MASTER_TABS: TabItem[] = [
   {
     name: "thisMonth",
     label: "今月のシフト",
-    path: "/master/gantt-view",
+    path: "/master/shifts/this-month",
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"
@@ -92,8 +93,8 @@ const MASTER_TABS: TabItem[] = [
   },
   {
     name: "nextMonth",
-    label: "来月シフト作成",
-    path: "/master/gantt-edit",
+    label: "来月のシフト",
+    path: "/master/shifts/next-month",
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar"

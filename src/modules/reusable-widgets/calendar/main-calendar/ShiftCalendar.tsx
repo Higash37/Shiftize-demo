@@ -118,28 +118,42 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       };
     }
 
-    // 予定がある日付にドットマーカーを追加
-    shifts.forEach((shift) => {
-      const shiftDate = new Date(shift.date);
-      shiftDate.setHours(0, 0, 0, 0);
-      const isPastShift = shiftDate < today;
+    // 予定がある日付にドットマーカーを追加（全てのステータス）
+    // ステータスごとに色を分ける
+    const getStatusDotColor = (status: string) => {
+      switch (status) {
+        case "pending":
+          return "#FFB800"; // オレンジ（承認待ち）
+        case "approved":
+          return "#10B981"; // 緑（承認済み）
+        case "completed":
+          return "#0EA5E9"; // 青（完了）
+        case "draft":
+          return "#9CA3AF"; // グレー（下書き）
+        case "rejected":
+          return "#EF4444"; // 赤（却下）
+        case "deletion_requested":
+          return "#F59E0B"; // 黄色（削除申請中）
+        default:
+          return "#10B981"; // デフォルトは緑
+      }
+    };
 
-      // 他店舗のシフトかどうかを判定
-      const isFromOtherStore =
-        currentUserStoreId &&
-        shift.storeId &&
-        shift.storeId !== currentUserStoreId;
-      const dotColor = isFromOtherStore ? "#8B5CF6" : colors.primary; // 他店舗は紫、自店舗は青
+    shifts
+      .filter((shift) => shift.status !== "deleted" && shift.status !== "purged")
+      .forEach((shift) => {
+        const existingMark = marks[shift.date] || {};
+        const existingDots = existingMark.dots || [];
+        const dotColor = getStatusDotColor(shift.status || "approved");
 
-      const existingMark = marks[shift.date] || {};
-      marks[shift.date] = {
-        ...existingMark,
-        marked: true,
-        dotColor: dotColor,
-        selected: selectedDate === shift.date,
-        selectedColor: colors.primary + "20",
-      };
-    });
+        // 人数分のドットを追加（重複チェックなし）
+        marks[shift.date] = {
+          ...existingMark,
+          dots: [...existingDots, { color: dotColor }],
+          selected: selectedDate === shift.date,
+          selectedColor: colors.primary + "20",
+        };
+      });
 
     return marks;
   }, [selectedDate, shifts, currentUserStoreId]);

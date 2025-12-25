@@ -39,6 +39,11 @@
     <!-- 通常のWebアプリ設定 -->
     <link rel="icon" href="/favicon.ico" />
 
+    <!-- Google Fonts - Inter (モダンなWebフォント) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
     <!-- スプラッシュスクリーン用スタイル -->
     <style id="expo-splash-screen">
       #splash-screen {
@@ -66,9 +71,11 @@
       }
       #splash-screen h1 {
         color: #333333; /* 白色から黒色に変更 */
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         font-size: 24px;
+        font-weight: 600;
         margin: 0;
+        letter-spacing: -0.5px;
       }
       #splash-loader {
         margin-top: 20px;
@@ -104,6 +111,10 @@
         user-select: none;
         -webkit-touch-callout: none;
         -webkit-tap-highlight-color: transparent;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
       }
       #root {
         display: flex;

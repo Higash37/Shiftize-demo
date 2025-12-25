@@ -2,8 +2,7 @@ import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter } from "expo-router";
-import { View, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { View, Dimensions, StyleSheet } from "react-native";
 import { Routes } from "@/common/common-constants/RouteConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
 import Toast from "react-native-toast-message";
@@ -25,7 +24,7 @@ function isStandalonePWA() {
 const { height: screenHeight } = Dimensions.get("window");
 
 export default function MasterLayout() {
-  const { user, loading, role } = useAuth();
+  const { user, role } = useAuth();
   const router = useRouter();
   const [isPWA, setIsPWA] = useState(false);
 
@@ -35,29 +34,11 @@ export default function MasterLayout() {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
-
     // ユーザーロールが不適切な場合はリダイレクト
     if (user && role !== "master") {
       router.replace(Routes.main.user.home);
     }
-  }, [user, loading, role, router]);
-
-  // ローディング中は待機画面を表示
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+  }, [user, role, router]);
 
   // 未認証の場合は何も表示しない（リダイレクト待ち）
   if (!user || role !== "master") {
@@ -152,20 +133,26 @@ export default function MasterLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen 
+        <Stack.Screen
           name="shifts/create"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="taskManagement/index"
+        <Stack.Screen
+          name="shifts/this-month"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="kanban-task/index"
+        <Stack.Screen
+          name="shifts/next-month"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="taskManagement/index"
           options={{
             headerShown: false,
           }}
