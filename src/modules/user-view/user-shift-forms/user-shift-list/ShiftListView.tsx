@@ -259,15 +259,6 @@ export const UserShiftList = () => {
     }, 120);
   }, [selectedDate, monthlyShifts]);
 
-  if (shiftsLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </View>
-    );
-  }
   const handleDayPress = (day: { dateString: string }) => {
     // 同じ日付をもう一度押したときに選択を解除
     if (selectedDate === day.dateString) {

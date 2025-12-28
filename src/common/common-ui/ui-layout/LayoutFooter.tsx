@@ -76,7 +76,7 @@ const user_TABS: TabItem[] = [
   {
     name: "shifts",
     label: "シフト",
-    path: "/user/shifts/",
+    path: "/user/shifts",
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"
@@ -190,7 +190,10 @@ export function Footer(_props: Readonly<FooterProps>) {
     <>
       <View style={styles.footer}>
         {user_TABS.map((tab, index) => {
-          const active = pathname === tab.path;
+          // シフトタブは /user/shifts で始まるパスすべてをアクティブとする
+          const active = tab.name === "shifts"
+            ? pathname.startsWith(tab.path)
+            : pathname === tab.path;
           return (
             <TouchableOpacity
               key={tab.name}

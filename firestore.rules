@@ -195,19 +195,51 @@ service cloud.firestore {
       // 読み取り: マスターのみ、自分の店舗のデータのみ
       // クエリでwhere("storeId", "==", storeId)を使っているので、
       // ドキュメントのstoreIdが認証トークンのstoreIdと一致するか確認
-      allow read: if isAuthenticated() && 
+      allow read: if isAuthenticated() &&
         request.auth.token.role == "master" &&
         (
           // メインのstoreIdと一致
           resource.data.storeId == request.auth.token.storeId ||
           // または、連携店舗アクセス権限がある場合
-          (request.auth.token.storesAccess != null && 
+          (request.auth.token.storesAccess != null &&
            resource.data.storeId in request.auth.token.storesAccess &&
            request.auth.token.storesAccess[resource.data.storeId].isActive == true)
         );
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         hasAccessToStore(request.resource.data.storeId);
       allow update, delete: if false; // 追記専用
+    }
+
+    // クイックシフトトークンコレクション - URL経由のシフト追加用
+    match /quick_shift_tokens/{tokenId} {
+      // 読み取り: トークンIDを知っている人は読み取り可能（URLアクセス時）
+      // 認証されたユーザーのみ（セキュリティ担保）
+      allow read: if isAuthenticated();
+
+      // 作成: マスターのみ、自分の店舗のトークンを作成可能
+      allow create: if isAuthenticated() &&
+        request.auth.token.role == "master" &&
+        hasAccessToStore(request.resource.data.storeId) &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.tokenType in ["recruitment", "free_add"] &&
+        request.resource.data.isActive == true;
+
+      // 更新: 認証済みユーザーによる使用記録更新のみ
+      // マスターによる無効化も許可
+      allow update: if isAuthenticated() && (
+        // 使用記録更新（認証済みユーザー）
+        (resource.data.isActive == true &&
+         request.resource.data.keys().hasOnly(["currentUses", "lastUsedAt", "usageLog", "updatedAt"])) ||
+        // トークン無効化（マスター）
+        (request.auth.token.role == "master" &&
+         hasAccessToStore(resource.data.storeId) &&
+         request.resource.data.isActive == false)
+      );
+
+      // 削除: マスターのみ、自分の店舗のトークンを削除可能
+      allow delete: if isAuthenticated() &&
+        request.auth.token.role == "master" &&
+        hasAccessToStore(resource.data.storeId);
     }
 
     // 未定義のパスは拒否

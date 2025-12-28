@@ -4,6 +4,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Text,
+  TouchableOpacity,
   useWindowDimensions,
   Alert,
 } from "react-native";
@@ -28,6 +29,8 @@ import {
 } from "@/services/firebase/firebase-shift";
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
 import ganttStyles from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
+import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface MasterShiftListViewProps {
   targetMonth: "this" | "next"; // 今月または来月
@@ -74,6 +77,9 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     extendedTasks: [],
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // URL発行モーダル用の状態
+  const [showUrlModal, setShowUrlModal] = useState(false);
 
   // 時間オプション（9:00-22:00を15分刻み）
   const timeOptions = useMemo(() => {
@@ -318,6 +324,15 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
             scale: 0.8,
           }}
         />
+
+        {/* クイックURL発行ボタン */}
+        <TouchableOpacity
+          style={styles.quickUrlButton}
+          onPress={() => setShowUrlModal(true)}
+        >
+          <MaterialIcons name="link" size={20} color="#fff" />
+          <Text style={styles.quickUrlButtonText}>クイックURL発行</Text>
+        </TouchableOpacity>
       </View>
       {isCalendarMounted && displayMonth && (
         <ScrollView
@@ -389,6 +404,16 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           onDelete={handleDeleteShift}
         />
       )}
+
+      {/* クイックURL発行モーダル */}
+      {user?.storeId && user?.uid && (
+        <QuickShiftUrlModal
+          visible={showUrlModal}
+          storeId={user.storeId}
+          userId={user.uid}
+          onClose={() => setShowUrlModal(false)}
+        />
+      )}
     </View>
   );
 };
@@ -424,5 +449,21 @@ const styles = StyleSheet.create({
   noShiftText: {
     fontSize: 16,
     color: colors.text.disabled,
+  },
+  quickUrlButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+    padding: layout.padding.medium,
+    borderRadius: 12,
+    marginTop: layout.padding.medium,
+    marginHorizontal: layout.padding.medium,
+  },
+  quickUrlButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: layout.padding.small,
   },
 });
