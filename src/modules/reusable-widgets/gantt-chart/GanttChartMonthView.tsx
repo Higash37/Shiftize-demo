@@ -88,6 +88,7 @@ import { useGanttShiftActions } from "./gantt-chart-common/useGanttShiftActions"
 import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
 import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLogger";
+import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
 
 const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -180,7 +181,8 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const [deviceType, setDeviceType] = useState<"desktop" | "tablet" | "mobile">("desktop"); // デバイスタイプ
   const [useGoogleLayout, setUseGoogleLayout] = useState(false); // Googleカレンダーレイアウトを使用するか
   const [showHistoryModal, setShowHistoryModal] = useState(false); // 履歴モーダル表示状態
-  
+  const [showQuickUrlModal, setShowQuickUrlModal] = useState(false); // URL発行モーダル表示状態
+
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // 画面サイズによる表示モード自動判定（画面分割時用）
@@ -792,6 +794,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           useGoogleLayout={useGoogleLayout}
           onToggleGoogleLayout={() => setUseGoogleLayout(!useGoogleLayout)}
           onOpenHistory={() => setShowHistoryModal(true)}
+          onQuickUrlPress={() => setShowQuickUrlModal(true)}
           storeId={user?.storeId || ""}
         />
       )}
@@ -1120,6 +1123,16 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
             onEntryAction={handleHistoryEntryAction}
           />
         </Suspense>
+      )}
+
+      {/* クイックURL発行モーダル */}
+      {user?.storeId && user?.uid && (
+        <QuickShiftUrlModal
+          visible={showQuickUrlModal}
+          storeId={user.storeId}
+          userId={user.uid}
+          onClose={() => setShowQuickUrlModal(false)}
+        />
       )}
 
     </View>

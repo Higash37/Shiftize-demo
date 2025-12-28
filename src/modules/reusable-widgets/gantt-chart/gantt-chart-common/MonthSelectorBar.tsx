@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign } from "@expo/vector-icons";
 import styles from "../GanttChartMonthView.styles";
@@ -35,6 +35,7 @@ interface MonthSelectorBarProps {
   onToggleGoogleLayout?: () => void; // 追加：Googleレイアウト切替
   onOpenHistory?: () => void; // 追加：履歴モーダル表示
   storeId?: string; // 追加：店舗ID（期間設定モーダル用）
+  onQuickUrlPress?: () => void; // 追加：クイックURL発行ボタン
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -194,6 +195,15 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           >
             <Ionicons name="time-outline" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
             <Text style={getButtonTextStyle("secondary")}>履歴</Text>
+          </TouchableOpacity>
+        )}
+        {props.onQuickUrlPress && (
+          <TouchableOpacity
+            style={getButtonStyle("primary")}
+            onPress={props.onQuickUrlPress}
+          >
+            <MaterialIcons name="link" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("primary")}>URL発行</Text>
           </TouchableOpacity>
         )}
         </View>
