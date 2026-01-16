@@ -297,14 +297,11 @@ export class QuickShiftTokenService {
 
   /**
    * URL生成ヘルパー
-   * トークンIDからLIFF URLを生成
+   * トークンIDからWeb URLを生成
    */
   static generateQuickShiftUrl(tokenId: string, tokenType: "recruitment" | "free_add"): string {
-    // LIFF ID
-    const liffId = tokenType === "recruitment"
-      ? "2008790644-HP5jsLPI"  // 募集シフト型
-      : "2008790644-5SoBzRPY"; // フリー追加型
-
-    return `https://liff.line.me/${liffId}?token=${tokenId}`;
+    const baseUrl = "https://shiftschedulerapp-71104.web.app";
+    const path = tokenType === "recruitment" ? "quick-recruit" : "quick-add";
+    return `${baseUrl}/${path}?token=${tokenId}`;
   }
 }

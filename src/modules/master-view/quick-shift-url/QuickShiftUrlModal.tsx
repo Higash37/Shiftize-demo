@@ -96,9 +96,13 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
   };
 
   const handleShareLine = () => {
-    // TODO: LINE共有機能の実装
-    // LIFF SDK の liff.shareTargetPicker() を使用
-    Alert.alert("LINE共有", "LINE共有機能は後ほど実装します");
+    // NOTE: LINEへの共有はクリップボードコピー → 手動貼り付けのフローを使用
+    // LIFFは使用せず、シンプルなWeb URLで対応
+    Alert.alert(
+      "LINE共有",
+      "URLをコピーしてLINEグループに貼り付けてください",
+      [{ text: "OK", onPress: handleCopyUrl }]
+    );
   };
 
   return (
