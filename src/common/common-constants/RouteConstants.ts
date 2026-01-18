@@ -60,6 +60,7 @@ export const RouteGroups = {
   isMainGroup: (segments: string[]): boolean => {
     return (
       segments[0] === "(main)" ||
+      segments[0] === "(quick)" ||
       segments[0] === "user" ||
       segments[0] === "master" ||
       segments[0] === "user-settings" ||

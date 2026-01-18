@@ -13,7 +13,8 @@ export type ShiftStatus =
   | "deletion_requested" // 削除申請中
   | "deleted" // 削除済み
   | "completed" // 完了
-  | "purged"; // 完全非表示
+  | "purged" // 完全非表示
+  | "recruitment"; // 募集中
 
 /**
  * シフトステータスの設定情報
@@ -78,6 +79,13 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
     color: "#e0e0e0",
     canEdit: true,
     description: "下書き状態のシフト",
+  },
+  {
+    status: "recruitment",
+    label: "募集中",
+    color: "#9e9e9e",
+    canEdit: false,
+    description: "募集中のシフト",
   },
 ];
 

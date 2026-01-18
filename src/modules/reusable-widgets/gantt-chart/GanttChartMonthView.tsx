@@ -279,7 +279,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       date: recruitmentShift.date,
       startTime: recruitmentShift.startTime,
       endTime: recruitmentShift.endTime,
-      status: "approved" as const,
+      status: "recruitment" as const, // 募集中ステータス（灰色で表示）
       notes: recruitmentShift.notes || "",
       storeId: recruitmentShift.storeId,
       type: "recruitment" as const,

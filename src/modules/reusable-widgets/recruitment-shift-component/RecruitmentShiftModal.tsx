@@ -8,6 +8,9 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Clipboard,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -20,6 +23,7 @@ import { RecruitmentApplicationModal } from "./RecruitmentApplicationModal";
 import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import { QuickShiftTokenService } from "@/services/quick-shift/QuickShiftTokenService";
 
 interface RecruitmentShiftModalProps {
   visible: boolean;
@@ -40,7 +44,10 @@ export function RecruitmentShiftModal({
   const [selectedMasterShift, setSelectedMasterShift] = useState<RecruitmentShift | null>(null);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [shiftToDelete, setShiftToDelete] = useState<RecruitmentShift | null>(null);
-  
+  const [generatingUrl, setGeneratingUrl] = useState(false);
+  const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+
   // タブ機能の状態
   const [activeTab, setActiveTab] = useState<"recruitment" | "period">("recruitment");
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
@@ -162,10 +169,132 @@ export function RecruitmentShiftModal({
     Alert.alert("開発中", "編集機能は準備中です");
   };
 
+  // 日付フォーマットヘルパー
+  const formatDateForMessage = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    return `${date.getMonth() + 1}/${date.getDate()}(${weekdays[date.getDay()]})`;
+  };
+
+  // 単一シフトのURL生成&コピー
+  const handleGenerateAndCopyUrl = async (shift: RecruitmentShift) => {
+    if (!user?.storeId || !user?.uid) return;
+
+    setGeneratingUrl(true);
+    try {
+      // トークン生成
+      const tokenId = await QuickShiftTokenService.createRecruitmentToken(
+        user.storeId,
+        user.uid,
+        [shift.id],
+        { expiresInHours: 168, requireLineAuth: false }
+      );
+
+      const url = QuickShiftTokenService.generateQuickShiftUrl(tokenId, "recruitment");
+
+      // メッセージ生成
+      const message = `【シフト募集】
+${formatDateForMessage(shift.date)} ${shift.startTime}〜${shift.endTime}
+${shift.notes ? `📝 ${shift.notes}\n` : ""}
+入れる方は下記リンクから申し込んでください👇
+${url}`;
+
+      Clipboard.setString(message);
+
+      if (Platform.OS === "web") {
+        window.alert("メッセージをコピーしました！\nLINEに貼り付けてください。");
+      } else {
+        Alert.alert("コピー完了", "メッセージをコピーしました！\nLINEに貼り付けてください。");
+      }
+
+      setShowMasterActionModal(false);
+      setSelectedMasterShift(null);
+    } catch (error) {
+      console.error("URL生成エラー:", error);
+      if (Platform.OS === "web") {
+        window.alert("URL生成に失敗しました");
+      } else {
+        Alert.alert("エラー", "URL生成に失敗しました");
+      }
+    } finally {
+      setGeneratingUrl(false);
+    }
+  };
+
+  // 複数シフトのURL生成&コピー
+  const handleGenerateBulkUrl = async () => {
+    if (!user?.storeId || !user?.uid || selectedShiftIds.size === 0) return;
+
+    setGeneratingUrl(true);
+    try {
+      const shiftIds = Array.from(selectedShiftIds);
+      const selectedShifts = recruitmentShifts.filter(s => shiftIds.includes(s.id));
+
+      // トークン生成
+      const tokenId = await QuickShiftTokenService.createRecruitmentToken(
+        user.storeId,
+        user.uid,
+        shiftIds,
+        { expiresInHours: 168, requireLineAuth: false }
+      );
+
+      const url = QuickShiftTokenService.generateQuickShiftUrl(tokenId, "recruitment");
+
+      // メッセージ生成（複数シフト用）
+      const shiftList = selectedShifts
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(s => `📅 ${formatDateForMessage(s.date)} ${s.startTime}〜${s.endTime}`)
+        .join("\n");
+
+      const message = `【シフト募集】
+入れる方は下記リンクから申し込んでください👇
+
+${shiftList}
+
+▼ 申し込みはこちら
+${url}`;
+
+      Clipboard.setString(message);
+
+      if (Platform.OS === "web") {
+        window.alert("メッセージをコピーしました！\nLINEに貼り付けてください。");
+      } else {
+        Alert.alert("コピー完了", "メッセージをコピーしました！\nLINEに貼り付けてください。");
+      }
+
+      // 選択モード終了
+      setSelectionMode(false);
+      setSelectedShiftIds(new Set());
+    } catch (error) {
+      console.error("URL生成エラー:", error);
+      if (Platform.OS === "web") {
+        window.alert("URL生成に失敗しました");
+      } else {
+        Alert.alert("エラー", "URL生成に失敗しました");
+      }
+    } finally {
+      setGeneratingUrl(false);
+    }
+  };
+
+  // シフト選択トグル
+  const toggleShiftSelection = (shiftId: string) => {
+    setSelectedShiftIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(shiftId)) {
+        newSet.delete(shiftId);
+      } else {
+        newSet.add(shiftId);
+      }
+      return newSet;
+    });
+  };
+
   const renderShiftItem = ({ item }: { item: RecruitmentShift }) => {
     const hasApplied = item.applications?.some(app => app.userId === user?.uid);
     const userApplication = item.applications?.find(app => app.userId === user?.uid);
     const applicantsCount = item.applications?.length || 0;
+    const isSelected = selectedShiftIds.has(item.id);
 
     // 日付フォーマット
     const date = new Date(item.date);
@@ -177,10 +306,13 @@ export function RecruitmentShiftModal({
         style={[
           styles.modernShiftCard,
           hasApplied && styles.appliedCard,
-          userRole === "master" && styles.masterCard
+          userRole === "master" && styles.masterCard,
+          selectionMode && isSelected && { borderColor: colors.primary, borderWidth: 2 }
         ]}
         onPress={() => {
-          if (userRole === "master") {
+          if (selectionMode && userRole === "master") {
+            toggleShiftSelection(item.id);
+          } else if (userRole === "master") {
             handleMasterAction(item);
           } else {
             handleApplyShift(item);
@@ -191,6 +323,16 @@ export function RecruitmentShiftModal({
       >
         {/* カードヘッダー */}
         <View style={styles.cardHeader}>
+          {/* 選択モード時のチェックボックス */}
+          {selectionMode && userRole === "master" && (
+            <View style={{ marginRight: 12 }}>
+              <MaterialIcons
+                name={isSelected ? "check-box" : "check-box-outline-blank"}
+                size={24}
+                color={isSelected ? colors.primary : colors.text.secondary}
+              />
+            </View>
+          )}
           <View style={styles.dateTimeContainer}>
             <View style={styles.dateContainer}>
               <Text style={styles.dateText}>{formattedDate}</Text>
@@ -295,11 +437,76 @@ export function RecruitmentShiftModal({
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {userRole === "master" ? "募集中のシフト" : "募集シフト"}
+                {userRole === "master"
+                  ? selectionMode
+                    ? `${selectedShiftIds.size}件選択中`
+                    : "募集中のシフト"
+                  : "募集シフト"}
               </Text>
-              <TouchableOpacity onPress={onClose}>
-                <AntDesign name="close" size={24} color={colors.text.primary} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                {/* マスター向け：まとめてコピーボタン */}
+                {userRole === "master" && recruitmentShifts.length > 0 && (
+                  selectionMode ? (
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: selectedShiftIds.size > 0 ? colors.primary : colors.text.disabled,
+                          paddingVertical: 8,
+                          paddingHorizontal: 16,
+                          borderRadius: 8,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                        onPress={handleGenerateBulkUrl}
+                        disabled={selectedShiftIds.size === 0 || generatingUrl}
+                      >
+                        {generatingUrl ? (
+                          <ActivityIndicator size="small" color="white" />
+                        ) : (
+                          <>
+                            <MaterialIcons name="content-copy" size={16} color="white" />
+                            <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>コピー</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: colors.border,
+                          paddingVertical: 8,
+                          paddingHorizontal: 12,
+                          borderRadius: 8,
+                        }}
+                        onPress={() => {
+                          setSelectionMode(false);
+                          setSelectedShiftIds(new Set());
+                        }}
+                      >
+                        <Text style={{ color: colors.text.primary, fontWeight: "600", fontSize: 14 }}>キャンセル</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: "#06C755",
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        borderRadius: 8,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                      onPress={() => setSelectionMode(true)}
+                    >
+                      <MaterialIcons name="share" size={16} color="white" />
+                      <Text style={{ color: "white", fontWeight: "600", fontSize: 14 }}>まとめてLINE</Text>
+                    </TouchableOpacity>
+                  )
+                )}
+                <TouchableOpacity onPress={onClose}>
+                  <AntDesign name="close" size={24} color={colors.text.primary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* タブ切り替え */}
@@ -545,6 +752,31 @@ export function RecruitmentShiftModal({
               </Text>
 
               <View style={{ width: "100%", gap: 12 }}>
+                {/* URLコピーボタン（LINE共有用） */}
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: "#06C755",
+                    paddingVertical: 12,
+                    paddingHorizontal: 20,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                  onPress={() => handleGenerateAndCopyUrl(selectedMasterShift!)}
+                  disabled={generatingUrl}
+                >
+                  {generatingUrl ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="share" size={18} color="white" />
+                      <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>LINEにコピー</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   style={{
                     backgroundColor: colors.primary,
