@@ -44,53 +44,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- スプラッシュスクリーン用スタイル -->
-    <style id="expo-splash-screen">
-      #splash-screen {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        background-color: rgba(255, 255, 255, 0.94); /* 青色から白色に変更 */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.3s ease-out;
-      }
-      #splash-screen.hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #splash-screen img {
-        width: 150px;
-        height: auto;
-        margin-bottom: 20px;
-      }
-      #splash-screen h1 {
-        color: #333333; /* 白色から黒色に変更 */
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        font-size: 24px;
-        font-weight: 600;
-        margin: 0;
-        letter-spacing: -0.5px;
-      }
-      #splash-loader {
-        margin-top: 20px;
-        width: 40px;
-        height: 40px;
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: #1565c0; /* 白色から青色に変更 */
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
-
     <!-- その他のスタイルとスクリプト -->
     <style id="expo-reset">
       html {
@@ -193,37 +146,13 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    
-    <!-- スプラッシュスクリーン -->
-    <div id="splash-screen">
-      <img src="/icon.png" alt="Shiftize" />
-      <h1>Shiftize</h1>
-      <div id="splash-loader"></div>
-    </div>
-    
     <div id="root"></div>
     
-    <!-- スプラッシュスクリーン制御スクリプト -->
+    <!-- アプリ初期化スクリプト -->
     <script>
-      // アプリがロードされたらスプラッシュスクリーンを非表示にする
-      window.addEventListener('load', function() {
-        // アプリのロード完了を待つために少し遅延させる
-        setTimeout(function() {
-          const splashScreen = document.getElementById('splash-screen');
-          if (splashScreen) {
-            splashScreen.classList.add('hidden');
-            // アニメーション終了後に要素を削除
-            setTimeout(function() {
-              splashScreen.remove();
-            }, 300);
-          }
-        }, 1); // 0.01秒後にスプラッシュスクリーンを非表示
-      });
-
       // フォーカス時のフォントサイズ調整（iOSでの自動ズームを防ぐため）
       document.addEventListener('focusin', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          // フォーカス時のズームを防ぐため、font-sizeを16px以上に設定
           if (window.getComputedStyle(e.target).fontSize.includes('px')) {
             const fontSize = parseFloat(window.getComputedStyle(e.target).fontSize);
             if (fontSize < 16) {
@@ -244,9 +173,8 @@
         const vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
       }
-
+      adjustHeight();
       window.addEventListener('resize', adjustHeight);
-      window.addEventListener('load', adjustHeight);
     </script>
 
     <!-- PWA service worker registration -->

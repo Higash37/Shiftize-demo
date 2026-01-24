@@ -198,26 +198,6 @@ export const shiftCreateFormStyles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
-  splashScreen: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    zIndex: 9999,
-  },
-  splashImage: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-  },
-  splashText: {
-    fontSize: 24,
-    color: colors.text.primary,
-  },
   // 店舗選択関連のスタイル
   storeSelectContainer: {
     flexDirection: "row",
