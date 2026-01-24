@@ -121,5 +121,6 @@
   "snyk.showEnableButton": false,
   "typescript.preferences.includePackageJsonAutoImports": "off",
   "npm-intellisense.scanDevDependencies": false,
-  "extensions.ignoreRecommendations": true
+  "extensions.ignoreRecommendations": true,
+  "snyk.advanced.autoSelectOrganization": true
 }
