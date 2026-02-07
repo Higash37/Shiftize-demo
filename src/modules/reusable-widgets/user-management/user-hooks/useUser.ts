@@ -10,7 +10,7 @@ import { createUser, updateUser } from "@/services/firebase/firebase-auth";
 
 export const useUser = (storeId?: string) => {
   const [users, setUsers] = useState<(User & { currentPassword?: string })[]>(
-    []
+    [],
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,49 +43,60 @@ export const useUser = (storeId?: string) => {
     role: "master" | "user",
     color?: string,
     storeId?: string,
-    hourlyWage?: number
+    hourlyWage?: number,
   ) => {
     try {
       setLoading(true);
       setError(null);
 
       if (!nickname) {
-        console.error('❌ [useUser.addUser] Validation failed: No nickname');
+        console.error("❌ [useUser.addUser] Validation failed: No nickname");
         throw new Error("ニックネームを入力してください");
       }
       if (password.length < 6) {
-        console.error('❌ [useUser.addUser] Validation failed: Password too short');
+        console.error(
+          "❌ [useUser.addUser] Validation failed: Password too short",
+        );
         throw new Error("パスワードは6文字以上で入力してください");
       }
       if (!storeId) {
-        console.error('❌ [useUser.addUser] Validation failed: No storeId');
+        console.error("❌ [useUser.addUser] Validation failed: No storeId");
         throw new Error("店舗IDを入力してください");
       }
 
       if (role === "master") {
         const hasMaster = await checkMasterExists();
         if (hasMaster) {
-          console.error('❌ [useUser.addUser] Master user already exists');
+          console.error("❌ [useUser.addUser] Master user already exists");
           throw new Error("マスターユーザーは既に存在します");
         }
       }
 
       // 実際のメールアドレスが提供された場合はそれを使用、なければ自動生成
-      // メールアドレスを正規化（安全な文字のみ使用）
-      const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      // メールアドレスを正規化（Unicodeの文字/数字は維持）
+      const sanitizeForEmail = (str: string) =>
+        str
+          .normalize("NFKC")
+          .replace(/\s+/g, "")
+          .replace(/[^\p{L}\p{N}]/gu, "")
+          .toLowerCase();
 
-      const userEmail = email || (
-        role === "master"
-          ? `${sanitizeForEmail(storeId || 'store')}master@example.com`
-          : `${sanitizeForEmail(storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`
-      );
-
+      const userEmail =
+        email ||
+        (role === "master"
+          ? `${sanitizeForEmail(storeId || "store")}master@example.com`
+          : `${sanitizeForEmail(storeId || "store")}${sanitizeForEmail(
+              nickname,
+            )}@example.com`);
 
       // Firebase接続テスト
       try {
         await import("@/services/firebase/firebase");
       } catch (dbError) {
-        console.error('❌ [useUser.addUser] Firebase connection failed:', dbError);
+        console.error(
+          "❌ [useUser.addUser] Firebase connection failed:",
+          dbError,
+        );
         throw new Error("Firebaseへの接続に失敗しました");
       }
 
@@ -93,18 +104,27 @@ export const useUser = (storeId?: string) => {
       try {
         const emailExists = await checkEmailExists(userEmail);
         if (emailExists) {
-          console.error('❌ [useUser.addUser] Email already exists:', userEmail);
-          throw new Error(email ? "このメールアドレスは既に使用されています" : "このニックネームは既に使用されています");
+          console.error(
+            "❌ [useUser.addUser] Email already exists:",
+            userEmail,
+          );
+          throw new Error(
+            email
+              ? "このメールアドレスは既に使用されています"
+              : "このニックネームは既に使用されています",
+          );
         }
       } catch (emailCheckError: any) {
-        if (emailCheckError.message === 'Query timeout after 10 seconds') {
-          console.warn('⚠️ [useUser.addUser] Email check timed out, proceeding anyway');
+        if (emailCheckError.message === "Query timeout after 10 seconds") {
+          console.warn(
+            "⚠️ [useUser.addUser] Email check timed out, proceeding anyway",
+          );
           // タイムアウトの場合は処理を継続（重複の可能性はあるがFirebase Authでエラーになる）
         } else {
           throw emailCheckError;
         }
       }
-      
+
       const newUser = await createUser(
         userEmail,
         password,
@@ -112,14 +132,14 @@ export const useUser = (storeId?: string) => {
         color,
         storeId,
         role,
-        hourlyWage
+        hourlyWage,
       );
 
       // リストを更新
       await fetchUsers();
       return newUser;
     } catch (err: any) {
-      console.error('❌ [useUser.addUser] Error occurred:', err);
+      console.error("❌ [useUser.addUser] Error occurred:", err);
 
       const errorMessage =
         err.code === "auth/weak-password"
@@ -132,7 +152,7 @@ export const useUser = (storeId?: string) => {
           ? "このプロジェクトでメール認証が無効になっています"
           : err.message || "ユーザーの作成に失敗しました";
 
-      console.error('❌ [useUser.addUser] Final error message:', errorMessage);
+      console.error("❌ [useUser.addUser] Final error message:", errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -149,18 +169,16 @@ export const useUser = (storeId?: string) => {
       role?: "master" | "user";
       color?: string;
       storeId?: string;
-    }
+    },
   ): Promise<User | undefined> => {
     try {
       setLoading(true);
-      
-      
+
       const updatedUser = await updateUser(user, updates);
-      
-      
+
       if (updatedUser) {
         setUsers((prev) =>
-          prev.map((u) => (u.uid === user.uid ? updatedUser : u))
+          prev.map((u) => (u.uid === user.uid ? updatedUser : u)),
         );
       }
 

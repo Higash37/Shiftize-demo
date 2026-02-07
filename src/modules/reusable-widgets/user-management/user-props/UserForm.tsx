@@ -35,13 +35,15 @@ export const UserForm: React.FC<UserFormProps> = ({
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
   const [role, setRole] = useState<"master" | "user">(
-    initialData?.role || "user"
+    initialData?.role || "user",
   );
   const [errorMessage, setError] = useState<string | null>(null);
   const [hasMaster, setHasMaster] = useState(false);
-  const [color, setColor] = useState<string>(() => initialData?.color ?? PRESET_COLORS[0] ?? "#4A90E2");
+  const [color, setColor] = useState<string>(
+    () => initialData?.color ?? PRESET_COLORS[0] ?? "#4A90E2",
+  );
   const [hourlyWage, setHourlyWage] = useState<string>(
-    initialData?.hourlyWage?.toString() || ""
+    initialData?.hourlyWage?.toString() || "",
   );
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
@@ -56,8 +58,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       try {
         const hasMasterUser = await checkMasterExists();
         setHasMaster(hasMasterUser);
-      } catch (err) {
-      }
+      } catch (err) {}
     };
 
     if (mode === "add") {
@@ -108,11 +109,20 @@ export const UserForm: React.FC<UserFormProps> = ({
 
     try {
       setError(null);
-      
-      // メールアドレスを安全に生成
-      const sanitizeForEmail = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const autoEmail = email || `${sanitizeForEmail(currentUser.storeId || 'store')}${sanitizeForEmail(nickname)}@example.com`;
-      
+
+      // メールアドレスを安全に生成（Unicodeの文字/数字は維持）
+      const sanitizeForEmail = (str: string) =>
+        str
+          .normalize("NFKC")
+          .replace(/\s+/g, "")
+          .replace(/[^\p{L}\p{N}]/gu, "")
+          .toLowerCase();
+      const autoEmail =
+        email ||
+        `${sanitizeForEmail(currentUser.storeId || "store")}${sanitizeForEmail(
+          nickname,
+        )}@example.com`;
+
       const formData: any = {
         email: autoEmail,
         password: password || "defaultPassword123",
@@ -121,12 +131,11 @@ export const UserForm: React.FC<UserFormProps> = ({
         storeId: currentUser.storeId || "", // 現在のユーザーのstoreIdを自動設定
         hourlyWage: hourlyWage ? parseFloat(hourlyWage) : 1000,
       };
-      
+
       if (color) {
         formData.color = color;
       }
-      
-      
+
       await onSubmit(formData);
 
       if (mode === "add") {
@@ -178,7 +187,11 @@ export const UserForm: React.FC<UserFormProps> = ({
           placeholder="example@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
-          error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "有効なメールアドレスを入力してください" : ""}
+          error={
+            email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+              ? "有効なメールアドレスを入力してください"
+              : ""
+          }
         />
 
         {!email && (

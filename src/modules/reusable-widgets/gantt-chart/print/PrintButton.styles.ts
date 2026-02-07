@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.primary,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 6,
     marginTop: 10,
   },
   printButtonText: {

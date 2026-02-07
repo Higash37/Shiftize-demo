@@ -23,9 +23,9 @@ export const PrintButton: React.FC<PrintButtonProps> = ({
 
   return (
     <>
-      <TouchableOpacity onPress={handlePrint} style={getButtonStyle("primary")}>
-        <Ionicons name="print-outline" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
-        <Text style={getButtonTextStyle("primary")}>印刷</Text>
+      <TouchableOpacity onPress={handlePrint} style={getButtonStyle("toolbar")}>
+        <Ionicons name="print-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+        <Text style={getButtonTextStyle("toolbar")}>印刷</Text>
       </TouchableOpacity>
 
       <ShiftPrintModal

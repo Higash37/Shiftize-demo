@@ -12,8 +12,8 @@ export const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.footer.separator,
     width: "100%", // 画面端まで伸ばす
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     justifyContent: "space-around", // タブを均等に配置
     alignItems: "center", // 縦方向の中央揃え
     minHeight: 40, // 最小高さを保証

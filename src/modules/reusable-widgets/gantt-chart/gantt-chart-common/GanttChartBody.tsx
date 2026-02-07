@@ -44,7 +44,7 @@ interface RowData {
   group: ShiftItem[];
 }
 
-export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
+const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
   days,
   rows,
   dateColumnWidth,
@@ -222,3 +222,5 @@ export const GanttChartBody: React.FC<GanttChartBodyProps> = ({
     </View>
   );
 };
+
+export const GanttChartBody = React.memo(GanttChartBodyInner);

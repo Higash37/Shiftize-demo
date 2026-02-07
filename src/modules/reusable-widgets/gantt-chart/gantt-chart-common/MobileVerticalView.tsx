@@ -493,32 +493,32 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                 let backgroundColor = "transparent";
                                 if (isShiftTime && userShift) {
                                   let statusColor = "#90caf9"; // デフォルト色（承認済み青）
-                                  
+
                                   if (getStatusConfig) {
                                     statusColor = getStatusConfig(userShift.status)?.color || statusColor;
                                   } else {
                                     // フォールバック用の色マッピング
                                     switch (userShift.status) {
                                       case "approved":
-                                        statusColor = "#90caf9"; // 青
+                                        statusColor = "#90caf9";
                                         break;
                                       case "pending":
-                                        statusColor = "#FFD700"; // 黄色
+                                        statusColor = "#FFD700";
                                         break;
                                       case "rejected":
-                                        statusColor = "#ffcdd2"; // 赤
+                                        statusColor = "#ffcdd2";
                                         break;
                                       case "completed":
-                                        statusColor = "#4CAF50"; // 緑
+                                        statusColor = "#4CAF50";
                                         break;
                                       case "deleted":
-                                        statusColor = "#9e9e9e"; // グレー
+                                        statusColor = "#9e9e9e";
                                         break;
                                       default:
                                         statusColor = "#90caf9";
                                     }
                                   }
-                                  
+
                                   backgroundColor = statusColor + "30"; // 薄く表示
                                 }
                                 

@@ -12,14 +12,14 @@ export const styles = StyleSheet.create({
     borderBottomColor: colors.header.separator,
     position: "relative",
     zIndex: 10,
-    elevation: 4,
+    elevation: 0,
     ...(Platform.OS === "web" &&
       ({
         backdropFilter: "blur(18px)",
       } as any)),
     width: "100%", // ヘッダーを画面幅いっぱいに
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   headerCompact: {
     paddingHorizontal: 8,
@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24, // もともと18、より大きく
-    fontWeight: "bold",
+    fontWeight: "600",
     color: colors.text.primary,
   },
   titleCompact: {
