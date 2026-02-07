@@ -26,15 +26,23 @@ export const getStatusText = (status: ShiftStatus) => {
 export const getStatusColor = (status: ShiftStatus) => {
   switch (status) {
     case "draft":
-      return "#B0BEC5"; // 灰色
+      return "#B0BEC5";
     case "approved":
-      return "#4CAF50"; // 緑色
+      return "#4CAF50";
     case "pending":
-      return "#FFC107"; // 黄色
+      return "#FFC107";
     case "deleted":
-      return "#F44336"; // 赤色
+      return "#F44336";
+    case "rejected":
+      return "#ffcdd2";
+    case "completed":
+      return "#4CAF50";
+    case "deletion_requested":
+      return "#FFA500";
+    case "recruitment":
+      return "#9e9e9e";
     default:
-      return "#9E9E9E"; // デフォルトの灰色
+      return "#9E9E9E";
   }
 };
 
@@ -47,7 +55,7 @@ export const getDayColor = (
   if (!date || state === "disabled") return "#d9e1e8";
 
   const day = new Date(date).getDay();
-  if (day === 0 || HOLIDAYS[date]) return "#f44336"; // 日曜日または祝日は常に赤色
-  if (state === "today") return "#2196F3"; // 今日の日付は青色
+  if (day === 0 || HOLIDAYS[date]) return "#f44336";
+  if (state === "today") return "#2196F3";
   return colors.text.primary; // その他の日付
 };

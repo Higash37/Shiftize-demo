@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
@@ -10,6 +10,7 @@ import { ViewToggleButton } from "./ViewToggleButton";
 import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./UnifiedButtonStyles";
 import { PeriodSettingModal } from "../modals/PeriodSettingModal";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { ShiftSelectionContext } from "./components";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -18,7 +19,7 @@ interface MonthSelectorBarProps {
   onShowYearMonthPicker: () => void;
   onReload: () => void;
   onBatchApprove: () => void;
-  onBatchDelete: () => void;
+  onBatchDelete?: () => void;
   isLoading: boolean;
   totalAmount?: number; // 追加：合計金額
   totalHours?: number; // 追加：合計時間
@@ -47,16 +48,15 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
     onShowYearMonthPicker,
     onReload,
     onBatchApprove,
-    onBatchDelete,
     isLoading,
     totalAmount = 0,
     totalHours = 0,
     shifts = [],
     users = [],
-    colorMode = "status", // デフォルトはステータス色
+    colorMode = "status",
     onColorModeToggle,
     onPayrollPress,
-    viewMode = "gantt", // デフォルトはガントチャート
+    viewMode = "gantt",
     onViewModeToggle,
     isMobileView = false,
     deviceType = "desktop",
@@ -66,146 +66,132 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
   } = props;
 
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const { selectedCount } = useContext(ShiftSelectionContext);
+
+  // 金額・時間のコンパクト表示用フォーマット
+  const formattedHours = totalHours > 0
+    ? `${Math.floor(totalHours)}h${Math.round((totalHours % 1) * 60) > 0 ? `${Math.round((totalHours % 1) * 60)}m` : ""}`
+    : "0h";
+
   return (
     <View style={styles.monthSelector}>
-      {/* 金額表示部分 - シフトがなくても表示（タップ可能） */}
-      {!isMobileView && (
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            left: 10,
-            top: "38%",
-            transform: [{ translateY: -24 }],
-            backgroundColor: onPayrollPress ? "#f0f8ff" : "#f0f8ff",
-            padding: 5,
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: onPayrollPress ? "#4A90E2" : "#ddd",
-            zIndex: 10,
-          }}
-        onPress={onPayrollPress}
-        disabled={!onPayrollPress}
-      >
-        <Text style={{ fontWeight: "bold", color: "#333" }}>
-          合計: {totalAmount.toLocaleString()}円{" "}
-        </Text>
-        {totalHours > 0 ? (
-          <Text style={{ fontSize: 12, color: "#666" }}>
-            ({Math.floor(totalHours)}時間
-            {Math.round((totalHours % 1) * 60) > 0
-              ? `${Math.round((totalHours % 1) * 60)}分`
-              : ""}
-            )
-          </Text>
-        ) : (
-          <Text style={{ fontSize: 12, color: "#666" }}>(0時間)</Text>
-        )}
-        <Text style={{ fontSize: 10, color: "#888", fontStyle: "italic" }}>
-          ※授業時間を除く
-        </Text>
-        </TouchableOpacity>
-      )}
-      
-      {/* 色切替ボタンとビュー切替ボタン - 金額表示の右側 */}
-      {!isMobileView && (
-        <View
-          style={{
-            position: "absolute",
-            left: 180, // 金額表示の右側
-            top: "38%",
-            transform: [{ translateY: -18 }], // 高さを統一
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-        {onColorModeToggle && (
-          <ColorToggleButton
-            colorMode={colorMode}
-            onToggle={onColorModeToggle}
-          />
-        )}
-        {onViewModeToggle && (
-          <ViewToggleButton
-            viewMode={viewMode}
-            onToggle={onViewModeToggle}
-          />
-        )}
-        </View>
-      )}
-      {/* タブレット表示時は年月表示を非表示 */}
-      {deviceType !== "tablet" && (
-        <View style={styles.monthNavigator}>
-          <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
-            <Text style={styles.monthNavButtonText}>＜</Text>
-          </TouchableOpacity>
+      {/* 左ゾーン: 金額・時間表示 + 切替ボタン */}
+      {!isMobileView ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 0, zIndex: 2 }}>
           <TouchableOpacity
-            style={styles.monthButton}
-            onPress={onShowYearMonthPicker}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#FFFFFF",
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: "#E0E0E0",
+              minHeight: 36,
+            }}
+            onPress={onPayrollPress}
+            disabled={!onPayrollPress}
           >
-            <Text style={styles.monthText}>
-              {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
+            <Text style={{ fontWeight: "bold", color: "#333333", fontSize: 12 }}>
+              ¥{totalAmount.toLocaleString()} / {formattedHours}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
-            <Text style={styles.monthNavButtonText}>＞</Text>
-          </TouchableOpacity>
+          {onColorModeToggle && (
+            <ColorToggleButton
+              colorMode={colorMode}
+              onToggle={onColorModeToggle}
+            />
+          )}
+          {onViewModeToggle && (
+            <ViewToggleButton
+              viewMode={viewMode}
+              onToggle={onViewModeToggle}
+            />
+          )}
+        </View>
+      ) : (
+        <View style={{ flex: 1 }} />
+      )}
+
+      {/* 中央ゾーン: 年月ナビゲーション（画面中央に固定） */}
+      {deviceType !== "tablet" && (
+        <View style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          alignItems: "center",
+          pointerEvents: "box-none",
+          zIndex: 1,
+        }}>
+          <View style={[styles.monthNavigator, { pointerEvents: "auto" }]}>
+            <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
+              <Text style={styles.monthNavButtonText}>＜</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.monthButton}
+              onPress={onShowYearMonthPicker}
+            >
+              <Text style={styles.monthText}>
+                {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
+              <Text style={styles.monthNavButtonText}>＞</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
+
+      {/* 右ゾーン: アクションボタン群 */}
       {!isMobileView && (
-        <View style={styles.addShiftButtonRow}>
+        <View style={[styles.addShiftButtonRow, { zIndex: 2 }]}>
           {Platform.OS === "web" && (
-          <PrintButton
-            shifts={shifts}
-            users={users}
-            selectedDate={selectedDate}
-          />
-        )}
-        <TouchableOpacity 
-          style={getButtonStyle("primary")} 
-          onPress={() => setShowPeriodModal(true)}
-        >
-          <Ionicons name="calendar-outline" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
-          <Text style={getButtonTextStyle("primary")}>期間設定</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={getButtonStyle("secondary")} onPress={onReload}>
-          <Ionicons name="refresh" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
-          <Text style={getButtonTextStyle("secondary")}>更新</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={getButtonStyle("primary")}
-          onPress={onBatchApprove}
-          disabled={isLoading}
-        >
-          <Ionicons name="checkmark-circle" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
-          <Text style={getButtonTextStyle("primary")}>一括承認</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={getButtonStyle("danger")}
-          onPress={onBatchDelete}
-          disabled={isLoading}
-        >
-          <Ionicons name="trash" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
-          <Text style={getButtonTextStyle("danger")}>完全削除</Text>
-        </TouchableOpacity>
-        {props.onOpenHistory && (
+            <PrintButton
+              shifts={shifts}
+              users={users}
+              selectedDate={selectedDate}
+            />
+          )}
           <TouchableOpacity
-            style={getButtonStyle("secondary")}
-            onPress={props.onOpenHistory}
+            style={getButtonStyle("toolbar")}
+            onPress={() => setShowPeriodModal(true)}
           >
-            <Ionicons name="time-outline" size={16} color="#333" style={UnifiedButtonStyles.buttonIcon} />
-            <Text style={getButtonTextStyle("secondary")}>履歴</Text>
+            <Ionicons name="calendar-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("toolbar")}>期間設定</Text>
           </TouchableOpacity>
-        )}
-        {props.onQuickUrlPress && (
           <TouchableOpacity
-            style={getButtonStyle("primary")}
-            onPress={props.onQuickUrlPress}
+            style={getButtonStyle("toolbar")}
+            onPress={onBatchApprove}
+            disabled={isLoading}
           >
-            <MaterialIcons name="link" size={16} color="#fff" style={UnifiedButtonStyles.buttonIcon} />
-            <Text style={getButtonTextStyle("primary")}>URL発行</Text>
+            <Ionicons name="checkmark-circle" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("toolbar")}>
+              {selectedCount > 0 ? `一括承認 (${selectedCount})` : "一括承認"}
+            </Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity style={getButtonStyle("toolbar")} onPress={onReload}>
+            <Ionicons name="refresh" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("toolbar")}>更新</Text>
+          </TouchableOpacity>
+          {props.onOpenHistory && (
+            <TouchableOpacity
+              style={getButtonStyle("toolbar")}
+              onPress={props.onOpenHistory}
+            >
+              <Ionicons name="time-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+              <Text style={getButtonTextStyle("toolbar")}>履歴</Text>
+            </TouchableOpacity>
+          )}
+          {props.onQuickUrlPress && (
+            <TouchableOpacity
+              style={getButtonStyle("toolbar")}
+              onPress={props.onQuickUrlPress}
+            >
+              <MaterialIcons name="link" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+              <Text style={getButtonTextStyle("toolbar")}>URL発行</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">      
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Shiftize" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="google-site-verification" content="Je5W8Kxj3tBMQiEZkzrvbSQ-pfko-uA8HOdIeYplXsQ" />
+    <title>シフタイズ - シフト管理・スケジューリングアプリ</title>
+    <meta name="description" content="シフタイズは、シフト管理とスケジューリングを簡単にするアプリです。講師やスタッフのシフト作成、管理、確認が効率的に行えます。" />
+    <meta name="keywords" content="シフタイズ,シフト管理,スケジューリング,シフト作成,シフト確認,講師管理,スタッフ管理,勤務管理" />
+    <meta name="author" content="シフタイズ" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://shift-scheduler-app-vu6i.onrender.com/" />
+    <meta property="og:title" content="シフタイズ - シフト管理・スケジューリングアプリ" />
+    <meta property="og:description" content="シフタイズは、シフト管理とスケジューリングを簡単にするアプリです。講師やスタッフのシフト作成、管理、確認が効率的に行えます。" />
+    <meta property="og:image" content="/icon.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://shift-scheduler-app-vu6i.onrender.com/" />
+    <meta property="twitter:title" content="シフタイズ - シフト管理・スケジューリングアプリ" />
+    <meta property="twitter:description" content="シフタイズは、シフト管理とスケジューリングを簡単にするアプリです。講師やスタッフのシフト作成、管理、確認が効率的に行えます。" />
+    <meta property="twitter:image" content="/icon.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://shift-scheduler-app-vu6i.onrender.com/" />
+    
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- 通常のWebアプリ設定 -->
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Google Fonts - Inter (モダンなWebフォント) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- その他のスタイルとスクリプト -->
+    <style id="expo-reset">
+      html {
+        background-color: rgba(255, 255, 255, 0.94);
+        color-scheme: light;
+      }
+      html,
+      body {
+        min-height: var(--app-height);
+        height: var(--app-height);
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.94);
+        overscroll-behavior: none;
+        touch-action: pan-x pan-y pinch-zoom;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+        flex-direction: column;
+        overscroll-behavior: none;
+        touch-action: pan-x pan-y pinch-zoom;
+      }
+      body {
+        height: calc(var(--vh, 1vh) * 100);
+        color: #14171A;
+      }
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+        pointer-events: none;
+        background-color: rgba(255, 255, 255, 0.94);
+      }
+      body::before {
+        top: 0;
+        height: env(safe-area-inset-top, 0px);
+      }
+      body::after {
+        bottom: 0;
+        height: env(safe-area-inset-bottom, 0px);
+      }
+      @supports (top: constant(safe-area-inset-top)) {
+        body::before {
+          height: constant(safe-area-inset-top);
+        }
+        body::after {
+          height: constant(safe-area-inset-bottom);
+        }
+      }
+      /* PWA関連スタイルは別で管理 */
+    </style>
+
+    <!-- 構造化データ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "シフタイズ",
+      "description": "シフト管理とスケジューリングを簡単にするアプリ",
+      "url": "https://shift-scheduler-app-vu6i.onrender.com/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "JPY"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "シフタイズ"
+      },
+      "keywords": "シフト管理,スケジューリング,シフト作成,講師管理,スタッフ管理"
+    }
+    </script>
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA theme color -->
+    <meta name="theme-color" content="#FFFFFF" />
+
+    <!-- Apple Touch Icon for PWA -->
+    <link rel="apple-touch-icon" href="/PWAIcon180x180.png" sizes="180x180" />
+
+    <!-- PWA Footer Safearea CSS -->
+    <link rel="stylesheet" href="/pwa-footer.css" />
+  <meta name="theme-color" content="#1565C0">
+</head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    
+    <!-- アプリ初期化スクリプト -->
+    <script>
+      // フォーカス時のフォントサイズ調整（iOSでの自動ズームを防ぐため）
+      document.addEventListener('focusin', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          if (window.getComputedStyle(e.target).fontSize.includes('px')) {
+            const fontSize = parseFloat(window.getComputedStyle(e.target).fontSize);
+            if (fontSize < 16) {
+              e.target.style.fontSize = '16px';
+            }
+          }
+        }
+      });
+
+      function setAppHeight() {
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      }
+      window.addEventListener('resize', setAppHeight);
+      window.addEventListener('orientationchange', setAppHeight);
+      setAppHeight();
+
+      function adjustHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      adjustHeight();
+      window.addEventListener('resize', adjustHeight);
+    </script>
+
+    <!-- PWA service worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
+
+    <!-- ズーム機能強化 -->
+    <script>
+      // ズーム機能を確実に有効化
+      document.addEventListener('DOMContentLoaded', function() {
+        // viewport設定を強制的に更新
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, minimum-scale=0.5, user-scalable=yes');
+        }
+        
+        // touch-actionを全要素に適用
+        document.body.style.touchAction = 'pan-x pan-y pinch-zoom';
+        document.documentElement.style.touchAction = 'pan-x pan-y pinch-zoom';
+        
+        // すべての子要素にもtouch-actionを適用
+        const applyTouchAction = () => {
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach(element => {
+            element.style.touchAction = 'pan-x pan-y pinch-zoom';
+          });
+        };
+        
+        applyTouchAction();
+        
+        // 定期的にtouch-actionを再適用（動的に追加される要素に対応）
+        setInterval(applyTouchAction, 1000);
+      });
+      
+      // 既存のズーム防止イベントリスナーを削除
+      window.addEventListener('load', function() {
+        // 既存のイベントリスナーを削除するため、新しいdocumentを作成
+        document.removeEventListener = function() {};
+      });
+    </script>
+  <script src="/_expo/static/js/web/__expo-metro-runtime-2efc460dea73670b4859f83d7a0da2fe.js" defer></script><script src="/_expo/static/js/web/__common-f78fa1877b1175d5c034b2d7f9ad4799.js" defer></script><script src="/_expo/static/js/web/entry-6b6ec63ac15c4b745ef2c46c47e33777.js" defer></script>
+</body>
+</html>

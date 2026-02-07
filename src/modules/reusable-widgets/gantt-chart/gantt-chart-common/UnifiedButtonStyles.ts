@@ -8,13 +8,13 @@ export const UnifiedButtonStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 6,
     borderWidth: 1,
-    minHeight: 36,
+    minHeight: 26,
   },
-  
+
   // プライマリボタン（青系）
   primaryButton: {
     backgroundColor: "#2196F3",
@@ -22,10 +22,10 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // セカンダリボタン（グレー系）
   secondaryButton: {
     backgroundColor: colors.surface,
@@ -33,10 +33,10 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: colors.text.primary,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // 危険ボタン（赤系）
   dangerButton: {
     backgroundColor: "#F44336",
@@ -44,10 +44,10 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   dangerButtonText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // 成功ボタン（緑系）
   successButton: {
     backgroundColor: "#4CAF50",
@@ -55,10 +55,10 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   successButtonText: {
     color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // 切り替えボタン（アクティブ状態）
   toggleActiveButton: {
     backgroundColor: colors.primary + "1A",
@@ -66,10 +66,10 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   toggleActiveButtonText: {
     color: colors.primary,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // 切り替えボタン（非アクティブ状態）
   toggleInactiveButton: {
     backgroundColor: colors.surface,
@@ -77,35 +77,60 @@ export const UnifiedButtonStyles = StyleSheet.create({
   },
   toggleInactiveButtonText: {
     color: colors.text.secondary,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // アイコンとテキストの共通スタイル
   buttonIcon: {
-    marginRight: 6,
+    marginRight: 4,
   },
   buttonText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 9,
+    fontWeight: "500",
   },
-  
+
   // 小さなボタン（コンパクト）
   compactButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    minHeight: 32,
+    paddingHorizontal: 6,
+    paddingVertical: 5,
+    minHeight: 23,
   },
   compactButtonText: {
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 8,
+    fontWeight: "500",
+  },
+
+  // ツールバーボタン（統一ニュートラルトーン・フッター相当サイズ）
+  toolbarButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+    minHeight: 36,
+  },
+  toolbarButtonText: {
+    color: "#333333",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  toolbarDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: "#E0E0E0",
+    marginHorizontal: 6,
   },
 });
 
 // ボタンタイプのヘルパー関数
-export const getButtonStyle = (type: 'primary' | 'secondary' | 'danger' | 'success' | 'toggle-active' | 'toggle-inactive') => {
+export const getButtonStyle = (type: 'primary' | 'secondary' | 'danger' | 'success' | 'toggle-active' | 'toggle-inactive' | 'toolbar') => {
   const base = UnifiedButtonStyles.baseButton;
-  
+
   switch (type) {
     case 'primary':
       return [base, UnifiedButtonStyles.primaryButton];
@@ -119,12 +144,14 @@ export const getButtonStyle = (type: 'primary' | 'secondary' | 'danger' | 'succe
       return [base, UnifiedButtonStyles.toggleActiveButton];
     case 'toggle-inactive':
       return [base, UnifiedButtonStyles.toggleInactiveButton];
+    case 'toolbar':
+      return [UnifiedButtonStyles.toolbarButton];
     default:
       return [base, UnifiedButtonStyles.secondaryButton];
   }
 };
 
-export const getButtonTextStyle = (type: 'primary' | 'secondary' | 'danger' | 'success' | 'toggle-active' | 'toggle-inactive') => {
+export const getButtonTextStyle = (type: 'primary' | 'secondary' | 'danger' | 'success' | 'toggle-active' | 'toggle-inactive' | 'toolbar') => {
   switch (type) {
     case 'primary':
       return UnifiedButtonStyles.primaryButtonText;
@@ -138,6 +165,8 @@ export const getButtonTextStyle = (type: 'primary' | 'secondary' | 'danger' | 's
       return UnifiedButtonStyles.toggleActiveButtonText;
     case 'toggle-inactive':
       return UnifiedButtonStyles.toggleInactiveButtonText;
+    case 'toolbar':
+      return UnifiedButtonStyles.toolbarButtonText;
     default:
       return UnifiedButtonStyles.secondaryButtonText;
   }

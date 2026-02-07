@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Modal,
   View,
@@ -12,6 +12,7 @@ import { db } from "@/services/firebase/firebase";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { logBatchApprove } from "@/services/shift-history/shiftHistoryLogger";
 import { useAuth } from "@/services/auth/useAuth";
+import { ShiftSelectionContext } from "../gantt-chart-common/components";
 
 interface BatchConfirmModalProps {
   visible: boolean;
@@ -40,15 +41,24 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = useAuth();
+  const { selectedShiftIds, clearSelection } = useContext(ShiftSelectionContext);
 
   if (!visible) return null;
 
   const title =
     type === "approve" ? "一括承認" : type === "delete" ? "完全削除" : "";
 
+  const hasSelection = selectedShiftIds && selectedShiftIds.size > 0;
+
   const description =
     type === "approve"
       ? (() => {
+          if (hasSelection) {
+            const selectedPending = shifts.filter(
+              (s) => s.status === "pending" && selectedShiftIds.has(s.id)
+            );
+            return `${selectedPending.length}件の選択シフトを承認します。本当によろしいですか？`;
+          }
           const targets = shifts.filter((s) => s.status === "pending");
           return `${targets.length}件の未承認シフトを一括で承認します。本当によろしいですか？`;
         })()
@@ -62,7 +72,9 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   const handleConfirm = async () => {
     setIsLoading(true);
     if (type === "approve") {
-      const targets = shifts.filter((s) => s.status === "pending");
+      const targets = hasSelection
+        ? shifts.filter((s) => s.status === "pending" && selectedShiftIds.has(s.id))
+        : shifts.filter((s) => s.status === "pending");
       try {
         for (const shift of targets) {
           await updateDoc(doc(db, "shifts", shift.id), {
@@ -110,6 +122,7 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
     }
     setIsLoading(false);
     setBatchModal({ visible: false, type: null });
+    clearSelection();
     // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 

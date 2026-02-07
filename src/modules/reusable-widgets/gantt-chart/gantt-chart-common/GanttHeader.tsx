@@ -27,8 +27,8 @@ export const GanttHeader: React.FC<GanttHeaderProps> = ({
               position: "absolute",
               left:
                 i * (ganttColumnWidth / (hourLabels.length - 1)) -
-                44 -
-                (isLast ? -1.7 : 0),
+                32 -
+                (isLast ? -1.2 : 0),
               width: ganttColumnWidth / (hourLabels.length - 1),
             }}
           >

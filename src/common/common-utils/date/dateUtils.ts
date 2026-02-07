@@ -36,7 +36,7 @@ export const getDateBackgroundColor = (date: string): string => {
  */
 export const getDateTextColor = (date: string): string => {
   if (isSundayOrHoliday(date)) {
-    return "#ff0000"; // 赤色
+    return "#ff0000";
   }
-  return "#000000"; // デフォルトカラー（黒色）
+  return "#000000";
 };

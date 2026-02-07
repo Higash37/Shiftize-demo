@@ -15,15 +15,15 @@ export const ColorToggleButton: React.FC<ColorToggleButtonProps> = ({
   return (
     <TouchableOpacity
       onPress={onToggle}
-      style={getButtonStyle(colorMode === "status" ? "toggle-active" : "toggle-inactive")}
+      style={getButtonStyle("toolbar")}
     >
       <Ionicons
         name={colorMode === "status" ? "clipboard-outline" : "person-outline"}
-        size={16}
-        color={colorMode === "status" ? "#2196f3" : "#666"}
+        size={18}
+        color="#2196F3"
         style={UnifiedButtonStyles.buttonIcon}
       />
-      <Text style={getButtonTextStyle(colorMode === "status" ? "toggle-active" : "toggle-inactive")}>
+      <Text style={getButtonTextStyle("toolbar")}>
         {colorMode === "status" ? "ステータス色" : "講師色"}
       </Text>
     </TouchableOpacity>

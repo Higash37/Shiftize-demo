@@ -284,7 +284,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
                   bottom: "100%", // タブの真上
                   left: "50%", // タブの中央
                   transform: [{ translateX: -30 }], // ツールチップの中央を合わせる
-                  backgroundColor: "#ff9800",
+                  backgroundColor: "#FF9800",
                   borderRadius: 6,
                   paddingVertical: 6,
                   paddingHorizontal: 8,
@@ -313,7 +313,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
                     borderTopWidth: 6,
                     borderLeftColor: "transparent",
                     borderRightColor: "transparent",
-                    borderTopColor: "#ff9800",
+                    borderTopColor: "#FF9800",
                   }}
                 />
 

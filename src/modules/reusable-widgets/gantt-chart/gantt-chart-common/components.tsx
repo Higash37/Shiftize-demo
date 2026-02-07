@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useContext, useMemo, createContext } from "react";
 import {
   View,
   Text,
@@ -27,6 +27,56 @@ import { shadows } from "@/common/common-constants/ShadowConstants";
 import { getDateTextColor } from "@/common/common-utils/date/dateUtils";
 import type { MarkedDates } from "react-native-calendars/src/types";
 
+// --- ShiftSelectionContext ---
+// 選択状態をContext経由で配信し、中間コンポーネントの再レンダリングを回避する
+// ShiftSelectionProviderで状態を管理し、GanttChartMonthViewの再レンダリングを防止
+interface ShiftSelectionContextType {
+  selectedShiftIds: Set<string>;
+  onToggleSelect: (shiftId: string) => void;
+  clearSelection: () => void;
+  selectedCount: number;
+}
+
+export const ShiftSelectionContext = createContext<ShiftSelectionContextType>({
+  selectedShiftIds: new Set(),
+  onToggleSelect: () => {},
+  clearSelection: () => {},
+  selectedCount: 0,
+});
+
+export const ShiftSelectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [selectedShiftIds, setSelectedShiftIds] = useState<Set<string>>(new Set());
+
+  const onToggleSelect = React.useCallback((shiftId: string) => {
+    setSelectedShiftIds(prev => {
+      const next = new Set(prev);
+      if (next.has(shiftId)) {
+        next.delete(shiftId);
+      } else {
+        next.add(shiftId);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = React.useCallback(() => {
+    setSelectedShiftIds(new Set());
+  }, []);
+
+  const value = useMemo(() => ({
+    selectedShiftIds,
+    onToggleSelect,
+    clearSelection,
+    selectedCount: selectedShiftIds.size,
+  }), [selectedShiftIds, onToggleSelect, clearSelection]);
+
+  return (
+    <ShiftSelectionContext.Provider value={value}>
+      {children}
+    </ShiftSelectionContext.Provider>
+  );
+};
+
 // --- DateCell ---
 export type DateCellProps = {
   date: string;
@@ -45,7 +95,7 @@ export const DateCell: React.FC<DateCellProps> = ({
   // 祝日・日曜日対応の色分け
   const holidayTextColor = getDateTextColor(date);
   const textColor =
-    holidayTextColor || (dayOfWeek === "土" ? "#0000FF" : "#000000");
+    holidayTextColor || (dayOfWeek === "土" ? "#2196F3" : "#333333");
   return (
     <View
       style={[
@@ -256,7 +306,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const endPos = timeToPosition(shift.endTime);
         const barWidth = endPos - startPos;
         const totalShifts = shifts.length;
-        const cellHeight = 70;
+        const cellHeight = 48;
 
         // 重複チェック - 他のシフトと時間が重複するかどうか
         const hasOverlap = shifts.some((otherShift, otherIndex) => {
@@ -302,39 +352,20 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         const userIcon = isMaster ? "person" : "school";
 
         // 短いシフトの場合でも十分な表示幅を確保
-        const minWidthForShift = isShortShift ? 100 : 80; // 短いシフトは最小100px
+        const minWidthForShift = isShortShift ? 72 : 57; // 短いシフトは最小65px
 
         // 2行分割表示用のシフトバー
         return (
-          <TouchableOpacity
+          <ShiftBarWithCheckbox
             key={shift.id}
-            style={[
-              styles['shiftBar'],
-              {
-                left: startPos,
-                width: Math.max(barWidth, minWidthForShift), // 動的な最小幅
-                height: singleBarHeight,
-                top: barVerticalOffset,
-                backgroundColor: "rgba(255, 255, 255, 0.95)", // 背景は白ベース
-                borderLeftWidth: 4, // 左端にユーザー色
-                borderLeftColor: borderColor,
-                borderRightWidth: 4, // 右端にも色を追加
-                borderRightColor: borderColor,
-                borderTopWidth: 4, // 上端に色（半分のサイズ）
-                borderTopColor: borderColor,
-                borderBottomWidth: 4, // 下端に色（半分のサイズ）
-                borderBottomColor: borderColor,
-                opacity:
-                  shift.status === "deleted" ||
-                  shift.status === "deletion_requested"
-                    ? 0.5
-                    : 1,
-                zIndex: 2, // シフトバーはグリッド全体より前面
-                borderRadius: 4,
-                ...shadows.small,
-              },
-            ]}
-            onPress={() => onShiftPress?.(shift)}
+            shift={shift}
+            startPos={startPos}
+            barWidth={Math.max(barWidth, minWidthForShift)}
+            singleBarHeight={singleBarHeight}
+            barVerticalOffset={barVerticalOffset}
+            borderColor={borderColor}
+            {...(onShiftPress && { onShiftPress })}
+            styles={styles}
           >
             <View
               style={{
@@ -365,18 +396,19 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   >
                     <Ionicons
                       name={userIcon as any}
-                      size={16}
+                      size={11}
                       color={borderColor}
-                      style={{ marginRight: 4 }}
+                      style={{ marginRight: 2 }}
                     />
                     <Text
                       style={[
                         styles['shiftBarText'],
                         {
-                          fontSize: 13,
+                          fontSize: 9,
                           fontWeight: "bold",
                           color: "#333",
                           textAlign: "left",
+                          lineHeight: 11,
                         },
                       ]}
                       numberOfLines={1}
@@ -385,27 +417,22 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     </Text>
                   </View>
 
-                  {/* 2行目: 時間（アイコン分をインデント） */}
-                  <View
-                    style={{
-                      justifyContent: "flex-start",
-                      paddingLeft: 20, // アイコン分のインデント
-                    }}
+                  {/* 2行目: 時間 */}
+                  <Text
+                    style={[
+                      styles['shiftTimeText'],
+                      {
+                        fontSize: 8,
+                        color: "#666",
+                        textAlign: "left",
+                        lineHeight: 10,
+                        paddingLeft: 13,
+                      },
+                    ]}
+                    numberOfLines={1}
                   >
-                    <Text
-                      style={[
-                        styles['shiftTimeText'],
-                        {
-                          fontSize: 12,
-                          color: "#666",
-                          textAlign: "left",
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {shift.startTime}～{shift.endTime}
-                    </Text>
-                  </View>
+                    {shift.startTime}～{shift.endTime}
+                  </Text>
                 </View>
               ) : (
                 // 2時間超: アイコン＋名前（左詰め）、時間（中央配置、大きいテキスト）を1行で表示
@@ -415,7 +442,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     alignItems: "center",
                     justifyContent: "flex-start",
                     flex: 1,
-                    minHeight: 24,
+                    minHeight: 18,
                   }}
                 >
                   {/* 左側: アイコン + 名前 */}
@@ -429,15 +456,15 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   >
                     <Ionicons
                       name={userIcon as any}
-                      size={16}
+                      size={11}
                       color={borderColor}
-                      style={{ marginRight: 4 }}
+                      style={{ marginRight: 2 }}
                     />
                     <Text
                       style={[
                         styles['shiftBarText'],
                         {
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: "bold",
                           color: "#333",
                           textAlign: "left",
@@ -461,11 +488,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       style={[
                         styles['shiftTimeText'],
                         {
-                          fontSize: 15, // 11から22に拡大（約2倍）
-                          fontWeight: "bold", // 太字にして見やすくする
-                          color: "#555", // 少し濃い色にする
+                          fontSize: 13,
+                          fontWeight: "bold",
+                          color: "#555",
                           textAlign: "center",
-                          marginRight: 40,
+                          marginRight: 26,
                         },
                       ]}
                       numberOfLines={1}
@@ -479,9 +506,9 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
               {/* 下段: タスクエリア */}
               <View
                 style={{
-                  flex: 1.0, // 0.35から1.0に変更（約3倍の高さ）
-                  backgroundColor: "rgba(240, 245, 251, 0.8)", // 少し青みがかった背景
-                  borderRadius: 3,
+                  flex: 1.0,
+                  backgroundColor: "rgba(240, 245, 251, 0.8)",
+                  borderRadius: 2,
                   position: "relative",
                   overflow: "hidden",
                   borderTopWidth: 0.5,
@@ -494,12 +521,12 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   <TouchableOpacity
                     style={{
                       position: "absolute",
-                      top: 2,
-                      left: 2,
-                      width: 20,
-                      height: 20,
+                      top: 1,
+                      left: 1,
+                      width: 14,
+                      height: 14,
                       backgroundColor: "rgba(76, 175, 80, 0.9)",
-                      borderRadius: 10,
+                      borderRadius: 7,
                       justifyContent: "center",
                       alignItems: "center",
                       zIndex: 100,
@@ -510,7 +537,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       }
                     }}
                   >
-                    <Ionicons name="add" size={14} color="white" />
+                    <Ionicons name="add" size={10} color="white" />
                   </TouchableOpacity>
                 )}
 
@@ -563,7 +590,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                           0,
                           taskStartPos - shiftStartPos
                         );
-                        const relativeWidth = Math.max(taskWidth, 12); // 最小幅12px
+                        const relativeWidth = Math.max(taskWidth, 8); // 最小幅8px
 
                         return (
                           <View
@@ -585,21 +612,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               borderColor: "rgba(255, 255, 255, 0.3)",
                             }}
                           >
-                            {/* タスクアイコン */}
-                            {task.icon && relativeWidth >= 18 && (
-                              <Ionicons
-                                name={task.icon as any}
-                                size={11}
-                                color="white"
-                                style={{ marginRight: 2, marginTop: 15 }}
-                              />
-                            )}
-
                             {/* タスク名または略称（中央部分） */}
-                            {relativeWidth >= 30 && (
+                            {relativeWidth >= 20 && (
                               <Text
                                 style={{
-                                  fontSize: relativeWidth >= 60 ? 10 : 9,
+                                  fontSize: relativeWidth >= 40 ? 8 : 7,
                                   color: "white",
                                   fontWeight: "600",
                                   textShadowColor: "rgba(0, 0, 0, 0.5)",
@@ -610,7 +627,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                                 }}
                                 numberOfLines={1}
                               >
-                                {relativeWidth >= 60 && task.title
+                                {relativeWidth >= 40 && task.title
                                   ? task.title
                                   : task.shortName ||
                                     task.title?.substring(0, 2) ||
@@ -618,44 +635,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               </Text>
                             )}
 
-                            {/* 開始時間（左端、幅が十分な場合のみ） */}
-                            {relativeWidth >= 80 && (
-                              <Text
-                                style={{
-                                  fontSize: 9,
-                                  color: "white",
-                                  fontWeight: "500",
-                                  textShadowColor: "rgba(0, 0, 0, 0.5)",
-                                  textShadowOffset: { width: 0, height: 0.5 },
-                                  textShadowRadius: 1,
-                                  position: "absolute",
-                                  left: 0,
-                                  top: 0,
-                                }}
-                                numberOfLines={1}
-                              >
-                                {task.startTime.substring(0, 5)}
-                              </Text>
-                            )}
-                            {/* 終了時間（右端、幅が十分な場合のみ） */}
-                            {relativeWidth >= 100 && (
-                              <Text
-                                style={{
-                                  fontSize: 9,
-                                  color: "white",
-                                  fontWeight: "500",
-                                  textShadowColor: "rgba(0, 0, 0, 0.5)",
-                                  textShadowOffset: { width: 0, height: 0.5 },
-                                  textShadowRadius: 1,
-                                  position: "absolute",
-                                  right: 2,
-                                  bottom: 0,
-                                }}
-                                numberOfLines={1}
-                              >
-                                {task.endTime.substring(0, 5)}
-                              </Text>
-                            )}
                           </View>
                         );
                       })}
@@ -671,7 +650,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     >
                       <Text
                         style={{
-                          fontSize: 9,
+                          fontSize: 7,
                           color: "#aaa",
                           fontStyle: "italic",
                         }}
@@ -683,12 +662,123 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                 })()}
               </View>
             </View>
-          </TouchableOpacity>
+          </ShiftBarWithCheckbox>
         );
       })}
     </View>
   );
 };
+
+// --- ShiftBarWithCheckbox ---
+// Contextから選択状態を取得し、ホバー状態を管理する
+// React.memoで選択状態変更時に無関係なバーの再レンダリングを防止
+interface ShiftBarWithCheckboxProps {
+  shift: ShiftItem;
+  startPos: number;
+  barWidth: number;
+  singleBarHeight: number;
+  barVerticalOffset: number;
+  borderColor: string;
+  onShiftPress?: (shift: ShiftItem) => void;
+  styles: ReturnType<typeof StyleSheet.create>;
+  children: React.ReactNode;
+}
+
+const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
+  shift,
+  startPos,
+  barWidth,
+  singleBarHeight,
+  barVerticalOffset,
+  borderColor,
+  onShiftPress,
+  styles,
+  children,
+}) => {
+  const { selectedShiftIds, onToggleSelect } = useContext(ShiftSelectionContext);
+  const isSelected = selectedShiftIds.has(shift.id);
+  const [hovered, setHovered] = useState(false);
+  const showCheckbox = hovered || isSelected;
+
+  return (
+    <View
+      // @ts-ignore: Web-only mouse events
+      onMouseEnter={() => setHovered(true)}
+      // @ts-ignore
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "absolute",
+        left: startPos,
+        width: barWidth,
+        height: singleBarHeight,
+        top: barVerticalOffset,
+        zIndex: 2,
+      }}
+    >
+      {/* チェックボックス */}
+      {showCheckbox && (
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            left: 2,
+            top: (singleBarHeight - 20) / 2,
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: isSelected ? "#2196F3" : "#FFFFFF",
+            borderWidth: isSelected ? 0 : 1.5,
+            borderColor: "#9E9E9E",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 10,
+          }}
+          onPress={(e) => {
+            e.stopPropagation();
+            onToggleSelect(shift.id);
+          }}
+          activeOpacity={0.7}
+        >
+          {isSelected && (
+            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "bold", lineHeight: 14 }}>
+              ✓
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity
+        style={[
+          styles['shiftBar'],
+          {
+            left: 0,
+            width: "100%",
+            height: "100%",
+            top: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            borderLeftWidth: 1.5,
+            borderLeftColor: borderColor,
+            borderRightWidth: 1.5,
+            borderRightColor: borderColor,
+            borderTopWidth: 1.5,
+            borderTopColor: borderColor,
+            borderBottomWidth: 1.5,
+            borderBottomColor: borderColor,
+            opacity:
+              shift.status === "deleted" ||
+              shift.status === "deletion_requested"
+                ? 0.5
+                : 1,
+            borderRadius: 6,
+          },
+        ]}
+        onPress={() => onShiftPress?.(shift)}
+      >
+        {children}
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const ShiftBarWithCheckbox = React.memo(ShiftBarWithCheckboxInner);
 
 // --- GanttChartInfo ---
 export type GanttChartInfoProps = {
@@ -827,9 +917,9 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
         {
           width: infoColumnWidth,
           backgroundColor: "#ffffff",
-          minHeight: 300,
+          minHeight: 215,
           flex: 1,
-          marginLeft: 0, // スクロールバー分だけ左に移動
+          marginLeft: 0,
         },
       ]}
     >
@@ -847,24 +937,24 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
         >
           <TouchableOpacity
             onPress={() => handleMonthChange("prev")}
-            style={{ padding: 8, borderRadius: 4 }}
+            style={{ padding: 5, borderRadius: 6 }}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="chevron-left" size={20} color="#333" />
+            <MaterialIcons name="chevron-left" size={18} color="#2196F3" />
           </TouchableOpacity>
 
           <CalendarHeader
             date={currentMonth}
             onYearMonthSelect={() => setShowDatePicker(true)}
-            responsiveStyle={{ fontSize: 14 }}
+            responsiveStyle={{ fontSize: 15 }}
           />
 
           <TouchableOpacity
             onPress={() => handleMonthChange("next")}
-            style={{ padding: 8, borderRadius: 4 }}
+            style={{ padding: 5, borderRadius: 6 }}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="chevron-right" size={20} color="#333" />
+            <MaterialIcons name="chevron-right" size={18} color="#2196F3" />
           </TouchableOpacity>
         </View>
 
@@ -872,8 +962,10 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
         <View
           style={{
             flexDirection: "row",
-            marginTop: 2,
-            marginBottom: 2,
+            marginTop: 1,
+            marginBottom: 1,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: "#E0E0E0",
           }}
         >
           {["日", "月", "火", "水", "木", "金", "土"].map((day, index) => (
@@ -882,17 +974,15 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
               style={{
                 flex: 1,
                 alignItems: "center",
-                paddingVertical: 2,
-                borderRightWidth: index < 6 ? 0.5 : 0,
-                borderRightColor: "#E5E5E5",
+                paddingVertical: 1,
               }}
             >
               <Text
                 style={{
-                  fontSize: 12,
-                  fontWeight: "600",
+                  fontSize: 13,
+                  fontWeight: "500",
                   color:
-                    index === 0 ? "#FF3B30" : index === 6 ? "#007AFF" : "#333",
+                    index === 0 ? "#F44336" : index === 6 ? "#2196F3" : "#757575",
                 }}
               >
                 {day}
@@ -916,6 +1006,9 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                 .map((dayData, dayIndex) => {
                   const dateString = format(dayData.date, "yyyy-MM-dd");
                   const isSelected = internalSelectedDate === dateString;
+                  const isToday =
+                    format(dayData.date, "yyyy-MM-dd") ===
+                    format(new Date(), "yyyy-MM-dd");
                   const marking = markedDates[dateString];
 
                   return (
@@ -923,8 +1016,6 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                       key={dateString}
                       style={{
                         flex: 1,
-                        borderRightWidth: dayIndex < 6 ? 0.5 : 0,
-                        borderRightColor: "#E5E5E5",
                       }}
                     >
                       <View
@@ -932,7 +1023,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                           flex: 1,
                           alignItems: "center",
                           justifyContent: "center",
-                          paddingVertical: 2,
+                          paddingVertical: 1,
                         }}
                       >
                         <TouchableOpacity
@@ -940,11 +1031,13 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                             alignItems: "center",
                             justifyContent: "center",
                             backgroundColor: isSelected
-                              ? "#007AFF"
+                              ? "#2196F3"
+                              : isToday
+                              ? "#F5F5F5"
                               : "transparent",
-                            borderRadius: isSelected ? 12 : 0,
-                            width: 24,
-                            height: 24,
+                            borderRadius: 13,
+                            width: 26,
+                            height: 26,
                           }}
                           onPress={() => handleDayPress(dateString)}
                           activeOpacity={0.7}
@@ -952,19 +1045,18 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                           <Text
                             style={{
                               fontSize: 14,
-                              fontWeight: "500",
+                              fontWeight: isToday ? "600" : "400",
                               color: isSelected
                                 ? "#fff"
                                 : !dayData.isCurrentMonth
-                                ? "#C0C0C0"
-                                : format(dayData.date, "yyyy-MM-dd") ===
-                                  format(new Date(), "yyyy-MM-dd")
-                                ? "#007AFF"
+                                ? "#BDBDBD"
+                                : isToday
+                                ? "#333333"
                                 : dayData.date.getDay() === 0
-                                ? "#FF3B30"
+                                ? "#F44336"
                                 : dayData.date.getDay() === 6
-                                ? "#007AFF"
-                                : "#333",
+                                ? "#2196F3"
+                                : "#333333",
                               textAlign: "center",
                             }}
                           >
@@ -979,18 +1071,18 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
                               flexDirection: "row",
                               justifyContent: "center",
                               alignItems: "center",
-                              marginTop: 1,
+                              marginTop: 2,
                             }}
                           >
                             {marking.dots.map((dot: { key?: string; color: string }, index: number) => (
                               <View
                                 key={dot.key || index}
                                 style={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: 3,
+                                  width: 4,
+                                  height: 4,
+                                  borderRadius: 2,
                                   backgroundColor: dot.color,
-                                  marginHorizontal: 1,
+                                  marginHorizontal: 0.5,
                                 }}
                               />
                             ))}

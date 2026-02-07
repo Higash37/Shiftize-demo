@@ -41,36 +41,37 @@ const shiftStatusPalette: Record<ShiftStatus, string> = {
   completed: "#34C759",
   deletion_requested: "#FF9F0A",
   purged: "#FFFFFF",
+  recruitment: "#9e9e9e",
 };
 
 export const colors: ColorsType = {
-  primary: "#0A84FF", // iOS systemBlue accent
-  secondary: "#5E5CE6", // systemIndigo
-  background: "rgba(255, 255, 255, 0.94)", // shared translucent background
-  surface: "#FFFFFF", // systemBackground
-  surfaceElevated: "rgba(255, 255, 255, 0.82)", // frosted surfaces
+  primary: "#2196F3",
+  secondary: "#757575",
+  background: "rgba(255, 255, 255, 0.94)",
+  surface: "#FFFFFF",
+  surfaceElevated: "#F5F5F5",
   text: {
-    primary: "#1C1C1E", // label
-    secondary: "#6E6E73", // secondaryLabel
+    primary: "#333333",
+    secondary: "#757575",
     white: "#FFFFFF",
-    disabled: "#AEAEB2", // tertiaryLabel
+    disabled: "#BDBDBD",
   },
-  border: "rgba(60, 60, 67, 0.18)", // separator on light backgrounds
-  overlay: "rgba(255, 255, 255, 0.6)", // blur overlay tint
+  border: "#E0E0E0",
+  overlay: "rgba(255, 255, 255, 0.6)",
   header: {
     background: "rgba(255, 255, 255, 0.9)",
-    tint: "#0A84FF",
-    separator: "rgba(60, 60, 67, 0.29)",
+    tint: "#2196F3",
+    separator: "#E0E0E0",
   },
   footer: {
     background: "rgba(255, 255, 255, 0.9)",
-    tint: "#0A84FF",
-    separator: "rgba(60, 60, 67, 0.18)",
+    tint: "#2196F3",
+    separator: "#E0E0E0",
   },
-  error: "#FF3B30",
-  success: "#34C759",
-  warning: "#FF9F0A",
-  selected: "rgba(10, 132, 255, 0.12)",
+  error: "#F44336",
+  success: "#4CAF50",
+  warning: "#FF9800",
+  selected: "rgba(33, 150, 243, 0.08)",
   shift: shiftStatusPalette,
   status: shiftStatusPalette,
 };

@@ -15,15 +15,15 @@ export const ViewToggleButton: React.FC<ViewToggleButtonProps> = ({
   return (
     <TouchableOpacity
       onPress={onToggle}
-      style={[getButtonStyle(viewMode === "gantt" ? "toggle-active" : "toggle-inactive"), { marginTop: 0 }]}
+      style={getButtonStyle("toolbar")}
     >
       <Ionicons
         name={viewMode === "gantt" ? "grid-outline" : "calendar-outline"}
-        size={16}
-        color={viewMode === "gantt" ? "#2196f3" : "#666"}
+        size={18}
+        color="#2196F3"
         style={UnifiedButtonStyles.buttonIcon}
       />
-      <Text style={getButtonTextStyle(viewMode === "gantt" ? "toggle-active" : "toggle-inactive")}>
+      <Text style={getButtonTextStyle("toolbar")}>
         {viewMode === "gantt" ? "ガントチャート" : "カレンダー"}
       </Text>
     </TouchableOpacity>

@@ -97,7 +97,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
         )}
         {/* 日付セル分のスペースを確保 */}
         <View style={{ width: dateColumnWidth }} />
-        <View style={{ height: rowHeight }}>
+        <View style={{ height: rowHeight, borderBottomWidth: 1, borderBottomColor: "#E0E0E0" }}>
           <GanttChartGrid
             shifts={group}
             cellWidth={cellWidth}
@@ -119,14 +119,16 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
             colorMode={colorMode}
           />
         </View>
-        <GanttChartInfo
-          shifts={group}
-          getStatusConfig={getStatusConfig}
-          onShiftPress={handleShiftPress}
-          onDelete={() => {}}
-          infoColumnWidth={infoColumnWidth}
-          styles={styles}
-        />
+        <View style={{ borderBottomWidth: 1, borderBottomColor: "#E0E0E0" }}>
+          <GanttChartInfo
+            shifts={group}
+            getStatusConfig={getStatusConfig}
+            onShiftPress={handleShiftPress}
+            onDelete={() => {}}
+            infoColumnWidth={infoColumnWidth}
+            styles={styles}
+          />
+        </View>
       </View>
     );
   } else {
@@ -151,7 +153,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
         )}
         {/* 日付セル分のスペースを確保 */}
         <View style={{ width: dateColumnWidth }} />
-        <View style={{ height: rowHeight }}>
+        <View style={{ height: rowHeight, borderBottomWidth: 1, borderBottomColor: "#E0E0E0" }}>
           <EmptyCell
             date={date}
             width={ganttColumnWidth}
@@ -162,7 +164,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
             handleEmptyCellClick={handleEmptyCellClick}
           />
         </View>
-        <View style={[styles['emptyInfoCell'], { width: infoColumnWidth, height: rowHeight }]} />
+        <View style={[styles['emptyInfoCell'], { width: infoColumnWidth, height: rowHeight, borderBottomWidth: 1, borderBottomColor: "#E0E0E0" }]} />
       </View>
     );
   }

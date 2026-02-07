@@ -64,19 +64,15 @@ import {
   GanttChartGrid,
   GanttChartInfo,
   EmptyCell,
+  ShiftSelectionProvider,
 } from "./gantt-chart-common/components";
+import { ShiftModalRenderer, ShiftModalRendererHandle } from "./gantt-chart-common/ShiftModalRenderer";
 // モーダルコンポーネントを遅延読み込み
-const EditShiftModalView = lazy(() => 
-  import("./view-modals/EditShiftModalView").then(module => ({ default: module.EditShiftModalView }))
-);
-const AddShiftModalView = lazy(() => 
-  import("./view-modals/AddShiftModalView").then(module => ({ default: module.AddShiftModalView }))
-);
-const PayrollDetailModal = lazy(() => 
+const PayrollDetailModal = lazy(() =>
   import("./view-modals/PayrollDetailModal").then(module => ({ default: module.PayrollDetailModal }))
 );
 const BatchConfirmModal = lazy(() => import("./view-modals/BatchConfirmModal"));
-const ShiftHistoryModal = lazy(() => 
+const ShiftHistoryModal = lazy(() =>
   import("./view-modals/ShiftHistoryModal").then(module => ({ default: module.ShiftHistoryModal }))
 );
 
@@ -145,29 +141,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   );
   const [recruitmentShifts, setRecruitmentShifts] = useState<any[]>([]);
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
-  const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newShiftData, setNewShiftData] = useState<{
-    date: string;
-    startTime: string;
-    endTime: string;
-    userId: string;
-    nickname: string;
-    status: ShiftStatus;
-    classes: ClassTimeSlot[];
-    extendedTasks?: any[]; // 拡張タスク配列を追加
-  }>({
-    date: "",
-    startTime: "09:00",
-    endTime: "11:00",
-    userId: "",
-    nickname: "",
-    status: "approved",
-    classes: [], // 授業時間の初期値
-    extendedTasks: [], // 拡張タスクの初期値
-  });
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const modalRef = useRef<ShiftModalRendererHandle>(null);
   const [isLoading, setIsLoading] = useState(false); // モーダルのローディング状態用（オーバーレイなし）
   const [refreshKey, setRefreshKey] = useState(0); // 強制再レンダリング用
   const [scrollPosition, setScrollPosition] = useState(0); // スクロール位置保存用
@@ -201,10 +175,10 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const timeOptions = generateTimeOptions();
 
   const screenWidth = Dimensions.get("window").width;
-  const scrollBarWidth = 17; // スクロールバーの幅
-  const dateColumnWidth = 50 - scrollBarWidth; // スクロールバー分を減らす
-  const infoColumnWidth = Math.max(screenWidth * 0.18, 150) + scrollBarWidth; // スクロールバー分だけ左に詰める
-  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth; // スクロールバー分を減らす
+  const scrollBarWidth = 21; // スクロールバーの幅（余白含む）
+  const dateColumnWidth = 31; // 日付列の幅
+  const infoColumnWidth = Math.max(screenWidth * 0.22, 180); // カレンダー列の幅を広げる
+  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth; // ガントチャート列
   
   // デバイスタイプの判定
   useEffect(() => {
@@ -370,60 +344,16 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     }
   }, [onMonthChange]);
 
-  // シフト編集
-  const handleEditShift = useCallback((shift: ShiftItem) => {
-    setEditingShift(shift);
-    setNewShiftData({
-      date: shift.date,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      userId: shift.userId,
-      nickname: shift.nickname,
-      status: shift.status,
-      classes: shift.classes || [],
-      extendedTasks: shift.extendedTasks || [], // 拡張タスクも含める
-    });
-    setShowEditModal(true);
-  }, []);
-
-  // シフト削除
-  const handleDeleteShift = async (shiftId: string) => {
-
-    // 募集シフトの場合
-    if (shiftId.startsWith('recruitment-')) {
-      const recruitmentShiftId = shiftId.replace('recruitment-', '');
-      try {
-        await RecruitmentShiftService.deleteRecruitmentShift(recruitmentShiftId);
-
-        // 募集シフトデータを再取得
-        if (user?.storeId) {
-          const updatedRecruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
-          setRecruitmentShifts(updatedRecruitmentData);
-        }
-      } catch (error) {
-        Alert.alert('エラー', '募集シフトの削除に失敗しました');
-      }
-      setShowEditModal(false);
-      return;
+  // 募集シフトデータの再取得
+  const refreshRecruitmentShifts = useCallback(async () => {
+    if (!user?.storeId) return;
+    try {
+      const recruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
+      setRecruitmentShifts(recruitmentData);
+    } catch (error) {
+      // エラーは無視
     }
-
-    // 通常シフトの場合
-    // 編集中のシフトの情報を取得
-    const targetShift = editingShift || shifts.find(s => s.id === shiftId);
-
-    if (targetShift) {
-      // 通知対忌の削除機能を使用
-      await deleteShift(targetShift);
-    } else {
-      // フォールバック: 従来の方法
-      const newStatus: ShiftStatus = "deleted";
-      await updateShiftStatus(shiftId, newStatus);
-    }
-
-    setShowEditModal(false); // モーダルを閉じる
-
-    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
-  };
+  }, [user?.storeId]);
 
   const handleBatchDelete = async () => {
     const rejectedShifts = shifts.filter(
@@ -435,133 +365,33 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 
-  // シフト保存
-  const handleSaveShift = useCallback(async () => {
-    if (
-      !newShiftData.date ||
-      !newShiftData.startTime ||
-      !newShiftData.endTime
-    ) {
-      Alert.alert("エラー", "日付と時間を正しく入力してください。");
-      return;
-    }
-    
-    // ユーザー選択チェック
-    if (!newShiftData.userId) {
-      Alert.alert("エラー", "ユーザーまたは募集を選択してください。");
-      return;
-    }
-    
-    try {
-      // 募集シフトの場合は専用のサービスを使用
-      if (newShiftData.userId === "recruitment") {
-        const recruitmentShiftData = {
-          storeId: user?.storeId || "",
-          date: newShiftData.date,
-          startTime: newShiftData.startTime,
-          endTime: newShiftData.endTime,
-          subject: "", // 必要に応じて件名を追加
-          notes: "", // 必要に応じてメモを追加
-          createdBy: user?.uid || "", // 必須フィールドを追加
-          status: "open" as const, // 必須フィールドを追加
-          // オプショナルフィールドは省略（undefinedを避ける）
-        };
-        
-        try {
-          const shiftId = await RecruitmentShiftService.createRecruitmentShift(recruitmentShiftData);
-          Alert.alert("成功", "募集シフトを作成しました。");
-        } catch (recruitmentError: any) {
-          // console.error("募集シフト作成エラー詳細:", recruitmentError);
-          // console.error("エラーメッセージ:", recruitmentError?.message);
-          // console.error("エラーコード:", recruitmentError?.code);
-          
-          // Firebase エラーの詳細を表示
-          if (recruitmentError?.code) {
-            Alert.alert("エラー", `募集シフトの作成に失敗しました。\nエラーコード: ${recruitmentError.code}\nメッセージ: ${recruitmentError.message}`);
-          } else {
-            Alert.alert("エラー", `募集シフトの作成に失敗しました。\n${recruitmentError?.message || "不明なエラーが発生しました。"}`);
-          }
-          
-          throw recruitmentError; // エラーを再スロー
-        }
-      } else {
-        // 通常のシフト保存
-        // 編集モーダルが開いている場合のみeditingShiftを渡す
-        const shiftToUpdate = showEditModal ? editingShift : null;
-        await saveShift(shiftToUpdate, newShiftData);
-      }
-      
-      // 状態をクリア（順番を守る）
-      setShowEditModal(false);
-      setShowAddModal(false);
-      setEditingShift(null);
-      setNewShiftData({
-        date: "",
-        startTime: "09:00",
-        endTime: "11:00",
-        userId: "",
-        nickname: "",
-        status: "approved",
-        classes: [],
-        extendedTasks: [], // 拡張タスクもリセット
-      });
-
-          
-      // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
-      
-    } catch (error) {
-      // console.error("シフト保存エラー:", error);
-      Alert.alert("エラー", "シフトの保存に失敗しました。");
-    }
-  }, [editingShift, newShiftData, saveShift, user]);
-
   // --- シフトバー・グリッド全体押下時のモーダル表示 ---
   const handleShiftPress = useCallback(
     (shift: ShiftItem) => {
-      const userObj = users.find((u) => u.uid === shift.userId);
-      setEditingShift(shift);
-      setNewShiftData({
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        userId: shift.userId,
-        nickname: userObj ? userObj.nickname : "",
-        status: shift.status,
-        classes: shift.classes || [],
-        extendedTasks: shift.extendedTasks || [], // 拡張タスクも含める
-      });
-      setShowEditModal(true);
+      modalRef.current?.openEdit(shift);
     },
-    [users]
+    []
   );
 
   const handleHistoryEntryAction = useCallback(
     (entry: ShiftHistoryEntry) => {
-      if (!entry) {
-        return;
-      }
+      if (!entry) return;
 
       const existingShift = entry.shiftId
         ? shifts.find((shiftItem) => shiftItem.id === entry.shiftId)
         : undefined;
 
       if (existingShift) {
-        handleShiftPress(existingShift);
+        modalRef.current?.openEdit(existingShift);
         setShowHistoryModal(false);
-        setShowEditModal(true);
         return;
       }
 
       const snapshot = entry.nextSnapshot || entry.prevSnapshot;
-      if (!snapshot) {
-        return;
-      }
+      if (!snapshot) return;
 
-      const fallbackDate = snapshot.date || entry.date;
-
-      setEditingShift(null);
-      setNewShiftData({
-        date: fallbackDate,
+      modalRef.current?.openAdd({
+        date: snapshot.date || entry.date,
         startTime: snapshot.startTime || "09:00",
         endTime: snapshot.endTime || "11:00",
         userId: snapshot.userId || "",
@@ -571,16 +401,13 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         extendedTasks: (snapshot.extendedTasks as any[]) || [],
       });
       setShowHistoryModal(false);
-      setShowEditModal(false);
-      setShowAddModal(true);
     },
-    [handleShiftPress, setShowAddModal, setShowEditModal, setShowHistoryModal, setNewShiftData, shifts]
+    [shifts]
   );
 
   // 空白セルをクリックした時の処理（シフト追加モーダル表示）
   const handleEmptyCellClick = useCallback(
     (date: string, position: number) => {
-      // シフトデータを準備
       const startTime = positionToTime(position);
       const startHour = parseInt(startTime.split(":")[0] || "0");
       const startMinute = parseInt(startTime.split(":")[1] || "0");
@@ -599,8 +426,8 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       const defaultNickname = isMaster
         ? ""
         : users.find((u) => u.uid === user?.uid)?.nickname || "";
-      
-      setNewShiftData({
+
+      modalRef.current?.openAdd({
         date,
         startTime,
         endTime,
@@ -610,23 +437,18 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         classes: [],
         extendedTasks: [],
       });
-      
-      // 直接モーダルを表示
-      setShowAddModal(true);
     },
     [positionToTime, user, users]
   );
   // シフト追加
   const handleAddShift = useCallback(() => {
-    // マスター権限の場合はユーザーIDをクリアして選択できるようにする
-    // 一般ユーザーの場合は自分自身のIDを設定
     const isMaster = user?.role === "master";
     const defaultUserId = isMaster ? "" : user?.uid || "";
     const defaultNickname = isMaster
       ? ""
       : users.find((u) => u.uid === user?.uid)?.nickname || "";
 
-    setNewShiftData({
+    modalRef.current?.openAdd({
       date: format(selectedDate, "yyyy-MM-dd"),
       startTime: "09:00",
       endTime: "11:00",
@@ -634,9 +456,8 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       nickname: defaultNickname,
       status: isMaster ? "approved" : "pending",
       classes: [],
-      extendedTasks: [], // 拡張タスクを初期化
+      extendedTasks: [],
     });
-    setShowAddModal(true);
   }, [selectedDate, user, users]);
 
   // 色モード切替
@@ -760,8 +581,32 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   }, [user?.storeId, refreshKey]);
   
 
+  // MobileVerticalView / GoogleCalendarView 共通コールバック
+  const handleMobileEmptyCellClick = useCallback((date: string, time: string, userId: string) => {
+    const targetUser = users.find(u => u.uid === userId);
+    const startTime = time;
+    const [hour] = time.split(':').map(Number);
+    const endTime = `${(hour ?? 0) + 1}:00`;
+
+    modalRef.current?.openAdd({
+      date,
+      startTime,
+      endTime,
+      userId,
+      nickname: targetUser?.nickname || "",
+      status: user?.role === "master" ? "approved" : "pending",
+      classes: [],
+      extendedTasks: [],
+    });
+  }, [users, user]);
+
+  const handleClassAdd = useCallback((shift: ShiftItem) => {
+    modalRef.current?.openEdit(shift);
+  }, []);
+
   // --- 本体 ---
   return (
+    <ShiftSelectionProvider>
     <View style={styles.container}>
       {/* 月選択バー＋右上ボタン群 - タブレット表示時は非表示 */}
       {deviceType !== "tablet" && (
@@ -831,39 +676,8 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
           {...(onMonthChange && { onMonthChange })}
-          onEmptyCellClick={(date, time, userId) => {
-            const targetUser = users.find(u => u.uid === userId);
-            const startTime = time;
-            const [hour] = time.split(':').map(Number);
-            const endTime = `${(hour ?? 0) + 1}:00`;
-            
-            setNewShiftData({
-              date,
-              startTime,
-              endTime,
-              userId,
-              nickname: targetUser?.nickname || "",
-              status: user?.role === "master" ? "approved" : "pending",
-              classes: [],
-              extendedTasks: [],
-            });
-            setShowAddModal(true);
-          }}
-          onClassAdd={(shift) => {
-            // 授業追加モーダルを開く
-            setEditingShift(shift);
-            setNewShiftData({
-              date: shift.date,
-              startTime: shift.startTime,
-              endTime: shift.endTime,
-              userId: shift.userId,
-              nickname: shift.nickname,
-              status: shift.status,
-              classes: shift.classes || [],
-              extendedTasks: shift.extendedTasks || [],
-            });
-            setShowEditModal(true);
-          }}
+          onEmptyCellClick={handleMobileEmptyCellClick}
+          onClassAdd={handleClassAdd}
           colorMode={colorMode}
           getStatusConfig={getStatusConfig}
           styles={styles}
@@ -876,39 +690,8 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
           {...(onMonthChange && { onMonthChange })}
-          onEmptyCellClick={(date, time, userId) => {
-            const targetUser = users.find(u => u.uid === userId);
-            const startTime = time;
-            const [hour] = time.split(':').map(Number);
-            const endTime = `${(hour ?? 0) + 1}:00`;
-            
-            setNewShiftData({
-              date,
-              startTime,
-              endTime,
-              userId,
-              nickname: targetUser?.nickname || "",
-              status: user?.role === "master" ? "approved" : "pending",
-              classes: [],
-              extendedTasks: [],
-            });
-            setShowAddModal(true);
-          }}
-          onClassAdd={(shift) => {
-            // 授業追加モーダルを開く
-            setEditingShift(shift);
-            setNewShiftData({
-              date: shift.date,
-              startTime: shift.startTime,
-              endTime: shift.endTime,
-              userId: shift.userId,
-              nickname: shift.nickname,
-              status: shift.status,
-              classes: shift.classes || [],
-              extendedTasks: shift.extendedTasks || [],
-            });
-            setShowEditModal(true);
-          }}
+          onEmptyCellClick={handleMobileEmptyCellClick}
+          onClassAdd={handleClassAdd}
           colorMode={colorMode}
           getStatusConfig={getStatusConfig}
           styles={styles}
@@ -921,24 +704,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
           {...(onMonthChange && { onMonthChange })}
-          onEmptyCellClick={(date, time, userId) => {
-            const targetUser = users.find(u => u.uid === userId);
-            const startTime = time;
-            const [hour] = time.split(':').map(Number);
-            const endTime = `${(hour ?? 0) + 1}:00`;
-            
-            setNewShiftData({
-              date,
-              startTime,
-              endTime,
-              userId,
-              nickname: targetUser?.nickname || "",
-              status: user?.role === "master" ? "approved" : "pending",
-              classes: [],
-              extendedTasks: [],
-            });
-            setShowAddModal(true);
-          }}
+          onEmptyCellClick={handleMobileEmptyCellClick}
           onAddShift={handleAddShift}
           colorMode={colorMode}
           styles={styles}
@@ -951,88 +717,45 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           selectedDate={selectedDate}
           onShiftPress={handleShiftPress}
           {...(onMonthChange && { onMonthChange })}
-          onEmptyCellClick={(date, time, userId) => {
-            const targetUser = users.find(u => u.uid === userId);
-            const startTime = time;
-            const [hour] = time.split(':').map(Number);
-            const endTime = `${(hour ?? 0) + 1}:00`;
-            
-            setNewShiftData({
-              date,
-              startTime,
-              endTime,
-              userId,
-              nickname: targetUser?.nickname || "",
-              status: user?.role === "master" ? "approved" : "pending",
-              classes: [],
-              extendedTasks: [],
-            });
-            setShowAddModal(true);
-          }}
-          onClassAdd={(shift) => {
-            // 授業追加モーダルを開く
-            setEditingShift(shift);
-            setNewShiftData({
-              date: shift.date,
-              startTime: shift.startTime,
-              endTime: shift.endTime,
-              userId: shift.userId,
-              nickname: shift.nickname,
-              status: shift.status,
-              classes: shift.classes || [],
-              extendedTasks: shift.extendedTasks || [],
-            });
-            setShowEditModal(true);
-          }}
+          onEmptyCellClick={handleMobileEmptyCellClick}
+          onClassAdd={handleClassAdd}
           colorMode={colorMode}
           getStatusConfig={getStatusConfig}
           styles={styles}
         />
       ) : viewMode === "gantt" ? (
-        /* 横スクロール全体をCustomScrollViewでラップ（ガントチャートのみ） */
-        <CustomScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          onScroll={(event) => {
-            // スクロール位置を保存
-            setScrollPosition(event.nativeEvent.contentOffset.x);
-          }}
-          scrollEventThrottle={16}
-        >
-          <View>
-            <GanttHeader
-              hourLabels={hourLabels}
-              dateColumnWidth={dateColumnWidth}
-              ganttColumnWidth={ganttColumnWidth}
-              infoColumnWidth={infoColumnWidth}
-            />
-            <GanttChartBody
-              // keyを削除して不要な再マウントを防ぐ
-              days={days}
-              rows={rows}
-              dateColumnWidth={dateColumnWidth}
-              ganttColumnWidth={ganttColumnWidth}
-              infoColumnWidth={infoColumnWidth}
-              cellWidth={cellWidth}
-              halfHourLines={halfHourLines}
-              isClassTime={isClassTime}
-              getStatusConfig={getStatusConfig}
-              handleShiftPress={handleShiftPress}
-              handleEmptyCellClick={handleEmptyCellClick}
-              styles={styles}
-              userColorsMap={userColorsMap}
-              colorMode={colorMode}
-              // カレンダー連動のために追加
-              allShifts={shifts}
-              selectedDate={selectedDate}
-              onDateSelect={(date) => {
-                // 日付選択時の処理（必要に応じて実装）
-              }}
-              {...(onMonthChange && { onMonthChange: (month: any) => onMonthChange(month.getFullYear(), month.getMonth()) })}
-              users={usersWithRole}
-            />
-          </View>
-        </CustomScrollView>
+        /* 横スクロールなしで1画面に収める */
+        <View style={{ flex: 1 }}>
+          <GanttHeader
+            hourLabels={hourLabels}
+            dateColumnWidth={dateColumnWidth}
+            ganttColumnWidth={ganttColumnWidth}
+            infoColumnWidth={infoColumnWidth}
+          />
+          <GanttChartBody
+            days={days}
+            rows={rows}
+            dateColumnWidth={dateColumnWidth}
+            ganttColumnWidth={ganttColumnWidth}
+            infoColumnWidth={infoColumnWidth}
+            cellWidth={cellWidth}
+            halfHourLines={halfHourLines}
+            isClassTime={isClassTime}
+            getStatusConfig={getStatusConfig}
+            handleShiftPress={handleShiftPress}
+            handleEmptyCellClick={handleEmptyCellClick}
+            styles={styles}
+            userColorsMap={userColorsMap}
+            colorMode={colorMode}
+            allShifts={shifts}
+            selectedDate={selectedDate}
+            onDateSelect={(date) => {
+              // 日付選択時の処理
+            }}
+            {...(onMonthChange && { onMonthChange: (month: any) => onMonthChange(month.getFullYear(), month.getMonth()) })}
+            users={usersWithRole}
+          />
+        </View>
       ) : (
         /* カレンダービューは横スクロール不要 */
         <CalendarView
@@ -1047,59 +770,20 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           styles={styles}
         />
       )}
-      {/* シフト編集モーダル */}
-      {showEditModal && (
-        <Suspense fallback={null}>
-          <EditShiftModalView
-            visible={showEditModal}
-            newShiftData={newShiftData}
-            users={users}
-            timeOptions={timeOptions}
-            statusConfigs={statusConfigs}
-            isLoading={isLoading}
-            styles={styles}
-            extendedTasks={[]} // 拡張タスクのテンプレート（必要に応じて実際のデータに置き換え）
-            onChange={(field, value) =>
-              setNewShiftData({ ...newShiftData, [field]: value })
-            }
-            onClose={() => setShowEditModal(false)}
-            onSave={handleSaveShift}
-            onDelete={async () => {
-              if (editingShift) {
-                await handleDeleteShift(editingShift.id); // 非同期処理に対応
-              }
-            }}
-          />
-        </Suspense>
-      )}
-      {/* シフト追加モーダル */}
-      {showAddModal && (
-        <Suspense fallback={null}>
-          <AddShiftModalView
-            visible={showAddModal}
-            newShiftData={newShiftData}
-            users={users}
-            timeOptions={timeOptions}
-            statusConfigs={statusConfigs}
-            isLoading={isLoading}
-            styles={styles}
-            extendedTasks={[]} // 拡張タスクのテンプレート
-            onChange={(field, value) => {
-              if (field === "userData") {
-                setNewShiftData({
-                  ...newShiftData,
-                  userId: value.userId,
-                  nickname: value.nickname,
-                });
-              } else {
-                setNewShiftData({ ...newShiftData, [field]: value });
-              }
-            }}
-            onClose={() => setShowAddModal(false)}
-            onSave={handleSaveShift}
-          />
-        </Suspense>
-      )}
+      {/* シフト編集・追加モーダル（独立コンポーネントで状態管理） */}
+      <ShiftModalRenderer
+        ref={modalRef}
+        users={users}
+        timeOptions={timeOptions}
+        statusConfigs={statusConfigs}
+        styles={styles}
+        saveShift={saveShift}
+        deleteShift={deleteShift}
+        updateShiftStatus={updateShiftStatus}
+        user={user}
+        shifts={shifts}
+        onRecruitmentRefresh={refreshRecruitmentShifts}
+      />
       {/* 給与詳細モーダル */}
       {showPayrollModal && (
         <Suspense fallback={null}>
@@ -1136,6 +820,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       )}
 
     </View>
+    </ShiftSelectionProvider>
   );
 };
 
