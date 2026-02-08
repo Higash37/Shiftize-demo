@@ -265,10 +265,14 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("store_id", fromStoreId)
       .single();
 
+    // 重複排除してから連携店舗を追加
+    const toConnected = [...new Set([...(toStore.connected_stores || []), fromStoreId])];
+    const fromConnected = [...new Set([...(fromStore?.connected_stores || []), toStoreId])];
+
     await supabase
       .from("stores")
       .update({
-        connected_stores: [...(toStore.connected_stores || []), fromStoreId],
+        connected_stores: toConnected,
         connection_password: null,
         connection_password_expiry: null,
         updated_at: new Date().toISOString(),
@@ -278,7 +282,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     await supabase
       .from("stores")
       .update({
-        connected_stores: [...(fromStore?.connected_stores || []), toStoreId],
+        connected_stores: fromConnected,
         updated_at: new Date().toISOString(),
       })
       .eq("store_id", fromStoreId);

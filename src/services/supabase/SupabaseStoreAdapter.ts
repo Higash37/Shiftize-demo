@@ -65,6 +65,7 @@ export class SupabaseStoreAdapter implements IStoreService {
   }
 
   async createGroup(data: CreateGroupData): Promise<GroupCreationResult> {
+    let createdAdminUid: string | null = null;
     try {
       const supabase = getSupabase();
 
@@ -83,8 +84,13 @@ export class SupabaseStoreAdapter implements IStoreService {
         });
 
       if (signUpError) {
-        // メールアドレスが重複した場合のフォールバック
-        if (signUpError.message?.includes("already registered")) {
+        // メールアドレスが重複した場合のフォールバック（status codeで判定）
+        const isAlreadyRegistered =
+          (signUpError as any).status === 422 ||
+          (signUpError as any).code === "user_already_exists" ||
+          signUpError.message?.includes("already registered");
+
+        if (isAlreadyRegistered) {
           const retryNickname = `${data.adminNickname}${Date.now()}`;
           adminEmail = buildGeneratedEmail(data.storeId, retryNickname);
           const { data: retryData, error: retryError } =
@@ -95,7 +101,6 @@ export class SupabaseStoreAdapter implements IStoreService {
           if (retryError || !retryData.user) {
             throw new Error(`管理者アカウント作成に失敗しました: ${retryError?.message}`);
           }
-          // 以降retryDataを使用
           Object.assign(signUpData!, retryData);
         } else {
           throw signUpError;
@@ -107,6 +112,7 @@ export class SupabaseStoreAdapter implements IStoreService {
       }
 
       const adminUid = signUpData.user.id;
+      createdAdminUid = adminUid;
 
       // signUpで自動ログインされるのでセッションを確認
       // メール確認が有効な場合sessionがnullになるため、明示的にsignInする
@@ -216,6 +222,14 @@ export class SupabaseStoreAdapter implements IStoreService {
         message: "グループが正常に作成されました",
       };
     } catch (error: any) {
+      // Auth作成済みだがDB挿入失敗した場合は孤児ユーザー警告
+      if (createdAdminUid) {
+        console.warn(
+          `createGroup failed after Auth user creation. Orphan user ID: ${createdAdminUid}. ` +
+          `Cleanup via admin API or DB trigger recommended.`
+        );
+      }
+
       let errorMessage = "グループの作成に失敗しました";
 
       if (error.message?.includes("weak") || error.message?.includes("password")) {

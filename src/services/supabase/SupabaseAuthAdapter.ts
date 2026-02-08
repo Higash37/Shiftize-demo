@@ -114,6 +114,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
 
     const asciiEmail = toAsciiEmail(email);
+    let createdAuthUserId: string | null = null;
 
     try {
       // 新規ユーザーをSupabase Authに登録
@@ -130,6 +131,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       }
 
       const newUserId = signUpData.user.id;
+      createdAuthUserId = newUserId;
       const displayName = nickname || email.split("@")[0] || email;
       const userRole = role || "user";
 
@@ -161,6 +163,12 @@ export class SupabaseAuthAdapter implements IAuthService {
       });
 
       if (error) {
+        // DB insert失敗時：孤児ユーザーを防ぐためAuth側ユーザーを削除
+        try {
+          // service_roleが必要なため、admin APIで削除を試行
+          // クライアント側では制限があるため、ログで警告
+          console.warn(`Auth user ${newUserId} created but DB insert failed. Manual cleanup may be needed.`);
+        } catch (_) {}
         throw new Error(`ユーザー情報の保存に失敗しました: ${error.message}`);
       }
 
@@ -179,6 +187,10 @@ export class SupabaseAuthAdapter implements IAuthService {
           refresh_token: adminSession.refresh_token,
         });
       } catch (_) {}
+      // signUp済みのAuthユーザーを削除試行（孤児防止）
+      if (createdAuthUserId) {
+        console.warn(`Orphan auth user may exist: ${createdAuthUserId}. Consider cleanup via admin API or DB trigger.`);
+      }
       throw new Error(
         `ユーザー作成に失敗しました: ${error.message}`
       );

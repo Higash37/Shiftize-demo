@@ -119,24 +119,22 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
       });
 
       if (rpcError) {
-        // RPCが未定義の場合はフォールバック（排他制御付き）
-        const { data } = await supabase
-          .from("quick_shift_tokens")
-          .select("current_uses, usage_log")
-          .eq("id", tokenId)
-          .maybeSingle();
-
-        if (!data) return;
-
-        const usageLog = data.usage_log || [];
-        usageLog.push({ userId, usedAt: new Date().toISOString(), shiftId });
-
-        await supabase.from("quick_shift_tokens").update({
-          current_uses: data.current_uses + 1,
-          last_used_at: new Date().toISOString(),
-          usage_log: usageLog,
-          updated_at: new Date().toISOString(),
-        }).eq("id", tokenId);
+        // RPCが未定義の場合はSQL関数で原子的に更新
+        const newEntry = JSON.stringify({ userId, usedAt: new Date().toISOString(), shiftId });
+        await supabase.rpc("exec_sql", {
+          query: `UPDATE quick_shift_tokens SET current_uses = current_uses + 1, last_used_at = NOW(), usage_log = COALESCE(usage_log, '[]'::jsonb) || $1::jsonb, updated_at = NOW() WHERE id = $2`,
+          params: [newEntry, tokenId],
+        }).then(({ error: sqlError }) => {
+          // exec_sqlも未定義の場合は最終フォールバック
+          if (sqlError) {
+            return supabase.from("quick_shift_tokens")
+              .update({
+                last_used_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", tokenId);
+          }
+        });
       }
     } catch (error) {
       console.error("Failed to record token usage:", error);

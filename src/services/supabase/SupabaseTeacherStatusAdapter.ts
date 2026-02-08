@@ -34,11 +34,13 @@ export class SupabaseTeacherStatusAdapter implements ITeacherStatusService {
       const [year, month] = targetMonth.split('-');
       if (!year || !month) throw new Error('Invalid targetMonth format');
 
-      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const endDate = new Date(parseInt(year), parseInt(month), 0);
-      const startStr = startDate.toISOString().split('T')[0];
-      const endStr = endDate.toISOString().split('T')[0];
-      if (!startStr || !endStr) throw new Error('Failed to format dates');
+      // TZ非依存: 文字列から直接 'YYYY-MM-DD' を生成（UTC変換を介さない）
+      const y = parseInt(year);
+      const m = parseInt(month);
+      const startStr = `${y}-${String(m).padStart(2, '0')}-01`;
+      // 月末日を計算（翌月0日 = 当月末日）
+      const lastDay = new Date(y, m, 0).getDate();
+      const endStr = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
       const supabase = getSupabase();
       const { data } = await supabase

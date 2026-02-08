@@ -77,18 +77,33 @@ export class SupabaseRecruitmentShiftAdapter implements IRecruitmentShiftService
 
     if (!shift) throw new Error("募集シフトが見つかりません");
 
+    // 二重応募防止
+    const existingApps = shift.applications || [];
+    const alreadyApplied = existingApps.some(
+      (app: any) => app.userId === application.userId
+    );
+    if (alreadyApplied) throw new Error("既にこのシフトに応募済みです");
+
     const newApplication = {
       ...application,
       appliedAt: new Date().toISOString(),
       status: "pending",
     };
 
-    const applications = [...(shift.applications || []), newApplication];
+    // RPC経由でjsonb配列に原子的にappend（競合回避）
+    const { error: rpcError } = await supabase.rpc("append_recruitment_application", {
+      p_shift_id: shiftId,
+      p_application: newApplication,
+    });
 
-    await supabase
-      .from("recruitment_shifts")
-      .update({ applications, updated_at: new Date().toISOString() })
-      .eq("id", shiftId);
+    if (rpcError) {
+      // RPCが未定義の場合はフォールバック
+      const applications = [...existingApps, newApplication];
+      await supabase
+        .from("recruitment_shifts")
+        .update({ applications, updated_at: new Date().toISOString() })
+        .eq("id", shiftId);
+    }
 
     // Create pending shift
     const pendingShift = {
