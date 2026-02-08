@@ -52,11 +52,6 @@ export interface CreateShiftRequest {
     startTime: string;
     endTime: string;
   }>;
-  extendedTasks?: Array<{
-    taskId: string;
-    startTime: string;
-    endTime: string;
-  }>;
 }
 
 /**
@@ -69,11 +64,6 @@ export interface UpdateShiftRequest {
   status?: string;
   subject?: string;
   classes?: Array<{
-    startTime: string;
-    endTime: string;
-  }>;
-  extendedTasks?: Array<{
-    taskId: string;
     startTime: string;
     endTime: string;
   }>;

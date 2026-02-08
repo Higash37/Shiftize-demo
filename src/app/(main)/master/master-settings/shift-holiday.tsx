@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Alert, View } from "react-native";
-import { db } from "@/services/firebase/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftHolidaySettingsView } from "@/modules/master-view/master-view-settings/ShiftHolidaySettingsView";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import type { ShiftHolidaySettings } from "@/modules/master-view/master-view-settings/ShiftHolidaySettingsView.types";
@@ -18,10 +17,13 @@ export default function ShiftHolidaySettingsScreen() {
 
   useEffect(() => {
     (async () => {
-      const ref = doc(db, "settings", "shiftApp");
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        setSettings((prev) => ({ ...prev, ...snap.data() }));
+      const data = await ServiceProvider.settings.getSettings();
+      if (data) {
+        setSettings((prev) => ({
+          ...prev,
+          holidays: (data as any).holidays ?? prev.holidays,
+          specialDays: (data as any).specialDays ?? prev.specialDays,
+        }));
       }
       setLoading(false);
     })();
@@ -29,8 +31,7 @@ export default function ShiftHolidaySettingsScreen() {
 
   const saveSettings = async () => {
     setLoading(true);
-    const ref = doc(db, "settings", "shiftApp");
-    await setDoc(ref, settings, { merge: true });
+    await ServiceProvider.settings.saveSettings(settings as any);
     setLoading(false);
     Alert.alert("保存しました");
   };

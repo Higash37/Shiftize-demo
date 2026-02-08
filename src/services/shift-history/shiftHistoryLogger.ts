@@ -93,10 +93,6 @@ const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
     snapshot.classes = shift.classes;
   }
   
-  if (shift.extendedTasks !== undefined) {
-    snapshot.extendedTasks = shift.extendedTasks;
-  }
-  
   return snapshot;
 };
 

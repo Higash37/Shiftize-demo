@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -22,7 +22,6 @@ import TextInput from "@/common/common-ui/ui-forms/FormInput";
 import {
   ShiftStatus,
   ClassTimeSlot,
-  ShiftTaskSlot,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
 import { MultiStoreService } from "@/services/firebase/firebase-multistore";
@@ -50,7 +49,6 @@ export interface ShiftData {
   subject?: string;
   status?: ShiftStatus;
   classes?: ClassTimeSlot[];
-  extendedTasks?: ShiftTaskSlot[];
 }
 
 export interface ShiftModalProps {
@@ -82,7 +80,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
   const [subject, setSubject] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("approved");
   const [classes, setClasses] = useState<ClassTimeSlot[]>([]);
-  const [extendedTasks, setExtendedTasks] = useState<ShiftTaskSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [connectedStoreUsers, setConnectedStoreUsers] = useState<
     Array<{
@@ -131,7 +128,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         setSubject("");
         setStatus("approved");
         setClasses([]);
-        setExtendedTasks([]);
       } else if (mode === "edit" && shiftData) {
         setSelectedUserId(shiftData.userId);
         setStartTime(shiftData.startTime.substring(0, 5)); // HH:MM形式
@@ -139,7 +135,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         setSubject(shiftData.subject || "");
         setStatus(shiftData.status || "approved");
         setClasses(shiftData.classes || []);
-        setExtendedTasks(shiftData.extendedTasks || []);
       }
     }
   }, [visible, mode, shiftData]);
@@ -192,7 +187,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         subject: subject.trim(),
         status: status,
         classes: classes,
-        extendedTasks: extendedTasks,
       };
 
       await onSave?.(data);
@@ -418,147 +412,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
     </View>
   );
 
-  const renderExtendedTasksSection = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>タスク（任意・複数可）</Text>
-      {extendedTasks.map((task, idx) => (
-        <View key={idx} style={styles.taskRow}>
-          <View style={styles.taskHeader}>
-            <TextInput
-              value={task.title}
-              onChangeText={(value) => {
-                const updated = [...extendedTasks];
-                updated[idx] = { 
-                  ...updated[idx], 
-                  title: value,
-                  id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
-                  taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
-                  startTime: updated[idx]?.startTime || "09:00",
-                  endTime: updated[idx]?.endTime || "10:00",
-                  shortName: updated[idx]?.shortName || "Task",
-                  createdAt: updated[idx]?.createdAt || new Date()
-                };
-                setExtendedTasks(updated);
-              }}
-              placeholder="タスク名"
-              placeholderTextColor="#999"
-              style={styles.taskTitleInput}
-            />
-            <TextInput
-              value={task.shortName || ""}
-              onChangeText={(value) => {
-                const updated = [...extendedTasks];
-                updated[idx] = { 
-                  ...updated[idx], 
-                  shortName: value,
-                  id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
-                  taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
-                  startTime: updated[idx]?.startTime || "09:00",
-                  endTime: updated[idx]?.endTime || "10:00",
-                  title: updated[idx]?.title || "New Task",
-                  createdAt: updated[idx]?.createdAt || new Date()
-                };
-                setExtendedTasks(updated);
-              }}
-              placeholder="略称"
-              placeholderTextColor="#999"
-              style={styles.taskShortNameInput}
-              maxLength={2}
-            />
-          </View>
-          <View style={styles.taskTimeContainer}>
-            <View style={styles.taskTimeInputContainer}>
-              <Text style={styles.timeLabel}>開始</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={task.startTime}
-                  onValueChange={(value) => {
-                    const updated = [...extendedTasks];
-                    updated[idx] = { 
-                      ...updated[idx], 
-                      startTime: value,
-                      id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
-                      taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
-                      endTime: updated[idx]?.endTime || "10:00",
-                      title: updated[idx]?.title || "New Task",
-                      shortName: updated[idx]?.shortName || "Task",
-                      createdAt: updated[idx]?.createdAt || new Date()
-                    };
-                    setExtendedTasks(updated);
-                  }}
-                  style={styles.picker}
-                >
-                  {timeOptions.map((time) => (
-                    <Picker.Item key={time} label={time} value={time} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-            <Text style={styles.timeSeparator}>〜</Text>
-            <View style={styles.taskTimeInputContainer}>
-              <Text style={styles.timeLabel}>終了</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={task.endTime}
-                  onValueChange={(value) => {
-                    const updated = [...extendedTasks];
-                    updated[idx] = { 
-                      ...updated[idx], 
-                      endTime: value,
-                      id: updated[idx]?.id || `task-${Date.now()}-${idx}`,
-                      taskId: updated[idx]?.taskId || `task-${Date.now()}-${idx}`,
-                      startTime: updated[idx]?.startTime || "09:00",
-                      title: updated[idx]?.title || "New Task",
-                      shortName: updated[idx]?.shortName || "Task",
-                      createdAt: updated[idx]?.createdAt || new Date()
-                    };
-                    setExtendedTasks(updated);
-                  }}
-                  style={styles.picker}
-                >
-                  {timeOptions.map((time) => (
-                    <Picker.Item key={time} label={time} value={time} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.deleteTaskButton}
-              onPress={() => {
-                const updated = [...extendedTasks];
-                updated.splice(idx, 1);
-                setExtendedTasks(updated);
-              }}
-            >
-              <Ionicons name="trash-outline" size={20} color={colors.error} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-      <TouchableOpacity
-        style={styles.addTaskButton}
-        onPress={() => {
-          const newTask: ShiftTaskSlot = {
-            id: `task_${Date.now()}_${Math.random()}`,
-            taskId: `extended_task_${Date.now()}`,
-            startTime: startTime,
-            endTime: endTime,
-            title: "",
-            shortName: "",
-            color: "#4CAF50",
-            icon: "checkmark-circle-outline",
-            status: "pending",
-            createdAt: new Date(),
-          };
-          setExtendedTasks([...extendedTasks, newTask]);
-        }}
-      >
-        <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-        <Text style={styles.addTaskText}>タスクを追加</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   const renderDeleteConfirmation = () => {
     const allUsers = [...users, ...connectedStoreUsers];
     const user = allUsers.find((u) => u.uid === shiftData?.userId);
@@ -616,7 +469,6 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
               {renderStatusSelector()}
               {renderClassTimesSection()}
               {renderSubjectInput()}
-              {renderExtendedTasksSection()}
             </>
           )}
         </ScrollView>
@@ -788,70 +640,6 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontWeight: "600",
     fontSize: 14,
-  },
-  // タスクセクション用スタイル
-  taskRow: {
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: layout.padding.small,
-    padding: layout.padding.medium,
-  },
-  taskHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: layout.padding.small,
-  },
-  taskTitleInput: {
-    flex: 1,
-    marginRight: layout.padding.small,
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    borderWidth: 1.5,
-    borderColor: colors.text.secondary + "40",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-  },
-  taskShortNameInput: {
-    width: 60,
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    borderWidth: 1.5,
-    borderColor: colors.text.secondary + "40",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    textAlign: "center",
-  },
-  taskTimeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  taskTimeInputContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  deleteTaskButton: {
-    marginLeft: layout.padding.small,
-    padding: layout.padding.small,
-    backgroundColor: colors.error + "15",
-    borderRadius: layout.borderRadius.small,
-  },
-  addTaskButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: layout.padding.small,
-    alignSelf: "flex-start",
-    padding: layout.padding.small,
-    backgroundColor: colors.primary + "15",
-    borderRadius: layout.borderRadius.small,
-  },
-  addTaskText: {
-    color: colors.primary,
-    fontWeight: "600",
-    fontSize: 14,
-    marginLeft: layout.padding.small,
   },
   // 授業時間関連スタイル
   addClassButton: {

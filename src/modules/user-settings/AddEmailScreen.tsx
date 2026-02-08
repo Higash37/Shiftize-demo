@@ -17,7 +17,7 @@ import { shadows } from "@/common/common-constants/ShadowConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import { useAuth } from "@/services/auth/useAuth";
-import { UserService } from "@/services/firebase/firebase-user";
+import { ServiceProvider } from "@/services/ServiceProvider";
 
 /**
  * 既存ユーザーが実際のメールアドレスを追加する画面
@@ -67,7 +67,7 @@ export const AddEmailScreen: React.FC = () => {
       }
 
       // メールアドレス追加処理
-      await UserService.addSecondaryEmail(currentUser.uid, email);
+      await ServiceProvider.users.addSecondaryEmail(currentUser.uid, email);
 
       Alert.alert(
         "完了",

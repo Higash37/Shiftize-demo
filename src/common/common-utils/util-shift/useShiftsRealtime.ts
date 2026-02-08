@@ -43,9 +43,6 @@ const mapDocToShiftItem = (doc: {
       };
     }),
     classes: Array.isArray(data["classes"]) ? data["classes"] : [],
-    extendedTasks: Array.isArray(data["extendedTasks"])
-      ? data["extendedTasks"]
-      : [],
   } as ShiftItem;
 };
 

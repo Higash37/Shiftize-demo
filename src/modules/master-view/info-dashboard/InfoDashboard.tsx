@@ -37,9 +37,6 @@ const ProductivityTab = lazy(() =>
 const TrendAnalysisTab = lazy(() => 
   import("./analytics-widgets/TrendAnalysisTab").then(module => ({ default: module.TrendAnalysisTab }))
 );
-const TaskManagementIntegratedTab = lazy(() => 
-  import("./analytics-widgets/TaskManagementIntegratedTab").then(module => ({ default: module.TaskManagementIntegratedTab }))
-);
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
@@ -48,8 +45,7 @@ type TabType =
   | "cost"
   | "shift"
   | "productivity"
-  | "trend"
-  | "tasks";
+  | "trend";
 
 interface TabItem {
   key: TabType;
@@ -63,7 +59,6 @@ const tabs: TabItem[] = [
   { key: "shift", label: "シフト指標", icon: "schedule" },
   { key: "productivity", label: "生産性", icon: "trending-up" },
   { key: "trend", label: "トレンド", icon: "analytics" },
-  { key: "tasks", label: "タスク管理", icon: "assignment" },
 ];
 
 /**
@@ -244,14 +239,6 @@ export const InfoDashboard: React.FC = () => {
         return (
           <Suspense fallback={loadingFallback}>
             <TrendAnalysisTab shifts={shifts} users={users} />
-          </Suspense>
-        );
-      case "tasks":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <TaskManagementIntegratedTab
-              storeId={user?.storeId || "default-store"}
-            />
           </Suspense>
         );
       default:

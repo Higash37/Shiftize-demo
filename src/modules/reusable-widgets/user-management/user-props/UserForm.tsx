@@ -9,7 +9,7 @@ import {
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
-import { checkMasterExists } from "@/services/firebase/firebase-user";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { styles } from "./UserForm.styles";
 import { UserFormProps } from "../user-types/components";
 import ColorPicker from "@/common/common-ui/ui-forms/FormColorPicker";
@@ -56,7 +56,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   useEffect(() => {
     const checkForMasterUser = async () => {
       try {
-        const hasMasterUser = await checkMasterExists();
+        const hasMasterUser = await ServiceProvider.users.checkMasterExists(currentUser?.storeId);
         setHasMaster(hasMasterUser);
       } catch (err) {}
     };
@@ -64,7 +64,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     if (mode === "add") {
       checkForMasterUser();
     }
-  }, [mode]);
+  }, [mode, currentUser?.storeId]);
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {

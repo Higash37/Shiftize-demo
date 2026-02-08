@@ -11,8 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
@@ -23,7 +22,6 @@ import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../user-shift-utils/shift-time.utils";
 import { shiftListViewStyles as styles } from "./styles";
-import { getTasks } from "@/services/firebase/firebase-task";
 import {
   ShiftSubmissionService,
   ShiftSubmissionPeriod,
@@ -31,7 +29,6 @@ import {
 import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftConfirmationService";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
-import TaskModal from "../ListModal/TaskModal";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 import type { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
 
@@ -54,12 +51,7 @@ export const UserShiftList = () => {
     string | undefined
   >(undefined);
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [taskCounts, setTaskCounts] = useState<{
-    [key: string]: { count: number; time: number };
-  }>({});
   const [comments, setComments] = useState("");
-  const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const [isTaskModalVisible, setTaskModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shiftPositionsRef = useRef<Record<string, number>>({});
   const { width, height } = useWindowDimensions();
@@ -170,10 +162,9 @@ export const UserShiftList = () => {
       if (!user?.uid) return;
 
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setCurrentUserStoreId(userData["storeId"]);
+        const userData = await ServiceProvider.users.getUserData(user.uid) as (Record<string, any>) | null;
+        if (userData) {
+          setCurrentUserStoreId(userData['storeId']);
         }
       } catch (error) {
         console.error(error);
@@ -309,24 +300,6 @@ export const UserShiftList = () => {
     if (modalShift) {
       setModalVisible(false);
       setReportModalVisible(true);
-
-      try {
-        const tasks = await getTasks();
-        const taskCountsData = tasks.reduce(
-          (
-            acc: { [key: string]: { count: number; time: number } },
-            task: { title: string }
-          ) => {
-            acc[task.title] = { count: 0, time: 0 };
-            return acc;
-          },
-          {}
-        );
-
-        setTaskCounts(taskCountsData);
-      } catch (error) {
-        console.error(error);
-      }
     }
   };
 
@@ -335,31 +308,6 @@ export const UserShiftList = () => {
       handleShiftEdit(modalShift);
     }
     setModalVisible(false);
-  };
-
-  const timeOptions = [5, 10, 20, 30, 60];
-
-  const handleTaskUpdate = (
-    task: string,
-    field: "count" | "time",
-    value: number
-  ) => {
-    setTaskCounts((prev) => ({
-      ...prev,
-      [task]: {
-        count: prev[task]?.count || 0,
-        time: prev[task]?.time || 0,
-        [field]:
-          field === "time"
-            ? value
-            : Math.max((prev[task]?.[field] || 0) + value, 0),
-      },
-    }));
-  };
-
-  const handleTaskModalClose = () => {
-    setSelectedTask(null);
-    setTaskModalVisible(false);
   };
 
   const containerStyle = isTablet
@@ -489,20 +437,10 @@ export const UserShiftList = () => {
       <ShiftReportModal
         reportModalVisible={reportModalVisible}
         setReportModalVisible={setReportModalVisible}
-        taskCounts={taskCounts}
         comments={comments}
         setComments={setComments}
         modalShift={modalShift}
         fetchShifts={fetchShifts}
-        setTaskCounts={setTaskCounts}
-      />
-      <TaskModal
-        isTaskModalVisible={isTaskModalVisible}
-        handleTaskModalClose={handleTaskModalClose}
-        selectedTask={selectedTask}
-        taskCounts={taskCounts}
-        handleTaskUpdate={handleTaskUpdate}
-        timeOptions={timeOptions}
       />
       <Modal
         visible={showPasswordModal}

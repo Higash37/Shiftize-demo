@@ -13,17 +13,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  query,
-  where,
-  getDocs,
-  setDoc,
-  getFirestore,
   doc,
   getDoc,
-  updateDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
@@ -36,7 +30,7 @@ import { MasterHeader } from "@/common/common-ui/ui-layout";
 // import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getUserData, type UserData } from "@/services/firebase/firebase";
+import type { UserData } from "@/services/firebase/firebase";
 import { Picker } from "@react-native-picker/picker";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { MultiStoreService } from "@/services/firebase/firebase-multistore";
@@ -109,9 +103,9 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         return;
       }
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data() as UserData);
+        const fetchedUserData = await ServiceProvider.users.getUserData(user.uid);
+        if (fetchedUserData) {
+          setUserData(fetchedUserData as unknown as UserData);
         }
       } catch (error) {
       } finally {
@@ -359,8 +353,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         updatedAt: new Date(),
       };
 
-      const shiftRef = doc(db, "shifts", existingShift.id);
-      await updateDoc(shiftRef, updatedShift);
+      await ServiceProvider.shifts.updateShift(existingShift.id, updatedShift as Partial<Shift>);
 
       Alert.alert("更新完了", "シフトを更新しました", [
         { text: "OK", onPress: () => router.back() },

@@ -7,7 +7,7 @@
 
 import { Shift } from '@/common/common-models/ModelIndex';
 import { ShiftHistoryActor } from '@/services/shift-history/shiftHistoryLogger';
-import { ShiftService } from '@/services/firebase/firebase-shift';
+import { ServiceProvider } from '@/services/ServiceProvider';
 import {
   GetShiftsParams,
   CreateShiftRequest,
@@ -50,7 +50,7 @@ export class ShiftAPIService {
       } else {
         // フェーズ1: Firebase直接呼び出し
         const { storeId } = params;
-        return await ShiftService.getShifts(storeId);
+        return await ServiceProvider.shifts.getShifts(storeId);
       }
     } catch (error) {
       throw this.handleError(error, 'シフト一覧の取得に失敗しました');
@@ -70,7 +70,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        return await ShiftService.getShiftsFromMultipleStores(storeIds);
+        return await ServiceProvider.shifts.getShiftsFromMultipleStores(storeIds);
       }
     } catch (error) {
       throw this.handleError(error, '複数店舗のシフト取得に失敗しました');
@@ -93,7 +93,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        return await ShiftService.getUserAccessibleShifts(userData);
+        return await ServiceProvider.shifts.getUserAccessibleShifts(userData);
       }
     } catch (error) {
       throw this.handleError(error, 'アクセス可能シフトの取得に失敗しました');
@@ -114,7 +114,7 @@ export class ShiftAPIService {
         return response.data;
       } else {
         // フェーズ1: Firebase直接呼び出し
-        return await ShiftService.addShift(shiftData as Omit<Shift, 'id'>, actor);
+        return await ServiceProvider.shifts.addShift(shiftData as Omit<Shift, 'id'>, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの作成に失敗しました');
@@ -134,7 +134,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.updateShift(shiftId, updateData as Partial<Shift>, actor);
+        await ServiceProvider.shifts.updateShift(shiftId, updateData as Partial<Shift>, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの更新に失敗しました');
@@ -160,7 +160,7 @@ export class ShiftAPIService {
         const historyActor = actor ?? (deletedBy
           ? { userId: deletedBy.userId || "", nickname: deletedBy.nickname || "", role: 'master' as const }
           : undefined);
-        await ShiftService.markShiftAsDeleted(shiftId, historyActor, reason);
+        await ServiceProvider.shifts.markShiftAsDeleted(shiftId, historyActor, reason);
       }
     } catch (error) {
       throw this.handleError(error, 'シフトの削除に失敗しました');
@@ -179,7 +179,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.approveShiftChanges(shiftId, actor);
+        await ServiceProvider.shifts.approveShiftChanges(shiftId, actor);
       }
     } catch (error) {
       throw this.handleError(error, 'シフト変更の承認に失敗しました');
@@ -198,35 +198,10 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.markShiftAsCompleted(shiftId);
+        await ServiceProvider.shifts.markShiftAsCompleted(shiftId);
       }
     } catch (error) {
       throw this.handleError(error, 'シフト完了の更新に失敗しました');
-    }
-  }
-
-  /**
-   * シフトにタスク情報を追加
-   */
-  static async updateShiftWithTasks(
-    shiftId: string,
-    tasks: { [key: string]: { count: number; time: number } },
-    comments: string,
-    actor?: ShiftHistoryActor
-  ): Promise<void> {
-    try {
-      if (USE_API_ENDPOINTS) {
-        // フェーズ2以降: APIエンドポイント
-        await this.fetchFromAPI(`/api/shifts/${shiftId}/tasks`, {
-          method: 'PUT',
-          body: { tasks, comments }
-        });
-      } else {
-        // フェーズ1: Firebase直接呼び出し
-        await ShiftService.updateShiftWithTasks(shiftId, tasks, comments, actor);
-      }
-    } catch (error) {
-      throw this.handleError(error, 'シフトタスクの更新に失敗しました');
     }
   }
 
@@ -249,7 +224,7 @@ export class ShiftAPIService {
         });
       } else {
         // フェーズ1: Firebase直接呼び出し
-        await ShiftService.addShiftReport(shiftId, reportData);
+        await ServiceProvider.shifts.addShiftReport(shiftId, reportData);
       }
     } catch (error) {
       throw this.handleError(error, 'シフト報告の保存に失敗しました');

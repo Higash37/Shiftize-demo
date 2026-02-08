@@ -13,8 +13,7 @@ import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
-import { db } from "@/services/firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 
 
@@ -115,9 +114,8 @@ export default function UsersScreen() {
   };
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Firestoreで削除フラグを設定
-      const userRef = doc(db, "users", userId);
-      await setDoc(userRef, { deleted: true }, { merge: true });
+      // ServiceProvider経由で削除フラグを設定
+      await ServiceProvider.users.deleteUser(userId);
 
       // ユーザー一覧を更新してUIから削除
       removeUser(userId);

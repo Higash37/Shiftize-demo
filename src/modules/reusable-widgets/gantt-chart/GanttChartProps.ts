@@ -28,7 +28,6 @@ export interface GanttChartMonthViewProps {
     newStartTime: string,
     newEndTime: string
   ) => void;
-  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   classTimes?: { start: string; end: string }[];
   refreshPage?: () => void;
 }

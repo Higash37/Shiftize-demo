@@ -4,11 +4,7 @@ import { MasterShiftListView } from "@/modules/master-view/master-shift-list/Mas
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
-import {
-  addShift,
-  updateShift,
-  markShiftAsDeleted,
-} from "@/services/firebase/firebase-shift";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 
@@ -63,7 +59,7 @@ export default function MasterNextMonthShiftScreen() {
       const durationHours =
         Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
 
-      await updateShift(shiftId, {
+      await ServiceProvider.shifts.updateShift(shiftId, {
         startTime: newStartTime,
         endTime: newEndTime,
         duration: durationHours,
@@ -87,7 +83,7 @@ export default function MasterNextMonthShiftScreen() {
         const durationHours =
           Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
 
-        await updateShift(data.id, {
+        await ServiceProvider.shifts.updateShift(data.id, {
           userId: data.userId,
           storeId: user?.storeId || "",
           date: data.date,
@@ -99,7 +95,6 @@ export default function MasterNextMonthShiftScreen() {
           duration: durationHours,
           status: data.status || "approved",
           classes: data.classes || [],
-          extendedTasks: data.extendedTasks || [],
         });
       } else {
         const targetUser = users.find((u) => u.uid === data.userId);
@@ -109,7 +104,7 @@ export default function MasterNextMonthShiftScreen() {
         const durationHours =
           Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
 
-        await addShift({
+        await ServiceProvider.shifts.addShift({
           userId: data.userId,
           storeId: user?.storeId || "",
           nickname: targetUser?.nickname || "",
@@ -122,7 +117,6 @@ export default function MasterNextMonthShiftScreen() {
           status: "approved",
           duration: durationHours,
           classes: data.classes || [],
-          extendedTasks: data.extendedTasks || [],
         });
       }
     } catch (error) {
@@ -134,7 +128,7 @@ export default function MasterNextMonthShiftScreen() {
 
   const handleShiftDelete = async (shiftId: string) => {
     try {
-      await markShiftAsDeleted(shiftId);
+      await ServiceProvider.shifts.markShiftAsDeleted(shiftId);
     } catch (error) {
       Alert.alert("エラー", "シフトの削除に失敗しました");
       throw error;

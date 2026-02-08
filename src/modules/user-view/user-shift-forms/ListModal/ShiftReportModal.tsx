@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,54 +12,34 @@ import { ShiftService } from "../../../../services/firebase/firebase-shift";
 import { useAuth } from "@/services/auth/useAuth";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 
-type TaskCounts = {
-  [key: string]: {
-    count: number;
-    time: number;
-  };
-};
-
 const ShiftReportModal = ({
   reportModalVisible,
   setReportModalVisible,
-  taskCounts,
   comments,
   setComments,
   modalShift,
   fetchShifts,
-  setTaskCounts,
 }: {
   reportModalVisible: boolean;
   setReportModalVisible: (visible: boolean) => void;
-  taskCounts: TaskCounts;
   comments: string;
   setComments: (comments: string) => void;
   modalShift: ShiftItem | null;
   fetchShifts: () => void;
-  setTaskCounts: React.Dispatch<React.SetStateAction<TaskCounts>>;
 }) => {
   const { user } = useAuth();
   const handleReportSubmit = async () => {
     if (modalShift) {
       try {
-        const formattedTasks = Object.keys(taskCounts).reduce((acc, key) => {
-          const task = taskCounts[key];
-          if (task) {
-            acc[key] = {
-              count: task.count,
-              time: task.time,
-            };
-          }
-          return acc;
-        }, {} as { [key: string]: { count: number; time: number } });
-
-        await ShiftService.updateShiftWithTasks(
+        await ShiftService.updateShift(
           modalShift.id,
-          formattedTasks,
-          comments,
+          {
+            status: "completed",
+            notes: comments,
+          },
           {
             userId: user?.uid || modalShift?.userId || "",
-            nickname: user?.nickname || modalShift?.nickname || "������",
+            nickname: user?.nickname || modalShift?.nickname || "不明",
             role: ((user?.role as "master" | "teacher") || "teacher") as "master" | "teacher"
           }
         );
@@ -84,86 +64,6 @@ const ShiftReportModal = ({
       >
         <View style={modalStyles.modalContent}>
           <Text style={modalStyles.modalTitle}>シフト報告</Text>
-          {Object.keys(taskCounts).map((task) => {
-            const taskData = taskCounts[task] || { count: 0, time: 0 };
-            return (
-              <View key={task} style={modalStyles.taskRow}>
-                <Text style={modalStyles.taskTitle}>{task}</Text>
-                <View style={modalStyles.countControls}>
-                  <TouchableOpacity
-                    style={modalStyles.countButton}
-                    onPress={() => {
-                      setTaskCounts((prev) => {
-                        const updatedTaskCounts = { ...prev };
-                        updatedTaskCounts[task] = {
-                          count: Math.max(
-                            (updatedTaskCounts[task]?.count || 0) - 1,
-                            0
-                          ),
-                          time: updatedTaskCounts[task]?.time || 0,
-                        };
-                        return updatedTaskCounts;
-                      });
-                    }}
-                  >
-                    <Text style={modalStyles.taskText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={modalStyles.countText}>{taskData.count} 回</Text>
-                  <TouchableOpacity
-                    style={modalStyles.countButton}
-                    onPress={() => {
-                      setTaskCounts((prev) => {
-                        const updatedTaskCounts = { ...prev };
-                        updatedTaskCounts[task] = {
-                          count: (updatedTaskCounts[task]?.count || 0) + 1,
-                          time: updatedTaskCounts[task]?.time || 0,
-                        };
-                        return updatedTaskCounts;
-                      });
-                    }}
-                  >
-                    <Text style={modalStyles.taskText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={modalStyles.timeControls}>
-                  <TouchableOpacity
-                    style={modalStyles.countButton}
-                    onPress={() => {
-                      setTaskCounts((prev) => {
-                        const updatedTaskCounts = { ...prev };
-                        updatedTaskCounts[task] = {
-                          count: updatedTaskCounts[task]?.count || 0,
-                          time: Math.max(
-                            (updatedTaskCounts[task]?.time || 0) - 5,
-                            0
-                          ),
-                        };
-                        return updatedTaskCounts;
-                      });
-                    }}
-                  >
-                    <Text style={modalStyles.taskText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={modalStyles.valueText}>{taskData.time} 分</Text>
-                  <TouchableOpacity
-                    style={modalStyles.countButton}
-                    onPress={() => {
-                      setTaskCounts((prev) => {
-                        const updatedTaskCounts = { ...prev };
-                        updatedTaskCounts[task] = {
-                          count: updatedTaskCounts[task]?.count || 0,
-                          time: (updatedTaskCounts[task]?.time || 0) + 5,
-                        };
-                        return updatedTaskCounts;
-                      });
-                    }}
-                  >
-                    <Text style={modalStyles.taskText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          })}
           <TextInput
             style={{
               borderWidth: 1,

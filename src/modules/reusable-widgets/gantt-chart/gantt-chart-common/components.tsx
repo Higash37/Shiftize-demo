@@ -16,7 +16,7 @@ import {
   subMonths,
 } from "date-fns";
 import { ja } from "date-fns/locale";
-import { ShiftItem, TaskItem, ShiftTaskSlot } from "@/common/common-models/ModelIndex";
+import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../GanttChartTypes";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -135,7 +135,6 @@ export type GanttChartGridProps = {
     newStartTime: string,
     newEndTime: string
   ) => void;
-  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
@@ -143,8 +142,8 @@ export type GanttChartGridProps = {
   colorMode?: "status" | "user"; // 色表示モード
 };
 
-// 授業データをタスクアイテムに変換するヘルパー関数
-const convertClassesToTasks = (shift: ShiftItem): Array<TaskItem> => {
+// 授業データをタスク表示形式に変換するヘルパー関数
+const convertClassesToTasks = (shift: ShiftItem) => {
   if (!shift.classes || shift.classes.length === 0) return [];
 
   return shift.classes.map((classTime, index) => ({
@@ -169,7 +168,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   onShiftPress,
   onBackgroundPress,
   onTimeChange,
-  onTaskAdd,
   styles,
   userColorsMap,
   users = [], // デフォルト値を設定
@@ -515,59 +513,9 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   borderTopColor: "rgba(0, 0, 0, 0.1)",
                 }}
               >
-                {/* タスク追加ボタン（左上隅） */}
-                {users?.find((u) => u.uid === shift.userId)?.role ===
-                  "master" && (
-                  <TouchableOpacity
-                    style={{
-                      position: "absolute",
-                      top: 1,
-                      left: 1,
-                      width: 14,
-                      height: 14,
-                      backgroundColor: "rgba(76, 175, 80, 0.9)",
-                      borderRadius: 7,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      zIndex: 100,
-                    }}
-                    onPress={() => {
-                      if (onTaskAdd) {
-                        onTaskAdd(shift.id);
-                      }
-                    }}
-                  >
-                    <Ionicons name="add" size={10} color="white" />
-                  </TouchableOpacity>
-                )}
-
-                {/* タスク表示エリア - 既存のタスクと授業、extendedTasksを統合して表示 */}
+                {/* タスク表示エリア - 授業を表示 */}
                 {(() => {
-                  // 既存のタスクと授業タスクを統合
-                  const classTasks = convertClassesToTasks(shift);
-                  const legacyTasks = shift.tasks || [];
-
-                  // extendedTasksをTaskItem形式に変換
-                  const extendedTasks = (shift.extendedTasks || []).map(
-                    (taskSlot: ShiftTaskSlot) => {
-                      return {
-                        id: taskSlot.id,
-                        startTime: taskSlot.startTime,
-                        endTime: taskSlot.endTime,
-                        title: taskSlot.title,
-                        shortName: taskSlot.shortName,
-                        color: taskSlot.color,
-                        icon: taskSlot.icon,
-                        description: taskSlot.notes,
-                      };
-                    }
-                  );
-
-                  const allTasks = [
-                    ...legacyTasks,
-                    ...classTasks,
-                    ...extendedTasks,
-                  ];
+                  const allTasks = convertClassesToTasks(shift);
 
                   return allTasks.length > 0 ? (
                     <View

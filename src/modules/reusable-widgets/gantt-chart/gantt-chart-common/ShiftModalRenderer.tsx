@@ -18,7 +18,6 @@ export interface NewShiftData {
   nickname: string;
   status: ShiftStatus;
   classes: ClassTimeSlot[];
-  extendedTasks?: any[];
 }
 
 export interface ShiftModalRendererHandle {
@@ -47,7 +46,6 @@ const DEFAULT_SHIFT_DATA: NewShiftData = {
   nickname: "",
   status: "approved",
   classes: [],
-  extendedTasks: [],
 };
 
 const ShiftModalRendererInner: React.ForwardRefRenderFunction<
@@ -92,7 +90,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
           nickname: userObj ? userObj.nickname : "",
           status: shift.status,
           classes: shift.classes || [],
-          extendedTasks: shift.extendedTasks || [],
         });
         setShowEditModal(true);
       },
@@ -223,7 +220,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
           statusConfigs={statusConfigs}
           isLoading={isLoading}
           styles={styles}
-          extendedTasks={[]}
           onChange={handleEditChange}
           onClose={closeEditModal}
           onSave={handleSaveShift}
@@ -239,7 +235,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
           statusConfigs={statusConfigs}
           isLoading={isLoading}
           styles={styles}
-          extendedTasks={[]}
           onChange={handleAddChange}
           onClose={closeAddModal}
           onSave={handleSaveShift}

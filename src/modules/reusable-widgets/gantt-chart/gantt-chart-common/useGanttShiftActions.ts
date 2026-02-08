@@ -13,9 +13,8 @@ import {
   ShiftItem,
   ShiftStatus,
   ClassTimeSlot,
-  ShiftTaskSlot,
 } from "@/common/common-models/ModelIndex";
-import { ShiftService } from "@/services/firebase/firebase-shift";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { logShiftChange, determineActionType } from "@/services/shift-history/shiftHistoryLogger";
 
 export interface UseGanttShiftActionsProps {
@@ -46,7 +45,6 @@ export function useGanttShiftActions({
         nickname: string;
         status: ShiftStatus;
         classes: ClassTimeSlot[];
-        extendedTasks?: ShiftTaskSlot[]; // 拡張タスク配列を追加
       }
     ) => {
       // 既に保存処理中の場合はスキップ
@@ -95,7 +93,7 @@ export function useGanttShiftActions({
         // ステータス変更の場合は通知機能を使用
         if (editingShift.status !== newShiftData.status && newShiftData.status === "approved") {
           // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
-          await ShiftService.approveShiftChanges(editingShift.id, {
+          await ServiceProvider.shifts.approveShiftChanges(editingShift.id, {
             userId: user?.uid || "",
             nickname: (user as any)?.nickname || "������",
             role: ((user?.role as "master" | "teacher") || "master")
@@ -279,7 +277,7 @@ export function useGanttShiftActions({
 
       // 承認の場合は通知機能付きのapproveShiftChanges関数を使用
       if (status === "approved") {
-        await ShiftService.approveShiftChanges(shiftId, {
+        await ServiceProvider.shifts.approveShiftChanges(shiftId, {
           userId: user.uid,
           nickname: (user as any)?.nickname || "������",
           role: ((user?.role as "master" | "teacher") || "master")
