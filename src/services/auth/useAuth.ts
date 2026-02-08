@@ -1,32 +1,15 @@
 import { useState, useEffect } from "react";
-import {
-  onAuthStateChanged,
-  User as FirebaseUser,
-  signInWithCustomToken,
-} from "firebase/auth";
-import { httpsCallable } from "firebase/functions";
 import { User } from "./auth";
-import {
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import { auth, db, functions } from "../firebase/firebase-core";
+import { ServiceProvider } from "../ServiceProvider";
+import { getSupabase } from "../supabase/supabase-client";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
-import { validateEmail, validatePassword } from "@/common/common-utils/validation/inputValidation";
+import { validateEmail } from "@/common/common-utils/validation/inputValidation";
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
+import { toAsciiEmail } from "@/services/supabase/utils/asciiEmail";
 
-// 一時的なエラーかどうかを判定
-const isTemporaryError = (error: any): boolean => {
-  const temporaryErrors = [
-    'permission-denied',
-    'network-request-failed',
-    'unavailable',
-    'cancelled',
-    'aborted'
-  ];
-  const errorCode = error?.code?.toLowerCase() || '';
-  return temporaryErrors.some(e => errorCode.includes(e));
-};
+// プラットフォーム安全なユーザーエージェント取得（React Native対応）
+const getSafeUserAgent = () => typeof navigator !== "undefined" ? navigator.userAgent : "react-native";
+const getSafeOrigin = () => typeof window !== "undefined" && window.location ? window.location.origin : "app";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -36,22 +19,23 @@ export const useAuth = () => {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const signIn = async (
-    emailOrUsernameWithStore: string, 
-    password: string, 
+    emailOrUsernameWithStore: string,
+    password: string,
     storeId?: string
   ) => {
     setAuthError(null);
 
     try {
-      // セキュリティ検証
-      const clientId = `${navigator.userAgent}_${window.location.origin}`;
-      
+      // セキュリティ検証（React Native環境ではwindow/navigatorが存在しない場合がある）
+      const userAgent = getSafeUserAgent();
+      const clientId = `${userAgent}_${getSafeOrigin()}`;
+
       // レート制限チェック
       if (!RateLimiter.isAllowed(clientId)) {
         SecurityLogger.logEvent({
           type: 'rate_limit_exceeded',
           details: 'Login rate limit exceeded',
-          userAgent: navigator.userAgent,
+          userAgent,
         });
         throw new Error("ログイン試行回数が上限に達しました。しばらく時間を置いてから再試行してください。");
       }
@@ -78,7 +62,7 @@ export const useAuth = () => {
         }
       }
 
-      // パスワード基本検証（完全検証は新規登録時のみ）
+      // パスワード基本検証
       if (password.length < 6) {
         SecurityLogger.logEvent({
           type: 'invalid_input',
@@ -86,76 +70,52 @@ export const useAuth = () => {
         });
         throw new Error("パスワードは6文字以上で入力してください");
       }
-      let emailToUse = emailOrUsernameWithStore;
-      let storeIdToUse = storeId;
 
-      // メールアドレス形式かどうかを判定
-      const emailFormatCheck = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsernameWithStore);
-      
-      if (!emailFormatCheck) {
-        // 従来の店舗ID + ニックネーム形式の場合
+      let emailToUse = emailOrUsernameWithStore;
+
+      // メールアドレス形式でない場合、店舗ID + ニックネーム形式
+      if (!isEmailFormatInput) {
         if (!storeId) {
           throw new Error("店舗IDが必要です");
         }
-        // 自動生成メールアドレス形式に変換
         emailToUse = `${storeId}${emailOrUsernameWithStore}@example.com`;
-        storeIdToUse = storeId;
       }
 
-      // 🔒 セキュアログイン: Cloud Function経由でサーバーサイド認証
-      const secureLoginFunction = httpsCallable(functions, 'secureLogin');
-      
-      const loginResult = await secureLoginFunction({
-        email: emailToUse,
-        password: password,
-        storeId: storeIdToUse
-      });
-      
-      const { customToken, user: userData } = loginResult.data as any;
-      
-      if (!customToken || !userData) {
-        throw new Error("認証に失敗しました");
-      }
+      // Supabase Authは非ASCIIメールを受け付けないため変換
+      emailToUse = toAsciiEmail(emailToUse);
 
-      // Firebase Authカスタムトークンでサインイン  
-      const userCredential = await signInWithCustomToken(auth, customToken);
+      // Supabase Auth ネイティブでサインイン（ServiceProvider経由）
+      const userData = await ServiceProvider.auth.signIn(emailToUse, password);
 
-      // ✅ 認証成功: ユーザー情報を設定
       setUser({
         uid: userData.uid,
         nickname: userData.nickname,
-        email: userData.email,
+        email: userData.email || "",
         role: userData.role,
-        storeId: userData.storeId,
+        storeId: userData.storeId || "",
       });
       setRole(userData.role);
-      setStoreId(userData.storeId);
+      setStoreId(userData.storeId || null);
 
       // 店舗IDを保存
-      await StoreIdStorage.saveStoreId(userData.storeId);
+      if (userData.storeId) {
+        await StoreIdStorage.saveStoreId(userData.storeId);
+      }
 
       // セキュリティ: ログイン成功ログ
       SecurityLogger.logEvent({
         type: 'system_event',
         details: `User ${userData.nickname} logged in successfully`,
-        userAgent: navigator.userAgent,
+        userAgent,
       });
 
     } catch (error: any) {
-      // Silent error handling for login
       setUser(null);
       setRole(null);
       setStoreId(null);
-      
-      // エラーメッセージの処理
+
       let errorMessage = "ログインに失敗しました";
-      if (error.code === 'functions/not-found') {
-        errorMessage = "ユーザーが見つかりません";
-      } else if (error.code === 'functions/unauthenticated') {
-        errorMessage = "パスワードが正しくありません";
-      } else if (error.code === 'functions/invalid-argument') {
-        errorMessage = "入力内容を確認してください";
-      } else if (error.message) {
+      if (error.message) {
         errorMessage = error.message;
       }
 
@@ -168,9 +128,8 @@ export const useAuth = () => {
     try {
       // セキュリティ: ログアウト時にCSRFトークンをクリア
       CSRFTokenManager.clearToken();
-      
-      await auth.signOut();
-      // ログアウト時は店舗IDを保持する（ユーザーが明示的にログアウトした場合のみクリア）
+
+      await ServiceProvider.auth.signOut();
       setUser(null);
       setRole(null);
       setStoreId(null);
@@ -180,95 +139,80 @@ export const useAuth = () => {
       SecurityLogger.logEvent({
         type: 'user_logout',
         details: 'User logged out',
-        userAgent: navigator.userAgent,
+        userAgent: getSafeUserAgent(),
       });
     } catch (error) {
       throw error;
     }
   };
 
-  // 🔒 セキュア版: サーバーサイドでユーザー情報取得済み
-  const fetchUserWithRetry = async (uid: string, email?: string | null, retries = 3): Promise<any> => {
-    try {
-      // 直接UIDで検索（カスタムトークンで認証済みなので安全）
-      const userDoc = await getDoc(doc(db, "users", uid));
-      const userData = userDoc.data();
-      return userData || null;
-    } catch (error) {
-      // Silent error handling for user fetch
-      return null;
-    }
-  };
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      
-      if (firebaseUser) {
-        try {
-          // 🔒 カスタムトークンで認証済みなのでユーザー情報を安全取得
-          const userData = await fetchUserWithRetry(firebaseUser.uid, firebaseUser.email);
+    const supabase = getSupabase();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          try {
+            // ServiceProvider経由でユーザー情報取得
+            const userData = await ServiceProvider.users.getUserFullProfile(session.user.id);
 
-          if (userData) {
-            // 削除フラグを確認
-            if (userData.deleted) {
-              await auth.signOut();
+            if (userData) {
+              // 削除フラグを確認
+              if (userData['deleted']) {
+                await ServiceProvider.auth.signOut();
+                setUser(null);
+                setRole(null);
+                setStoreId(null);
+                setAuthError("このユーザーは削除されています。");
+                setLoading(false);
+                return;
+              }
+
+              const nickname = userData['nickname'] as string || "";
+              const userRole = (userData['role'] as "master" | "user") || "user";
+
+              setUser({
+                uid: session.user.id,
+                nickname,
+                role: userRole,
+                email: session.user.email || "",
+                storeId: userData.storeId || "",
+              });
+              setRole(userRole);
+              setStoreId(userData.storeId || null);
+              setAuthError(null);
+            } else {
+              await ServiceProvider.auth.signOut();
               setUser(null);
               setRole(null);
               setStoreId(null);
-              setAuthError("このユーザーは削除されています。");
-              setLoading(false);
-              return;
+              setAuthError("ユーザー情報が見つかりません。");
             }
-
-            // カスタムトークンにstoreId情報が含まれている
-            const userStoreId = userData.storeId;
-
-            setUser({
-              uid: firebaseUser.uid,
-              nickname: userData.nickname,
-              role: userData.role,
-              email: firebaseUser.email || "",
-              storeId: userStoreId,
-            });
-            setRole(userData.role);
-            setStoreId(userStoreId);
-            setAuthError(null);
-          } else {
-            // ユーザー情報が見つからない場合はログアウト
-            await auth.signOut();
+          } catch {
+            await ServiceProvider.auth.signOut();
             setUser(null);
             setRole(null);
             setStoreId(null);
-            setAuthError("ユーザー情報が見つかりません。");
+            setAuthError("認証エラーが発生しました。");
           }
-        } catch (error) {
-          // Silent error handling for auth state confirmation
-          
-          // エラーの場合はログアウト
-          await auth.signOut();
+        } else {
           setUser(null);
           setRole(null);
           setStoreId(null);
-          setAuthError("認証エラーが発生しました。");
+          setAuthError(null);
         }
-      } else {
-        setUser(null);
-        setRole(null);
-        setStoreId(null);
-        setAuthError(null); // ログアウト時はエラーをクリア
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
 
-    return () => unsubscribe();
-  }, []); // 依存関係を空にして、初回のみ実行
+    return () => subscription.unsubscribe();
+  }, []);
 
   return {
     user,
     loading,
-    isAuthenticated: !!user && !authError, // エラーがある場合は認証済みとしない
+    isAuthenticated: !!user && !authError,
     role,
-    authError, // エラー状態を返す
+    authError,
     signIn,
     signOut,
   };
@@ -279,17 +223,10 @@ export const useAuth = () => {
  */
 export const getAuthToken = async (): Promise<string | null> => {
   try {
-    const currentUser = auth.currentUser;
-    
-    if (!currentUser) {
-      return null;
-    }
-    
-    // Firebase ID トークンを取得
-    const token = await currentUser.getIdToken();
-    return token;
-    
-  } catch (error) {
+    const supabase = getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  } catch {
     return null;
   }
 };

@@ -12,11 +12,6 @@ import {
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  doc,
-  getDoc,
-} from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -30,13 +25,11 @@ import { MasterHeader } from "@/common/common-ui/ui-layout";
 // import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import type { UserData } from "@/services/firebase/firebase";
+import type { UserData } from "@/common/common-models/model-user/UserModel";
 import { Picker } from "@react-native-picker/picker";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
-import { MultiStoreService } from "@/services/firebase/firebase-multistore";
 import { styles } from "./MasterShiftCreate.styles";
 import { ShiftData, MasterShiftCreateProps } from "./MasterShiftCreate.types";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 
 export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   mode,
@@ -126,7 +119,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       if (!currentUser?.storeId) return;
 
       try {
-        const connectedUsers = await MultiStoreService.getConnectedStoreUsers(
+        const connectedUsers = await ServiceProvider.multiStore.getConnectedStoreUsers(
           currentUser.storeId
         );
         setConnectedStoreUsers(connectedUsers);
@@ -144,13 +137,9 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
       try {
         setIsLoading(true);
-        const shiftDoc = await getDoc(doc(db, "shifts", shiftId));
-        if (shiftDoc.exists()) {
-          const shiftData = shiftDoc.data() as Shift;
-          setExistingShift({
-            ...shiftData,
-            id: shiftDoc.id,
-          });
+        const shiftData = await ServiceProvider.shifts.getShift(shiftId);
+        if (shiftData) {
+          setExistingShift(shiftData);
 
           // 既存のシフトのユーザーを選択
           setSelectedUserId(shiftData.userId || "");
@@ -234,7 +223,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             maxApplicants: 5, // デフォルト値を設定
           };
 
-          await RecruitmentShiftService.createRecruitmentShift(recruitmentShift);
+          await ServiceProvider.recruitmentShifts.createRecruitmentShift(recruitmentShift);
           completedCount++;
           // プログレス更新は削除（シンプルにする）
         });

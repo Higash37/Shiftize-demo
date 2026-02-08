@@ -11,10 +11,8 @@ import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
 import { styles } from "./UserForm.styles";
-import {
-  MultiStoreService,
-  StoreInfo,
-} from "@/services/firebase/firebase-multistore";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 import { useAuth } from "@/services/auth/useAuth";
 
 interface InviteUserFormProps {
@@ -47,7 +45,7 @@ export const InviteUserForm: React.FC<InviteUserFormProps> = ({
     // 利用可能な店舗一覧を取得
     const fetchStores = async () => {
       try {
-        const stores = await MultiStoreService.getAllStores();
+        const stores = await ServiceProvider.multiStore.getAllStores();
         setAvailableStores(stores);
       } catch (error) {
       }
@@ -77,7 +75,7 @@ export const InviteUserForm: React.FC<InviteUserFormProps> = ({
 
     try {
       setLoading(true);
-      await MultiStoreService.inviteUserToStore(
+      await ServiceProvider.multiStore.inviteUserToStore(
         currentUser.uid,
         currentUser.storeId,
         userEmail.trim(),

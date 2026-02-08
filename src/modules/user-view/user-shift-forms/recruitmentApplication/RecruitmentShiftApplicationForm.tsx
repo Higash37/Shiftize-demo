@@ -10,13 +10,11 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header } from "@/common/common-ui/ui-layout";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import {
   RecruitmentShiftApplicationFormProps,
   DisplayRecruitmentShift,
@@ -49,16 +47,11 @@ export const RecruitmentShiftApplicationForm: React.FC<RecruitmentShiftApplicati
       try {
         setLoading(true);
 
-        let shiftsQuery;
         if (shiftIds && shiftIds !== "") {
           // 特定のシフトIDが指定されている場合
           const shiftIdArray = shiftIds.split(",");
           const shiftsPromises = shiftIdArray.map(async (shiftId) => {
-            const shiftDoc = await getDoc(doc(db, "recruitmentShifts", shiftId.trim()));
-            if (shiftDoc.exists()) {
-              return { id: shiftDoc.id, ...shiftDoc.data() } as RecruitmentShift;
-            }
-            return null;
+            return ServiceProvider.recruitmentShifts.getRecruitmentShift(shiftId.trim());
           });
 
           const shiftsResults = await Promise.all(shiftsPromises);
@@ -75,17 +68,7 @@ export const RecruitmentShiftApplicationForm: React.FC<RecruitmentShiftApplicati
           setRecruitmentShifts(displayShifts);
         } else {
           // 店舗の全ての募集中シフトを取得
-          shiftsQuery = query(
-            collection(db, "recruitmentShifts"),
-            where("storeId", "==", storeId),
-            where("status", "==", "open")
-          );
-
-          const shiftsSnapshot = await getDocs(shiftsQuery);
-          const shifts: RecruitmentShift[] = shiftsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as RecruitmentShift[];
+          const shifts = await ServiceProvider.recruitmentShifts.getOpenRecruitmentShifts(storeId);
 
           const displayShifts: DisplayRecruitmentShift[] = shifts.map(shift => ({
             ...shift,
@@ -191,7 +174,7 @@ export const RecruitmentShiftApplicationForm: React.FC<RecruitmentShiftApplicati
         };
 
 
-        await RecruitmentShiftService.applyToRecruitmentShift(
+        await ServiceProvider.recruitmentShifts.applyToRecruitmentShift(
           application.shiftId,
           shiftApplicationData
         );

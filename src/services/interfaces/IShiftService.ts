@@ -1,7 +1,9 @@
-import { Shift } from "@/common/common-models/ModelIndex";
+import { Shift, ShiftItem } from "@/common/common-models/ModelIndex";
 import { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLogger";
 
 export interface IShiftService {
+  getShift(id: string): Promise<Shift | null>;
+
   getShifts(storeId?: string): Promise<Shift[]>;
 
   addShift(shift: Omit<Shift, "id">, actor?: ShiftHistoryActor): Promise<string>;
@@ -28,4 +30,18 @@ export interface IShiftService {
     storeId?: string;
     connectedStores?: string[];
   }): Promise<Shift[]>;
+
+  onShiftsChanged(
+    storeId: string,
+    callback: (shifts: ShiftItem[]) => void,
+    onError?: (error: Error) => void
+  ): () => void;
+
+  onShiftsByMonth(
+    storeId: string,
+    year: number,
+    month: number,
+    callback: (shifts: ShiftItem[]) => void,
+    onError?: (error: Error) => void
+  ): () => void;
 }

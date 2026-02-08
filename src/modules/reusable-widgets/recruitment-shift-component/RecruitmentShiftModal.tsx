@@ -16,14 +16,11 @@ import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { RecruitmentShift, RecruitmentApplication } from "@/common/common-models/model-shift/shiftTypes";
 import { useAuth } from "@/services/auth/useAuth";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { styles } from "./styles";
 import { RecruitmentApplicationModal } from "./RecruitmentApplicationModal";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
-import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
-import { QuickShiftTokenService } from "@/services/quick-shift/QuickShiftTokenService";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 
 interface RecruitmentShiftModalProps {
   visible: boolean;
@@ -66,7 +63,7 @@ export function RecruitmentShiftModal({
 
   const loadActivePeriod = async () => {
     try {
-      const periods = await ShiftSubmissionService.getActivePeriods(user?.storeId || "");
+      const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(user?.storeId || "");
       setPeriod(periods.length > 0 ? periods[0] ?? null : null);
     } catch (error) {
     }
@@ -74,46 +71,30 @@ export function RecruitmentShiftModal({
 
   const getDaysUntilDeadline = (): number => {
     if (!period) return 0;
-    return ShiftSubmissionService.getDaysUntilDeadline(period);
+    return ServiceProvider.shiftSubmissions.getDaysUntilDeadline(period);
   };
 
   const isWithinPeriod = (): boolean => {
     if (!period) return false;
-    return ShiftSubmissionService.isWithinPeriod(period);
+    return ServiceProvider.shiftSubmissions.isWithinPeriod(period);
   };
 
   useEffect(() => {
     if (!user?.storeId) return;
 
-    const q = query(
-      collection(db, "recruitmentShifts"),
-      where("storeId", "==", user.storeId),
-      where("status", "==", "open")
-    );
-
-    const unsubscribe = onSnapshot(
-      q, 
-      (snapshot) => {
-        const shifts: RecruitmentShift[] = [];
-        snapshot.forEach((doc) => {
-          shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
-        });
-
+    const unsubscribe = ServiceProvider.recruitmentShifts.onOpenRecruitmentShifts(
+      user.storeId,
+      (shifts) => {
         // 日付順にソート
         shifts.sort((a, b) => {
           const dateA = new Date(a.date + " " + a.startTime);
           const dateB = new Date(b.date + " " + b.startTime);
           return dateA.getTime() - dateB.getTime();
         });
-
         setRecruitmentShifts(shifts);
       },
-      (error) => {
-        // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === 'permission-denied') {
-          setRecruitmentShifts([]);
-          return;
-        }
+      () => {
+        setRecruitmentShifts([]);
       }
     );
 
@@ -150,7 +131,7 @@ export function RecruitmentShiftModal({
     if (!shiftToDelete) return;
     
     try {
-      await RecruitmentShiftService.deleteRecruitmentShift(shiftToDelete.id);
+      await ServiceProvider.recruitmentShifts.deleteRecruitmentShift(shiftToDelete.id);
       
       // ローカル状態からも削除
       setRecruitmentShifts(prevShifts => 
@@ -183,14 +164,14 @@ export function RecruitmentShiftModal({
     setGeneratingUrl(true);
     try {
       // トークン生成
-      const tokenId = await QuickShiftTokenService.createRecruitmentToken(
+      const tokenId = await ServiceProvider.quickShiftTokens.createRecruitmentToken(
         user.storeId,
         user.uid,
         [shift.id],
         { expiresInHours: 168, requireLineAuth: false }
       );
 
-      const url = QuickShiftTokenService.generateQuickShiftUrl(tokenId, "recruitment");
+      const url = ServiceProvider.quickShiftTokens.generateQuickShiftUrl(tokenId, "recruitment");
 
       // メッセージ生成
       const message = `【シフト募集】
@@ -231,14 +212,14 @@ ${url}`;
       const selectedShifts = recruitmentShifts.filter(s => shiftIds.includes(s.id));
 
       // トークン生成
-      const tokenId = await QuickShiftTokenService.createRecruitmentToken(
+      const tokenId = await ServiceProvider.quickShiftTokens.createRecruitmentToken(
         user.storeId,
         user.uid,
         shiftIds,
         { expiresInHours: 168, requireLineAuth: false }
       );
 
-      const url = QuickShiftTokenService.generateQuickShiftUrl(tokenId, "recruitment");
+      const url = ServiceProvider.quickShiftTokens.generateQuickShiftUrl(tokenId, "recruitment");
 
       // メッセージ生成（複数シフト用）
       const shiftList = selectedShifts
@@ -701,7 +682,7 @@ ${url}`;
                 return;
               }
 
-              await RecruitmentShiftService.applyToRecruitmentShift(
+              await ServiceProvider.recruitmentShifts.applyToRecruitmentShift(
                 selectedShift.id,
                 {
                   userId: user.uid,

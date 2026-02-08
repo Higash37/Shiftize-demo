@@ -12,11 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
-import { QuickShiftTokenService, QuickShiftToken } from "@/services/quick-shift/QuickShiftTokenService";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { QuickShiftToken } from "@/services/interfaces/IQuickShiftTokenService";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { designSystem } from "@/common/common-constants/DesignSystem";
@@ -48,7 +46,7 @@ export default function QuickRecruitPage() {
 
       try {
         // トークン検証
-        const result = await QuickShiftTokenService.validateToken(token, user?.uid);
+        const result = await ServiceProvider.quickShiftTokens.validateToken(token, user?.uid);
 
         if (!result.valid || !result.token) {
           setError(result.error || "トークンが無効です");
@@ -64,18 +62,9 @@ export default function QuickRecruitPage() {
           const applied = new Set<string>();
 
           for (const shiftId of result.token.recruitmentShiftIds) {
-            const docRef = doc(db, "recruitmentShifts", shiftId);
-            const docSnap = await getDoc(docRef);
+            const shift = await ServiceProvider.recruitmentShifts.getRecruitmentShift(shiftId);
 
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              const shift: RecruitmentShift = {
-                id: docSnap.id,
-                ...data,
-                createdAt: data['createdAt']?.toDate ? data['createdAt'].toDate() : data['createdAt'],
-                updatedAt: data['updatedAt']?.toDate ? data['updatedAt'].toDate() : data['updatedAt'],
-              } as RecruitmentShift;
-
+            if (shift) {
               shifts.push(shift);
 
               // 既に申し込み済みかチェック
@@ -107,7 +96,7 @@ export default function QuickRecruitPage() {
       setSubmitting(true);
       try {
         // 募集シフトに応募
-        await RecruitmentShiftService.applyToRecruitmentShift(shift.id, {
+        await ServiceProvider.recruitmentShifts.applyToRecruitmentShift(shift.id, {
           userId: user.uid,
           nickname: user.nickname || "名前未設定",
           requestedStartTime: shift.startTime,
@@ -116,7 +105,7 @@ export default function QuickRecruitPage() {
         });
 
         // トークン使用記録
-        await QuickShiftTokenService.recordTokenUsage(token, user.uid, shift.id);
+        await ServiceProvider.quickShiftTokens.recordTokenUsage(token, user.uid, shift.id);
 
         // 申し込み済みに追加
         setAppliedShiftIds(prev => new Set([...prev, shift.id]));

@@ -24,6 +24,8 @@ export interface GroupCreationResult {
 }
 
 export interface IStoreService {
+  getStore(storeId: string): Promise<{ storeId: string; storeName: string; adminUid?: string; adminNickname?: string; [key: string]: any } | null>;
+
   checkStoreIdExists(storeId: string): Promise<boolean>;
 
   generateUniqueStoreId(): Promise<string>;

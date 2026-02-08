@@ -20,4 +20,10 @@ export interface IUserService {
   secureDeleteUser(userId: string, storeId: string): Promise<void>;
 
   secureDeleteUserByAdmin(targetUserId: string, storeId: string, adminUserId: string): Promise<void>;
+
+  getUserFullProfile(userId: string): Promise<{
+    storeId?: string;
+    connectedStores?: string[];
+    [key: string]: any;
+  } | null>;
 }

@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { ServiceProvider } from "@/services/ServiceProvider";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { useAuth } from "@/services/auth/useAuth";
 import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 
@@ -39,18 +37,17 @@ export const useShift = (storeId?: string) => {
         allShifts = await ServiceProvider.shifts.getShifts(targetStoreId);
       } else {
         // 講師の場合：連携店舗も含む全てのアクセス可能なシフトを取得
-        // NOTE: connectedStoresはIUserService.getUserDataに含まれないため、
-        // Phase 0では直接Firestoreから取得する（Phase 1でIUserServiceを拡張予定）
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userProfile = await ServiceProvider.users.getUserFullProfile(user.uid);
 
-        if (userDoc.exists()) {
-          const rawUserData = userDoc.data();
-
+        if (userProfile) {
           // 連携店舗も含むシフトを取得
-          allShifts = await ServiceProvider.shifts.getUserAccessibleShifts({
-            storeId: rawUserData["storeId"],
-            connectedStores: rawUserData["connectedStores"] || [],
-          });
+          const accessParams: { storeId?: string; connectedStores?: string[] } = {
+            connectedStores: userProfile.connectedStores || [],
+          };
+          if (userProfile.storeId) {
+            accessParams.storeId = userProfile.storeId;
+          }
+          allShifts = await ServiceProvider.shifts.getUserAccessibleShifts(accessParams);
         } else {
           // ユーザーデータが見つからない場合は従来の方法
           const targetStoreId = storeId || user?.storeId;

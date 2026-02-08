@@ -17,7 +17,7 @@ import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { shiftCreateFormStyles as styles } from "./styles";
 import type { ShiftData } from "./types";
-import { StoreInfo } from "@/services/firebase/firebase-multistore";
+import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 
 interface ShiftCreateFormContentProps {
   containerStyle: ViewStyle;

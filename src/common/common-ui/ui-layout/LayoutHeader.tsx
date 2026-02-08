@@ -8,8 +8,7 @@ import { styles } from "./LayoutHeader.styles";
 import { HeaderProps } from "./LayoutHeader.types";
 import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-shift-component/RecruitmentShiftModal";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
@@ -44,32 +43,17 @@ export function Header({
   useEffect(() => {
     if (!user?.storeId) return;
 
-    const q = query(
-      collection(db, "recruitmentShifts"),
-      where("storeId", "==", user.storeId),
-      where("status", "==", "open")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const shifts: RecruitmentShift[] = [];
-        for (const doc of snapshot.docs) {
-          shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
-        }
-
+    const unsubscribe = ServiceProvider.recruitmentShifts.onOpenRecruitmentShifts(
+      user.storeId,
+      (shifts) => {
         // 未応募のシフト数をカウント
         const unappliedCount = shifts.filter(
           (shift) => !hasUserApplication(shift, user.uid)
         ).length;
-
         setUnreadCount(unappliedCount);
       },
-      (error) => {
-        // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === "permission-denied") {
-          setUnreadCount(0);
-        }
+      () => {
+        setUnreadCount(0);
       }
     );
 

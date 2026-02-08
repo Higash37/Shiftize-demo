@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
 import {
   View,
   Text,
@@ -24,16 +23,7 @@ import {
   TimeSlot,
   ShiftType,
 } from "@/common/common-models/ModelIndex";
-import {
-  doc,
-  onSnapshot,
-  updateDoc,
-  deleteDoc,
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
@@ -202,13 +192,10 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   }, []);
 
   useEffect(() => {
-    // Firestoreからステータス設定を取得
-    const configRef = doc(db, "settings", "shiftStatus");
-    const unsubscribe = onSnapshot(
-      configRef, 
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
+    // ステータス設定をリアルタイム取得
+    const unsubscribe = ServiceProvider.settings.onShiftStatusConfigChanged(
+      (data) => {
+        if (data) {
           const updatedConfigs: ShiftStatusConfig[] =
             DEFAULT_SHIFT_STATUS_CONFIG.map((config) => ({
               ...config,
@@ -216,13 +203,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
             }));
           setStatusConfigs(updatedConfigs);
         }
-      },
-      (error) => {
-        // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === 'permission-denied') {
-          return;
-        }
-        // console.error("GanttChartMonthView settings realtime error:", error);
       }
     );
 
@@ -347,7 +327,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const refreshRecruitmentShifts = useCallback(async () => {
     if (!user?.storeId) return;
     try {
-      const recruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
+      const recruitmentData = await ServiceProvider.recruitmentShifts.getRecruitmentShifts(user.storeId);
       setRecruitmentShifts(recruitmentData);
     } catch (error) {
       // エラーは無視
@@ -567,7 +547,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       }
 
       try {
-        const recruitmentData = await RecruitmentShiftService.getRecruitmentShifts(user.storeId);
+        const recruitmentData = await ServiceProvider.recruitmentShifts.getRecruitmentShifts(user.storeId);
         setRecruitmentShifts(recruitmentData);
       } catch (error) {
       }

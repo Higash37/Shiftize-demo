@@ -22,11 +22,7 @@ import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../user-shift-utils/shift-time.utils";
 import { shiftListViewStyles as styles } from "./styles";
-import {
-  ShiftSubmissionService,
-  ShiftSubmissionPeriod,
-} from "@/services/shift-submission/ShiftSubmissionService";
-import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftConfirmationService";
+import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
@@ -86,7 +82,7 @@ export const UserShiftList = () => {
 
   const loadActivePeriod = async () => {
     try {
-      const periods = await ShiftSubmissionService.getActivePeriods(
+      const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
         user?.storeId || ""
       );
       const currentPeriod = periods.length > 0 ? periods[0] : null;
@@ -95,7 +91,7 @@ export const UserShiftList = () => {
       // 確定状況もロード
       if (currentPeriod && user?.uid) {
         const isConfirmed =
-          await ShiftConfirmationService.getUserConfirmationStatus(
+          await ServiceProvider.shiftConfirmations.getUserConfirmationStatus(
             user.uid,
             currentPeriod.id
           );
@@ -120,7 +116,7 @@ export const UserShiftList = () => {
           onPress: async () => {
             try {
               if (user?.uid && period?.id) {
-                await ShiftConfirmationService.cancelConfirmation(
+                await ServiceProvider.shiftConfirmations.cancelConfirmation(
                   user.uid,
                   period.id
                 );
@@ -142,7 +138,7 @@ export const UserShiftList = () => {
   const handleConfirmComplete = async () => {
     try {
       if (user?.uid && user?.storeId && period?.id) {
-        await ShiftConfirmationService.confirmShift(
+        await ServiceProvider.shiftConfirmations.confirmShift(
           user.uid,
           user.storeId,
           period.id

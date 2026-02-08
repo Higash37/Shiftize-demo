@@ -1,7 +1,8 @@
 import type { IShiftService } from "../interfaces/IShiftService";
-import type { Shift } from "@/common/common-models/ModelIndex";
+import type { Shift, ShiftItem } from "@/common/common-models/ModelIndex";
 import type { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLogger";
 import { getSupabase } from "./supabase-client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import {
   ShiftNotificationService,
   EmailNotificationService,
@@ -12,7 +13,25 @@ import {
   determineActionType,
 } from "@/services/shift-history/shiftHistoryLogger";
 
-type ShiftItem = Shift & { id: string };
+const toShiftItemFromRow = (row: any): ShiftItem => ({
+  id: row.id,
+  userId: row.user_id || "",
+  storeId: row.store_id || "",
+  nickname: row.nickname || "",
+  date: row.date || "",
+  startTime: row.start_time || "",
+  endTime: row.end_time || "",
+  type: row.type || "user",
+  subject: row.subject || "",
+  notes: row.notes,
+  isCompleted: row.is_completed || false,
+  status: row.status || "draft",
+  duration: String(row.duration || ""),
+  createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+  updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+  classes: row.classes || [],
+  requestedChanges: row.requested_changes || undefined,
+});
 
 const toShiftFromRow = (row: any): Shift => ({
   id: row.id,
@@ -76,18 +95,56 @@ const toUpdateRow = (shift: Partial<Shift>) => {
   return row;
 };
 
+const shiftToShiftItem = (s: Shift & { id: string }): ShiftItem => {
+  const item: ShiftItem = {
+    id: s.id,
+    userId: s.userId || "",
+    storeId: s.storeId || "",
+    nickname: s.nickname || "",
+    date: s.date || "",
+    startTime: s.startTime || "",
+    endTime: s.endTime || "",
+    type: s.type || "user",
+    isCompleted: s.isCompleted || false,
+    status: s.status || "draft",
+    duration: String(s.duration || ""),
+    createdAt: s.createdAt || new Date(),
+    updatedAt: s.updatedAt || new Date(),
+  };
+  if (s.subject !== undefined) item.subject = s.subject;
+  if (s.notes !== undefined) item.notes = s.notes;
+  if (s.classes !== undefined) item.classes = s.classes;
+  if (s.requestedChanges && Array.isArray(s.requestedChanges) && s.requestedChanges.length > 0) {
+    const rc = s.requestedChanges[0]!;
+    item.requestedChanges = { startTime: rc.startTime, endTime: rc.endTime };
+  }
+  return item;
+};
+
 const mergeShiftForLogging = (
   id: string,
   prevData: Shift | null | undefined,
   updates: Partial<Shift> | null | undefined
 ): { prev: ShiftItem | null; next: ShiftItem | null } => {
-  const prev = prevData ? ({ ...prevData, id } as ShiftItem) : null;
+  const prev = prevData ? shiftToShiftItem({ ...prevData, id }) : null;
   if (!updates) return { prev, next: prev };
-  const merged = { ...(prevData || {}), ...updates, id } as ShiftItem;
+  const merged = shiftToShiftItem({ ...(prevData || {} as Shift), ...updates, id });
   return { prev, next: merged };
 };
 
 export class SupabaseShiftAdapter implements IShiftService {
+  async getShift(id: string): Promise<Shift | null> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("shifts")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return toShiftFromRow(data);
+  }
+
   async getShifts(storeId?: string): Promise<Shift[]> {
     const supabase = getSupabase();
     let query = supabase.from("shifts").select("*");
@@ -140,13 +197,13 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     // 監査ログ
     if (actor) {
-      const next = {
+      const next = shiftToShiftItem({
         ...shift,
         id: shiftId,
         status: shift.status || "draft",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as ShiftItem;
+      });
       const action = determineActionType(null, next as any, actor);
       await logShiftChange(action, actor, next.storeId, next as any, undefined);
     }
@@ -233,7 +290,7 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     // 監査ログ
     if (deletedBy && shiftData) {
-      const prev = { ...shiftData, id } as ShiftItem;
+      const prev = shiftToShiftItem({ ...shiftData, id });
       const action = determineActionType(prev as any, null, deletedBy);
       await logShiftChange(
         action,
@@ -405,5 +462,113 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
 
     return this.getShiftsFromMultipleStores(accessibleStoreIds);
+  }
+
+  onShiftsChanged(
+    storeId: string,
+    callback: (shifts: ShiftItem[]) => void,
+    onError?: (error: Error) => void
+  ): () => void {
+    const supabase = getSupabase();
+    let channel: RealtimeChannel | null = null;
+
+    const fetchAsShiftItems = async (): Promise<ShiftItem[]> => {
+      const { data, error } = await supabase
+        .from("shifts")
+        .select("*")
+        .eq("store_id", storeId)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true });
+      if (error) throw error;
+      return (data || []).map(toShiftItemFromRow);
+    };
+
+    // 初回データ取得
+    fetchAsShiftItems()
+      .then(callback)
+      .catch((err) => onError?.(err));
+
+    // Realtime購読
+    channel = supabase
+      .channel(`shifts-${storeId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "shifts",
+          filter: `store_id=eq.${storeId}`,
+        },
+        () => {
+          fetchAsShiftItems()
+            .then(callback)
+            .catch((err) => onError?.(err));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }
+
+  onShiftsByMonth(
+    storeId: string,
+    year: number,
+    month: number,
+    callback: (shifts: ShiftItem[]) => void,
+    onError?: (error: Error) => void
+  ): () => void {
+    const supabase = getSupabase();
+    let channel: RealtimeChannel | null = null;
+
+    const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
+
+    const fetchMonthShifts = async () => {
+      const { data, error } = await supabase
+        .from("shifts")
+        .select("*")
+        .eq("store_id", storeId)
+        .gte("date", startDate)
+        .lte("date", endDate)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true });
+
+      if (error) throw error;
+      return (data || []).map(toShiftItemFromRow);
+    };
+
+    // 初回データ取得
+    fetchMonthShifts()
+      .then(callback)
+      .catch((err) => onError?.(err));
+
+    // Realtime購読
+    channel = supabase
+      .channel(`shifts-month-${storeId}-${year}-${month}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "shifts",
+          filter: `store_id=eq.${storeId}`,
+        },
+        () => {
+          fetchMonthShifts()
+            .then(callback)
+            .catch((err) => onError?.(err));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }
 }

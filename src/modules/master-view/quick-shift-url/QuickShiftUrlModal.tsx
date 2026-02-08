@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import { QuickShiftTokenService } from "@/services/quick-shift/QuickShiftTokenService";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface QuickShiftUrlModalProps {
@@ -67,13 +67,13 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
         options.maxUses = parseInt(maxUses);
       }
 
-      const tokenId = await QuickShiftTokenService.createFreeAddToken(
+      const tokenId = await ServiceProvider.quickShiftTokens.createFreeAddToken(
         storeId,
         userId,
         options
       );
 
-      const url = QuickShiftTokenService.generateQuickShiftUrl(
+      const url = ServiceProvider.quickShiftTokens.generateQuickShiftUrl(
         tokenId,
         "free_add"
       );

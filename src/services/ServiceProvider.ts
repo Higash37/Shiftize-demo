@@ -4,6 +4,12 @@ import type { IShiftService } from "./interfaces/IShiftService";
 import type { IStoreService } from "./interfaces/IStoreService";
 import type { ISettingsService } from "./interfaces/ISettingsService";
 import type { IAuditService } from "./interfaces/IAuditService";
+import type { IShiftConfirmationService } from "./interfaces/IShiftConfirmationService";
+import type { IQuickShiftTokenService } from "./interfaces/IQuickShiftTokenService";
+import type { ITeacherStatusService } from "./interfaces/ITeacherStatusService";
+import type { IShiftSubmissionService } from "./interfaces/IShiftSubmissionService";
+import type { IRecruitmentShiftService } from "./interfaces/IRecruitmentShiftService";
+import type { IMultiStoreService } from "./interfaces/IMultiStoreService";
 
 class ServiceProviderImpl {
   private _auth: IAuthService | null = null;
@@ -12,6 +18,12 @@ class ServiceProviderImpl {
   private _stores: IStoreService | null = null;
   private _settings: ISettingsService | null = null;
   private _audit: IAuditService | null = null;
+  private _shiftConfirmations: IShiftConfirmationService | null = null;
+  private _quickShiftTokens: IQuickShiftTokenService | null = null;
+  private _teacherStatus: ITeacherStatusService | null = null;
+  private _shiftSubmissions: IShiftSubmissionService | null = null;
+  private _recruitmentShifts: IRecruitmentShiftService | null = null;
+  private _multiStore: IMultiStoreService | null = null;
 
   // --- Auth ---
   get auth(): IAuthService {
@@ -65,6 +77,60 @@ class ServiceProviderImpl {
   }
   setAuditService(service: IAuditService): void {
     this._audit = service;
+  }
+
+  // --- ShiftConfirmations ---
+  get shiftConfirmations(): IShiftConfirmationService {
+    if (!this._shiftConfirmations) throw new Error("ShiftConfirmationService not initialized.");
+    return this._shiftConfirmations;
+  }
+  setShiftConfirmationService(service: IShiftConfirmationService): void {
+    this._shiftConfirmations = service;
+  }
+
+  // --- QuickShiftTokens ---
+  get quickShiftTokens(): IQuickShiftTokenService {
+    if (!this._quickShiftTokens) throw new Error("QuickShiftTokenService not initialized.");
+    return this._quickShiftTokens;
+  }
+  setQuickShiftTokenService(service: IQuickShiftTokenService): void {
+    this._quickShiftTokens = service;
+  }
+
+  // --- TeacherStatus ---
+  get teacherStatus(): ITeacherStatusService {
+    if (!this._teacherStatus) throw new Error("TeacherStatusService not initialized.");
+    return this._teacherStatus;
+  }
+  setTeacherStatusService(service: ITeacherStatusService): void {
+    this._teacherStatus = service;
+  }
+
+  // --- ShiftSubmissions ---
+  get shiftSubmissions(): IShiftSubmissionService {
+    if (!this._shiftSubmissions) throw new Error("ShiftSubmissionService not initialized.");
+    return this._shiftSubmissions;
+  }
+  setShiftSubmissionService(service: IShiftSubmissionService): void {
+    this._shiftSubmissions = service;
+  }
+
+  // --- RecruitmentShifts ---
+  get recruitmentShifts(): IRecruitmentShiftService {
+    if (!this._recruitmentShifts) throw new Error("RecruitmentShiftService not initialized.");
+    return this._recruitmentShifts;
+  }
+  setRecruitmentShiftService(service: IRecruitmentShiftService): void {
+    this._recruitmentShifts = service;
+  }
+
+  // --- MultiStore ---
+  get multiStore(): IMultiStoreService {
+    if (!this._multiStore) throw new Error("MultiStoreService not initialized.");
+    return this._multiStore;
+  }
+  setMultiStoreService(service: IMultiStoreService): void {
+    this._multiStore = service;
   }
 }
 

@@ -40,7 +40,7 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         .from("users")
         .select("store_id")
         .eq("uid", (await supabase.auth.getUser()).data.user?.id || "")
-        .single();
+        .maybeSingle();
 
       const storeId = userData?.store_id || "";
 
@@ -116,6 +116,56 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         }
       )
       .subscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }
+
+  onShiftStatusConfigChanged(callback: (configs: Record<string, any> | null) => void): () => void {
+    const supabase = getSupabase();
+    let channel: RealtimeChannel | null = null;
+
+    // 初期値を取得（store_idでフィルタして別店舗の設定を拾わないようにする）
+    (async () => {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("store_id")
+        .eq("uid", (await supabase.auth.getUser()).data.user?.id || "")
+        .maybeSingle();
+      const storeId = userData?.store_id || "";
+
+      const { data } = await supabase
+        .from("settings")
+        .select("data")
+        .eq("settings_key", "shiftStatus")
+        .eq("store_id", storeId)
+        .maybeSingle();
+      callback(data?.data || null);
+
+      // Supabase Realtimeで変更監視（store_idもフィルタ）
+      channel = supabase
+        .channel(`settings-shift-status-${storeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "settings",
+            filter: `settings_key=eq.shiftStatus`,
+          },
+          (payload) => {
+            // store_idが一致する場合のみコールバック
+            const row = payload.new as any;
+            if (row?.store_id === storeId && row?.data) {
+              callback(row.data);
+            }
+          }
+        )
+        .subscribe();
+    })().catch(() => callback(null));
 
     return () => {
       if (channel) {

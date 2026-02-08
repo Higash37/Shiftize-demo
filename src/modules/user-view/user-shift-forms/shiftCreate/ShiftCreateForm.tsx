@@ -8,8 +8,6 @@ import {
 } from "react-native";
 import { flushSync } from "react-dom";
 import { useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
@@ -22,10 +20,7 @@ import ShiftCreateFormContent from "./ShiftCreateFormContent";
 import type { Shift, ClassTimeSlot } from "@/common/common-models/ModelIndex";
 import type { FlexAlignType } from "react-native";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
-import {
-  MultiStoreService,
-  StoreInfo,
-} from "@/services/firebase/firebase-multistore";
+import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 
 // 型定義
 interface UserData {
@@ -106,24 +101,33 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         return;
       }
       try {
-        const fetchedUserData = await ServiceProvider.users.getUserData(user.uid);
+        const fetchedUserData = await ServiceProvider.users.getUserFullProfile(user.uid);
         if (fetchedUserData) {
-          const userData = fetchedUserData as unknown as UserData;
+          const ud: UserData = {
+            uid: fetchedUserData['uid'] as string || user.uid,
+            nickname: fetchedUserData['nickname'] as string || "",
+            email: fetchedUserData['email'] as string || "",
+            role: fetchedUserData['role'] as string || "",
+          };
+          const sid = (fetchedUserData['storeId'] || fetchedUserData['store_id']) as string | undefined;
+          if (sid) ud.storeId = sid;
+          const cs = (fetchedUserData['connectedStores'] || fetchedUserData['connected_stores']) as string[] | undefined;
+          if (cs) ud.connectedStores = cs;
+          const userData = ud;
           setUserData(userData);
 
           // ユーザーの店舗ドキュメントを取得
           if (userData.storeId) {
-            const storeDoc = await getDoc(doc(db, "stores", userData.storeId));
-            if (storeDoc.exists()) {
-              const storeData = storeDoc.data();
+            const storeData = await ServiceProvider.stores.getStore(userData.storeId);
+            if (storeData) {
               setCurrentStore(storeData);
             }
           }
         }
         if (isEditMode && initialShiftId) {
-          const shiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
-          if (shiftDoc.exists()) {
-            setExistingShift(shiftDoc.data() as Shift);
+          const shiftData = await ServiceProvider.shifts.getShift(initialShiftId);
+          if (shiftData) {
+            setExistingShift(shiftData);
           }
         }
         setIsLoading(false);
@@ -164,17 +168,15 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         // 連携店舗を追加
         for (const connectedStoreId of userConnectedStores) {
           try {
-            const storeDoc = await getDoc(doc(db, "stores", connectedStoreId));
-            if (storeDoc.exists()) {
-              const storeData = storeDoc.data();
+            const storeData = await ServiceProvider.stores.getStore(connectedStoreId);
+            if (storeData) {
               allStores.push({
                 storeId: connectedStoreId,
-                storeName:
-                  storeData["storeName"] || storeData["name"] || "連携店舗",
-                adminUid: storeData["adminUid"] || "",
-                adminNickname: storeData["adminNickname"] || "",
+                storeName: storeData.storeName || "連携店舗",
+                adminUid: storeData.adminUid || "",
+                adminNickname: storeData.adminNickname || "",
                 isActive: true,
-                createdAt: storeData["createdAt"] || new Date(),
+                createdAt: storeData['createdAt'] || new Date(),
               });
             }
           } catch (error) {
@@ -435,11 +437,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     try {
       setIsDeleting(true);
 
-      const shiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
-      if (shiftDoc.exists()) {
-        const shiftData = shiftDoc.data();
-
-        if (shiftData["status"] === "pending") {
+      const existingShiftData = await ServiceProvider.shifts.getShift(initialShiftId);
+      if (existingShiftData) {
+        if (existingShiftData.status === "pending") {
           // 承認待ちの場合は即時削除
           await ServiceProvider.shifts.updateShift(initialShiftId, {
             status: "deleted",

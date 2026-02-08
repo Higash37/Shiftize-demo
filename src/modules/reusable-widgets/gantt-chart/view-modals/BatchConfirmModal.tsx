@@ -7,11 +7,9 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { logBatchApprove } from "@/services/shift-history/shiftHistoryLogger";
 import { useAuth } from "@/services/auth/useAuth";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftSelectionContext } from "../gantt-chart-common/components";
 
 interface BatchConfirmModalProps {
@@ -76,25 +74,28 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
         ? shifts.filter((s) => s.status === "pending" && selectedShiftIds.has(s.id))
         : shifts.filter((s) => s.status === "pending");
       try {
+        const actor = user ? {
+          userId: user.uid,
+          nickname: user.nickname || "教室長",
+          role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
+        } : undefined;
+
         for (const shift of targets) {
-          await updateDoc(doc(db, "shifts", shift.id), {
-            status: "approved",
-            updatedAt: serverTimestamp(),
-          });
+          await ServiceProvider.shifts.updateShift(
+            shift.id,
+            { status: "approved", updatedAt: new Date() },
+            actor
+          );
         }
-        
+
         // 一括承認のログを記録
-        if (user && user.storeId && targets.length > 0) {
-          const yearMonth = shifts[0]?.date ? 
-            shifts[0].date.substring(0, 7) : 
+        if (actor && user?.storeId && targets.length > 0) {
+          const yearMonth = shifts[0]?.date ?
+            shifts[0].date.substring(0, 7) :
             new Date().toISOString().substring(0, 7);
-          
-          await logBatchApprove(
-            {
-              userId: user.uid,
-              nickname: user.nickname || "教室長",
-              role: (user.role as "master" | "teacher") || "master"
-            },
+
+          await ServiceProvider.audit.logBatchApprove(
+            actor,
             user.storeId,
             yearMonth,
             targets.length
@@ -109,10 +110,10 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
       const targets = shifts.filter((s) => s.status === "deletion_requested");
       try {
         for (const shift of targets) {
-          await updateDoc(doc(db, "shifts", shift.id), {
-            status: "deleted",
-            updatedAt: serverTimestamp(),
-          });
+          await ServiceProvider.shifts.updateShift(
+            shift.id,
+            { status: "deleted", updatedAt: new Date() }
+          );
         }
       } catch (error) {
         setIsLoading(false);

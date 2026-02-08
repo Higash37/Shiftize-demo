@@ -12,10 +12,8 @@ import Toast from "react-native-toast-message";
 import { styles } from "./LayoutFooter.styles";
 import { TabItem } from "./ui-layout-types";
 import { MasterFooterProps } from "./LayoutFooter.types";
-import {
-  ShiftSubmissionService,
-  ShiftSubmissionPeriod,
-} from "@/services/shift-submission/ShiftSubmissionService";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 import { useAuth } from "@/services/auth/useAuth";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
@@ -164,7 +162,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
 
   const loadActivePeriod = async () => {
     try {
-      const periods = await ShiftSubmissionService.getActivePeriods(
+      const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
         user?.storeId || ""
       );
       setPeriod(periods.length > 0 ? periods[0] || null : null);
@@ -175,12 +173,12 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
 
   const getDaysUntilDeadline = (): number => {
     if (!period) return 0;
-    return ShiftSubmissionService.getDaysUntilDeadline(period);
+    return ServiceProvider.shiftSubmissions.getDaysUntilDeadline(period);
   };
 
   const isWithinPeriod = (): boolean => {
     if (!period) return false;
-    return ShiftSubmissionService.isWithinPeriod(period);
+    return ServiceProvider.shiftSubmissions.isWithinPeriod(period);
   };
 
   const handleTabPress = (tab: TabItem) => {
