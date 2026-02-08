@@ -110,23 +110,34 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
   async recordTokenUsage(tokenId: string, userId: string, shiftId: string): Promise<void> {
     try {
       const supabase = getSupabase();
-      const { data } = await supabase
-        .from("quick_shift_tokens")
-        .select("current_uses, usage_log")
-        .eq("id", tokenId)
-        .maybeSingle();
 
-      if (!data) return;
+      // RPCが利用可能な場合は原子的に更新（競合回避）
+      const { error: rpcError } = await supabase.rpc("record_token_usage", {
+        p_token_id: tokenId,
+        p_user_id: userId,
+        p_shift_id: shiftId,
+      });
 
-      const usageLog = data.usage_log || [];
-      usageLog.push({ userId, usedAt: new Date().toISOString(), shiftId });
+      if (rpcError) {
+        // RPCが未定義の場合はフォールバック（排他制御付き）
+        const { data } = await supabase
+          .from("quick_shift_tokens")
+          .select("current_uses, usage_log")
+          .eq("id", tokenId)
+          .maybeSingle();
 
-      await supabase.from("quick_shift_tokens").update({
-        current_uses: data.current_uses + 1,
-        last_used_at: new Date().toISOString(),
-        usage_log: usageLog,
-        updated_at: new Date().toISOString(),
-      }).eq("id", tokenId);
+        if (!data) return;
+
+        const usageLog = data.usage_log || [];
+        usageLog.push({ userId, usedAt: new Date().toISOString(), shiftId });
+
+        await supabase.from("quick_shift_tokens").update({
+          current_uses: data.current_uses + 1,
+          last_used_at: new Date().toISOString(),
+          usage_log: usageLog,
+          updated_at: new Date().toISOString(),
+        }).eq("id", tokenId);
+      }
     } catch (error) {
       console.error("Failed to record token usage:", error);
     }

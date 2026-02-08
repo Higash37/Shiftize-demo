@@ -101,9 +101,19 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         return;
       }
       try {
-        const fetchedUserData = await ServiceProvider.users.getUserData(user.uid);
+        const fetchedUserData = await ServiceProvider.users.getUserFullProfile(user.uid);
         if (fetchedUserData) {
-          const userData = fetchedUserData as unknown as UserData;
+          const ud: UserData = {
+            uid: fetchedUserData['uid'] as string || user.uid,
+            nickname: fetchedUserData['nickname'] as string || "",
+            email: fetchedUserData['email'] as string || "",
+            role: fetchedUserData['role'] as string || "",
+          };
+          const sid = (fetchedUserData['storeId'] || fetchedUserData['store_id']) as string | undefined;
+          if (sid) ud.storeId = sid;
+          const cs = (fetchedUserData['connectedStores'] || fetchedUserData['connected_stores']) as string[] | undefined;
+          if (cs) ud.connectedStores = cs;
+          const userData = ud;
           setUserData(userData);
 
           // ユーザーの店舗ドキュメントを取得

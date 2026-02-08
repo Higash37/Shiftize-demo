@@ -6,6 +6,7 @@ import type {
   ConnectedStoreUser,
 } from "../interfaces/IMultiStoreService";
 import { getSupabase } from "./supabase-client";
+import * as Crypto from "expo-crypto";
 
 export class SupabaseMultiStoreAdapter implements IMultiStoreService {
   async getUserStoreAccess(userUid: string): Promise<UserStoreAccess | null> {
@@ -216,7 +217,13 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
 
   async generateConnectionPassword(storeId: string, _userUid: string): Promise<string> {
     const supabase = getSupabase();
-    const password = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // 暗号学的に安全な乱数でパスワード生成
+    const randomBytes = await Crypto.getRandomBytesAsync(6);
+    const password = Array.from(randomBytes)
+      .map((b) => b.toString(36).padStart(2, "0"))
+      .join("")
+      .substring(0, 8)
+      .toUpperCase();
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + 24);
 

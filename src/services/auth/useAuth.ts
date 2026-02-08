@@ -7,6 +7,10 @@ import { validateEmail } from "@/common/common-utils/validation/inputValidation"
 import { SecurityLogger, RateLimiter, CSRFTokenManager } from "@/common/common-utils/security/securityUtils";
 import { toAsciiEmail } from "@/services/supabase/utils/asciiEmail";
 
+// プラットフォーム安全なユーザーエージェント取得（React Native対応）
+const getSafeUserAgent = () => typeof navigator !== "undefined" ? navigator.userAgent : "react-native";
+const getSafeOrigin = () => typeof window !== "undefined" && window.location ? window.location.origin : "app";
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,15 +26,16 @@ export const useAuth = () => {
     setAuthError(null);
 
     try {
-      // セキュリティ検証
-      const clientId = `${navigator.userAgent}_${window.location.origin}`;
+      // セキュリティ検証（React Native環境ではwindow/navigatorが存在しない場合がある）
+      const userAgent = getSafeUserAgent();
+      const clientId = `${userAgent}_${getSafeOrigin()}`;
 
       // レート制限チェック
       if (!RateLimiter.isAllowed(clientId)) {
         SecurityLogger.logEvent({
           type: 'rate_limit_exceeded',
           details: 'Login rate limit exceeded',
-          userAgent: navigator.userAgent,
+          userAgent,
         });
         throw new Error("ログイン試行回数が上限に達しました。しばらく時間を置いてから再試行してください。");
       }
@@ -101,7 +106,7 @@ export const useAuth = () => {
       SecurityLogger.logEvent({
         type: 'system_event',
         details: `User ${userData.nickname} logged in successfully`,
-        userAgent: navigator.userAgent,
+        userAgent,
       });
 
     } catch (error: any) {
@@ -134,7 +139,7 @@ export const useAuth = () => {
       SecurityLogger.logEvent({
         type: 'user_logout',
         details: 'User logged out',
-        userAgent: navigator.userAgent,
+        userAgent: getSafeUserAgent(),
       });
     } catch (error) {
       throw error;

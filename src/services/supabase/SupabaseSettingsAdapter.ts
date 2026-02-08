@@ -128,36 +128,44 @@ export class SupabaseSettingsAdapter implements ISettingsService {
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
-    // 初期値を取得
+    // 初期値を取得（store_idでフィルタして別店舗の設定を拾わないようにする）
     (async () => {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("store_id")
+        .eq("uid", (await supabase.auth.getUser()).data.user?.id || "")
+        .maybeSingle();
+      const storeId = userData?.store_id || "";
+
       const { data } = await supabase
         .from("settings")
         .select("data")
         .eq("settings_key", "shiftStatus")
+        .eq("store_id", storeId)
         .maybeSingle();
       callback(data?.data || null);
-    })().catch(() => callback(null));
 
-    // Supabase Realtimeで変更監視
-    channel = supabase
-      .channel("settings-shift-status-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "settings",
-          filter: "settings_key=eq.shiftStatus",
-        },
-        (payload) => {
-          if (payload.new && typeof payload.new === "object" && "data" in payload.new) {
-            callback((payload.new as any).data);
-          } else {
-            callback(null);
+      // Supabase Realtimeで変更監視（store_idもフィルタ）
+      channel = supabase
+        .channel(`settings-shift-status-${storeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "settings",
+            filter: `settings_key=eq.shiftStatus`,
+          },
+          (payload) => {
+            // store_idが一致する場合のみコールバック
+            const row = payload.new as any;
+            if (row?.store_id === storeId && row?.data) {
+              callback(row.data);
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    })().catch(() => callback(null));
 
     return () => {
       if (channel) {
