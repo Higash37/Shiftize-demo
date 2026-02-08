@@ -6,12 +6,18 @@ import type {
 } from "../interfaces/IShiftSubmissionService";
 import { getSupabase } from "./supabase-client";
 
+// 日付文字列 "YYYY-MM-DD" をローカル日付としてパース（UTC解釈による日付ズレ防止）
+function parseDateString(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y!, m! - 1, d!);
+}
+
 function mapRowToPeriod(row: any): ShiftSubmissionPeriod {
   return {
     id: row.id,
     storeId: row.store_id,
-    startDate: new Date(row.start_date),
-    endDate: new Date(row.end_date),
+    startDate: parseDateString(row.start_date),
+    endDate: parseDateString(row.end_date),
     targetMonth: row.target_month,
     isActive: row.is_active,
     createdAt: new Date(row.created_at),

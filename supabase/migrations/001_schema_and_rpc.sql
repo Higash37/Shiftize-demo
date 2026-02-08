@@ -143,12 +143,13 @@ CREATE TABLE IF NOT EXISTS shift_submissions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- shift_confirmations: アダプター側は TEXT PK (userId_periodId) + period_id/user_id/status を使用
 CREATE TABLE IF NOT EXISTS shift_confirmations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
   store_id TEXT REFERENCES stores(store_id),
-  year INTEGER,
-  month INTEGER,
-  confirmed_by TEXT,
+  period_id TEXT,
+  status TEXT DEFAULT 'pending',
   confirmed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -179,8 +180,10 @@ ALTER TABLE shift_confirmations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_store_access ENABLE ROW LEVEL SECURITY;
 
 -- ========== RLS POLICIES: stores ==========
--- SELECT/UPDATE/DELETE: 自店舗メンバーのみ
--- INSERT: 認証済みユーザーなら誰でも作成可（createGroup bootstrap用）
+-- SELECT: 自店舗メンバー
+-- INSERT: 認証済みユーザー（createGroup bootstrap用）
+-- UPDATE: admin_uid または master ロールのみ
+-- DELETE: admin_uid のみ
 
 CREATE POLICY "stores_select" ON stores
   FOR SELECT USING (
@@ -192,7 +195,13 @@ CREATE POLICY "stores_insert" ON stores
 
 CREATE POLICY "stores_update" ON stores
   FOR UPDATE USING (
-    store_id IN (SELECT store_id FROM users WHERE uid = auth.uid())
+    admin_uid = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM users
+      WHERE users.uid = auth.uid()
+      AND users.role = 'master'
+      AND users.store_id = store_id
+    )
   );
 
 CREATE POLICY "stores_delete" ON stores
@@ -201,9 +210,10 @@ CREATE POLICY "stores_delete" ON stores
   );
 
 -- ========== RLS POLICIES: users ==========
--- SELECT/UPDATE: 同じ店舗のメンバー
+-- SELECT: 同じ店舗のメンバー
 -- INSERT: 自分のレコード(uid=auth.uid()) OR 同店舗のmasterが作成
--- DELETE: 同じ店舗のメンバー
+-- UPDATE: 自分のレコード OR 同店舗のmaster
+-- DELETE: 同店舗のmasterのみ
 
 CREATE POLICY "users_select" ON users
   FOR SELECT USING (
@@ -223,19 +233,59 @@ CREATE POLICY "users_insert" ON users
 
 CREATE POLICY "users_update" ON users
   FOR UPDATE USING (
-    store_id IN (SELECT store_id FROM users WHERE uid = auth.uid())
+    uid = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.uid = auth.uid()
+      AND u.role = 'master'
+      AND u.store_id = store_id
+    )
   );
 
 CREATE POLICY "users_delete" ON users
   FOR DELETE USING (
-    store_id IN (SELECT store_id FROM users WHERE uid = auth.uid())
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.uid = auth.uid()
+      AND u.role = 'master'
+      AND u.store_id = store_id
+    )
   );
 
 -- ========== RLS POLICIES: shifts ==========
+-- SELECT/INSERT: 同じ店舗のメンバー
+-- UPDATE/DELETE: 自分のシフト OR masterロール
 
-CREATE POLICY "shifts_store_access" ON shifts
-  FOR ALL USING (
+CREATE POLICY "shifts_select" ON shifts
+  FOR SELECT USING (
     store_id IN (SELECT store_id FROM users WHERE uid = auth.uid())
+  );
+
+CREATE POLICY "shifts_insert" ON shifts
+  FOR INSERT WITH CHECK (
+    store_id IN (SELECT store_id FROM users WHERE uid = auth.uid())
+  );
+
+CREATE POLICY "shifts_update" ON shifts
+  FOR UPDATE USING (
+    user_id = auth.uid()::text
+    OR EXISTS (
+      SELECT 1 FROM users
+      WHERE users.uid = auth.uid()
+      AND users.role = 'master'
+      AND users.store_id = store_id
+    )
+  );
+
+CREATE POLICY "shifts_delete" ON shifts
+  FOR DELETE USING (
+    user_id = auth.uid()::text
+    OR EXISTS (
+      SELECT 1 FROM users
+      WHERE users.uid = auth.uid()
+      AND users.role = 'master'
+      AND users.store_id = store_id
+    )
   );
 
 -- ========== RLS POLICIES: settings ==========
@@ -305,6 +355,7 @@ CREATE POLICY "user_store_access_master" ON user_store_access
 -- ========== RPC FUNCTIONS ==========
 
 -- record_token_usage: 原子的にトークン使用を記録（競合回避）
+-- NOW() AT TIME ZONE 'UTC' でUTC時刻を正しくZ表記に
 CREATE OR REPLACE FUNCTION record_token_usage(
   p_token_id TEXT,
   p_user_id TEXT,
@@ -317,7 +368,7 @@ BEGIN
     last_used_at = NOW(),
     usage_log = COALESCE(usage_log, '[]'::jsonb) || jsonb_build_object(
       'userId', p_user_id,
-      'usedAt', to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      'usedAt', to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
       'shiftId', p_shift_id
     ),
     updated_at = NOW()
@@ -325,33 +376,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- append_recruitment_application: 原子的に応募を追加（競合回避・二重応募防止）
+-- append_recruitment_application: 条件付きUPDATEで原子的に応募追加（二重応募防止）
 CREATE OR REPLACE FUNCTION append_recruitment_application(
   p_shift_id UUID,
   p_application JSONB
 ) RETURNS VOID AS $$
 DECLARE
   v_user_id TEXT;
-  v_exists BOOLEAN;
 BEGIN
   v_user_id := p_application->>'userId';
 
-  -- 二重応募チェック
-  SELECT EXISTS(
-    SELECT 1 FROM recruitment_shifts
-    WHERE id = p_shift_id
-      AND applications @> jsonb_build_array(jsonb_build_object('userId', v_user_id))
-  ) INTO v_exists;
-
-  IF v_exists THEN
-    RAISE EXCEPTION '既にこのシフトに応募済みです';
-  END IF;
-
-  -- 原子的にappend
+  -- 条件付きUPDATE: 既存応募がない場合のみappend（原子的に二重応募防止）
   UPDATE recruitment_shifts
   SET
     applications = COALESCE(applications, '[]'::jsonb) || jsonb_build_array(p_application),
     updated_at = NOW()
-  WHERE id = p_shift_id;
+  WHERE id = p_shift_id
+    AND NOT (applications @> jsonb_build_array(jsonb_build_object('userId', v_user_id)));
+
+  -- 更新件数0 = 既に応募済み or シフト不存在
+  IF NOT FOUND THEN
+    -- シフト存在チェック
+    IF NOT EXISTS (SELECT 1 FROM recruitment_shifts WHERE id = p_shift_id) THEN
+      RAISE EXCEPTION '募集シフトが見つかりません';
+    END IF;
+    RAISE EXCEPTION '既にこのシフトに応募済みです';
+  END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

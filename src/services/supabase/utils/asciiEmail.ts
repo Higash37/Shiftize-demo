@@ -22,7 +22,7 @@ export function toAsciiEmail(originalEmail: string): string {
   const asciiLocal = encodeLocalPart(localPart);
 
   // ドメインも非ASCIIの場合はASCII化（通常は example.com なので不要）
-  const asciiDomain = /^[\x20-\x7E]+$/.test(domain) ? domain : encodeLocalPart(domain);
+  const asciiDomain = /^[\x20-\x7e]+$/.test(domain) ? domain : encodeLocalPart(domain);
 
   return `${asciiLocal}@${asciiDomain}`;
 }
@@ -31,17 +31,19 @@ export function toAsciiEmail(originalEmail: string): string {
  * 非ASCII文字をUnicode code point hex表現に変換
  */
 function encodeLocalPart(input: string): string {
-  // ASCII文字のみの場合はそのまま返す
-  if (/^[\x00-\x7F]+$/.test(input)) {
+  // 印刷可能ASCII文字のみの場合はそのまま返す（制御文字は除外）
+  if (/^[\x20-\x7E]+$/.test(input)) {
     return input;
   }
 
   let result = '';
   for (const char of input) {
-    if (/^[\x00-\x7F]$/.test(char)) {
+    if (/^[\x20-\x7E]$/.test(char)) {
       result += char;
     } else {
-      result += 'u' + char.charCodeAt(0).toString(16).padStart(4, '0');
+      // codePointAt でサロゲートペア（絵文字等BMP外文字）を正しく処理
+      const cp = char.codePointAt(0) || 0;
+      result += 'u' + cp.toString(16).padStart(4, '0');
     }
   }
 
