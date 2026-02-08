@@ -13,6 +13,26 @@ import {
   determineActionType,
 } from "@/services/shift-history/shiftHistoryLogger";
 
+const toShiftItemFromRow = (row: any): ShiftItem => ({
+  id: row.id,
+  userId: row.user_id || "",
+  storeId: row.store_id || "",
+  nickname: row.nickname || "",
+  date: row.date || "",
+  startTime: row.start_time || "",
+  endTime: row.end_time || "",
+  type: row.type || "user",
+  subject: row.subject || "",
+  notes: row.notes,
+  isCompleted: row.is_completed || false,
+  status: row.status || "draft",
+  duration: String(row.duration || ""),
+  createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+  updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+  classes: row.classes || [],
+  requestedChanges: row.requested_changes || undefined,
+});
+
 const toShiftFromRow = (row: any): Shift => ({
   id: row.id,
   userId: row.user_id || "",
@@ -75,14 +95,40 @@ const toUpdateRow = (shift: Partial<Shift>) => {
   return row;
 };
 
+const shiftToShiftItem = (s: Shift & { id: string }): ShiftItem => {
+  const item: ShiftItem = {
+    id: s.id,
+    userId: s.userId || "",
+    storeId: s.storeId || "",
+    nickname: s.nickname || "",
+    date: s.date || "",
+    startTime: s.startTime || "",
+    endTime: s.endTime || "",
+    type: s.type || "user",
+    isCompleted: s.isCompleted || false,
+    status: s.status || "draft",
+    duration: String(s.duration || ""),
+    createdAt: s.createdAt || new Date(),
+    updatedAt: s.updatedAt || new Date(),
+  };
+  if (s.subject !== undefined) item.subject = s.subject;
+  if (s.notes !== undefined) item.notes = s.notes;
+  if (s.classes !== undefined) item.classes = s.classes;
+  if (s.requestedChanges && Array.isArray(s.requestedChanges) && s.requestedChanges.length > 0) {
+    const rc = s.requestedChanges[0]!;
+    item.requestedChanges = { startTime: rc.startTime, endTime: rc.endTime };
+  }
+  return item;
+};
+
 const mergeShiftForLogging = (
   id: string,
   prevData: Shift | null | undefined,
   updates: Partial<Shift> | null | undefined
 ): { prev: ShiftItem | null; next: ShiftItem | null } => {
-  const prev = prevData ? ({ ...prevData, id } as ShiftItem) : null;
+  const prev = prevData ? shiftToShiftItem({ ...prevData, id }) : null;
   if (!updates) return { prev, next: prev };
-  const merged = { ...(prevData || {}), ...updates, id } as ShiftItem;
+  const merged = shiftToShiftItem({ ...(prevData || {} as Shift), ...updates, id });
   return { prev, next: merged };
 };
 
@@ -151,13 +197,13 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     // 監査ログ
     if (actor) {
-      const next = {
+      const next = shiftToShiftItem({
         ...shift,
         id: shiftId,
         status: shift.status || "draft",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as ShiftItem;
+      });
       const action = determineActionType(null, next as any, actor);
       await logShiftChange(action, actor, next.storeId, next as any, undefined);
     }
@@ -244,7 +290,7 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     // 監査ログ
     if (deletedBy && shiftData) {
-      const prev = { ...shiftData, id } as ShiftItem;
+      const prev = shiftToShiftItem({ ...shiftData, id });
       const action = determineActionType(prev as any, null, deletedBy);
       await logShiftChange(
         action,
@@ -426,9 +472,20 @@ export class SupabaseShiftAdapter implements IShiftService {
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
+    const fetchAsShiftItems = async (): Promise<ShiftItem[]> => {
+      const { data, error } = await supabase
+        .from("shifts")
+        .select("*")
+        .eq("store_id", storeId)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true });
+      if (error) throw error;
+      return (data || []).map(toShiftItemFromRow);
+    };
+
     // 初回データ取得
-    this.getShifts(storeId)
-      .then((shifts) => callback(shifts as unknown as ShiftItem[]))
+    fetchAsShiftItems()
+      .then(callback)
       .catch((err) => onError?.(err));
 
     // Realtime購読
@@ -443,9 +500,8 @@ export class SupabaseShiftAdapter implements IShiftService {
           filter: `store_id=eq.${storeId}`,
         },
         () => {
-          // 変更検知時に再取得
-          this.getShifts(storeId)
-            .then((shifts) => callback(shifts as unknown as ShiftItem[]))
+          fetchAsShiftItems()
+            .then(callback)
             .catch((err) => onError?.(err));
         }
       )
@@ -482,7 +538,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         .order("start_time", { ascending: true });
 
       if (error) throw error;
-      return (data || []).map(toShiftFromRow) as unknown as ShiftItem[];
+      return (data || []).map(toShiftItemFromRow);
     };
 
     // 初回データ取得

@@ -182,7 +182,10 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       ...(row.last_used_at ? { lastUsedAt: new Date(row.last_used_at) } : {}),
-      usageLog: row.usage_log || [],
+      usageLog: (row.usage_log || []).map((entry: any) => ({
+        ...entry,
+        usedAt: entry.usedAt ? new Date(entry.usedAt) : new Date(),
+      })),
     };
   }
 }

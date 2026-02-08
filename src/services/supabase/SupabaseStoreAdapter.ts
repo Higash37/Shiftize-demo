@@ -109,7 +109,14 @@ export class SupabaseStoreAdapter implements IStoreService {
       const adminUid = signUpData.user.id;
 
       // signUpで自動ログインされるのでセッションを確認
-      // (RLSが効くように)
+      // メール確認が有効な場合sessionがnullになるため、明示的にsignInする
+      const { data: { session: signUpSession } } = await supabase.auth.getSession();
+      if (!signUpSession) {
+        await supabase.auth.signInWithPassword({
+          email: adminEmail,
+          password: data.adminPassword,
+        });
+      }
 
       // 3. stores テーブルに保存
       const { error: storeError } = await supabase.from("stores").insert({

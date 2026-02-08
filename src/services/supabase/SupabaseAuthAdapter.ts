@@ -3,6 +3,25 @@ import type { User } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
 
+// onAuthStateChange からキャッシュされたセッション（内部API依存を回避）
+let cachedSession: { user: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null = null;
+
+// アプリ起動時にセッション監視を開始
+(() => {
+  try {
+    const supabase = getSupabase();
+    supabase.auth.onAuthStateChange((_event, session) => {
+      cachedSession = session;
+    });
+    // 初回セッション取得
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      cachedSession = session;
+    });
+  } catch (_) {
+    // getSupabase() が初期化前に呼ばれた場合は無視
+  }
+})();
+
 export class SupabaseAuthAdapter implements IAuthService {
   /**
    * サインイン: Supabase Auth ネイティブ + Supabase DBからユーザー取得
@@ -413,16 +432,12 @@ export class SupabaseAuthAdapter implements IAuthService {
     email: string | null;
     displayName: string | null;
   } | null {
-    // Supabase auth.getUser()は非同期だが、インターフェースは同期
-    // getSession()のキャッシュから同期的に取得する代替実装
-    const supabase = getSupabase();
-    // @ts-ignore - Supabase internal session cache access
-    const session = (supabase.auth as any).currentSession;
-    if (!session?.user) return null;
+    // onAuthStateChange で同期的にキャッシュされたセッションを使用
+    if (!cachedSession?.user) return null;
     return {
-      uid: session.user.id,
-      email: session.user.email ?? null,
-      displayName: session.user.user_metadata?.['display_name'] ?? null,
+      uid: cachedSession.user.id,
+      email: cachedSession.user.email ?? null,
+      displayName: (cachedSession.user.user_metadata?.['display_name'] as string) ?? null,
     };
   }
 

@@ -178,7 +178,7 @@ export class SupabaseAuditAdapter implements IAuditService {
         .from("shift_change_logs")
         .select("*")
         .eq("store_id", options.storeId)
-        .order("timestamp", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(250);
 
       if (options.actionFilter && options.actionFilter !== "all") {
@@ -197,7 +197,7 @@ export class SupabaseAuditAdapter implements IAuditService {
         shiftId: row.shift_id,
         action: row.action,
         actor: row.actor,
-        timestamp: row.timestamp,
+        timestamp: row.created_at || row.timestamp,
         date: row.date,
         prev: row.prev,
         next: row.next,
