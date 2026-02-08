@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getUsers } from "@/services/firebase/firebase-user";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { ExtendedUser } from "../user-types/components";
 
 export const useUsers = (storeId?: string) => {
@@ -10,8 +10,8 @@ export const useUsers = (storeId?: string) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // UserServiceを利用してデータを取得
-        const usersData = await getUsers(storeId);
+        // ServiceProviderを利用してデータを取得
+        const usersData = await ServiceProvider.users.getUsers(storeId);
         setUsers(usersData);
       } catch (err) {
         setError(err as Error);

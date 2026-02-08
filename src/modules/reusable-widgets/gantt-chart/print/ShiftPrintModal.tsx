@@ -40,7 +40,7 @@ interface UserShiftData {
     dayOfWeek: string;
     startTime: string;
     endTime: string;
-    extendedTasks?: boolean; // 授業途中あり/なしの情報
+    hasClasses?: boolean; // 授業途中あり/なしの情報
   }>;
 }
 
@@ -100,9 +100,9 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
               dayOfWeek: format(shiftDate, "E", { locale: ja }),
               startTime: shift.startTime,
               endTime: shift.endTime,
-              extendedTasks: Array.isArray(shift.extendedTasks)
-                ? shift.extendedTasks.length > 0
-                : false, // 配列の場合は要素があるかをboolean化
+              hasClasses: Array.isArray(shift.classes)
+                ? shift.classes.length > 0
+                : false, // 授業時間があるかをboolean化
             };
           })
           .sort((a, b) => {
@@ -891,7 +891,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                                       5
                                     )}</div>
                                     <div class="break-info">${
-                                      shift.extendedTasks
+                                      shift.hasClasses
                                         ? "途中あり"
                                         : "途中なし"
                                     }</div>

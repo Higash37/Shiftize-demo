@@ -3,8 +3,7 @@ import {
   ShiftStatusConfig,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftStatusSettingsView } from "@/modules/master-view/master-view-settings/ShiftStatusSettingsView";
 
 export default function ShiftStatusSettingsScreen() {
@@ -16,13 +15,15 @@ export default function ShiftStatusSettingsScreen() {
 
   const handleColorChange = async (status: string, newColor: string) => {
     try {
-      const configRef = doc(db, "settings", "shiftStatus");
-      await updateDoc(configRef, {
-        [status]: {
-          ...statusConfigs.find((c) => c.status === status),
-          color: newColor,
+      const updatedConfig = statusConfigs.find((c) => c.status === status);
+      await ServiceProvider.settings.saveSettings({
+        shiftStatus: {
+          [status]: {
+            ...updatedConfig,
+            color: newColor,
+          },
         },
-      });
+      } as any);
       setStatusConfigs((prev) =>
         prev.map((config) =>
           config.status === status ? { ...config, color: newColor } : config

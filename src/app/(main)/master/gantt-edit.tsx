@@ -2,11 +2,7 @@ import React from "react";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
-import {
-  addShift,
-  updateShift,
-  markShiftAsDeleted,
-} from "@/services/firebase/firebase-shift";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 import { Alert } from "react-native";
@@ -68,7 +64,7 @@ export default function GanttEditScreen() {
         Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
 
       // シフトを更新
-      await updateShift(shiftId, {
+      await ServiceProvider.shifts.updateShift(shiftId, {
         startTime: newStartTime,
         endTime: newEndTime,
         duration: durationHours,
@@ -97,7 +93,7 @@ export default function GanttEditScreen() {
           Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
 
         // 既存シフトの更新
-        await updateShift(data.id, {
+        await ServiceProvider.shifts.updateShift(data.id, {
           userId: data.userId,
           storeId: user?.storeId || "", // storeIdを追加
           date: data.date,
@@ -109,7 +105,6 @@ export default function GanttEditScreen() {
           duration: durationHours, // 計算されたdurationを設定
           status: data.status || "approved", // マスターによる編集は承認済み
           classes: data.classes || [],
-          extendedTasks: data.extendedTasks || [],
         });
       } else {
         // 対象ユーザーを取得
@@ -123,7 +118,7 @@ export default function GanttEditScreen() {
           Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
 
         // 新規シフトの作成
-        await addShift({
+        await ServiceProvider.shifts.addShift({
           userId: data.userId,
           storeId: user?.storeId || "", // 現在のユーザーのstoreIdを設定
           nickname: targetUser?.nickname || "", // 対象ユーザーのニックネームを設定
@@ -136,7 +131,6 @@ export default function GanttEditScreen() {
           status: "approved", // マスターによる新規作成は常に承認済み
           duration: durationHours, // 計算された時間を設定
           classes: data.classes || [],
-          extendedTasks: data.extendedTasks || [],
         });
       }
       // リアルタイムリスナーで自動更新される
@@ -149,7 +143,7 @@ export default function GanttEditScreen() {
 
   const handleShiftDelete = async (shiftId: string) => {
     try {
-      await markShiftAsDeleted(shiftId);
+      await ServiceProvider.shifts.markShiftAsDeleted(shiftId);
       // リアルタイムリスナーで自動更新される
     } catch (error) {
       Alert.alert("エラー", "シフトの削除に失敗しました");

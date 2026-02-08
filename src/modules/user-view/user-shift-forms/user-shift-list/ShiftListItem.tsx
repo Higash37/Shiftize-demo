@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -34,10 +35,9 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
 
       try {
         // ユーザーデータから現在の店舗IDを取得
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (!userDoc.exists()) return;
+        const userData = await ServiceProvider.users.getUserData(user.uid) as (Record<string, any>) | null;
+        if (!userData) return;
 
-        const userData = userDoc.data();
         const currentStoreId = userData['storeId'];
 
         // 他店舗のシフトかどうかを判定

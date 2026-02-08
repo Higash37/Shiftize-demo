@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Modal, TouchableOpacity, Dimensions } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
-import { changePassword } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useRouter } from "expo-router";
 import { styles } from "./ChangePassword.styles";
 import { ChangePasswordProps } from "../user-types/components";
@@ -50,8 +50,8 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
 
     setIsLoading(true);
     try {
-      // サービスを使用してパスワードを変更
-      await changePassword(currentPassword, newPassword);
+      // ServiceProviderを使用してパスワードを変更
+      await ServiceProvider.auth.changePassword(currentPassword, newPassword);
 
       setMessage("パスワードが正常に更新されました");
       setIsSuccess(true);

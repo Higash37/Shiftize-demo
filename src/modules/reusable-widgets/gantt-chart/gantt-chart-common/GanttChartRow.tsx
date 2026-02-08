@@ -30,7 +30,6 @@ interface GanttChartRowProps {
     newStartTime: string,
     newEndTime: string
   ) => void;
-  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
@@ -58,7 +57,6 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   handleShiftPress,
   handleEmptyCellClick,
   onTimeChange,
-  onTaskAdd,
   styles,
   userColorsMap,
   users = [], // デフォルト値を設定
@@ -112,7 +110,6 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
               handleEmptyCellClick(date, position);
             }}
             {...(onTimeChange && { onTimeChange })}
-            {...(onTaskAdd && { onTaskAdd })} // タスク追加ハンドラーを追加
             styles={styles}
             userColorsMap={userColorsMap}
             users={users}

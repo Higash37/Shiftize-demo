@@ -59,7 +59,13 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(git commit:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "mcp__plugin_serena_serena__read_file",
+      "mcp__plugin_serena_serena__list_memories",
+      "mcp__plugin_serena_serena__list_dir",
+      "mcp__plugin_serena_serena__think_about_collected_information",
+      "WebSearch",
+      "WebFetch(domain:supabase.com)"
     ],
     "deny": [
       "Bash(npm run dev:*)"

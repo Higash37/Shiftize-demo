@@ -20,7 +20,6 @@ interface AddShiftModalViewProps {
   statusConfigs: any[];
   isLoading: boolean;
   styles: any;
-  extendedTasks?: any[]; // 既存タスクのリスト
   onChange: (field: string, value: any) => void;
   onClose: () => void;
   onSave: () => void;
@@ -34,7 +33,6 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
   statusConfigs,
   isLoading,
   styles,
-  extendedTasks = [],
   onChange,
   onClose,
   onSave,

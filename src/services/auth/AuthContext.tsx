@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth, signIn, signOutUser } from "../firebase/firebase";
 import { User } from "firebase/auth";
+import { authenticateSupabase } from "../supabase/supabase-client";
+
+const USE_SUPABASE = process.env['EXPO_PUBLIC_USE_SUPABASE'] === 'true';
 
 interface AuthContextType {
   user: User | null;
@@ -38,6 +41,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleSignIn = async (email: string, password: string) => {
     try {
       await signIn(email, password);
+      // Supabaseモードの場合、Firebase signIn後にSupabase JWT交換を行う
+      if (USE_SUPABASE) {
+        await authenticateSupabase();
+      }
     } catch (error) {
       throw error;
     }

@@ -86,7 +86,6 @@ const toShiftItem = (id: string, data: Partial<Shift>): ShiftItem => {
     createdAt: toDate((data as any)?.createdAt),
     updatedAt: toDate((data as any)?.updatedAt),
     ...(data.classes !== undefined && { classes: data.classes }),
-    ...(data.extendedTasks !== undefined && { extendedTasks: data.extendedTasks }),
     ...(normalizedRequestedChanges !== undefined && { requestedChanges: normalizedRequestedChanges }),
   };
 };
@@ -164,7 +163,6 @@ export const ShiftService = {
           createdAt: data["createdAt"]?.toDate() || new Date(),
           updatedAt: data["updatedAt"]?.toDate() || new Date(),
           classes: data["classes"] || [],
-          extendedTasks: data["extendedTasks"] || [],
           requestedChanges: data["requestedChanges"] || undefined,
         } as Shift;
       });
@@ -416,46 +414,6 @@ export const ShiftService = {
   },
 
   /**
-   * シフトデータにタスク回数とコメントを追加します
-   */
-  updateShiftWithTasks: async (
-    id: string,
-    tasks: { [key: string]: { count: number; time: number } },
-    comments: string,
-    actor?: ShiftHistoryActor
-  ): Promise<void> => {
-    try {
-      const shiftRef = doc(db, "shifts", id);
-      const previousSnapshot = await getDoc(shiftRef);
-      const previousData = previousSnapshot.exists()
-        ? (previousSnapshot.data() as Shift)
-        : null;
-
-      await updateDoc(shiftRef, {
-        tasks,
-        comments,
-        status: "completed",
-        updatedAt: serverTimestamp(),
-      });
-
-      if (actor && previousData) {
-        const { prev, next } = mergeShiftForLogging(id, previousData, {
-          tasks,
-          comments,
-          status: "completed",
-          updatedAt: new Date(),
-        } as Partial<Shift>);
-        if (next) {
-          const action = determineActionType(prev, next, actor);
-          await emitShiftLog(action, actor, next.storeId || prev?.storeId || "", next, prev);
-        }
-      }
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
    * シフト報告を保存します
    */
   addShiftReport: async (
@@ -516,7 +474,6 @@ export const ShiftService = {
             createdAt: data["createdAt"]?.toDate() || new Date(),
             updatedAt: data["updatedAt"]?.toDate() || new Date(),
             classes: data["classes"] || [],
-            extendedTasks: data["extendedTasks"] || [],
             requestedChanges: data["requestedChanges"] || undefined,
           } as Shift;
         });
@@ -578,7 +535,6 @@ export const {
   markShiftAsDeleted,
   approveShiftChanges,
   markShiftAsCompleted,
-  updateShiftWithTasks,
   addShiftReport,
   getShiftsFromMultipleStores,
   getUserAccessibleShifts,

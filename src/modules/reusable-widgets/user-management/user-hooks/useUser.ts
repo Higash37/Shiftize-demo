@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { User } from "@/common/common-models/model-user/UserModel";
-import {
-  getUsers as getUsersService,
-  deleteUser,
-  checkMasterExists,
-  checkEmailExists,
-} from "@/services/firebase/firebase-user";
-import { createUser, updateUser } from "@/services/firebase/firebase-auth";
+import { ServiceProvider } from "@/services/ServiceProvider";
 
 export const useUser = (storeId?: string) => {
   const [users, setUsers] = useState<(User & { currentPassword?: string })[]>(
@@ -23,7 +17,7 @@ export const useUser = (storeId?: string) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const userData = await getUsersService(storeId);
+      const userData = await ServiceProvider.users.getUsers(storeId);
       setUsers(userData);
       setError(null);
     } catch (err) {
@@ -65,7 +59,7 @@ export const useUser = (storeId?: string) => {
       }
 
       if (role === "master") {
-        const hasMaster = await checkMasterExists();
+        const hasMaster = await ServiceProvider.users.checkMasterExists(storeId);
         if (hasMaster) {
           console.error("❌ [useUser.addUser] Master user already exists");
           throw new Error("マスターユーザーは既に存在します");
@@ -89,20 +83,9 @@ export const useUser = (storeId?: string) => {
               nickname,
             )}@example.com`);
 
-      // Firebase接続テスト
-      try {
-        await import("@/services/firebase/firebase");
-      } catch (dbError) {
-        console.error(
-          "❌ [useUser.addUser] Firebase connection failed:",
-          dbError,
-        );
-        throw new Error("Firebaseへの接続に失敗しました");
-      }
-
       // メールアドレスの重複チェック（タイムアウト付き）
       try {
-        const emailExists = await checkEmailExists(userEmail);
+        const emailExists = await ServiceProvider.users.checkEmailExists(userEmail, storeId);
         if (emailExists) {
           console.error(
             "❌ [useUser.addUser] Email already exists:",
@@ -125,7 +108,7 @@ export const useUser = (storeId?: string) => {
         }
       }
 
-      const newUser = await createUser(
+      const newUser = await ServiceProvider.auth.createUser(
         userEmail,
         password,
         nickname,
@@ -174,7 +157,7 @@ export const useUser = (storeId?: string) => {
     try {
       setLoading(true);
 
-      const updatedUser = await updateUser(user, updates);
+      const updatedUser = await ServiceProvider.auth.updateUser(user, updates);
 
       if (updatedUser) {
         setUsers((prev) =>
@@ -195,7 +178,7 @@ export const useUser = (storeId?: string) => {
   const removeUser = async (uid: string) => {
     try {
       setLoading(true);
-      await deleteUser(uid);
+      await ServiceProvider.users.deleteUser(uid);
       await fetchUsers();
     } catch (err) {
       setError("ユーザーの削除に失敗しました");

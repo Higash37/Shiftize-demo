@@ -49,13 +49,6 @@ export {
 } from "./firebase-line";
 
 // タスク管理モジュールからのインポート
-export {
-  addTask,
-  getTasks,
-  updateTask,
-  deleteTask,
-  TaskService,
-} from "./firebase-task";
 
 // ユーザーの型をエクスポート
 export { User, UserData } from "@/common/common-models/model-user/UserModel";

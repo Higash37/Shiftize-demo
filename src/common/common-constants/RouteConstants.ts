@@ -18,7 +18,6 @@ export const Routes = {
       ganttEdit: "/(main)/master/gantt-edit",
       files: "/(main)/master/files",
       info: "/(main)/master/info",
-      tasks: "/(main)/master/tasks",
       users: "/(main)/master/users",
       settings: "/(main)/master/master-settings",
     },

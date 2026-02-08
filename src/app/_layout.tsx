@@ -10,6 +10,9 @@ import { usePushNotifications } from "@/common/common-hooks/usePushNotifications
 import { useRouteGuard } from "@/common/common-hooks/useRouteGuard";
 import { VersionManager } from "@/services/version/VersionManager";
 import { useBasicFonts } from "@/common/common-utils/performance/fontLoader";
+import { initializeServices } from "@/services/initializeServices";
+
+initializeServices();
 
 function RootLayoutNav() {
   // 🔔 プッシュ通知初期化

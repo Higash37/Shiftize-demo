@@ -85,7 +85,7 @@ const TestComponent: React.FC = () => {
       {/* デバッグ情報 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>API状態</Text>
-        <Text>API使用: {debugInfo.useApiEndpoints ? 'Yes' : 'No (Firebase直接)'}</Text>
+        <Text>API使用: ServiceProvider</Text>
         <Text>サービス: {debugInfo.service}</Text>
         <TouchableOpacity style={styles.button} onPress={handleShowDebugInfo}>
           <Text style={styles.buttonText}>詳細デバッグ情報</Text>

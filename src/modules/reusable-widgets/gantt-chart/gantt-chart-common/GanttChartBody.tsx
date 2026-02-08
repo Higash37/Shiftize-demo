@@ -26,7 +26,6 @@ interface GanttChartBodyProps {
     newStartTime: string,
     newEndTime: string
   ) => void;
-  onTaskAdd?: (shiftId: string) => void; // タスク追加ハンドラーを追加
   styles: ReturnType<typeof StyleSheet.create>;
   userColorsMap: Record<string, string>;
   users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
@@ -57,7 +56,6 @@ const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
   handleShiftPress,
   handleEmptyCellClick,
   onTimeChange,
-  onTaskAdd,
   styles,
   userColorsMap,
   users = [], // デフォルト値を設定
@@ -184,7 +182,6 @@ const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
               handleShiftPress={handleShiftPress}
               handleEmptyCellClick={handleEmptyCellClick}
               {...(onTimeChange && { onTimeChange })}
-              {...(onTaskAdd && { onTaskAdd })}
               styles={styles}
               userColorsMap={userColorsMap}
               users={users}

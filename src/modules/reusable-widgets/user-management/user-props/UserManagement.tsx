@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { User } from "@/common/common-models/model-user/UserModel";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { UserList } from "./UserList";
 import { UserForm } from "./UserForm";
 import { InviteUserForm } from "./InviteUserForm";
@@ -28,12 +27,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const usersCollection = collection(db, "users");
-      const usersSnapshot = await getDocs(usersCollection);
-      const usersList: User[] = [];
-      usersSnapshot.forEach((doc) => {
-        usersList.push({ uid: doc.id, ...doc.data() } as User);
-      });
+      const usersList = await ServiceProvider.users.getUsers();
       setUserList(usersList);
       setError(null);
     } catch (err: any) {

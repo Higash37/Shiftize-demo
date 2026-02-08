@@ -1,0 +1,163 @@
+import type { IAuditService } from "../interfaces/IAuditService";
+import type { ShiftItem } from "@/common/common-models/ModelIndex";
+import type {
+  ShiftActionType,
+  ShiftHistoryActor,
+} from "@/services/shift-history/shiftHistoryLogger";
+import { getSupabase } from "./supabase-client";
+
+// ステータスラベルの変換
+const getStatusLabel = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    approved: "承認済み",
+    pending: "申請中",
+    rejected: "却下",
+    deleted: "削除済み",
+    completed: "完了",
+  };
+  return statusMap[status] || status;
+};
+
+const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
+  const snapshot: Partial<ShiftItem> = {
+    id: shift.id,
+    storeId: shift.storeId,
+    userId: shift.userId,
+    nickname: shift.nickname,
+    date: shift.date,
+    startTime: shift.startTime,
+    endTime: shift.endTime,
+    status: shift.status,
+    type: shift.type,
+  };
+  if (shift.subject !== undefined) snapshot.subject = shift.subject;
+  if (shift.notes !== undefined) snapshot.notes = shift.notes;
+  if (shift.classes !== undefined) snapshot.classes = shift.classes;
+  return snapshot;
+};
+
+const generateSummary = (
+  action: ShiftActionType,
+  actor: ShiftHistoryActor,
+  date: string,
+  prev?: any,
+  next?: any,
+  metadata?: any
+): string => {
+  const actorName =
+    actor.role === "teacher" ? `講師 ${actor.nickname}` : actor.nickname;
+
+  switch (action) {
+    case "create":
+      return `${actorName} が ${date} のシフトを追加しました（${next?.startTime}-${next?.endTime}, 担当: ${next?.userNickname}）`;
+    case "teacher_create":
+      return `講師 ${actor.nickname} が ${date} にシフトを申請しました（${next?.startTime}-${next?.endTime}）`;
+    case "update_time":
+      return `${actorName} が ${date} のシフト時間を ${prev?.startTime}-${prev?.endTime} → ${next?.startTime}-${next?.endTime} に変更しました（担当: ${next?.userNickname}）`;
+    case "update_user":
+      return `${actorName} が ${date} の担当を ${prev?.userNickname} → ${next?.userNickname} に変更しました（${next?.startTime}-${next?.endTime}）`;
+    case "update_status":
+      return `${actorName} が ${date} のシフトステータスを ${prev?.statusLabel} → ${next?.statusLabel} に変更しました（${next?.userNickname}）`;
+    case "delete":
+      return `${actorName} が ${date} のシフトを削除しました（${prev?.startTime}-${prev?.endTime}, 担当: ${prev?.userNickname}）`;
+    case "batch_approve":
+      return `${actorName} が ${metadata?.yearMonth || date} のシフトを一括承認しました（対象: ${metadata?.count || 0}件）`;
+    case "teacher_update":
+      return `講師 ${actor.nickname} が ${date} のシフトを変更しました`;
+    default:
+      return `${actorName} が ${date} のシフトを変更しました`;
+  }
+};
+
+export class SupabaseAuditAdapter implements IAuditService {
+  async logShiftChange(
+    action: ShiftActionType,
+    actor: ShiftHistoryActor,
+    storeId: string,
+    shift?: ShiftItem | null,
+    prevShift?: ShiftItem | null,
+    metadata?: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      if (!storeId) return;
+
+      const date: string =
+        shift?.date ||
+        prevShift?.date ||
+        new Date().toISOString().split("T")[0] || "";
+
+      const prevEntry = prevShift
+        ? {
+            startTime: prevShift.startTime,
+            endTime: prevShift.endTime,
+            userId: prevShift.userId,
+            userNickname: prevShift.nickname,
+            status: prevShift.status,
+            statusLabel: getStatusLabel(prevShift.status),
+            type: prevShift.type,
+          }
+        : null;
+
+      const nextEntry = shift
+        ? {
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            userId: shift.userId,
+            userNickname: shift.nickname,
+            status: shift.status,
+            statusLabel: getStatusLabel(shift.status),
+            type: shift.type,
+          }
+        : null;
+
+      const summary = generateSummary(
+        action,
+        actor,
+        date,
+        prevEntry,
+        nextEntry,
+        metadata
+      );
+
+      const row: Record<string, unknown> = {
+        store_id: storeId,
+        shift_id: shift?.id || prevShift?.id || null,
+        action,
+        actor,
+        date,
+        summary,
+      };
+
+      if (prevEntry) row['prev'] = prevEntry;
+      if (nextEntry) row['next'] = nextEntry;
+      if (prevShift) row['prev_snapshot'] = toHistorySnapshot(prevShift);
+      if (shift) row['next_snapshot'] = toHistorySnapshot(shift);
+      if (metadata && metadata['notes']) row['notes'] = metadata['notes'];
+
+      const supabase = getSupabase();
+      const { error } = await supabase.from("shift_change_logs").insert(row);
+
+      if (error) {
+        console.error("Shift history logging failed:", error);
+      }
+    } catch (error) {
+      console.error("Shift history logging failed:", error);
+    }
+  }
+
+  async logBatchApprove(
+    actor: ShiftHistoryActor,
+    storeId: string,
+    yearMonth: string,
+    count: number
+  ): Promise<void> {
+    await this.logShiftChange(
+      "batch_approve",
+      actor,
+      storeId,
+      null,
+      null,
+      { yearMonth, count }
+    );
+  }
+}

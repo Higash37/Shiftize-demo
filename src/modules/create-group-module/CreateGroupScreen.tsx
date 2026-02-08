@@ -18,10 +18,8 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
-import {
-  GroupService,
-  type InitialMember as GroupInitialMember,
-} from "@/services/firebase/firebase-group";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { InitialMember as GroupInitialMember } from "@/services/interfaces/IStoreService";
 import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker.constants";
 import { useAuth } from "@/services/auth/useAuth";
 import { Routes } from "@/common/common-constants/RouteConstants";
@@ -68,7 +66,7 @@ export const CreateGroupScreen: React.FC = () => {
   // 4桁の店舗IDを生成（重複チェック付き）
   const generateStoreId = async () => {
     try {
-      const storeId = await GroupService.generateUniqueStoreId();
+      const storeId = await ServiceProvider.stores.generateUniqueStoreId();
       setGeneratedStoreId(storeId);
       return storeId;
     } catch (error) {
@@ -95,7 +93,7 @@ export const CreateGroupScreen: React.FC = () => {
     setStoreIdError("");
 
     try {
-      const exists = await GroupService.checkStoreIdExists(storeId);
+      const exists = await ServiceProvider.stores.checkStoreIdExists(storeId);
 
       if (exists) {
         setStoreIdError("この店舗IDは既に使用されています");
@@ -248,8 +246,8 @@ export const CreateGroupScreen: React.FC = () => {
       console.log("🏪 Store ID:", currentStoreId);
 
       // Firebase を使用してグループを作成
-      console.log("🚀 Calling GroupService.createGroup...");
-      const result = await GroupService.createGroup({
+      console.log("🚀 Calling ServiceProvider.stores.createGroup...");
+      const result = await ServiceProvider.stores.createGroup({
         groupName: form.groupName,
         storeId: currentStoreId,
         adminNickname: form.adminNickname,

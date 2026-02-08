@@ -168,6 +168,7 @@ export const AuthService = {
         const hashedPassword = AESEncryption.hashPassword(password);
 
         const userData: any = {
+          uid: firebaseUser.uid, // Firestoreルールで必須（ドキュメントIDと一致検証）
           nickname: displayName,
           role: userRole,
           hashedPassword: hashedPassword, // ハッシュ化パスワードを使用

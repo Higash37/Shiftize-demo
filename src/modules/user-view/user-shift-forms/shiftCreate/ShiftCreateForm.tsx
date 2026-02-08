@@ -8,8 +8,9 @@ import {
 } from "react-native";
 import { flushSync } from "react-dom";
 import { useRouter } from "expo-router";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header, Footer } from "@/common/common-ui/ui-layout";
@@ -105,9 +106,9 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
         return;
       }
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as UserData;
+        const fetchedUserData = await ServiceProvider.users.getUserData(user.uid);
+        if (fetchedUserData) {
+          const userData = fetchedUserData as unknown as UserData;
           setUserData(userData);
 
           // ユーザーの店舗ドキュメントを取得
@@ -396,12 +397,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           };
 
           if (isEditMode && initialShiftId) {
-            // 編集モードの場合は直接Firestoreを更新（useShiftのeditShiftは別のロジックのため）
-            const shiftRef = doc(db, "shifts", initialShiftId);
-            await updateDoc(shiftRef, {
+            // 編集モードの場合はServiceProviderで更新
+            await ServiceProvider.shifts.updateShift(initialShiftId, {
               ...shiftObject,
-              updatedAt: serverTimestamp(),
-            });
+              updatedAt: new Date(),
+            } as any);
           } else {
             // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
             await createShift(shiftObject);
@@ -441,24 +441,17 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
         if (shiftData["status"] === "pending") {
           // 承認待ちの場合は即時削除
-          await updateDoc(doc(db, "shifts", initialShiftId), {
+          await ServiceProvider.shifts.updateShift(initialShiftId, {
             status: "deleted",
-            updatedAt: serverTimestamp(),
-          });
+            updatedAt: new Date(),
+          } as any);
         } else {
           // それ以外は削除申請
-          await updateDoc(doc(db, "shifts", initialShiftId), {
+          await ServiceProvider.shifts.updateShift(initialShiftId, {
             status: "deletion_requested",
-            updatedAt: serverTimestamp(),
-          });
+            updatedAt: new Date(),
+          } as any);
         }
-
-        // Firestoreの更新結果を確認
-        const updatedShiftDoc = await getDoc(doc(db, "shifts", initialShiftId));
-        if (updatedShiftDoc.exists()) {
-        } else {
-        }
-      } else {
       }
 
       setIsDeleting(false);

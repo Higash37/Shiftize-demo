@@ -23,10 +23,7 @@ import { StyleSheet } from "react-native";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { EditShiftModalView } from "@/modules/reusable-widgets/gantt-chart/view-modals/EditShiftModalView";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
-import {
-  updateShift,
-  markShiftAsDeleted,
-} from "@/services/firebase/firebase-shift";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
 import ganttStyles from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
 import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
@@ -74,7 +71,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     subject: "",
     status: "approved",
     classes: [],
-    extendedTasks: [],
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -225,7 +221,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       subject: shift.subject || "",
       status: shift.status,
       classes: shift.classes || [],
-      extendedTasks: shift.extendedTasks || [],
     });
     setShowEditModal(true);
   };
@@ -244,7 +239,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       const durationHours =
         Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
 
-      await updateShift(newShiftData.id, {
+      await ServiceProvider.shifts.updateShift(newShiftData.id, {
         userId: newShiftData.userId,
         storeId: user?.storeId || "",
         date: newShiftData.date,
@@ -256,7 +251,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
         duration: durationHours,
         status: newShiftData.status,
         classes: newShiftData.classes || [],
-        extendedTasks: newShiftData.extendedTasks || [],
       });
 
       setShowEditModal(false);
@@ -276,7 +270,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
 
     try {
       setIsLoading(true);
-      await markShiftAsDeleted(editingShift.id);
+      await ServiceProvider.shifts.markShiftAsDeleted(editingShift.id);
       setShowEditModal(false);
       setEditingShift(null);
       Alert.alert("成功", "シフトを削除しました");
@@ -392,7 +386,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           statusConfigs={statusConfigs}
           isLoading={isLoading}
           styles={ganttStyles}
-          extendedTasks={[]}
           onChange={(field, value) =>
             setNewShiftData({ ...newShiftData, [field]: value })
           }

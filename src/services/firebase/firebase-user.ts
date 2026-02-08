@@ -100,14 +100,20 @@ export const UserService = {
 
   /**
    * マスターユーザーが存在するか確認します
+   * Firestoreルールで storeId フィルタが必須のため、storeId を指定する
    */
-  checkMasterExists: async (): Promise<boolean> => {
+  checkMasterExists: async (storeId?: string): Promise<boolean> => {
     try {
       const usersRef = collection(db, "users");
-      const masterQuery = query(usersRef, where("role", "==", "master"));
+      // storeId がある場合は店舗内のマスター存在チェック
+      // ない場合はフォールバック（新規グループ作成時など）
+      const constraints = [where("role", "==", "master")];
+      if (storeId) {
+        constraints.push(where("storeId", "==", storeId));
+      }
+      const masterQuery = query(usersRef, ...constraints);
       const masterSnapshot = await getDocs(masterQuery);
-      const exists = !masterSnapshot.empty;
-      return exists;
+      return !masterSnapshot.empty;
     } catch (error) {
       console.error('❌ [checkMasterExists] Error occurred:', error);
       throw error;
@@ -116,11 +122,16 @@ export const UserService = {
 
   /**
    * メールアドレスが既に使用されているか確認します
+   * Firestoreルールで storeId フィルタが必須のため、storeId を指定する
    */
-  checkEmailExists: async (email: string): Promise<boolean> => {
+  checkEmailExists: async (email: string, storeId?: string): Promise<boolean> => {
     try {
       const usersRef = collection(db, "users");
-      const emailQuery = query(usersRef, where("email", "==", email));
+      const constraints = [where("email", "==", email)];
+      if (storeId) {
+        constraints.push(where("storeId", "==", storeId));
+      }
+      const emailQuery = query(usersRef, ...constraints);
 
       // タイムアウト付きクエリ実行
       const timeoutPromise = new Promise<never>((_, reject) => {

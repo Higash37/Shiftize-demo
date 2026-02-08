@@ -37,5 +37,5 @@
     "**/*.tsx",
     "src/common/common-utils/util-shift/useShift"
   ],
-  "exclude": ["functions/**/*", "playwright.config.ts"]
+  "exclude": ["functions/**/*", "playwright.config.ts", "supabase/**/*"]
 }

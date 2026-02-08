@@ -1,7 +1,47 @@
 import { useState, useEffect, useCallback } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
-import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import { Shift, ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
+
+/**
+ * Shift -> ShiftItem 変換ヘルパー
+ * ServiceProvider.shifts.getShifts()はShift[]を返すが、
+ * このhookはShiftItem[]を使用するため変換が必要
+ */
+const mapShiftToShiftItem = (shift: Shift): ShiftItem => {
+  const item: ShiftItem = {
+    id: shift.id,
+    userId: shift.userId || "",
+    storeId: shift.storeId || "",
+    nickname: shift.nickname || "",
+    date: shift.date,
+    startTime: shift.startTime,
+    endTime: shift.endTime,
+    type: shift.type || "user",
+    isCompleted: shift.isCompleted || false,
+    status: shift.status as ShiftStatus,
+    duration: shift.duration?.toString() || "0",
+    createdAt: shift.createdAt || new Date(),
+    updatedAt: shift.updatedAt || new Date(),
+    classes: Array.isArray(shift.classes) ? shift.classes : [],
+  };
+
+  if (shift.subject != null) {
+    item.subject = shift.subject;
+  }
+
+  if (shift.requestedChanges?.[0]) {
+    const rc: ShiftItem["requestedChanges"] = {
+      startTime: shift.requestedChanges[0].startTime,
+      endTime: shift.requestedChanges[0].endTime,
+      date: shift.date,
+    };
+    if (shift.type != null) rc.type = shift.type;
+    if (shift.subject != null) rc.subject = shift.subject;
+    item.requestedChanges = rc;
+  }
+
+  return item;
+};
 
 export const useShifts = (storeId?: string) => {
   const [shifts, setShifts] = useState<ShiftItem[]>([]);
@@ -19,47 +59,12 @@ export const useShifts = (storeId?: string) => {
 
     setLoading(true);
     try {
-      const shiftsRef = collection(db, "shifts");
-      // 必ずstoreIdでフィルタリング
-      const q = query(shiftsRef, where("storeId", "==", storeId));
+      const rawShifts = await ServiceProvider.shifts.getShifts(storeId);
 
-      const querySnapshot = await getDocs(q);
-
-      // フィルタリング済みデータのみを処理
-      const shiftsData = querySnapshot.docs
-        .map((doc) => {
-          const data = doc.data();
-
-          return {
-            id: doc.id,
-            userId: data['userId'] || "",
-            storeId: data['storeId'] || "", // storeIdを追加
-            nickname: data['nickname'],
-            date: data['date'],
-            startTime: data['startTime'],
-            endTime: data['endTime'],
-            type: data['type'] || "user",
-            subject: data['subject'],
-            isCompleted: data['isCompleted'] || false,
-            status: data['status'] as ShiftStatus,
-            duration: data['duration']?.toString() || "0",
-            createdAt: data['createdAt']?.toDate() || new Date(),
-            updatedAt: data['updatedAt']?.toDate() || new Date(),
-            requestedChanges: data['requestedChanges']?.map((change: any) => ({
-              startTime: change.startTime,
-              endTime: change.endTime,
-              date: data['date'],
-              type: data['type'] || "user",
-              subject: data['subject'],
-            })),
-            classes: Array.isArray(data['classes']) ? data['classes'] : [],
-            extendedTasks: Array.isArray(data['extendedTasks'])
-              ? data['extendedTasks']
-              : [],
-          } as ShiftItem;
-        })
-        // 追加の安全チェック: storeIdが一致することを再確認
-        .filter((shift) => shift["storeId"] === storeId);
+      // Shift[] -> ShiftItem[] に変換し、storeIdの安全チェック
+      const shiftsData = rawShifts
+        .map(mapShiftToShiftItem)
+        .filter((shift) => shift.storeId === storeId);
 
       setShifts(shiftsData);
     } catch (err) {
@@ -86,55 +91,21 @@ export const useShifts = (storeId?: string) => {
         const endDate = new Date(year, month + 1, 0);
 
         // ISO文字列形式に変換 (YYYY-MM-DD)
-        const startDateStr = startDate.toISOString().split("T")[0];
-        const endDateStr = endDate.toISOString().split("T")[0];
+        const startDateStr = startDate.toISOString().split("T")[0] ?? "";
+        const endDateStr = endDate.toISOString().split("T")[0] ?? "";
 
-        const shiftsRef = collection(db, "shifts");
+        // ServiceProviderからシフトを取得し、日付範囲でフィルタリング
+        const rawShifts = await ServiceProvider.shifts.getShifts(storeId);
 
-        // storeIdと日付範囲の両方でクエリ
-        const q = query(
-          shiftsRef,
-          where("storeId", "==", storeId),
-          where("date", ">=", startDateStr),
-          where("date", "<=", endDateStr)
-        );
-
-        const querySnapshot = await getDocs(q);
-
-
-        // 既にFirestoreクエリでフィルタリング済みなので、追加のJavaScriptフィルタリングは不要
-        const shiftsData = querySnapshot.docs
-          .map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              userId: data['userId'] || "",
-              storeId: data['storeId'] || "", // storeIdを追加
-              nickname: data['nickname'],
-              date: data['date'],
-              startTime: data['startTime'],
-              endTime: data['endTime'],
-              type: data['type'] || "user",
-              subject: data['subject'],
-              isCompleted: data['isCompleted'] || false,
-              status: data['status'] as ShiftStatus,
-              duration: data['duration']?.toString() || "0",
-              createdAt: data['createdAt']?.toDate() || new Date(),
-              updatedAt: data['updatedAt']?.toDate() || new Date(),
-              requestedChanges: data['requestedChanges']?.map((change: any) => ({
-                startTime: change.startTime,
-                endTime: change.endTime,
-                date: data['date'],
-                subject: data['subject'],
-              })),
-              classes: Array.isArray(data['classes']) ? data['classes'] : [],
-              extendedTasks: Array.isArray(data['extendedTasks'])
-                ? data['extendedTasks']
-                : [],
-            } as ShiftItem;
-          })
-          // 追加の安全チェック: storeIdが一致することを再確認
-          .filter((shift) => shift["storeId"] === storeId)
+        const shiftsData = rawShifts
+          .map(mapShiftToShiftItem)
+          // storeIdと日付範囲でフィルタリング
+          .filter(
+            (shift) =>
+              shift.storeId === storeId &&
+              shift.date >= startDateStr &&
+              shift.date <= endDateStr
+          )
           // JavaScriptでソート
           .sort((a, b) => {
             const dateCompare = a.date.localeCompare(b.date);

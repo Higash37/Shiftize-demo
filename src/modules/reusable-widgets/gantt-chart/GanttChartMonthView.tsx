@@ -259,7 +259,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       type: "recruitment" as const,
       isRecruitment: true, // 募集シフトであることを示すフラグ
       classes: [],
-      extendedTasks: [],
       isCompleted: false, // ShiftItemに必要
       duration: "0", // ShiftItemに必要（計算は後で行われる）
       createdAt: recruitmentShift.createdAt || new Date(), // ShiftItemに必要
@@ -398,7 +397,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         nickname: snapshot.nickname || "",
         status: (snapshot.status as ShiftStatus) || "pending",
         classes: (snapshot.classes as ClassTimeSlot[] | undefined) || [],
-        extendedTasks: (snapshot.extendedTasks as any[]) || [],
       });
       setShowHistoryModal(false);
     },
@@ -435,8 +433,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         nickname: defaultNickname,
         status: isMaster ? "approved" : "pending",
         classes: [],
-        extendedTasks: [],
-      });
+        });
     },
     [positionToTime, user, users]
   );
@@ -456,7 +453,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       nickname: defaultNickname,
       status: isMaster ? "approved" : "pending",
       classes: [],
-      extendedTasks: [],
     });
   }, [selectedDate, user, users]);
 
@@ -596,7 +592,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       nickname: targetUser?.nickname || "",
       status: user?.role === "master" ? "approved" : "pending",
       classes: [],
-      extendedTasks: [],
     });
   }, [users, user]);
 

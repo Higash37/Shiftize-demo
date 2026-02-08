@@ -11,7 +11,8 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { auth, db } from "@/services/firebase/firebase";
+import { db } from "@/services/firebase/firebase";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import {
   MultiStoreService,
   UserStoreAccess,
@@ -152,7 +153,7 @@ export function MasterHeader({
 
   const handleSignOut = async () => {
     try {
-      await auth.signOut();
+      await ServiceProvider.auth.signOut();
       router.replace("/(auth)/login");
     } catch (error) {
       console.error("Error signing out:", error);

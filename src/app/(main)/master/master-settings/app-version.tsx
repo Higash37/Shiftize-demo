@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { updateAppVersion } from "@/services/version/VersionManager";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase-core";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { colors } from "@/common/common-constants/ThemeConstants";
 
 export default function AppVersionManager() {
@@ -30,15 +29,15 @@ export default function AppVersionManager() {
 
   const loadCurrentVersion = async () => {
     try {
-      const versionDoc = await getDoc(doc(db, "settings", "app_version"));
-      if (versionDoc.exists()) {
-        const data = versionDoc.data();
-        setCurrentVersion(data['version'] || "1.0.0");
-        setNewVersion(data['version'] || "1.0.0");
-        setForceUpdate(data['forceUpdate'] || false);
-        setUpdateMessage(data['updateMessage'] || "");
-        if (data['updatedAt']) {
-          setLastUpdate(data['updatedAt'].toDate());
+      const data = await ServiceProvider.settings.getSettings();
+      if (data && (data as any).version) {
+        setCurrentVersion((data as any).version || "1.0.0");
+        setNewVersion((data as any).version || "1.0.0");
+        setForceUpdate((data as any).forceUpdate || false);
+        setUpdateMessage((data as any).updateMessage || "");
+        if ((data as any).updatedAt) {
+          const updatedAt = (data as any).updatedAt;
+          setLastUpdate(updatedAt.toDate ? updatedAt.toDate() : new Date(updatedAt));
         }
       } else {
         setCurrentVersion("1.0.0");
