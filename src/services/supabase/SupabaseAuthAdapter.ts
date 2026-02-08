@@ -1,76 +1,51 @@
 import type { IAuthService } from "../interfaces/IAuthService";
 import type { User } from "@/common/common-models/model-user/UserModel";
-import { getSupabase, authenticateSupabase } from "./supabase-client";
-import { auth } from "@/services/firebase/firebase-core";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  updatePassword,
-  signOut,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  getAuth,
-} from "firebase/auth";
-import { initializeApp, deleteApp } from "firebase/app";
-import { firebaseConfig } from "@/services/firebase/firebase-core";
-import { toSnakeCase, toCamelCase, removeUndefined } from "./utils/caseConverter";
+import { getSupabase } from "./supabase-client";
+import { toAsciiEmail } from "./utils/asciiEmail";
 
 export class SupabaseAuthAdapter implements IAuthService {
   /**
-   * サインイン: Firebase Auth + Supabase JWT交換 + Supabase DBからユーザー取得
+   * サインイン: Supabase Auth ネイティブ + Supabase DBからユーザー取得
    */
   async signIn(email: string, password: string): Promise<User> {
-    // 1. Firebase Auth でサインイン
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-    // 認証状態が反映されるまで待つ
-    await new Promise<void>((resolve, reject) => {
-      const unsubscribe = auth.onAuthStateChanged(
-        (firebaseUser) => {
-          if (firebaseUser) {
-            unsubscribe();
-            resolve();
-          }
-        },
-        (error) => {
-          unsubscribe();
-          reject(error);
-        }
-      );
-    });
-
-    const firebaseUser = auth.currentUser;
-    if (!firebaseUser) throw new Error("認証ユーザーが取得できませんでした");
-
-    // 2. Supabase JWT を取得
-    await authenticateSupabase();
-
-    // 3. Supabase DBからユーザー情報取得
     const supabase = getSupabase();
+    const asciiEmail = toAsciiEmail(email);
+
+    // 1. Supabase Auth でサインイン（セッション自動確立→RLS即有効）
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({ email: asciiEmail, password });
+
+    if (authError || !authData.user) {
+      throw new Error("メールアドレスまたはパスワードが正しくありません");
+    }
+
+    const supabaseUser = authData.user;
+
+    // 2. usersテーブルからユーザー情報取得（auth.uid()でRLS通過）
     const { data, error } = await supabase
       .from("users")
       .select("*")
-      .eq("uid", firebaseUser.uid)
-      .single();
+      .eq("uid", supabaseUser.id)
+      .maybeSingle();
 
     if (error || !data) {
       throw new Error("ユーザー情報が見つかりません");
     }
 
     return {
-      uid: firebaseUser.uid,
-      nickname:
-        firebaseUser.displayName || data.nickname || email.split("@")[0],
+      uid: supabaseUser.id,
+      nickname: data.nickname || email.split("@")[0],
       role: data.role,
+      email: data.email,
+      storeId: data.store_id,
+      color: data.color,
     };
   }
 
   /**
-   * サインアウト: Firebase Auth + Supabase
+   * サインアウト: Supabase Auth のみ
    */
   async signOut(): Promise<void> {
-    await signOut(auth);
     const supabase = getSupabase();
     await supabase.auth.signOut();
   }
@@ -84,7 +59,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       .from("users")
       .select("role")
       .eq("uid", user.uid)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return "user";
@@ -100,6 +75,7 @@ export class SupabaseAuthAdapter implements IAuthService {
 
   /**
    * 新しいユーザーを作成
+   * 管理者のセッションを保存 → signUp → 管理者セッション復元
    */
   async createUser(
     email: string,
@@ -110,44 +86,54 @@ export class SupabaseAuthAdapter implements IAuthService {
     role?: "master" | "user",
     hourlyWage?: number
   ): Promise<User> {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
+    const supabase = getSupabase();
+
+    // 管理者セッションを保存
+    const { data: { session: adminSession } } = await supabase.auth.getSession();
+    if (!adminSession) {
       throw new Error("管理者としてログインしている必要があります");
     }
 
-    // 一時的なFirebaseアプリインスタンスを作成
-    const tempApp = initializeApp(firebaseConfig, "temp-app-" + Date.now());
-    const tempAuth = getAuth(tempApp);
+    const asciiEmail = toAsciiEmail(email);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        tempAuth,
-        email,
-        password
-      );
-      const firebaseUser = userCredential.user;
-      const displayName = nickname || email.split("@")[0] || email;
+      // 新規ユーザーをSupabase Authに登録
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: asciiEmail,
+          password,
+        });
 
-      if (displayName) {
-        await updateProfile(firebaseUser, { displayName });
+      if (signUpError || !signUpData.user) {
+        throw new Error(
+          `ユーザー作成に失敗しました: ${signUpError?.message || "UNKNOWN"}`
+        );
       }
+
+      const newUserId = signUpData.user.id;
+      const displayName = nickname || email.split("@")[0] || email;
+      const userRole = role || "user";
+
+      // 管理者セッションを復元（signUpで新ユーザーにログインされるため）
+      await supabase.auth.setSession({
+        access_token: adminSession.access_token,
+        refresh_token: adminSession.refresh_token,
+      });
 
       // パスワードハッシュ化
       const { AESEncryption } = await import(
         "@/common/common-utils/security/encryptionUtils"
       );
       const hashedPassword = AESEncryption.hashPassword(password);
-      const userRole = role || "user";
 
-      // Supabase DBにユーザー情報を保存
-      const supabase = getSupabase();
+      // Supabase DBにユーザー情報を保存（管理者セッションのRLSで許可）
       const { error } = await supabase.from("users").insert({
-        uid: firebaseUser.uid,
+        uid: newUserId,
         nickname: displayName,
         role: userRole,
         hashed_password: hashedPassword,
         current_password: password,
-        email: email,
+        email: asciiEmail,
         color: color || "#4A90E2",
         store_id: storeId || "",
         connected_stores: [],
@@ -156,28 +142,26 @@ export class SupabaseAuthAdapter implements IAuthService {
       });
 
       if (error) {
-        // ロールバック: Firebase Authユーザーを削除
-        try {
-          await firebaseUser.delete();
-        } catch (_) {}
         throw new Error(`ユーザー情報の保存に失敗しました: ${error.message}`);
       }
 
-      await deleteApp(tempApp);
-
       return {
-        uid: firebaseUser.uid,
+        uid: newUserId,
         nickname: displayName,
         role: userRole,
         color: color || "#FFD700",
         storeId: storeId || "",
       };
     } catch (error: any) {
+      // エラー時は管理者セッションを復元
       try {
-        await deleteApp(tempApp);
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token,
+        });
       } catch (_) {}
       throw new Error(
-        `ユーザー作成に失敗しました: ${error.code || "UNKNOWN"} - ${error.message}`
+        `ユーザー作成に失敗しました: ${error.message}`
       );
     }
   }
@@ -204,7 +188,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
     if (updates.email) {
       updateData['real_email'] = updates.email;
-      // 実メールアカウントをFirebase Authに作成
+      // 実メールアカウントをSupabase Authに作成
       const { data: currentData } = await supabase
         .from("users")
         .select("current_password")
@@ -228,41 +212,25 @@ export class SupabaseAuthAdapter implements IAuthService {
 
     if (error) throw error;
 
-    // Firebase Auth更新
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      if (updates.nickname) {
-        await updateProfile(currentUser, { displayName: updates.nickname });
-      }
-      if (updates.password) {
-        const { data: userData } = await supabase
+    // パスワード変更（Supabase Auth）
+    if (updates.password) {
+      // 現在ログイン中のユーザーのパスワードのみ変更可能
+      const { data: { user: currentAuthUser } } = await supabase.auth.getUser();
+      if (currentAuthUser && currentAuthUser.id === user.uid) {
+        await supabase.auth.updateUser({ password: updates.password });
+
+        const { AESEncryption } = await import(
+          "@/common/common-utils/security/encryptionUtils"
+        );
+        const hashedPassword = AESEncryption.hashPassword(updates.password);
+
+        await supabase
           .from("users")
-          .select("current_password")
-          .eq("uid", user.uid)
-          .single();
-
-        const currentPasswordForAuth = userData?.current_password;
-        if (currentPasswordForAuth && currentUser.email) {
-          const credential = EmailAuthProvider.credential(
-            currentUser.email,
-            currentPasswordForAuth
-          );
-          await reauthenticateWithCredential(currentUser, credential);
-          await updatePassword(currentUser, updates.password);
-
-          const { AESEncryption } = await import(
-            "@/common/common-utils/security/encryptionUtils"
-          );
-          const hashedPassword = AESEncryption.hashPassword(updates.password);
-
-          await supabase
-            .from("users")
-            .update({
-              hashed_password: hashedPassword,
-              current_password: null,
-            })
-            .eq("uid", user.uid);
-        }
+          .update({
+            hashed_password: hashedPassword,
+            current_password: null,
+          })
+          .eq("uid", user.uid);
       }
     }
 
@@ -288,39 +256,55 @@ export class SupabaseAuthAdapter implements IAuthService {
 
   /**
    * パスワード変更
+   * Supabase Authは認証済みセッションがあれば再認証不要
    */
   async changePassword(
     currentPassword: string,
     newPassword: string
   ): Promise<void> {
-    const user = auth.currentUser;
-    if (!user || !user.email) {
+    const supabase = getSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
       throw new Error("ユーザーが認証されていません");
     }
 
-    const credential = EmailAuthProvider.credential(user.email, currentPassword);
-    await reauthenticateWithCredential(user, credential);
-    await updatePassword(user, newPassword);
+    // 現在のパスワードを検証（再ログインで確認）
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: currentPassword,
+    });
 
-    if (user.uid) {
-      const { AESEncryption } = await import(
-        "@/common/common-utils/security/encryptionUtils"
-      );
-      const hashedPassword = AESEncryption.hashPassword(newPassword);
-
-      const supabase = getSupabase();
-      await supabase
-        .from("users")
-        .update({
-          hashed_password: hashedPassword,
-          current_password: null,
-        })
-        .eq("uid", user.uid);
+    if (verifyError) {
+      throw new Error("現在のパスワードが正しくありません");
     }
+
+    // パスワードを更新
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      throw new Error(`パスワード変更に失敗しました: ${updateError.message}`);
+    }
+
+    // DB側のハッシュも更新
+    const { AESEncryption } = await import(
+      "@/common/common-utils/security/encryptionUtils"
+    );
+    const hashedPassword = AESEncryption.hashPassword(newPassword);
+
+    await supabase
+      .from("users")
+      .update({
+        hashed_password: hashedPassword,
+        current_password: null,
+      })
+      .eq("uid", user.id);
   }
 
   /**
-   * 実メールアドレス用のFirebase Authアカウントを作成
+   * 実メールアドレス用のSupabase Authアカウントを作成
    */
   async createSecondaryEmailAccount(
     originalUser: {
@@ -334,33 +318,43 @@ export class SupabaseAuthAdapter implements IAuthService {
     realEmail: string,
     password: string
   ): Promise<void> {
-    const tempApp = initializeApp(
-      firebaseConfig,
-      "temp-app-secondary-" + Date.now()
-    );
-    const tempAuth = getAuth(tempApp);
+    const supabase = getSupabase();
+
+    // 管理者セッションを保存
+    const { data: { session: adminSession } } = await supabase.auth.getSession();
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        tempAuth,
-        realEmail,
-        password
-      );
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: realEmail,
+          password,
+        });
 
-      await updateProfile(userCredential.user, {
-        displayName: originalUser.nickname || null,
-      });
+      if (signUpError) {
+        if (signUpError.message?.includes("already registered")) {
+          return;
+        }
+        throw signUpError;
+      }
+
+      if (!signUpData.user) return;
+
+      // 管理者セッションを復元
+      if (adminSession) {
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token,
+        });
+      }
 
       const { AESEncryption } = await import(
         "@/common/common-utils/security/encryptionUtils"
       );
       const hashedPassword = AESEncryption.hashPassword(password);
 
-      const supabase = getSupabase();
-
-      // 実メールアドレス用のユーザードキュメントを作成
+      // 実メールアドレス用のユーザーレコードを作成
       const userData: Record<string, unknown> = {
-        uid: userCredential.user.uid,
+        uid: signUpData.user.id,
         nickname: originalUser.nickname,
         email: realEmail,
         role: originalUser.role,
@@ -383,18 +377,18 @@ export class SupabaseAuthAdapter implements IAuthService {
         .from("users")
         .update({
           real_email: realEmail,
-          real_email_user_id: userCredential.user.uid,
+          real_email_user_id: signUpData.user.id,
         })
         .eq("uid", originalUser.uid);
-
-      await deleteApp(tempApp);
     } catch (authError: any) {
-      try {
-        await deleteApp(tempApp);
-      } catch (_) {}
-
-      if (authError.code === "auth/email-already-in-use") {
-        return;
+      // 管理者セッションを復元
+      if (adminSession) {
+        try {
+          await supabase.auth.setSession({
+            access_token: adminSession.access_token,
+            refresh_token: adminSession.refresh_token,
+          });
+        } catch (_) {}
       }
       throw authError;
     }
@@ -406,27 +400,29 @@ export class SupabaseAuthAdapter implements IAuthService {
   async createInitialMasterUser(): Promise<void> {
     try {
       await this.createUser("master@example.com", "123456");
-    } catch (error: any) {
-      if (error.code === "auth/email-already-in-use") {
-        return;
-      }
+    } catch (_) {
+      // 既に存在する場合は無視
     }
   }
 
   /**
-   * 現在のFirebaseユーザーを取得
+   * 現在のSupabaseユーザーを取得
    */
   getCurrentUser(): {
     uid: string;
     email: string | null;
     displayName: string | null;
   } | null {
-    const user = auth.currentUser;
-    if (!user) return null;
+    // Supabase auth.getUser()は非同期だが、インターフェースは同期
+    // getSession()のキャッシュから同期的に取得する代替実装
+    const supabase = getSupabase();
+    // @ts-ignore - Supabase internal session cache access
+    const session = (supabase.auth as any).currentSession;
+    if (!session?.user) return null;
     return {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
+      uid: session.user.id,
+      email: session.user.email ?? null,
+      displayName: session.user.user_metadata?.['display_name'] ?? null,
     };
   }
 
@@ -442,16 +438,20 @@ export class SupabaseAuthAdapter implements IAuthService {
       } | null
     ) => void
   ): () => void {
-    return auth.onAuthStateChanged((firebaseUser) => {
-      if (firebaseUser) {
-        callback({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-        });
-      } else {
-        callback(null);
+    const supabase = getSupabase();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          callback({
+            uid: session.user.id,
+            email: session.user.email ?? null,
+            displayName: session.user.user_metadata?.['display_name'] ?? null,
+          });
+        } else {
+          callback(null);
+        }
       }
-    });
+    );
+    return () => subscription.unsubscribe();
   }
 }

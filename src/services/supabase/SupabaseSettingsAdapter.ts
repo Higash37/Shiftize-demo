@@ -40,7 +40,7 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         .from("users")
         .select("store_id")
         .eq("uid", (await supabase.auth.getUser()).data.user?.id || "")
-        .single();
+        .maybeSingle();
 
       const storeId = userData?.store_id || "";
 
@@ -110,6 +110,48 @@ export class SupabaseSettingsAdapter implements ISettingsService {
         (payload) => {
           if (payload.new && typeof payload.new === "object" && "data" in payload.new) {
             callback((payload.new as any).data as AppSettings);
+          } else {
+            callback(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }
+
+  onShiftStatusConfigChanged(callback: (configs: Record<string, any> | null) => void): () => void {
+    const supabase = getSupabase();
+    let channel: RealtimeChannel | null = null;
+
+    // 初期値を取得
+    (async () => {
+      const { data } = await supabase
+        .from("settings")
+        .select("data")
+        .eq("settings_key", "shiftStatus")
+        .maybeSingle();
+      callback(data?.data || null);
+    })().catch(() => callback(null));
+
+    // Supabase Realtimeで変更監視
+    channel = supabase
+      .channel("settings-shift-status-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+          filter: "settings_key=eq.shiftStatus",
+        },
+        (payload) => {
+          if (payload.new && typeof payload.new === "object" && "data" in payload.new) {
+            callback((payload.new as any).data);
           } else {
             callback(null);
           }

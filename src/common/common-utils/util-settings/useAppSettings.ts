@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase-core";
+import { ServiceProvider } from "@/services/ServiceProvider";
 
 export interface ShiftRuleSettings {
   maxWorkHours: number;
@@ -180,6 +179,30 @@ export const validateHolidaySettings = (
   return errors;
 };
 
+const mergeWithDefaults = (data: any): AppSettings => {
+  const shiftRule = data?.shiftRule;
+  const appearance = data?.appearance;
+  const holidays = data?.holidays;
+
+  return {
+    shiftRule: shiftRule
+      ? { ...DEFAULT_SETTINGS.shiftRule, ...shiftRule }
+      : DEFAULT_SETTINGS.shiftRule,
+    appearance: appearance
+      ? { ...DEFAULT_SETTINGS.appearance, ...appearance }
+      : DEFAULT_SETTINGS.appearance,
+    holidays: holidays
+      ? {
+          ...DEFAULT_SETTINGS.holidays,
+          ...holidays,
+          holidays: holidays.holidays ?? DEFAULT_SETTINGS.holidays.holidays,
+          specialDays:
+            holidays.specialDays ?? DEFAULT_SETTINGS.holidays.specialDays,
+        }
+      : DEFAULT_SETTINGS.holidays,
+  };
+};
+
 export const useAppSettings = () => {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -189,43 +212,16 @@ export const useAppSettings = () => {
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const settingsRef = doc(db, "settings", "shiftApp");
-      const snapshot = await getDoc(settingsRef);
+      const data = await ServiceProvider.settings.getSettings();
 
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        // デフォルト設定と深いマージを実行
-        const shiftRule = data["shiftRule"];
-        const appearance = data["appearance"];
-        const holidays = data["holidays"];
-
-        setSettings({
-          shiftRule: shiftRule
-            ? { ...DEFAULT_SETTINGS.shiftRule, ...shiftRule }
-            : DEFAULT_SETTINGS.shiftRule,
-          appearance: appearance
-            ? { ...DEFAULT_SETTINGS.appearance, ...appearance }
-            : DEFAULT_SETTINGS.appearance,
-          holidays: holidays
-            ? {
-                ...DEFAULT_SETTINGS.holidays,
-                ...holidays,
-                holidays:
-                  holidays.holidays ?? DEFAULT_SETTINGS.holidays.holidays,
-                specialDays:
-                  holidays.specialDays ?? DEFAULT_SETTINGS.holidays.specialDays,
-              }
-            : DEFAULT_SETTINGS.holidays,
-        });
+      if (data) {
+        setSettings(mergeWithDefaults(data));
       } else {
-        // ドキュメントが存在しない場合はデフォルト設定を使用
         setSettings(DEFAULT_SETTINGS);
       }
       setError(null);
     } catch {
-      // ⚠️ Firestore接続エラー: ネットワークエラーや権限エラーの可能性があります
       setError("設定の読み込みに失敗しました");
-      // エラー時もデフォルト設定を設定
       setSettings(DEFAULT_SETTINGS);
     } finally {
       setLoading(false);
@@ -236,8 +232,7 @@ export const useAppSettings = () => {
   const saveSettings = useCallback(
     async (newSettings: Partial<AppSettings>) => {
       try {
-        const settingsRef = doc(db, "settings", "shiftApp");
-        await setDoc(settingsRef, newSettings, { merge: true });
+        await ServiceProvider.settings.saveSettings(newSettings);
 
         setSettings((prevSettings) => ({
           ...prevSettings,
@@ -245,7 +240,6 @@ export const useAppSettings = () => {
         }));
         setError(null);
       } catch (err) {
-        // ⚠️ Firestore保存エラー: ネットワークエラーや権限エラーの可能性があります
         setError("設定の保存に失敗しました");
         throw err;
       }
@@ -390,12 +384,10 @@ export const useAppSettings = () => {
   // 設定のリセット
   const resetSettings = useCallback(async () => {
     try {
-      const settingsRef = doc(db, "settings", "shiftApp");
-      await setDoc(settingsRef, DEFAULT_SETTINGS);
+      await ServiceProvider.settings.resetSettings(DEFAULT_SETTINGS);
       setSettings(DEFAULT_SETTINGS);
       setError(null);
     } catch (err) {
-      // ⚠️ Firestoreリセットエラー: ネットワークエラーや権限エラーの可能性があります
       setError("設定のリセットに失敗しました");
       throw err;
     }
@@ -407,7 +399,6 @@ export const useAppSettings = () => {
       const settingsJson = JSON.stringify(settings, null, 2);
       return settingsJson;
     } catch {
-      // ⚠️ JSONシリアライゼーションエラー: 循環参照や無効な値が含まれている可能性があります
       throw new Error("設定のエクスポートに失敗しました");
     }
   }, [settings]);
@@ -436,12 +427,10 @@ export const useAppSettings = () => {
       }
 
       // 設定を保存
-      const settingsRef = doc(db, "settings", "shiftApp");
-      await setDoc(settingsRef, importedSettings);
+      await ServiceProvider.settings.saveSettings(importedSettings);
       setSettings(importedSettings);
       setError(null);
     } catch (err) {
-      // ⚠️ インポートエラー: JSONパースエラー、バリデーションエラー、またはFirestore保存エラーの可能性があります
       if (err instanceof Error) {
         setError(err.message);
         throw err;
@@ -458,47 +447,11 @@ export const useAppSettings = () => {
 
   // リアルタイム更新のリスナー設定
   useEffect(() => {
-    const settingsRef = doc(db, "settings", "shiftApp");
-    const unsubscribe = onSnapshot(
-      settingsRef,
-      (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data();
-          // デフォルト設定と深いマージを実行
-          const shiftRule = data["shiftRule"];
-          const appearance = data["appearance"];
-          const holidays = data["holidays"];
-
-          setSettings({
-            shiftRule: shiftRule
-              ? { ...DEFAULT_SETTINGS.shiftRule, ...shiftRule }
-              : DEFAULT_SETTINGS.shiftRule,
-            appearance: appearance
-              ? { ...DEFAULT_SETTINGS.appearance, ...appearance }
-              : DEFAULT_SETTINGS.appearance,
-            holidays: holidays
-              ? {
-                  ...DEFAULT_SETTINGS.holidays,
-                  ...holidays,
-                  holidays:
-                    holidays.holidays ?? DEFAULT_SETTINGS.holidays.holidays,
-                  specialDays:
-                    holidays.specialDays ??
-                    DEFAULT_SETTINGS.holidays.specialDays,
-                }
-              : DEFAULT_SETTINGS.holidays,
-          });
-        }
-      },
-      (error) => {
-        // ⚠️ リアルタイム更新エラー: 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === "permission-denied") {
-          return;
-        }
-        // その他のエラー（ネットワークエラーなど）は記録
-        setError(error.message);
+    const unsubscribe = ServiceProvider.settings.onSettingsChanged((data) => {
+      if (data) {
+        setSettings(mergeWithDefaults(data));
       }
-    );
+    });
 
     return () => unsubscribe();
   }, []);

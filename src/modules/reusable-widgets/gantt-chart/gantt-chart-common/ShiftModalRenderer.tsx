@@ -8,7 +8,7 @@ import {
 import { ShiftStatusConfig } from "../GanttChartTypes";
 import { EditShiftModalView } from "../view-modals/EditShiftModalView";
 import { AddShiftModalView } from "../view-modals/AddShiftModalView";
-import { RecruitmentShiftService } from "@/services/recruitment-shift-service/recruitmentShiftService";
+import { ServiceProvider } from "@/services/ServiceProvider";
 
 export interface NewShiftData {
   date: string;
@@ -127,7 +127,7 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
         };
 
         try {
-          await RecruitmentShiftService.createRecruitmentShift(recruitmentShiftData);
+          await ServiceProvider.recruitmentShifts.createRecruitmentShift(recruitmentShiftData);
           Alert.alert("成功", "募集シフトを作成しました。");
         } catch (recruitmentError: any) {
           if (recruitmentError?.code) {
@@ -165,7 +165,7 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
     if (shiftId.startsWith("recruitment-")) {
       const recruitmentShiftId = shiftId.replace("recruitment-", "");
       try {
-        await RecruitmentShiftService.deleteRecruitmentShift(recruitmentShiftId);
+        await ServiceProvider.recruitmentShifts.deleteRecruitmentShift(recruitmentShiftId);
         onRecruitmentRefresh();
       } catch (error) {
         Alert.alert("エラー", "募集シフトの削除に失敗しました");

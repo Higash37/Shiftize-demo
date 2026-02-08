@@ -21,4 +21,13 @@ export interface IAuditService {
     yearMonth: string,
     count: number
   ): Promise<void>;
+
+  onShiftHistory(
+    options: {
+      storeId: string;
+      actionFilter?: ShiftActionType | "all";
+    },
+    callback: (entries: ShiftHistoryEntry[]) => void,
+    onError?: (error: Error) => void
+  ): () => void;
 }

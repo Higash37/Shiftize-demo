@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "../gantt-chart-common/UnifiedButtonStyles";
-import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
-import { ShiftConfirmationService } from "@/services/shift-confirmation/ShiftConfirmationService";
-import { TeacherStatusService, TeacherStatus } from "@/services/teacher-status/TeacherStatusService";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
+import type { TeacherStatus } from "@/services/interfaces/ITeacherStatusService";
 import { useAuth } from "@/services/auth/useAuth";
 import { DatePickerModal } from "@/modules/reusable-widgets/calendar/modals/DatePickerModal";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -65,7 +65,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
 
   const loadPeriods = async () => {
     try {
-      const allPeriods = await ShiftSubmissionService.getActivePeriods(storeId);
+      const allPeriods = await ServiceProvider.shiftSubmissions.getActivePeriods(storeId);
       setPeriods(allPeriods);
     } catch (error) {
       // 期間データの読み込みに失敗
@@ -110,7 +110,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       
       // 既存の全期間を削除
       for (const period of periods) {
-        await ShiftSubmissionService.deletePeriod(period.id);
+        await ServiceProvider.shiftSubmissions.deletePeriod(period.id);
       }
       
       // 新しい期間を作成
@@ -134,7 +134,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       };
 
       // TODO: createShiftSubmissionPeriodメソッドが実装されたら有効にする
-      // const newPeriod = await ShiftSubmissionService.createShiftSubmissionPeriod(periodData);
+      // const newPeriod = await ServiceProvider.shiftSubmissions.createShiftSubmissionPeriod(periodData);
       
       Alert.alert("成功", "期間が作成されました");
       // onPeriodCreated?.(newPeriod);
@@ -156,7 +156,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     if (!deletingPeriodId) return;
     
     try {
-      await ShiftSubmissionService.deletePeriod(deletingPeriodId);
+      await ServiceProvider.shiftSubmissions.deletePeriod(deletingPeriodId);
       
       setShowDeleteConfirm(false);
       setDeletingPeriodId(null);
@@ -253,7 +253,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
       // propsで渡されたusersがあればそれを使用、なければTeacherStatusServiceで取得
       let teacherList = users;
       if (!users || users.length === 0) {
-        const teachers = await TeacherStatusService.getTeachersByStore(storeId);
+        const teachers = await ServiceProvider.teacherStatus.getTeachersByStore(storeId);
         teacherList = teachers.map(teacher => ({
           uid: teacher.uid,
           nickname: teacher.nickname,
@@ -267,7 +267,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
           // 確定状況を取得（エラーを無視）
           let isConfirmed = false;
           try {
-            isConfirmed = await ShiftConfirmationService.getUserConfirmationStatus(
+            isConfirmed = await ServiceProvider.shiftConfirmations.getUserConfirmationStatus(
               user.uid, 
               periods[0].id
             );

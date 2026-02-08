@@ -3,51 +3,34 @@ import type {
   CreateGroupData,
   GroupCreationResult,
 } from "../interfaces/IStoreService";
-import { getSupabase, authenticateSupabase } from "./supabase-client";
-import { auth } from "@/services/firebase/firebase-core";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  getIdToken,
-} from "firebase/auth";
+import { getSupabase } from "./supabase-client";
 import { AESEncryption } from "@/common/common-utils/security/encryptionUtils";
+import { toAsciiEmail } from "./utils/asciiEmail";
 
-// メール自動生成
+// メール自動生成（ASCII変換付き）
 const buildGeneratedEmail = (storeId: string, nickname: string): string => {
-  return `${storeId}${nickname}@example.com`;
-};
-
-const createUserWithFallbackEmail = async (
-  storeId: string,
-  nickname: string,
-  password: string
-): Promise<{ user: any; email: string }> => {
-  let email = buildGeneratedEmail(storeId, nickname);
-  try {
-    const credential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    return { user: credential.user, email };
-  } catch (error: any) {
-    if (error?.code === "auth/email-already-in-use") {
-      const retryNickname = `${nickname}${Date.now()}`;
-      email = buildGeneratedEmail(storeId, retryNickname);
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      return { user: credential.user, email };
-    }
-    throw error;
-  }
+  return toAsciiEmail(`${storeId}${nickname}@example.com`);
 };
 
 export class SupabaseStoreAdapter implements IStoreService {
+  async getStore(storeId: string): Promise<{ storeId: string; storeName: string; adminUid?: string; adminNickname?: string; [key: string]: any } | null> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("stores")
+      .select("*")
+      .eq("store_id", storeId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return {
+      storeId: data.store_id,
+      storeName: data.store_name || "",
+      adminUid: data.admin_uid,
+      adminNickname: data.admin_nickname,
+      isActive: data.is_active,
+    };
+  }
+
   async checkStoreIdExists(storeId: string): Promise<boolean> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -83,67 +66,66 @@ export class SupabaseStoreAdapter implements IStoreService {
 
   async createGroup(data: CreateGroupData): Promise<GroupCreationResult> {
     try {
+      const supabase = getSupabase();
+
       // 1. 店舗ID重複チェック
       const storeIdExists = await this.checkStoreIdExists(data.storeId);
       if (storeIdExists) {
         throw new Error("この店舗IDは既に使用されています");
       }
 
-      // 2. Firebase Authで管理者アカウント作成
-      const { user: adminUser, email: adminEmail } =
-        await createUserWithFallbackEmail(
-          data.storeId,
-          data.adminNickname,
-          data.adminPassword
-        );
+      // 2. Supabase Authで管理者アカウント作成
+      let adminEmail = buildGeneratedEmail(data.storeId, data.adminNickname);
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: adminEmail,
+          password: data.adminPassword,
+        });
 
-      // 3. 認証状態待機
-      await new Promise<void>((resolve, reject) => {
-        const unsubscribe = onAuthStateChanged(
-          auth,
-          (firebaseUser) => {
-            if (firebaseUser && firebaseUser.uid === adminUser.uid) {
-              unsubscribe();
-              resolve();
-            }
-          },
-          (error) => {
-            unsubscribe();
-            reject(error);
+      if (signUpError) {
+        // メールアドレスが重複した場合のフォールバック
+        if (signUpError.message?.includes("already registered")) {
+          const retryNickname = `${data.adminNickname}${Date.now()}`;
+          adminEmail = buildGeneratedEmail(data.storeId, retryNickname);
+          const { data: retryData, error: retryError } =
+            await supabase.auth.signUp({
+              email: adminEmail,
+              password: data.adminPassword,
+            });
+          if (retryError || !retryData.user) {
+            throw new Error(`管理者アカウント作成に失敗しました: ${retryError?.message}`);
           }
-        );
-        setTimeout(() => {
-          unsubscribe();
-          resolve();
-        }, 5000);
-      });
+          // 以降retryDataを使用
+          Object.assign(signUpData!, retryData);
+        } else {
+          throw signUpError;
+        }
+      }
 
-      await getIdToken(adminUser, true);
-      await signInWithEmailAndPassword(auth, adminEmail, data.adminPassword);
+      if (!signUpData?.user) {
+        throw new Error("管理者アカウント作成に失敗しました");
+      }
 
-      // 4. Supabase JWT取得
-      await authenticateSupabase();
+      const adminUid = signUpData.user.id;
 
-      // 5. プロフィール更新
-      await updateProfile(adminUser, { displayName: data.adminNickname });
+      // signUpで自動ログインされるのでセッションを確認
+      // (RLSが効くように)
 
-      const supabase = getSupabase();
-
-      // 6. stores テーブルに保存
+      // 3. stores テーブルに保存
       const { error: storeError } = await supabase.from("stores").insert({
         store_id: data.storeId,
         store_name: data.groupName,
-        admin_uid: adminUser.uid,
+        admin_uid: adminUid,
         admin_nickname: data.adminNickname,
         is_active: true,
       });
 
       if (storeError) throw storeError;
 
-      // 7. users テーブルに管理者を保存
+      // 4. users テーブルに管理者を保存
       const hashedPassword = AESEncryption.hashPassword(data.adminPassword);
       const { error: userError } = await supabase.from("users").insert({
-        uid: adminUser.uid,
+        uid: adminUid,
         nickname: data.adminNickname,
         email: adminEmail,
         role: "master",
@@ -155,7 +137,10 @@ export class SupabaseStoreAdapter implements IStoreService {
 
       if (userError) throw userError;
 
-      // 8. 初期メンバー作成
+      // 5. 管理者セッションを保存（メンバー作成のため）
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+      // 6. 初期メンバー作成
       if (data.initialMembers && data.initialMembers.length > 0) {
         for (const member of data.initialMembers) {
           try {
@@ -167,23 +152,29 @@ export class SupabaseStoreAdapter implements IStoreService {
               continue;
             }
 
-            const { user: memberUser, email: memberEmail } =
-              await createUserWithFallbackEmail(
-                data.storeId,
-                member.nickname,
-                member.password
-              );
+            const memberEmail = buildGeneratedEmail(data.storeId, member.nickname);
 
-            await updateProfile(memberUser, { displayName: member.nickname });
+            const { data: memberSignUp, error: memberError } =
+              await supabase.auth.signUp({
+                email: memberEmail,
+                password: member.password,
+              });
 
-            // Supabase JWT再取得（Firebase Authセッション変更のため）
-            await authenticateSupabase();
+            if (memberError || !memberSignUp.user) continue;
+
+            // 管理者セッションを復元（signUpで変わるため）
+            if (adminSession) {
+              await supabase.auth.setSession({
+                access_token: adminSession.access_token,
+                refresh_token: adminSession.refresh_token,
+              });
+            }
 
             const memberHashedPassword = AESEncryption.hashPassword(
               member.password
             );
             await supabase.from("users").insert({
-              uid: memberUser.uid,
+              uid: memberSignUp.user.id,
               nickname: member.nickname,
               email: memberEmail,
               role: member.role,
@@ -199,15 +190,13 @@ export class SupabaseStoreAdapter implements IStoreService {
           }
         }
 
-        // 管理者セッションに戻す
-        if (!auth.currentUser || auth.currentUser.uid !== adminUser.uid) {
+        // 管理者セッションを復元
+        if (adminSession) {
           try {
-            await signInWithEmailAndPassword(
-              auth,
-              adminEmail,
-              data.adminPassword
-            );
-            await authenticateSupabase();
+            await supabase.auth.setSession({
+              access_token: adminSession.access_token,
+              refresh_token: adminSession.refresh_token,
+            });
           } catch (_) {}
         }
       }
@@ -215,16 +204,16 @@ export class SupabaseStoreAdapter implements IStoreService {
       return {
         success: true,
         storeId: data.storeId,
-        adminUid: adminUser.uid,
+        adminUid: adminUid,
         adminEmail: adminEmail,
         message: "グループが正常に作成されました",
       };
     } catch (error: any) {
       let errorMessage = "グループの作成に失敗しました";
 
-      if (error.code === "auth/weak-password") {
+      if (error.message?.includes("weak") || error.message?.includes("password")) {
         errorMessage = "パスワードは6文字以上で入力してください";
-      } else if (error.code === "auth/email-already-in-use") {
+      } else if (error.message?.includes("already")) {
         errorMessage = "この店舗IDは既に使用されています";
       } else if (error.message) {
         errorMessage = error.message;

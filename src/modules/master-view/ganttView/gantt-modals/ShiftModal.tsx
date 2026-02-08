@@ -24,7 +24,7 @@ import {
   ClassTimeSlot,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
-import { MultiStoreService } from "@/services/firebase/firebase-multistore";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 
@@ -105,7 +105,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         const currentUser = localUsers.find((u) => u.uid === user.uid);
         if (!currentUser?.storeId) return;
 
-        const users = await MultiStoreService.getConnectedStoreUsers(
+        const users = await ServiceProvider.multiStore.getConnectedStoreUsers(
           currentUser.storeId
         );
         setConnectedStoreUsers(users);

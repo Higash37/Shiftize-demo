@@ -11,12 +11,8 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { db } from "@/services/firebase/firebase";
 import { ServiceProvider } from "@/services/ServiceProvider";
-import {
-  MultiStoreService,
-  UserStoreAccess,
-} from "@/services/firebase/firebase-multistore";
+import type { UserStoreAccess } from "@/services/interfaces/IMultiStoreService";
 import { StoreConnectionModal } from "@/modules/reusable-widgets/store-connection/StoreConnectionModal";
 import { styles } from "./LayoutHeader.styles";
 import { MasterHeaderProps } from "./LayoutHeader.types";
@@ -24,7 +20,6 @@ import { useAuth } from "@/services/auth/useAuth";
 import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-shift-component/RecruitmentShiftModal";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
 import { LineNotificationModal } from "@/modules/reusable-widgets/line-notification/LineNotificationModal";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 /**
  * MasterHeader - マスター用ヘッダーコンポーネント
@@ -89,7 +84,7 @@ export function MasterHeader({
       }
 
       try {
-        const storeAccess = await MultiStoreService.getUserStoreAccess(
+        const storeAccess = await ServiceProvider.multiStore.getUserStoreAccess(
           user.uid
         );
 
@@ -98,8 +93,8 @@ export function MasterHeader({
           setCurrentStoreInfo(storeAccess.currentStoreId);
         } else {
           // レガシーユーザーの場合は移行処理
-          await MultiStoreService.migrateLegacyUser(user.uid);
-          const migratedAccess = await MultiStoreService.getUserStoreAccess(
+          await ServiceProvider.multiStore.migrateLegacyUser(user.uid);
+          const migratedAccess = await ServiceProvider.multiStore.getUserStoreAccess(
             user.uid
           );
 
@@ -121,22 +116,13 @@ export function MasterHeader({
   useEffect(() => {
     if (!user?.storeId) return;
 
-    const q = query(
-      collection(db, "recruitmentShifts"),
-      where("storeId", "==", user.storeId),
-      where("status", "==", "open")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        setRecruitmentCount(snapshot.size);
+    const unsubscribe = ServiceProvider.recruitmentShifts.onOpenRecruitmentShifts(
+      user.storeId,
+      (shifts) => {
+        setRecruitmentCount(shifts.length);
       },
-      (error) => {
-        // 認証エラーの場合は無視（ログアウト時の正常な動作）
-        if (error.code === "permission-denied") {
-          setRecruitmentCount(0);
-        }
+      () => {
+        setRecruitmentCount(0);
       }
     );
 
@@ -164,7 +150,7 @@ export function MasterHeader({
     if (!user?.uid || !userStoreAccess) return;
 
     try {
-      await MultiStoreService.switchCurrentStore(user.uid, storeId);
+      await ServiceProvider.multiStore.switchCurrentStore(user.uid, storeId);
       setCurrentStoreInfo(storeId);
       setShowStoreSelector(false);
 
@@ -380,7 +366,7 @@ export function MasterHeader({
           if (user?.uid) {
             const fetchUserStoreAccess = async () => {
               try {
-                const storeAccess = await MultiStoreService.getUserStoreAccess(
+                const storeAccess = await ServiceProvider.multiStore.getUserStoreAccess(
                   user.uid
                 );
                 setUserStoreAccess(storeAccess);

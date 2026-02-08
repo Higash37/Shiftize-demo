@@ -8,6 +8,7 @@ import {
   where,
   getDocs,
   getDoc,
+  onSnapshot,
   Timestamp,
   arrayUnion,
 } from "firebase/firestore";
@@ -307,6 +308,73 @@ export class RecruitmentShiftService {
       status,
       updatedAt: Timestamp.now(),
     });
+  }
+
+  /**
+   * IDで募集シフトを取得
+   */
+  static async getRecruitmentShift(shiftId: string): Promise<RecruitmentShift | null> {
+    const docRef = doc(db, RECRUITMENT_SHIFTS_COLLECTION, shiftId);
+    const snapshot = await getDoc(docRef);
+    if (!snapshot.exists()) return null;
+    const data = snapshot.data();
+    return {
+      id: snapshot.id,
+      ...data,
+      createdAt: data['createdAt']?.toDate ? data['createdAt'].toDate() : data['createdAt'],
+      updatedAt: data['updatedAt']?.toDate ? data['updatedAt'].toDate() : data['updatedAt'],
+    } as RecruitmentShift;
+  }
+
+  /**
+   * 店舗の募集中シフト一覧を取得
+   */
+  static async getOpenRecruitmentShifts(storeId: string): Promise<RecruitmentShift[]> {
+    const q = query(
+      collection(db, RECRUITMENT_SHIFTS_COLLECTION),
+      where("storeId", "==", storeId),
+      where("status", "==", "open")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as RecruitmentShift[];
+  }
+
+  /**
+   * 募集中シフトのリアルタイム購読
+   */
+  static onOpenRecruitmentShifts(
+    storeId: string,
+    callback: (shifts: RecruitmentShift[]) => void,
+    onError?: (error: any) => void
+  ): () => void {
+    const q = query(
+      collection(db, RECRUITMENT_SHIFTS_COLLECTION),
+      where("storeId", "==", storeId),
+      where("status", "==", "open")
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const shifts: RecruitmentShift[] = [];
+        snapshot.forEach((doc) => {
+          shifts.push({ id: doc.id, ...doc.data() } as RecruitmentShift);
+        });
+        callback(shifts);
+      },
+      (error) => {
+        if (error.code === "permission-denied") {
+          callback([]);
+          return;
+        }
+        onError?.(error);
+      }
+    );
+
+    return unsubscribe;
   }
 
   /**

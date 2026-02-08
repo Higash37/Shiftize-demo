@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ShiftSubmissionService, ShiftSubmissionPeriod } from "@/services/shift-submission/ShiftSubmissionService";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 
 interface ShiftSubmissionTooltipProps {
   storeId: string;
@@ -30,7 +31,7 @@ export const ShiftSubmissionTooltip: React.FC<ShiftSubmissionTooltipProps> = ({
   const loadActivePeriod = async () => {
     try {
       setLoading(true);
-      const periods = await ShiftSubmissionService.getActivePeriods(storeId);
+      const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(storeId);
       setPeriod(periods && periods.length > 0 ? periods[0] || null : null);
     } catch (error) {
     } finally {
@@ -40,12 +41,12 @@ export const ShiftSubmissionTooltip: React.FC<ShiftSubmissionTooltipProps> = ({
 
   const getDaysUntilDeadline = (): number => {
     if (!period) return 0;
-    return ShiftSubmissionService.getDaysUntilDeadline(period);
+    return ServiceProvider.shiftSubmissions.getDaysUntilDeadline(period);
   };
 
   const isWithinPeriod = (): boolean => {
     if (!period) return false;
-    return ShiftSubmissionService.isWithinPeriod(period);
+    return ServiceProvider.shiftSubmissions.isWithinPeriod(period);
   };
 
   if (!visible) return null;

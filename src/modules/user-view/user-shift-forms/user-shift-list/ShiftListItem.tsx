@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { format } from "date-fns";
@@ -46,12 +44,9 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
 
           // 店舗情報を直接取得
           if (shift.storeId && typeof shift.storeId === "string") {
-            const storeDoc = await getDoc(
-              doc(db, "stores", shift.storeId as string)
-            );
-            if (storeDoc.exists()) {
-              const storeData = storeDoc.data();
-              setStoreName(storeData['storeName'] || storeData['name'] || "他店舗");
+            const storeData = await ServiceProvider.stores.getStore(shift.storeId as string);
+            if (storeData) {
+              setStoreName(storeData.storeName || "他店舗");
             }
           }
         } else {

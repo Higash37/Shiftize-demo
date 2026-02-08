@@ -12,7 +12,7 @@ import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { AntDesign } from "@expo/vector-icons";
 import { colors, typography, shadows } from "@/common/common-constants/ThemeConstants";
-import { MultiStoreService } from "@/services/firebase/firebase-multistore";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 
 interface StoreConnectionModalProps {
@@ -47,7 +47,7 @@ export const StoreConnectionModal: React.FC<StoreConnectionModalProps> = ({
 
     try {
       setLoading(true);
-      const password = await MultiStoreService.generateConnectionPassword(
+      const password = await ServiceProvider.multiStore.generateConnectionPassword(
         currentStoreId,
         user.uid
       );
@@ -71,7 +71,7 @@ export const StoreConnectionModal: React.FC<StoreConnectionModalProps> = ({
 
     try {
       setLoading(true);
-      await MultiStoreService.connectStores(
+      await ServiceProvider.multiStore.connectStores(
         currentStoreId,
         targetStoreId,
         connectionPassword,
@@ -132,7 +132,7 @@ export const StoreConnectionModal: React.FC<StoreConnectionModalProps> = ({
           onPress: async () => {
             try {
               setLoading(true);
-              await MultiStoreService.disconnectStores(
+              await ServiceProvider.multiStore.disconnectStores(
                 currentStoreId,
                 disconnectStoreId,
                 user.uid

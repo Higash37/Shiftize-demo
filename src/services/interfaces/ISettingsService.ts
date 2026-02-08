@@ -8,4 +8,6 @@ export interface ISettingsService {
   resetSettings(defaults: AppSettings): Promise<void>;
 
   onSettingsChanged(callback: (settings: AppSettings | null) => void): () => void;
+
+  onShiftStatusConfigChanged(callback: (configs: Record<string, any> | null) => void): () => void;
 }

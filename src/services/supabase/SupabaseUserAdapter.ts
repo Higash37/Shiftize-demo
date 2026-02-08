@@ -41,7 +41,7 @@ export class SupabaseUserAdapter implements IUserService {
       .from("users")
       .select("*")
       .eq("uid", userId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
 
@@ -123,7 +123,7 @@ export class SupabaseUserAdapter implements IUserService {
           .from("users")
           .select("*")
           .eq("uid", row.original_user_id)
-          .single();
+          .maybeSingle();
 
         if (originalData) {
           return {
@@ -189,7 +189,7 @@ export class SupabaseUserAdapter implements IUserService {
       .from("users")
       .select("*")
       .eq("uid", userId)
-      .single();
+      .maybeSingle();
 
     if (error || !userData) {
       throw new Error("ユーザーが見つかりません");
@@ -264,5 +264,26 @@ export class SupabaseUserAdapter implements IUserService {
       });
       throw error;
     }
+  }
+
+  async getUserFullProfile(userId: string): Promise<{
+    storeId?: string;
+    connectedStores?: string[];
+    [key: string]: any;
+  } | null> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("uid", userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      ...data,
+      storeId: data.store_id,
+      connectedStores: data.connected_stores || [],
+    };
   }
 }

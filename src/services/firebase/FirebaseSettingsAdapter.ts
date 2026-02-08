@@ -42,4 +42,23 @@ export class FirebaseSettingsAdapter implements ISettingsService {
       }
     );
   }
+
+  onShiftStatusConfigChanged(callback: (configs: Record<string, any> | null) => void): () => void {
+    const configRef = doc(db, "settings", "shiftStatus");
+    return onSnapshot(
+      configRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          callback(docSnapshot.data());
+        } else {
+          callback(null);
+        }
+      },
+      (error) => {
+        if (error.code === "permission-denied") {
+          return;
+        }
+      }
+    );
+  }
 }
