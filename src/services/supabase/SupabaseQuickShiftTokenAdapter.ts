@@ -111,7 +111,8 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     try {
       const supabase = getSupabase();
 
-      // RPCが利用可能な場合は原子的に更新（競合回避）
+      // RPC経由で原子的に更新（競合回避）
+      // record_token_usage はDB側で定義必須（supabase/migrations参照）
       const { error: rpcError } = await supabase.rpc("record_token_usage", {
         p_token_id: tokenId,
         p_user_id: userId,
@@ -119,22 +120,8 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
       });
 
       if (rpcError) {
-        // RPCが未定義の場合はSQL関数で原子的に更新
-        const newEntry = JSON.stringify({ userId, usedAt: new Date().toISOString(), shiftId });
-        await supabase.rpc("exec_sql", {
-          query: `UPDATE quick_shift_tokens SET current_uses = current_uses + 1, last_used_at = NOW(), usage_log = COALESCE(usage_log, '[]'::jsonb) || $1::jsonb, updated_at = NOW() WHERE id = $2`,
-          params: [newEntry, tokenId],
-        }).then(({ error: sqlError }) => {
-          // exec_sqlも未定義の場合は最終フォールバック
-          if (sqlError) {
-            return supabase.from("quick_shift_tokens")
-              .update({
-                last_used_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", tokenId);
-          }
-        });
+        console.error("record_token_usage RPC failed:", rpcError.message);
+        throw new Error("トークン使用記録に失敗しました。DB関数 record_token_usage が未定義の可能性があります。");
       }
     } catch (error) {
       console.error("Failed to record token usage:", error);

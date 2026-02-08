@@ -90,19 +90,16 @@ export class SupabaseRecruitmentShiftAdapter implements IRecruitmentShiftService
       status: "pending",
     };
 
-    // RPC経由でjsonb配列に原子的にappend（競合回避）
+    // RPC経由でjsonb配列に原子的にappend（競合回避・二重応募防止）
+    // append_recruitment_application はDB側で定義必須（supabase/migrations参照）
     const { error: rpcError } = await supabase.rpc("append_recruitment_application", {
       p_shift_id: shiftId,
       p_application: newApplication,
     });
 
     if (rpcError) {
-      // RPCが未定義の場合はフォールバック
-      const applications = [...existingApps, newApplication];
-      await supabase
-        .from("recruitment_shifts")
-        .update({ applications, updated_at: new Date().toISOString() })
-        .eq("id", shiftId);
+      console.error("append_recruitment_application RPC failed:", rpcError.message);
+      throw new Error("応募の登録に失敗しました。DB関数が未定義の可能性があります。");
     }
 
     // Create pending shift

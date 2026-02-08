@@ -73,7 +73,7 @@ export class FirebaseShiftAdapter implements IShiftService {
       notes: data["notes"],
       isCompleted: data["isCompleted"] || false,
       status: data["status"] || "draft",
-      duration: data["duration"] || "",
+      duration: typeof data["duration"] === "number" ? data["duration"] : (parseInt(data["duration"]) || 0),
       createdAt: data["createdAt"]?.toDate() || new Date(),
       updatedAt: data["updatedAt"]?.toDate() || new Date(),
       classes: data["classes"] || [],

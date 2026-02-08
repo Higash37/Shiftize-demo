@@ -64,6 +64,8 @@ export class SupabaseStoreAdapter implements IStoreService {
     throw new Error("ユニークな店舗IDの生成に失敗しました");
   }
 
+  // TODO: createGroupはAuth作成→DB挿入の複数ステップで孤児ユーザーリスクがある。
+  // 将来的にSupabase Edge Functionに移行し、service_roleでトランザクション的に処理すべき。
   async createGroup(data: CreateGroupData): Promise<GroupCreationResult> {
     let createdAdminUid: string | null = null;
     try {
