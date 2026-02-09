@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { format } from "date-fns";
-import ja from "date-fns/locale/ja";
+import { ja } from "date-fns/locale/ja";
 
 interface NextShiftWidgetProps {
   nextShift: ShiftItem | null;

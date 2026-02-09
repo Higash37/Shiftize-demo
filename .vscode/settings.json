@@ -75,6 +75,7 @@
     "pids",
     "pkill",
     "playcircleo",
+    "plpgsql",
     "pluscircle",
     "Preact",
     "predeploy",
