@@ -53,7 +53,8 @@
         {
           "locationWhenInUsePermission": "最寄り駅を表示するために位置情報を使用します。"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "tsconfigPaths": true

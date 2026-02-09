@@ -65,7 +65,8 @@
       "mcp__plugin_serena_serena__list_dir",
       "mcp__plugin_serena_serena__think_about_collected_information",
       "WebSearch",
-      "WebFetch(domain:supabase.com)"
+      "WebFetch(domain:supabase.com)",
+      "Bash(gh api repos/Higash37/Shiftize/pulls/130/comments --jq '[.[] | select\\(.created_at > \"\"2026-02-08T14:00:00Z\"\"\\)] | .[] | {path: .path, line: .line, body: .body}')"
     ],
     "deny": [
       "Bash(npm run dev:*)"

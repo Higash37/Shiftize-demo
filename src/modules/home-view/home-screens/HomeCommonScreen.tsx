@@ -6,7 +6,7 @@ import React, { useState, useMemo } from "react";
 import { View, Modal, StyleSheet, useWindowDimensions } from "react-native";
 import { styles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
-import ja from "date-fns/locale/ja";
+import { ja } from "date-fns/locale/ja";
 import { DatePickerModal } from "@/modules/reusable-widgets/calendar/modals/DatePickerModal";
 import { HomeGanttWideScreen } from "./HomeGanttWideScreen";
 import { HomeGanttMobileScreen } from "./HomeGanttMobileScreen";
