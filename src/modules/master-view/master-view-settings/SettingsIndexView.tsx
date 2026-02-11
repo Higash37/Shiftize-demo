@@ -110,6 +110,16 @@ export const SettingsIndexView: React.FC<SettingsIndexViewProps> = ({
           </TouchableOpacity>
           <View style={styles.separator} />
 
+          {/* アカウント連携 */}
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => onNavigate("/(main)/master/master-settings/account-linking")}
+          >
+            <Text style={styles.listText}>アカウント連携</Text>
+            <Text style={{ fontSize: 20, color: '#ccc' }}>›</Text>
+          </TouchableOpacity>
+          <View style={styles.separator} />
+
           {/* アプリバージョン管理 */}
           <TouchableOpacity
             style={styles.listItem}

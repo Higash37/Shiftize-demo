@@ -39,6 +39,15 @@ export interface IAuthService {
 
   createInitialMasterUser(): Promise<void>;
 
+  /** OAuth連携: プロバイダーにリンク */
+  linkOAuthIdentity(provider: "google" | "apple"): Promise<void>;
+
+  /** OAuth連携: 連携済みプロバイダー一覧取得 */
+  getLinkedIdentities(): Promise<Array<{ provider: string; email?: string }>>;
+
+  /** OAuth連携: プロバイダーのリンク解除 */
+  unlinkOAuthIdentity(provider: "google" | "apple"): Promise<void>;
+
   /** Access to the underlying auth state (for onAuthStateChanged, currentUser, etc.) */
   getCurrentUser(): { uid: string; email: string | null; displayName: string | null } | null;
 
