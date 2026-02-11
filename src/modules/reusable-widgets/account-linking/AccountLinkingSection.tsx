@@ -66,6 +66,15 @@ export const AccountLinkingSection: React.FC = () => {
           onPress: async () => {
             setActionLoading(provider);
             try {
+              // Google解除時はカレンダーデータもクリア
+              if (provider === "google") {
+                const currentUser = ServiceProvider.auth.getCurrentUser();
+                if (currentUser) {
+                  await ServiceProvider.googleCalendar
+                    .clearCalendarData(currentUser.uid)
+                    .catch(() => {});
+                }
+              }
               await ServiceProvider.auth.unlinkOAuthIdentity(provider);
               await loadIdentities();
             } catch (error: any) {

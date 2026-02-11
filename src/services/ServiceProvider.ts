@@ -10,6 +10,7 @@ import type { ITeacherStatusService } from "./interfaces/ITeacherStatusService";
 import type { IShiftSubmissionService } from "./interfaces/IShiftSubmissionService";
 import type { IRecruitmentShiftService } from "./interfaces/IRecruitmentShiftService";
 import type { IMultiStoreService } from "./interfaces/IMultiStoreService";
+import type { IGoogleCalendarService } from "./interfaces/IGoogleCalendarService";
 
 class ServiceProviderImpl {
   private _auth: IAuthService | null = null;
@@ -24,6 +25,7 @@ class ServiceProviderImpl {
   private _shiftSubmissions: IShiftSubmissionService | null = null;
   private _recruitmentShifts: IRecruitmentShiftService | null = null;
   private _multiStore: IMultiStoreService | null = null;
+  private _googleCalendar: IGoogleCalendarService | null = null;
 
   // --- Auth ---
   get auth(): IAuthService {
@@ -131,6 +133,15 @@ class ServiceProviderImpl {
   }
   setMultiStoreService(service: IMultiStoreService): void {
     this._multiStore = service;
+  }
+
+  // --- GoogleCalendar ---
+  get googleCalendar(): IGoogleCalendarService {
+    if (!this._googleCalendar) throw new Error("GoogleCalendarService not initialized.");
+    return this._googleCalendar;
+  }
+  setGoogleCalendarService(service: IGoogleCalendarService): void {
+    this._googleCalendar = service;
   }
 }
 

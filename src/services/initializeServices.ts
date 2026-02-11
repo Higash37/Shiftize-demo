@@ -13,6 +13,7 @@ import { SupabaseTeacherStatusAdapter } from "./supabase/SupabaseTeacherStatusAd
 import { SupabaseShiftSubmissionAdapter } from "./supabase/SupabaseShiftSubmissionAdapter";
 import { SupabaseRecruitmentShiftAdapter } from "./supabase/SupabaseRecruitmentShiftAdapter";
 import { SupabaseMultiStoreAdapter } from "./supabase/SupabaseMultiStoreAdapter";
+import { GoogleCalendarSyncService } from "./google-calendar/GoogleCalendarSyncService";
 
 let initialized = false;
 
@@ -31,6 +32,7 @@ export function initializeServices(): void {
   ServiceProvider.setShiftSubmissionService(new SupabaseShiftSubmissionAdapter());
   ServiceProvider.setRecruitmentShiftService(new SupabaseRecruitmentShiftAdapter());
   ServiceProvider.setMultiStoreService(new SupabaseMultiStoreAdapter());
+  ServiceProvider.setGoogleCalendarService(new GoogleCalendarSyncService());
 
   initialized = true;
 }
