@@ -149,7 +149,32 @@ export const useAuth = () => {
   useEffect(() => {
     const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // OAuth連携完了時: USER_UPDATED イベントでreal_emailを保存
+        if (event === "USER_UPDATED" && session?.user) {
+          const identities = session.user.identities ?? [];
+          const oauthIdentity = identities.find(
+            (id) => id.provider === "google" || id.provider === "apple"
+          );
+          if (oauthIdentity) {
+            const oauthEmail = oauthIdentity.identity_data?.['email'] as string | undefined;
+            if (oauthEmail) {
+              try {
+                await supabase
+                  .from("users")
+                  .update({
+                    real_email: oauthEmail,
+                    oauth_provider: oauthIdentity.provider,
+                    oauth_linked_at: new Date().toISOString(),
+                  })
+                  .eq("uid", session.user.id);
+              } catch (_) {
+                // OAuth連携のDB更新失敗はサイレントに処理
+              }
+            }
+          }
+        }
+
         if (session?.user) {
           try {
             // ServiceProvider経由でユーザー情報取得

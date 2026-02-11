@@ -437,6 +437,66 @@ export class SupabaseAuthAdapter implements IAuthService {
   }
 
   /**
+   * OAuth連携: プロバイダーにリンク（ブラウザリダイレクト型）
+   */
+  async linkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
+    const supabase = getSupabase();
+    const options: { redirectTo?: string } =
+      typeof window !== "undefined" ? { redirectTo: window.location.origin } : {};
+    const { error } = await supabase.auth.linkIdentity({ provider, options });
+    if (error) {
+      throw new Error(`OAuth連携に失敗しました: ${error.message}`);
+    }
+  }
+
+  /**
+   * OAuth連携: 連携済みプロバイダー一覧を取得
+   */
+  async getLinkedIdentities(): Promise<Array<{ provider: string; email?: string }>> {
+    const supabase = getSupabase();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return [];
+
+    return (user.identities ?? []).map((identity) => {
+      const email = identity.identity_data?.['email'] as string | undefined;
+      const result: { provider: string; email?: string } = { provider: identity.provider };
+      if (email) result.email = email;
+      return result;
+    });
+  }
+
+  /**
+   * OAuth連携: プロバイダーのリンク解除 + real_email クリア
+   */
+  async unlinkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
+    const supabase = getSupabase();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error("ユーザー情報を取得できません");
+    }
+
+    const identity = user.identities?.find((id) => id.provider === provider);
+    if (!identity) {
+      throw new Error(`${provider}は連携されていません`);
+    }
+
+    const { error } = await supabase.auth.unlinkIdentity(identity);
+    if (error) {
+      throw new Error(`連携解除に失敗しました: ${error.message}`);
+    }
+
+    // usersテーブルの real_email, oauth_provider, oauth_linked_at をクリア
+    await supabase
+      .from("users")
+      .update({
+        real_email: null,
+        oauth_provider: null,
+        oauth_linked_at: null,
+      })
+      .eq("uid", user.id);
+  }
+
+  /**
    * 現在のSupabaseユーザーを取得
    */
   getCurrentUser(): {

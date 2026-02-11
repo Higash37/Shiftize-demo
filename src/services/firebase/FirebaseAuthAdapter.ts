@@ -58,6 +58,18 @@ export class FirebaseAuthAdapter implements IAuthService {
     return AuthService.createInitialMasterUser();
   }
 
+  async linkOAuthIdentity(_provider: "google" | "apple"): Promise<void> {
+    throw new Error("OAuth連携はSupabase環境でのみ利用可能です");
+  }
+
+  async getLinkedIdentities(): Promise<Array<{ provider: string; email?: string }>> {
+    return [];
+  }
+
+  async unlinkOAuthIdentity(_provider: "google" | "apple"): Promise<void> {
+    throw new Error("OAuth連携解除はSupabase環境でのみ利用可能です");
+  }
+
   getCurrentUser(): { uid: string; email: string | null; displayName: string | null } | null {
     const user = auth.currentUser;
     if (!user) return null;

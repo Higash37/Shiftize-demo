@@ -12,8 +12,12 @@ import { Header } from "@/common/common-ui/ui-layout";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 
 // LineAuthModalを遅延読み込み
-const LineAuthModal = lazy(() => 
+const LineAuthModal = lazy(() =>
   import("@/modules/reusable-widgets/line-integration/LineAuthModal").then(module => ({ default: module.LineAuthModal }))
+);
+// AccountLinkingSectionを遅延読み込み
+const AccountLinkingSection = lazy(() =>
+  import("@/modules/reusable-widgets/account-linking/AccountLinkingSection").then(module => ({ default: module.AccountLinkingSection }))
 );
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
@@ -114,6 +118,11 @@ export default function SettingsPage() {
               </View>
             </View>
           </View>
+
+          {/* アカウント連携セクション */}
+          <Suspense fallback={null}>
+            <AccountLinkingSection />
+          </Suspense>
 
           {/* 設定項目セクション */}
           <View style={styles.section}>
