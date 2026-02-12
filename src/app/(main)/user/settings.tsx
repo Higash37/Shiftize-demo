@@ -19,6 +19,10 @@ const LineAuthModal = lazy(() =>
 const AccountLinkingSection = lazy(() =>
   import("@/modules/reusable-widgets/account-linking/AccountLinkingSection").then(module => ({ default: module.AccountLinkingSection }))
 );
+// CalendarSyncToggleを遅延読み込み
+const CalendarSyncToggle = lazy(() =>
+  import("@/modules/reusable-widgets/calendar-sync/CalendarSyncToggle").then(module => ({ default: module.CalendarSyncToggle }))
+);
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
@@ -123,6 +127,13 @@ export default function SettingsPage() {
           <Suspense fallback={null}>
             <AccountLinkingSection />
           </Suspense>
+
+          {/* Googleカレンダー同期セクション */}
+          {user?.uid && (
+            <Suspense fallback={null}>
+              <CalendarSyncToggle uid={user.uid} />
+            </Suspense>
+          )}
 
           {/* 設定項目セクション */}
           <View style={styles.section}>

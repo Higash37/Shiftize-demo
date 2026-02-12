@@ -121,6 +121,7 @@ export interface Shift extends BaseShift {
   createdAt?: Date;
   updatedAt?: Date;
   duration?: number;
+  googleCalendarEventId?: string;
   classes?: Array<ClassTimeSlot>;
   requestedChanges?: Array<{
     startTime: string;
@@ -194,6 +195,7 @@ export interface ShiftItem {
   duration: string;
   createdAt: Date;
   updatedAt: Date;
+  googleCalendarEventId?: string;
   classes?: Array<ClassTimeSlot>;
   requestedChanges?: {
     startTime?: string;

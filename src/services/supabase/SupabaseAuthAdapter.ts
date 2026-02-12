@@ -497,6 +497,38 @@ export class SupabaseAuthAdapter implements IAuthService {
   }
 
   /**
+   * Google OAuth再認証（Calendarスコープ付き）
+   * 既にGoogle連携済みのユーザーに対して、Calendarスコープで再認証。
+   * signInWithOAuth を使用（linkIdentity はセッション破壊の問題あり）。
+   * access_type=offline で refresh_token を確実に取得。
+   * prompt=consent で再同意を強制（スコープ追加時に必要）。
+   */
+  async linkGoogleWithCalendarScope(): Promise<void> {
+    const supabase = getSupabase();
+    const options: {
+      scopes: string;
+      redirectTo?: string;
+      queryParams: Record<string, string>;
+    } = {
+      scopes: "https://www.googleapis.com/auth/calendar",
+      queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      };
+    if (typeof window !== "undefined") {
+      options.redirectTo = window.location.href;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options,
+    });
+    if (error) {
+      throw new Error(`Google Calendar連携に失敗しました: ${error.message}`);
+    }
+  }
+
+  /**
    * 現在のSupabaseユーザーを取得
    */
   getCurrentUser(): {

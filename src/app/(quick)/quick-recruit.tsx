@@ -168,7 +168,7 @@ export default function QuickRecruitPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContent}>
-          <AntDesign name="closecircle" size={48} color={colors.error} />
+          <AntDesign name="close-circle" size={48} color={colors.error} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
             style={styles.backButton}

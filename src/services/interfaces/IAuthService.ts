@@ -48,6 +48,9 @@ export interface IAuthService {
   /** OAuth連携: プロバイダーのリンク解除 */
   unlinkOAuthIdentity(provider: "google" | "apple"): Promise<void>;
 
+  /** Google OAuth連携（Calendarスコープ付き） */
+  linkGoogleWithCalendarScope(): Promise<void>;
+
   /** Access to the underlying auth state (for onAuthStateChanged, currentUser, etc.) */
   getCurrentUser(): { uid: string; email: string | null; displayName: string | null } | null;
 

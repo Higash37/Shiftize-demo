@@ -70,6 +70,10 @@ export class FirebaseAuthAdapter implements IAuthService {
     throw new Error("OAuth連携解除はSupabase環境でのみ利用可能です");
   }
 
+  async linkGoogleWithCalendarScope(): Promise<void> {
+    throw new Error("Google Calendar連携はSupabase環境でのみ利用可能です");
+  }
+
   getCurrentUser(): { uid: string; email: string | null; displayName: string | null } | null {
     const user = auth.currentUser;
     if (!user) return null;

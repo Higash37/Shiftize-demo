@@ -12,6 +12,7 @@ import {
   logShiftChange,
   determineActionType,
 } from "@/services/shift-history/shiftHistoryLogger";
+import { ServiceProvider } from "../ServiceProvider";
 
 const toShiftItemFromRow = (row: any): ShiftItem => ({
   id: row.id,
@@ -31,6 +32,7 @@ const toShiftItemFromRow = (row: any): ShiftItem => ({
   updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   classes: row.classes || [],
   requestedChanges: row.requested_changes || undefined,
+  googleCalendarEventId: row.google_calendar_event_id || undefined,
 });
 
 const toShiftFromRow = (row: any): Shift => ({
@@ -51,6 +53,7 @@ const toShiftFromRow = (row: any): Shift => ({
   updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   classes: row.classes || [],
   requestedChanges: row.requested_changes || undefined,
+  googleCalendarEventId: row.google_calendar_event_id || undefined,
 });
 
 const toInsertRow = (shift: Omit<Shift, "id"> & { id?: string }) => {
@@ -208,6 +211,13 @@ export class SupabaseShiftAdapter implements IShiftService {
       await logShiftChange(action, actor, next.storeId, next as any, undefined);
     }
 
+    // Google Calendar同期 (fire-and-forget)
+    if (shift.status === "approved") {
+      ServiceProvider.googleCalendar
+        .syncShiftToCalendar({ id: shiftId, ...shift } as any)
+        .catch(() => {});
+    }
+
     return shiftId;
   }
 
@@ -247,6 +257,12 @@ export class SupabaseShiftAdapter implements IShiftService {
         );
       }
     }
+
+    // Google Calendar同期 (fire-and-forget)
+    const merged = { ...previousData, ...shift, id } as any;
+    ServiceProvider.googleCalendar
+      .syncShiftToCalendar(merged)
+      .catch(() => {});
   }
 
   async markShiftAsDeleted(
@@ -282,6 +298,13 @@ export class SupabaseShiftAdapter implements IShiftService {
           );
         }
       } catch (_) {}
+    }
+
+    // Google Calendarイベント削除 (fire-and-forget)
+    if (shiftData?.googleCalendarEventId) {
+      ServiceProvider.googleCalendar
+        .removeShiftFromCalendar(id, shiftData.googleCalendarEventId)
+        .catch(() => {});
     }
 
     // 削除
@@ -365,6 +388,20 @@ export class SupabaseShiftAdapter implements IShiftService {
           );
         }
       } catch (_) {}
+    }
+
+    // Google Calendar同期: 承認時にイベント作成 (fire-and-forget)
+    if (isPendingToApproved || hasRequestedChanges) {
+      const { data: updatedRow } = await supabase
+        .from("shifts")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (updatedRow) {
+        ServiceProvider.googleCalendar
+          .syncShiftToCalendar(toShiftFromRow(updatedRow) as any)
+          .catch(() => {});
+      }
     }
 
     // 監査ログ

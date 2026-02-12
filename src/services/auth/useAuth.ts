@@ -150,6 +150,25 @@ export const useAuth = () => {
     const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Google Calendar連携: どのイベントでもprovider_tokenがあれば保存
+        if (session?.user && (session as any).provider_token) {
+          const identities = session.user.identities ?? [];
+          const googleIdentity = identities.find((id) => id.provider === "google");
+          if (googleIdentity) {
+            const providerToken = (session as any).provider_token;
+            const providerRefreshToken = (session as any).provider_refresh_token;
+            try {
+              await ServiceProvider.googleCalendar.saveOAuthTokens(
+                session.user.id,
+                providerToken,
+                providerRefreshToken || ""
+              );
+            } catch (_) {
+              // トークン保存失敗はサイレントに処理
+            }
+          }
+        }
+
         // OAuth連携完了時: USER_UPDATED イベントでreal_emailを保存
         if (event === "USER_UPDATED" && session?.user) {
           const identities = session.user.identities ?? [];
