@@ -57,16 +57,16 @@ export const changelogEntries: ChangelogEntry[] = [
     date: "2025-01-30",
     category: "improvement",
     type: "minor",
-    title: "Firebase query and cost tuning",
+    title: "Database query and cost tuning",
     description:
-      "Rebalanced Firestore indexes and caching to cut cold-start latency and daily quota usage.",
+      "Rebalanced indexes and caching to cut cold-start latency and daily quota usage.",
     changes: [
       "Optimised compound indexes for roster documents",
       "Reduced redundant server-side aggregations",
       "Improved deployment scripts and smoke checks",
       "Trimmed overall read/write costs",
     ],
-    impact: "Schedules load faster and monthly Firebase spend decreased noticeably.",
+    impact: "Schedules load faster and monthly database spend decreased noticeably.",
     status: "released",
   },
   {

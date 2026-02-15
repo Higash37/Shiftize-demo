@@ -8,12 +8,12 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 /**
  * ファイル機能は現在凍結中です
  * 理由: 使用率が低いため
- * 将来的な移行予定: Firebase Storage → Supabase Storage
+ * 将来的な予定: Supabase Storageで再実装
  *
  * ファイル・フォルダ構造は保持されており、将来の再開に備えています
  */
 export default function MasterFilesScreen() {
-  // ファイル機能凍結中 - Firebase Storageへのアクセスを防止
+  // ファイル機能凍結中
   // return <FileManagerView hideHeader={false} showBreadcrumbs={true} />;
 
   return (

@@ -185,15 +185,6 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
               <Text style={getButtonTextStyle("toolbar")}>履歴</Text>
             </TouchableOpacity>
           )}
-          {props.onQuickUrlPress && (
-            <TouchableOpacity
-              style={getButtonStyle("toolbar")}
-              onPress={props.onQuickUrlPress}
-            >
-              <MaterialIcons name="link" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
-              <Text style={getButtonTextStyle("toolbar")}>URL発行</Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
 

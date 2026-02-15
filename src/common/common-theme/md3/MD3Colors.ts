@@ -276,7 +276,7 @@ export const lightColorScheme: MD3ColorScheme = {
     pending: "#FF9F0A",
     approved: "#0A84FF",
     rejected: "#FF3B30",
-    deleted: "#FFFFFF",
+    deleted: "#1C1C1E",
     completed: "#34C759",
     deletion_requested: "#FF9F0A",
     purged: "#FFFFFF",

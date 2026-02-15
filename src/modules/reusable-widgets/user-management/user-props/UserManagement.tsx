@@ -51,7 +51,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
     // 削除処理は実際には実装しないでダミー実装とする
     setLoading(true);
     try {
-      // 実際にFirebaseからユーザーを削除する処理が入る
+      // 実際にSupabaseからユーザーを削除する処理が入る
 
       // 削除後に一覧を更新
       setUserList(userList.filter((user: User) => user.uid !== userId));

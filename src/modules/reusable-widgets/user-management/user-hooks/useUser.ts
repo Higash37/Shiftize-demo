@@ -102,7 +102,7 @@ export const useUser = (storeId?: string) => {
           console.warn(
             "⚠️ [useUser.addUser] Email check timed out, proceeding anyway",
           );
-          // タイムアウトの場合は処理を継続（重複の可能性はあるがFirebase Authでエラーになる）
+          // タイムアウトの場合は処理を継続（重複の可能性はあるがSupabase Authでエラーになる）
         } else {
           throw emailCheckError;
         }

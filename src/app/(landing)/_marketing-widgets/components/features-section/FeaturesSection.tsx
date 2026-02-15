@@ -64,9 +64,9 @@ export const FeaturesSection: React.FC = () => {
     {
       icon: "flash-on",
       title: "リアルタイム同期",
-      description: "Firebase連携による即座のデータ反映",
+      description: "Supabase連携による即座のデータ反映",
       details: [
-        "Firebase連携",
+        "Supabase Realtime連携",
         "即時データ反映",
         "オフライン対応",
         "リアルタイム通知",

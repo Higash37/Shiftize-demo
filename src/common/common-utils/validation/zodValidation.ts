@@ -31,7 +31,7 @@ export const ApiResponseSchema = z.object({
 });
 
 /**
- * Firebase Authレスポンス
+ * Supabase Authレスポンス
  */
 export const AuthResponseSchema = z.object({
   user: z.object({

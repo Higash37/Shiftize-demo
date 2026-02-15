@@ -236,9 +236,9 @@ const Screenshots = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span className="text-orange-600 font-bold text-sm">🔥</span>
+                <span className="text-green-600 font-bold text-sm">⚡</span>
               </div>
-              <span className="text-black/80 font-medium">Firebase</span>
+              <span className="text-black/80 font-medium">Supabase</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
