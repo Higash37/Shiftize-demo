@@ -12,6 +12,7 @@ export default function GanttEditScreen() {
   const {
     shifts,
     fetchShiftsByMonth,
+    refetch,
     loading: shiftsLoading,
     error: shiftsError,
   } = useShiftsRealtime(user?.storeId);
@@ -39,8 +40,7 @@ export default function GanttEditScreen() {
   };
 
   const handleShiftUpdate = async () => {
-    // リアルタイムリスナーで自動更新されるため、何もしない
-    // コールバックの互換性のため関数は残す
+    await refetch();
   };
 
   // リアルタイムリスナーで自動更新されるため、refreshPageは不要

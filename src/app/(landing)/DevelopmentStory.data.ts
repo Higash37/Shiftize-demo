@@ -29,9 +29,9 @@ export const developmentPhases: DevelopmentPhase[] = [
     color: colors.success,
     backgroundColor: "rgba(52, 199, 89, 0.12)",
     description:
-      "Evaluated architecture options and confirmed the React Native + Firebase stack for rapid delivery.",
+      "Evaluated architecture options and confirmed the React Native + Supabase stack for rapid delivery.",
     achievements: [
-      "Finalised React Native + Firebase architecture",
+      "Finalised React Native + Supabase architecture",
       "Designed reusable component strategy",
       "Drafted data retention roadmap",
       "Forecasted security and compliance tasks",
@@ -51,7 +51,7 @@ export const developmentPhases: DevelopmentPhase[] = [
       "Delivered the Gantt scheduling suite, attendance tooling, and payroll integrations.",
     achievements: [
       "Launched drag-and-drop Gantt board",
-      "Integrated Firebase Authentication",
+      "Integrated Supabase Authentication",
       "Shipped payroll-ready analytics",
       "Automated staff onboarding flows",
     ],
@@ -113,10 +113,10 @@ export const learningCurve: SkillGrowth[] = [
     description: "Adopted strict typing and advanced generics across the codebase.",
   },
   {
-    skill: "Firebase",
+    skill: "Supabase",
     before: 10,
     after: 88,
-    description: "Gained production experience with security rules and scalable models.",
+    description: "Gained production experience with RLS policies and scalable models.",
   },
   {
     skill: "UI/UX Design",

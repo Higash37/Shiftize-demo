@@ -44,24 +44,9 @@ export const architectureData: ArchitectureSections = {
         title: "バックエンド・データベース",
         items: [
           {
-            name: "Firebase Firestore",
-            version: "v10",
-            description: "リアルタイムNoSQLデータベース",
-          },
-          {
-            name: "Firebase Auth",
-            version: "v10",
-            description: "認証・ユーザー管理システム",
-          },
-          {
-            name: "Firebase Storage",
-            version: "v10",
-            description: "ファイル・画像ストレージサービス",
-          },
-          {
-            name: "Firebase Functions",
-            version: "v4",
-            description: "サーバーレス関数実行環境",
+            name: "Supabase",
+            version: "v2",
+            description: "PostgreSQLベースのBaaS（認証・DB・ストレージ統合）",
           },
         ],
       },
@@ -128,9 +113,9 @@ export const featuresData: FeatureSpecification[] = [
       },
       {
         category: "リアルタイム機能",
-        description: "Firebase連携による即時データ同期",
+        description: "Supabase連携による即時データ同期",
         specifications: [
-          "リアルタイム更新: Firestoreリスナーによる即時データ反映",
+          "リアルタイム更新: Supabase Realtimeによる即時データ反映",
           "オフライン対応: ネットワーク断絶時のローカルキャッシュ",
           "プッシュ通知: シフト変更・承認・却下の即時通知",
           "同期制御: 複数ユーザー同時編集時の競合解決",
@@ -167,7 +152,7 @@ export const securityData: SecuritySpecification[] = [
         level: "エンタープライズ級",
         tone: "primary",
         specifications: [
-          "Firebase Security Rules: 店舗分離＋ロールベースアクセス制御",
+          "Supabase RLS: 店舗分離＋ロールベースアクセス制御",
           "入力値検証: XSS・SQLインジェクション対策",
           "CSRF保護: クロスサイトリクエスト偽造対策",
           "セッション管理: 安全なセッション管理・自動無効化",

@@ -31,7 +31,6 @@ export const UserForm: React.FC<UserFormProps> = ({
 }) => {
   const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
   const { width } = useWindowDimensions();
-  const [email, setEmail] = useState(initialData?.email || ""); // メールアドレス（任意）
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
   const [role, setRole] = useState<"master" | "user">(
@@ -41,9 +40,6 @@ export const UserForm: React.FC<UserFormProps> = ({
   const [hasMaster, setHasMaster] = useState(false);
   const [color, setColor] = useState<string>(
     () => initialData?.color ?? PRESET_COLORS[0] ?? "#4A90E2",
-  );
-  const [hourlyWage, setHourlyWage] = useState<string>(
-    initialData?.hourlyWage?.toString() || "",
   );
   const [colorPickerVisible, setColorPickerVisible] = useState(false);
 
@@ -68,7 +64,6 @@ export const UserForm: React.FC<UserFormProps> = ({
   // 初期データが変更された時の更新
   useEffect(() => {
     if (initialData) {
-      setEmail(initialData.email || "");
       setNickname(initialData.nickname ?? "");
       setRole(initialData.role);
       setPassword("");
@@ -77,7 +72,6 @@ export const UserForm: React.FC<UserFormProps> = ({
       } else {
         setColor(PRESET_COLORS[0] ?? "#4A90E2");
       }
-      setHourlyWage(initialData.hourlyWage?.toString() || "");
     }
   }, [initialData]);
 
@@ -101,35 +95,27 @@ export const UserForm: React.FC<UserFormProps> = ({
       return;
     }
 
-    // メールアドレスのバリデーション（入力されている場合のみ）
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("有効なメールアドレスを入力してください");
-      return;
-    }
-
     try {
       setError(null);
 
-      // メールアドレスを安全に生成（Unicodeの文字/数字は維持）
+      // メールアドレスを安全に自動生成（Unicodeの文字/数字は維持）
       const sanitizeForEmail = (str: string) =>
         str
           .normalize("NFKC")
           .replace(/\s+/g, "")
           .replace(/[^\p{L}\p{N}]/gu, "")
           .toLowerCase();
-      const autoEmail =
-        email ||
-        `${sanitizeForEmail(currentUser.storeId || "store")}${sanitizeForEmail(
-          nickname,
-        )}@example.com`;
+      const autoEmail = `${sanitizeForEmail(currentUser.storeId || "store")}${sanitizeForEmail(
+        nickname,
+      )}@example.com`;
 
       const formData: any = {
         email: autoEmail,
         password: password || "defaultPassword123",
         nickname,
         role: isMasterEdit ? "master" : role,
-        storeId: currentUser.storeId || "", // 現在のユーザーのstoreIdを自動設定
-        hourlyWage: hourlyWage ? parseFloat(hourlyWage) : 1000,
+        storeId: currentUser.storeId || "",
+        hourlyWage: 1000,
       };
 
       if (color) {
@@ -139,7 +125,6 @@ export const UserForm: React.FC<UserFormProps> = ({
       await onSubmit(formData);
 
       if (mode === "add") {
-        setEmail("");
         setPassword("");
         setNickname("");
         setRole("user");
@@ -178,40 +163,6 @@ export const UserForm: React.FC<UserFormProps> = ({
           onChangeText={setNickname}
           placeholder="山田 太郎"
           error={!nickname ? "ニックネームを入力してください" : ""}
-        />
-
-        <Input
-          label="メールアドレス（任意）"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="example@email.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          error={
-            email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-              ? "有効なメールアドレスを入力してください"
-              : ""
-          }
-        />
-
-        {!email && (
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoText}>
-              メールアドレスを入力しない場合、安全な形式で自動生成されます
-            </Text>
-          </View>
-        )}
-
-        <Input
-          label="時給（円）"
-          value={hourlyWage}
-          onChangeText={(text) => {
-            // 数字のみ許可
-            const numericValue = text.replace(/[^0-9]/g, "");
-            setHourlyWage(numericValue);
-          }}
-          placeholder="1000"
-          keyboardType="numeric"
         />
 
         {/* 講師色選択セクション */}

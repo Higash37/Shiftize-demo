@@ -199,7 +199,7 @@ export class SupabaseUserAdapter implements IUserService {
       throw new Error("実際のメールアドレスは既に設定されています");
     }
 
-    // 3-6 は Firebase Auth側の操作が必要 → SupabaseAuthAdapter.createSecondaryEmailAccount を呼ぶ
+    // 3-6 は Supabase Auth側の操作が必要 → SupabaseAuthAdapter.createSecondaryEmailAccount を呼ぶ
     // AuthAdapter経由で行うため、ここではDB更新のみ
     // 注意: 実際にはAuthAdapterからこのメソッドは呼ばれず、
     // AuthAdapter.createSecondaryEmailAccount内でDB更新も行われる

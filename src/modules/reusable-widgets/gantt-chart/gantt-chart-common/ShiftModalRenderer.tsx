@@ -127,16 +127,22 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
   const handleDeleteShift = useCallback(async () => {
     if (!editingShift) return;
 
-    const shiftId = editingShift.id;
+    try {
+      const shiftId = editingShift.id;
 
-    const targetShift = editingShift || shifts.find((s) => s.id === shiftId);
-    if (targetShift) {
-      await deleteShift(targetShift);
-    } else {
-      await updateShiftStatus(shiftId, "deleted");
+      const targetShift = editingShift || shifts.find((s) => s.id === shiftId);
+      if (targetShift) {
+        await deleteShift(targetShift);
+      } else {
+        await updateShiftStatus(shiftId, "deleted");
+      }
+
+      setShowEditModal(false);
+      setEditingShift(null);
+      setNewShiftData(DEFAULT_SHIFT_DATA);
+    } catch (error) {
+      Alert.alert("エラー", "シフトの削除に失敗しました。");
     }
-
-    setShowEditModal(false);
   }, [editingShift, deleteShift, updateShiftStatus, shifts]);
 
   const handleEditChange = useCallback(

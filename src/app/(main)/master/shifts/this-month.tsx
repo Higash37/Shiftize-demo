@@ -21,7 +21,7 @@ export default function MasterThisMonthShiftScreen() {
     month: INITIAL_MONTH,
   });
 
-  const { shifts, changeMonth } = useShiftsByMonth(
+  const { shifts, changeMonth, refetch } = useShiftsByMonth(
     user?.storeId,
     currentYearMonth.year,
     currentYearMonth.month
@@ -46,7 +46,7 @@ export default function MasterThisMonthShiftScreen() {
   };
 
   const handleShiftUpdate = async () => {
-    // リアルタイムリスナーで自動更新されるため、何もしない
+    await refetch();
   };
 
   const handleShiftPress = (shift: ShiftData) => {

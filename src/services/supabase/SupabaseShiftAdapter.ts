@@ -239,10 +239,13 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
 
     // Google Calendar同期 (fire-and-forget)
+    // 承認済み or カレンダーイベントIDがある場合のみ同期/削除を試行
     const merged = { ...previousData, ...shift, id } as any;
-    ServiceProvider.googleCalendar
-      .syncShiftToCalendar(merged)
-      .catch(() => {});
+    if (merged.status === "approved" || merged.googleCalendarEventId) {
+      ServiceProvider.googleCalendar
+        .syncShiftToCalendar(merged)
+        .catch(() => {});
+    }
   }
 
   async markShiftAsDeleted(
@@ -444,6 +447,19 @@ export class SupabaseShiftAdapter implements IShiftService {
     return this.getShiftsFromMultipleStores(accessibleStoreIds);
   }
 
+  async getShiftItems(storeId: string): Promise<ShiftItem[]> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("shifts")
+      .select("*")
+      .eq("store_id", storeId)
+      .order("date", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map(toShiftItemFromRow);
+  }
+
   onShiftsChanged(
     storeId: string,
     callback: (shifts: ShiftItem[]) => void,
@@ -504,6 +520,28 @@ export class SupabaseShiftAdapter implements IShiftService {
         supabase.removeChannel(channel).catch(() => {});
       }
     };
+  }
+
+  async getShiftsByMonth(
+    storeId: string,
+    year: number,
+    month: number
+  ): Promise<ShiftItem[]> {
+    const supabase = getSupabase();
+    const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
+
+    const { data, error } = await supabase
+      .from("shifts")
+      .select("*")
+      .eq("store_id", storeId)
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("date", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map(toShiftItemFromRow);
   }
 
   onShiftsByMonth(

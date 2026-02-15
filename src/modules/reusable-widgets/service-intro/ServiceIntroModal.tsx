@@ -182,7 +182,7 @@ export function ServiceIntroModal({
                     3年生・次年度休学予定
                   </Text>
                   <Text style={styles.developerTech}>
-                    React Native × TypeScript × Firebase
+                    React Native × TypeScript × Supabase
                   </Text>
                 </View>
               </View>

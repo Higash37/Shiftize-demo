@@ -25,9 +25,9 @@ import { EditShiftModalView } from "@/modules/reusable-widgets/gantt-chart/view-
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
-import ganttStyles from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
+import { createGanttChartMonthViewStyles } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
-import { MaterialIcons } from "@expo/vector-icons";
 
 interface MasterShiftListViewProps {
   targetMonth: "this" | "next"; // 今月または来月
@@ -47,6 +47,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     shifts,
     loading: shiftsLoading,
     changeMonth,
+    refetch,
   } = useShiftsByMonth(user?.storeId, initialDate.getFullYear(), initialDate.getMonth());
   const { users } = useUsers(user?.storeId);
   const [selectedDate, setSelectedDate] = useState("");
@@ -59,6 +60,13 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shiftPositionsRef = useRef<Record<string, number>>({});
   const { width } = useWindowDimensions();
+
+  // ガントチャートスタイル（MD3テーマ対応）+ モバイル用幅オーバーライド
+  const ganttBaseStyles = useThemedStyles(createGanttChartMonthViewStyles);
+  const mobileGanttStyles = useMemo(() => ({
+    ...ganttBaseStyles,
+    modalContent: [ganttBaseStyles.modalContent, { width: "90%", maxWidth: 500 }],
+  }), [ganttBaseStyles]);
 
   // 編集モーダル用の状態
   const [showEditModal, setShowEditModal] = useState(false);
@@ -93,8 +101,13 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     return options;
   }, []);
 
-  // ステータス設定
-  const statusConfigs = DEFAULT_SHIFT_STATUS_CONFIG;
+  // ステータス設定（削除済み・purgedはピッカーから除外）
+  const statusConfigs = useMemo(
+    () => DEFAULT_SHIFT_STATUS_CONFIG.filter(
+      (c) => c.status !== "deleted" && c.status !== "purged"
+    ),
+    []
+  );
 
   // 月ごとにシフトをグループ化（全員分）
   const monthlyShifts = useMemo(() => {
@@ -247,6 +260,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
 
       setShowEditModal(false);
       setEditingShift(null);
+      refetch();
       Alert.alert("成功", "シフトを更新しました");
     } catch (error) {
       console.error("Failed to save shift", error);
@@ -265,6 +279,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       await ServiceProvider.shifts.markShiftAsDeleted(editingShift.id);
       setShowEditModal(false);
       setEditingShift(null);
+      refetch();
       Alert.alert("成功", "シフトを削除しました");
     } catch (error) {
       console.error("Failed to delete shift", error);
@@ -311,14 +326,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           }}
         />
 
-        {/* クイックURL発行ボタン */}
-        <TouchableOpacity
-          style={styles.quickUrlButton}
-          onPress={() => setShowUrlModal(true)}
-        >
-          <MaterialIcons name="link" size={20} color="#fff" />
-          <Text style={styles.quickUrlButtonText}>クイックURL発行</Text>
-        </TouchableOpacity>
       </View>
       {isCalendarMounted && displayMonth && (
         <ScrollView
@@ -377,7 +384,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           timeOptions={timeOptions}
           statusConfigs={statusConfigs}
           isLoading={isLoading}
-          styles={ganttStyles}
+          styles={mobileGanttStyles}
           onChange={(field, value) =>
             setNewShiftData({ ...newShiftData, [field]: value })
           }

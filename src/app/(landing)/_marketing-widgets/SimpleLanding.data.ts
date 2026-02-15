@@ -69,7 +69,7 @@ export const updateHistory: UpdateHistoryItem[] = [
     version: "v2.8.5",
     title: "パフォーマンス改善",
     type: "improvement",
-    description: "Firebase キャッシュ戦略を刷新し、レスポンスを最適化しました。",
+    description: "キャッシュ戦略を刷新し、レスポンスを最適化しました。",
   },
 ];
 

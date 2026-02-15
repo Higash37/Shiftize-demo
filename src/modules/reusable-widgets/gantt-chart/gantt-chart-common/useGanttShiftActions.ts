@@ -118,6 +118,9 @@ export function useGanttShiftActions({
           actor
         );
         }
+
+        // 保存成功後にデータ再取得
+        await onShiftUpdate?.();
       } finally {
         // 処理完了後にフラグをリセット
         setTimeout(() => {
@@ -125,10 +128,10 @@ export function useGanttShiftActions({
         }, 500); // 500msのデバウンス
       }
     },
-    [user, users, refreshPage]
+    [user, users, onShiftUpdate]
   );
 
-  // シフト削除
+  // シフト削除（ステータスに関わらず完全削除）
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
       const actor = user ? {
@@ -137,19 +140,12 @@ export function useGanttShiftActions({
         role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
       } : undefined;
 
-      if (shift.status === "approved") {
-        // マスターが承認済みシフトを削除する場合はステータス変更
-        await ServiceProvider.shifts.updateShift(
-          shift.id,
-          { status: "deleted" as ShiftStatus, updatedAt: new Date() },
-          actor
-        );
-      } else {
-        // その他は完全削除
-        await ServiceProvider.shifts.markShiftAsDeleted(shift.id, actor);
-      }
+      await ServiceProvider.shifts.markShiftAsDeleted(shift.id, actor);
+
+      // 削除成功後にデータ再取得
+      await onShiftUpdate?.();
     },
-    [refreshPage, user]
+    [user, onShiftUpdate]
   );
 
   const updateShiftStatus = useCallback(
@@ -167,8 +163,11 @@ export function useGanttShiftActions({
       } else {
         await ServiceProvider.shifts.updateShift(shiftId, { status }, actor);
       }
+
+      // ステータス変更後にデータ再取得
+      await onShiftUpdate?.();
     },
-    [user, refreshPage]
+    [user, onShiftUpdate]
   );
 
   return {

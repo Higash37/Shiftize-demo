@@ -245,7 +245,7 @@ export const CreateGroupScreen: React.FC = () => {
       const currentStoreId = getCurrentStoreId();
       console.log("🏪 Store ID:", currentStoreId);
 
-      // Firebase を使用してグループを作成
+      // Supabase を使用してグループを作成
       console.log("🚀 Calling ServiceProvider.stores.createGroup...");
       const result = await ServiceProvider.stores.createGroup({
         groupName: form.groupName,

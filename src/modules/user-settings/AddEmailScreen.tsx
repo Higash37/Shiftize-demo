@@ -60,7 +60,7 @@ export const AddEmailScreen: React.FC = () => {
     setError("");
 
     try {
-      // TODO: パスワード確認は Firebase Auth の reauthenticate を使用すべき
+      // TODO: パスワード確認は Supabase Auth の reauthenticate を使用すべき
       // 現在は簡易実装でスキップ
       if (!password) {
         throw new Error("パスワードを入力してください");

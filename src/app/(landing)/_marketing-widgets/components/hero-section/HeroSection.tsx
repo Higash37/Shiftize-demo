@@ -48,7 +48,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onDemoClick }) => {
   const techStack = [
     { name: "React Native", color: "#61DAFB" },
     { name: "TypeScript", color: "#3178C6" },
-    { name: "Firebase", color: "#FF6F00" },
+    { name: "Supabase", color: "#3ECF8E" },
     { name: "Expo", color: "#000020" },
   ];
 

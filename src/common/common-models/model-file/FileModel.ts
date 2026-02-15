@@ -35,7 +35,7 @@ export interface FileItem {
   folderId: string;
   folderPath?: string; // フォルダの階層パス（例: "/英語/文法"）
   storeId: string;
-  storageUrl: string; // Firebase Storage URL
+  storageUrl: string; // Supabase Storage URL
   downloadUrl?: string; // 公開ダウンロードURL
   thumbnailUrl?: string; // サムネイルURL（画像・PDF用）
   metadata: FileMetadata;

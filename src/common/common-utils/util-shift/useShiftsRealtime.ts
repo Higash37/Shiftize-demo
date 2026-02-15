@@ -73,11 +73,23 @@ export const useShiftsRealtime = (storeId?: string) => {
     return () => unsubscribe();
   }, [storeId]);
 
+  /** 全シフトを手動で再取得（チャネル再作成なし） */
+  const refetch = useCallback(async () => {
+    if (!storeId) return;
+    try {
+      const data = await ServiceProvider.shifts.getShiftItems(storeId);
+      setShifts(data);
+    } catch (err) {
+      setError(err as Error);
+    }
+  }, [storeId]);
+
   return {
     shifts,
     loading,
     error,
     fetchShiftsByMonth,
+    refetch,
   };
 };
 
@@ -94,6 +106,7 @@ export const useShiftsByMonth = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const unsubRef = useRef<(() => void) | null>(null);
+  const currentPeriodRef = useRef({ year: initialYear, month: initialMonth });
 
   const subscribe = useCallback(
     (year: number, month: number) => {
@@ -102,6 +115,8 @@ export const useShiftsByMonth = (
         unsubRef.current();
         unsubRef.current = null;
       }
+
+      currentPeriodRef.current = { year, month };
 
       if (!storeId) {
         setShifts([]);
@@ -154,5 +169,17 @@ export const useShiftsByMonth = (
     [subscribe]
   );
 
-  return { shifts, loading, error, changeMonth };
+  /** 現在の月のシフトを手動で再取得（チャネル再作成なし） */
+  const refetch = useCallback(async () => {
+    if (!storeId) return;
+    const { year, month } = currentPeriodRef.current;
+    try {
+      const data = await ServiceProvider.shifts.getShiftsByMonth(storeId, year, month);
+      setShifts(data);
+    } catch (err) {
+      setError(err as Error);
+    }
+  }, [storeId]);
+
+  return { shifts, loading, error, changeMonth, refetch };
 };

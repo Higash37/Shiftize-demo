@@ -276,7 +276,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
             isConfirmed = false;
           }
 
-          // フロントエンドでシフト統計を計算（Firebaseクエリを回避）
+          // フロントエンドでシフト統計を計算
           const shiftStats = calculateShiftStats(user.uid, periods[0].targetMonth);
 
           statuses.push({

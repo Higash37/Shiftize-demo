@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  useWindowDimensions,
+  Modal,
+  TouchableOpacity,
 } from "react-native";
 import { useUser } from "@/modules/reusable-widgets/user-management/user-hooks/useUser";
 import { UserForm } from "@/modules/reusable-widgets/user-management/user-props/UserForm";
@@ -36,8 +37,6 @@ export default function UsersScreen() {
   const { users, loading, error, addUser, editUser, removeUser } = useUser(
     currentUser?.storeId
   );
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 1024;
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
     null
@@ -148,50 +147,51 @@ export default function UsersScreen() {
     setSelectedUser(null);
   };
 
+  const showForm = selectedUser !== null || isAddingUser;
+
   return (
     <View style={styles.root}>
       <MasterHeader title="ユーザー管理" />
       <View style={styles.container}>
-        <View style={[
-          styles.mainContent,
-          isDesktop && styles.mainContentDesktop
-        ]}>
-          {/* ユーザーリスト：常に表示 */}
-          <View style={[
-            styles.listContainer,
-            isDesktop && styles.listContainerDesktop,
-            (selectedUser || isAddingUser) && isDesktop && styles.listContainerWithPanel,
-            (selectedUser || isAddingUser) && !isDesktop && styles.listContainerHidden,
-          ]}>
-            <UserList
-              userList={users}
-              loading={loading}
-              onEdit={handleSelectUser}
-              onDelete={handleDeleteUser}
-              onAdd={handleStartAddUser}
-              userPasswords={userPasswords}
-            />
-          </View>
-
-          {/* フォームパネル：サイドパネルとして表示 */}
-          {(selectedUser || isAddingUser) && (
-            <View style={[
-              styles.panelContainer,
-              isDesktop ? styles.panelContainerDesktop : styles.panelContainerMobile,
-            ]}>
-              <UserForm
-                onSubmit={selectedUser ? handleEditUser : handleAddUser}
-                onCancel={handleCancel}
-                initialData={selectedUser}
-                currentPassword={selectedUser?.currentPassword || ""}
-                error={error}
-                loading={loading}
-                mode={selectedUser ? "edit" : "add"}
-              />
-            </View>
-          )}
-        </View>
+        <UserList
+          userList={users}
+          loading={loading}
+          onEdit={handleSelectUser}
+          onDelete={handleDeleteUser}
+          onAdd={handleStartAddUser}
+          userPasswords={userPasswords}
+        />
       </View>
+
+      {/* ユーザー追加/編集モーダル（中央オーバーレイ） */}
+      <Modal
+        visible={showForm}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancel}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={handleCancel}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <UserForm
+              onSubmit={selectedUser ? handleEditUser : handleAddUser}
+              onCancel={handleCancel}
+              initialData={selectedUser}
+              currentPassword={selectedUser?.currentPassword || ""}
+              error={error}
+              loading={loading}
+              mode={selectedUser ? "edit" : "add"}
+            />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -206,53 +206,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: layout.padding.large,
   },
-  
-  // メインコンテンツコンテナ
-  mainContent: {
+  modalOverlay: {
     flex: 1,
-    flexDirection: "column",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  mainContentDesktop: {
-    flexDirection: "row",
-    gap: layout.padding.large,
-  },
-
-  // ユーザーリストコンテナ
-  listContainer: {
-    flex: 1,
-  },
-  listContainerDesktop: {
-    flex: 1,
-    minWidth: 400,
-  },
-  listContainerWithPanel: {
-    flex: 1,
-    maxWidth: "60%", // デスクトップでパネル表示時はリストを60%に制限
-  },
-  listContainerHidden: {
-    display: "none", // モバイルでパネル表示時はリストを非表示
-  },
-
-  // フォームパネルコンテナ
-  panelContainer: {
+  modalContent: {
     backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.large,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.large,
-  },
-  panelContainerDesktop: {
-    flex: 1,
+    borderRadius: 12,
+    width: "90%",
     maxWidth: 500,
-    minWidth: 400,
-  },
-  panelContainerMobile: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-    margin: layout.padding.medium,
+    maxHeight: "85%",
+    overflow: "hidden",
+    ...shadows.large,
   },
 });

@@ -220,7 +220,7 @@ export interface EncryptedPersonalInfo {
   notes?: string; // 個人メモ（暗号化対象）
   // 暗号化しないフィールド
   nickname: string; // ニックネーム（平文OK）
-  email: string; // メールアドレス（Firebase Auth管理）
+  email: string; // メールアドレス（Supabase Auth管理）
   birthdayYear?: number; // 誕生年（年のみなら平文OK）
   role: "master" | "user";
   storeId: string;

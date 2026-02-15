@@ -31,11 +31,19 @@ export interface IShiftService {
     connectedStores?: string[];
   }): Promise<Shift[]>;
 
+  getShiftItems(storeId: string): Promise<ShiftItem[]>;
+
   onShiftsChanged(
     storeId: string,
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void;
+
+  getShiftsByMonth(
+    storeId: string,
+    year: number,
+    month: number
+  ): Promise<ShiftItem[]>;
 
   onShiftsByMonth(
     storeId: string,
