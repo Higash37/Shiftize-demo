@@ -1,30 +1,39 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
 import { Link } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { User } from "@/common/common-models/model-user/UserModel";
-import { masterDashboardViewStyles as styles } from "./MasterDashboardView.styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { createMasterDashboardViewStyles } from "./MasterDashboardView.styles";
 import type {
   MasterDashboardViewProps,
   StatCardProps,
 } from "./MasterDashboardView.types";
-
-const StatCard: React.FC<StatCardProps> = ({ title, value }) => (
-  <View style={styles.card}>
-    <Text style={styles.value}>{value}</Text>
-    <Text style={styles.label}>{title}</Text>
-  </View>
-);
 
 export const MasterDashboardView: React.FC<MasterDashboardViewProps> = ({
   users,
   loading,
   error,
 }) => {
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(
+    () => createMasterDashboardViewStyles(theme, bp),
+    [theme, bp]
+  );
+
+  const StatCard: React.FC<StatCardProps> = ({ title, value }) => (
+    <View style={styles.card}>
+      <Text style={styles.value}>{value}</Text>
+      <Text style={styles.label}>{title}</Text>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={theme.colorScheme.primary} />
       </View>
     );
   }
@@ -54,11 +63,6 @@ export const MasterDashboardView: React.FC<MasterDashboardViewProps> = ({
           <Link href="/master/users" asChild>
             <Pressable style={styles.link}>
               <Text style={styles.linkText}>ユーザー管理へ</Text>
-            </Pressable>
-          </Link>
-          <Link href="/master/tasks" asChild>
-            <Pressable style={[styles.link, styles.taskLink]}>
-              <Text style={styles.linkText}>タスク管理へ</Text>
             </Pressable>
           </Link>
         </View>

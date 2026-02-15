@@ -9,7 +9,8 @@ import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import SimpleHeader from "./_marketing-widgets/SimpleHeader";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "./AppSpecifications.styles";
+import { createAppSpecificationsStyles } from "./AppSpecifications.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import {
   architectureData,
   featuresData,
@@ -27,6 +28,7 @@ const securityLevelColors: Record<string, string> = {
 
 const AppSpecifications = () => {
   const router = useRouter();
+  const styles = useThemedStyles(createAppSpecificationsStyles);
   const [activeTab, setActiveTab] = useState<TabId>("architecture");
 
   // タブデータ

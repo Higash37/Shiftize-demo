@@ -1,34 +1,28 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  useWindowDimensions,
-  Platform,
-} from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ColorConstants";
-import { typography } from "@/common/common-constants/TypographyConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
 export const WelcomeScreen: React.FC = () => {
-  const { width } = useWindowDimensions();
-  const isWeb = Platform.OS === "web";
-  const isDesktop = isWeb && width > 768; // PC画面の判定
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const { isDesktop } = bp;
   const [showServiceIntro, setShowServiceIntro] = useState(false);
+  const styles = useMemo(() => createWelcomeStyles(theme, bp), [theme, bp]);
+  const { colorScheme } = theme;
+
   const handleCreateGroup = () => {
-    // 新規グループ作成画面に遷移
     router.push("/(auth)/auth-create-group");
   };
 
   const handleJoinGroup = () => {
-    // ログイン画面に遷移
     router.push("/(auth)/login");
   };
 
@@ -43,25 +37,26 @@ export const WelcomeScreen: React.FC = () => {
           {/* Center: Title */}
           <View style={styles.titleContainer}>
             <Text style={styles.logo}>Shiftize</Text>
-            <Text style={styles.subtitle}>シフト管理をもっと簡単に</Text>
+            <Text style={styles.subtitle}>シフト管理を簡単に</Text>
           </View>
 
           {/* Right: Icons */}
           <View style={styles.headerIcons}>
-            {/* Help/Support Icon */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => setShowServiceIntro(true)}
             >
-              <AntDesign name="question-circle" size={24} color="white" />
+              <AntDesign
+                name="question-circle"
+                size={24}
+                color={colorScheme.onPrimary}
+              />
             </TouchableOpacity>
-
-            {/* Landing Page Icon */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => router.push("/(landing)")}
             >
-              <AntDesign name="home" size={24} color="white" />
+              <AntDesign name="home" size={24} color={colorScheme.onPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -75,12 +70,7 @@ export const WelcomeScreen: React.FC = () => {
         </Text>
 
         {/* Buttons */}
-        <View
-          style={[
-            styles.buttonContainer,
-            isDesktop && styles.buttonContainerDesktop,
-          ]}
-        >
+        <View style={styles.buttonContainer}>
           <Button
             title="新規グループを作成"
             onPress={handleCreateGroup}
@@ -118,88 +108,91 @@ export const WelcomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  header: {
-    backgroundColor: colors.primary,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    borderBottomLeftRadius: layout.borderRadius.large,
-    borderBottomRightRadius: layout.borderRadius.large,
-    minHeight: Platform.OS === "web" ? 80 : undefined, // PWA時の固定高さ
-  },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  titleContainer: {
-    alignItems: "center",
-    flex: 1,
-  },
-  headerSpacer: {
-    width: 80, // アイコン2つ分の幅 + gap + padding (24 * 2 + 12 + 8 * 2)
-  },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconButton: {
-    padding: 8,
-  },
-  logo: {
-    fontSize: typography.fontSize.xxlarge + 8, // 32px equivalent
-    fontWeight: typography.fontWeight.bold as any,
-    color: colors.text.white,
-    marginBottom: layout.padding.small,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.large,
-    color: colors.text.white,
-    opacity: 0.9,
-  },
-  content: {
-    flex: 1,
-    justifyContent: Platform.OS === "web" ? "flex-start" : "center", // PWA時は上揃え
-    paddingTop: Platform.OS === "web" ? layout.padding.large : 0, // PWA時の上部余白
-    overflow: Platform.OS === "web" ? "hidden" : "visible", // PWA時のoverflow制御
-  },
-  welcomeText: {
-    fontSize: typography.fontSize.xxlarge,
-    fontWeight: typography.fontWeight.bold as any,
-    color: colors.text.primary,
-    textAlign: "center",
-    marginBottom: layout.padding.medium,
-  },
-  description: {
-    fontSize: typography.fontSize.large,
-    color: colors.text.secondary,
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: layout.padding.large * 1.5,
-  },
-  buttonContainer: {
-    gap: layout.padding.medium,
-  },
-  buttonContainerDesktop: {
-    alignItems: "center",
-  },
-  buttonDesktop: {
-    width: "40%",
-  },
-  footer: {
-    minHeight: Platform.OS === "web" ? 80 : undefined, // PWA時の固定高さ
-  },
-  footerText: {
-    fontSize: typography.fontSize.small + 2, // 14px equivalent
-    color: colors.text.disabled,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-});
+const createWelcomeStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean },
+) => {
+  const { isDesktop } = breakpoint;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+    },
+    header: {
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      borderBottomLeftRadius: theme.shape.large,
+      borderBottomRightRadius: theme.shape.large,
+      minHeight: 80,
+    },
+    headerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    titleContainer: {
+      alignItems: "center",
+      flex: 1,
+    },
+    headerSpacer: {
+      width: 80,
+    },
+    headerIcons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+    },
+    iconButton: {
+      padding: theme.spacing.sm,
+    },
+    logo: {
+      ...theme.typography.headlineMedium,
+      color: theme.colorScheme.onPrimary,
+      marginBottom: theme.spacing.sm,
+    },
+    subtitle: {
+      ...theme.typography.bodyLarge,
+      color: theme.colorScheme.onPrimary,
+      opacity: 0.9,
+    },
+    content: {
+      flex: 1,
+      justifyContent: "flex-start",
+      paddingTop: theme.spacing.xxl,
+      overflow: "hidden",
+    },
+    welcomeText: {
+      ...theme.typography.headlineSmall,
+      color: theme.colorScheme.onSurface,
+      textAlign: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    description: {
+      ...theme.typography.bodyLarge,
+      color: theme.colorScheme.onSurfaceVariant,
+      textAlign: "center",
+      lineHeight: 24,
+      marginBottom: theme.spacing.xxxl,
+    },
+    buttonContainer: {
+      gap: theme.spacing.lg,
+      ...(isDesktop ? { alignItems: "center" as const } : {}),
+    },
+    buttonDesktop: {
+      width: "40%",
+    },
+    footer: {
+      minHeight: 80,
+    },
+    footerText: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      textAlign: "center",
+      lineHeight: 20,
+      marginBottom: theme.spacing.lg,
+      opacity: 0.7,
+    },
+  });
+};

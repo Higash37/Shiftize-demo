@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { styles } from "./TimeInputSection.styles";
+import { createTimeInputSectionStyles } from "./TimeInputSection.styles";
 import { TimeInputSectionProps, TimeSlot } from "./TimeInputSection.types";
 import { generateTimeOptions } from "../user-shift-utils/ui-utils";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 /**
  * TimeInputSection - 時間帯入力コンポーネント
@@ -15,6 +16,8 @@ const TimeInputSection: React.FC<TimeInputSectionProps> = ({
   value,
   onChange,
 }) => {
+  const styles = useThemedStyles(createTimeInputSectionStyles);
+
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const timeOptions = generateTimeOptions();

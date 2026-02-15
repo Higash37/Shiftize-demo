@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, TouchableOpacity, Text, Dimensions } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import {
@@ -7,9 +7,8 @@ import {
   Ionicons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import Toast from "react-native-toast-message";
-import { styles } from "./LayoutFooter.styles";
+import { createFooterStyles } from "./LayoutFooter.styles";
 import { TabItem } from "./ui-layout-types";
 import { MasterFooterProps } from "./LayoutFooter.types";
 import { ServiceProvider } from "@/services/ServiceProvider";
@@ -17,12 +16,15 @@ import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissi
 import { useAuth } from "@/services/auth/useAuth";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// 管理者用フッターのタブ設定
-const MASTER_TABS: TabItem[] = [
+/** 管理者用フッタータブをテーマカラーに応じて生成 */
+const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   {
     name: "home",
     label: "ホーム",
@@ -31,25 +33,11 @@ const MASTER_TABS: TabItem[] = [
       <MaterialIcons
         name="home"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
   },
-  // ファイル機能は凍結中（使用率が低いため）
-  // {
-  //   name: "files",
-  //   label: "ファイル",
-  //   path: "/master/files",
-  //   icon: (active: boolean) => (
-  //     <MaterialIcons
-  //       name="folder"
-  //       size={24}
-  //       color={active ? colors.primary : colors.text.secondary}
-  //     />
-  //   ),
-  //   isUnderDevelopment: false,
-  // },
   {
     name: "info",
     label: "インフォ",
@@ -58,7 +46,7 @@ const MASTER_TABS: TabItem[] = [
       <Ionicons
         name="information-circle"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -71,7 +59,7 @@ const MASTER_TABS: TabItem[] = [
       <FontAwesome5
         name="calendar-alt"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -84,7 +72,7 @@ const MASTER_TABS: TabItem[] = [
       <AntDesign
         name="plus"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -97,7 +85,7 @@ const MASTER_TABS: TabItem[] = [
       <FontAwesome5
         name="calendar"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -110,7 +98,7 @@ const MASTER_TABS: TabItem[] = [
       <MaterialIcons
         name="people"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -123,7 +111,7 @@ const MASTER_TABS: TabItem[] = [
       <Ionicons
         name="settings"
         size={24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -146,6 +134,9 @@ function isStandalonePWA() {
  */
 export function MasterFooter(_props: Readonly<MasterFooterProps>) {
   const router = useRouter();
+  const styles = useThemedStyles(createFooterStyles);
+  const { colorScheme } = useMD3Theme();
+  const masterTabs = useMemo(() => createMasterTabs(colorScheme), [colorScheme]);
 
   // FontAwesome5フォントを遅延読み込み
   useExtendedFonts();
@@ -211,7 +202,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
       }
     }
 
-    router.push(tab.path);
+    router.replace(tab.path);
   };
 
   const isPWA = isStandalonePWA();
@@ -241,7 +232,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
         },
       ]}
     >
-      {MASTER_TABS.map((tab, index) => {
+      {masterTabs.map((tab, index) => {
         const active = pathname === tab.path;
         return (
           <TouchableOpacity
@@ -255,8 +246,8 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
                 alignItems: "center",
                 justifyContent: "center",
                 ...(isPWA && {
-                  minWidth: `${100 / MASTER_TABS.length}%` as any,
-                  maxWidth: `${100 / MASTER_TABS.length}%` as any,
+                  minWidth: `${100 / masterTabs.length}%` as any,
+                  maxWidth: `${100 / masterTabs.length}%` as any,
                 }),
               },
             ]}
@@ -348,7 +339,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
             style={{
               height: 10,
               width: "100%",
-              backgroundColor: colors.footer.background,
+              backgroundColor: colorScheme.surfaceContainer,
             }}
           />
         ))}

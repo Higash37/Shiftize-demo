@@ -13,7 +13,6 @@ import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header, Footer } from "@/common/common-ui/ui-layout";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { designSystem } from "@/common/common-constants/DesignSystem";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";

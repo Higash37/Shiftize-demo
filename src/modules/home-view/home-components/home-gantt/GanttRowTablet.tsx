@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { styles } from "../../home-styles/home-view-styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { createHomeViewStyles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
-import { colors } from "@/common/common-theme/ThemeColors";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface GanttRowTabletProps {
@@ -22,12 +23,15 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
   cellHeight,
   onCellPress,
 }) => {
+  const styles = useThemedStyles(createHomeViewStyles);
+  const theme = useMD3Theme();
+
   return (
     <View
       style={{
         flexDirection: "row",
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
+        borderBottomColor: theme.colorScheme.outlineVariant,
       }}
     >
       <View
@@ -54,13 +58,13 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
                 height: cellHeight,
                 backgroundColor: slot
                   ? slot.type === "class"
-                    ? "#eee"
+                    ? theme.colorScheme.surfaceContainerHigh
                     : undefined // スタッフのときは背景色なし
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
-                    ? "#bbb"
-                    : colors.primary // スタッフのときは青枠
+                    ? theme.colorScheme.outlineVariant
+                    : theme.colorScheme.primary // スタッフのときは青枠
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
@@ -76,7 +80,7 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
                 name={slot.type === "class" ? "school" : "person"}
                 size={16}
                 color={
-                  slot.type === "class" ? colors.text.secondary : colors.primary
+                  slot.type === "class" ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.primary
                 }
                 style={{ marginRight: 4 }}
               />
@@ -85,7 +89,7 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
               <Text
                 style={[
                   styles.taskText,
-                  slot.type !== "class" && { color: colors.primary }, // スタッフのときは青文字
+                  slot.type !== "class" && { color: theme.colorScheme.primary }, // スタッフのときは青文字
                 ]}
               >
                 {slot.task}

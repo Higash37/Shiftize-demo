@@ -16,7 +16,11 @@ export type Variant =
   | "outline"
   | "outlined"
   | "default"
-  | "card";
+  | "card"
+  | "surface"
+  | "surfaceContainer"
+  | "surfaceContainerHigh"
+  | "surfaceContainerLow";
 
 /**
  * パディングサイズ

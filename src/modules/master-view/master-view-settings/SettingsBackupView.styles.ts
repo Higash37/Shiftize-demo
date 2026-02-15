@@ -1,125 +1,119 @@
-import { StyleSheet, Dimensions } from "react-native";
-import { Theme } from "@/common/common-theme";
-import { shadows } from "@/common/common-constants/ThemeConstants";
+import { StyleSheet } from "react-native";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-const { width } = Dimensions.get("window");
-const isTablet = width >= 768;
-const isDesktop = width >= 1024;
-
-export const settingsBackupViewStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Theme.colors.background,
-    paddingTop: Theme.spacing.md,
-    paddingHorizontal: Theme.spacing.md,
-  },
-  containerTablet: {
-    paddingHorizontal: Theme.spacing.lg,
-    maxWidth: 1000,
-    alignSelf: "center",
-    width: "100%",
-  },
-  containerDesktop: {
-    paddingHorizontal: Theme.spacing.xl,
-    maxWidth: 1400,
-    alignSelf: "center",
-    width: "100%",
-  },
-  scrollContainer: {
-    flex: 1,
-    width: "100%",
-  },
-  card: {
-    width: isDesktop ? "60%" : isTablet ? "80%" : "90%",
-    maxWidth: isDesktop ? 1000 : isTablet ? 800 : undefined,
-    backgroundColor: "#FFFFFF",
-    borderRadius: Theme.borderRadius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.lg,
-    alignSelf: "center",
-    ...shadows.card,
-  },
-  sectionTitle: {
-    fontSize: isDesktop ? 20 : isTablet ? 18 : 16,
-    fontWeight: "700",
-    marginBottom: Theme.spacing.md,
-    color: Theme.colors.text,
-  },
-  sectionDescription: {
-    fontSize: 14,
-    color: Theme.colors.textSecondary,
-    marginBottom: Theme.spacing.lg,
-    lineHeight: 20,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Theme.spacing.md,
-    backgroundColor: Theme.colors.background,
-    borderRadius: Theme.borderRadius.md,
-    marginBottom: Theme.spacing.md,
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-  },
-  dangerButton: {
-    borderColor: "#FF3B30",
-    backgroundColor: "#FF3B30" + "10",
-  },
-  buttonIcon: {
-    width: 40,
-    alignItems: "center",
-    marginRight: Theme.spacing.md,
-  },
-  buttonContent: {
-    flex: 1,
-  },
-  buttonTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Theme.colors.text,
-    marginBottom: Theme.spacing.sm,
-  },
-  buttonDescription: {
-    fontSize: 14,
-    color: Theme.colors.textSecondary,
-    lineHeight: 18,
-  },
-  dangerText: {
-    color: "#FF3B30",
-  },
-  infoCard: {
-    backgroundColor: "#FF9500" + "10",
-    borderRadius: Theme.borderRadius.md,
-    padding: Theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: "#FF9500" + "30",
-  },
-  infoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Theme.spacing.md,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FF9500",
-    marginLeft: Theme.spacing.sm,
-  },
-  infoText: {
-    fontSize: 14,
-    color: Theme.colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: Theme.spacing.sm,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Theme.colors.background,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: Theme.colors.textSecondary,
-    marginTop: Theme.spacing.md,
-  },
-});
+export const createSettingsBackupViewStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+      paddingTop: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    containerTablet: {
+      paddingHorizontal: theme.spacing.xxl,
+      maxWidth: 1000,
+      alignSelf: "center",
+      width: "100%",
+    },
+    containerDesktop: {
+      paddingHorizontal: theme.spacing.xxxl,
+      maxWidth: 1400,
+      alignSelf: "center",
+      width: "100%",
+    },
+    scrollContainer: {
+      flex: 1,
+      width: "100%",
+    },
+    card: {
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.small,
+      padding: theme.spacing.xxl,
+      marginBottom: theme.spacing.xxl,
+      alignSelf: "center",
+      ...theme.elevation.level2.shadow,
+    },
+    sectionTitle: {
+      ...theme.typography.titleMedium,
+      fontWeight: "700",
+      marginBottom: theme.spacing.lg,
+      color: theme.colorScheme.onSurface,
+    },
+    sectionDescription: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.xxl,
+      lineHeight: 20,
+    },
+    actionButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.small,
+      marginBottom: theme.spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+    },
+    dangerButton: {
+      borderColor: theme.colorScheme.error,
+      backgroundColor: theme.colorScheme.errorContainer,
+    },
+    buttonIcon: {
+      width: 40,
+      alignItems: "center",
+      marginRight: theme.spacing.lg,
+    },
+    buttonContent: {
+      flex: 1,
+    },
+    buttonTitle: {
+      ...theme.typography.bodyLarge,
+      fontWeight: "600",
+      color: theme.colorScheme.onSurface,
+      marginBottom: theme.spacing.sm,
+    },
+    buttonDescription: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      lineHeight: 18,
+    },
+    dangerText: {
+      color: theme.colorScheme.error,
+    },
+    infoCard: {
+      backgroundColor: "#FF9500" + "10",
+      borderRadius: theme.shape.small,
+      padding: theme.spacing.xxl,
+      borderWidth: 1,
+      borderColor: "#FF9500" + "30",
+    },
+    infoHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    infoTitle: {
+      ...theme.typography.bodyLarge,
+      fontWeight: "600",
+      color: "#FF9500",
+      marginLeft: theme.spacing.sm,
+    },
+    infoText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      lineHeight: 20,
+      marginBottom: theme.spacing.sm,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.colorScheme.surface,
+    },
+    loadingText: {
+      ...theme.typography.bodyLarge,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: theme.spacing.lg,
+    },
+  });

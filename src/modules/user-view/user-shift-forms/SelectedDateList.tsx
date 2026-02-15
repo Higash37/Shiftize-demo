@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./SelectedDateList.styles";
+import { createSelectedDateListStyles } from "./SelectedDateList.styles";
 import { SelectedDateListProps } from "./types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 /**
  * SelectedDateList - 選択された日付のリスト表示コンポーネント
@@ -13,6 +14,8 @@ const SelectedDateList: React.FC<SelectedDateListProps> = ({
   onRemove,
   onRemoveDate,
 }) => {
+  const styles = useThemedStyles(createSelectedDateListStyles);
+
   // 日付を「〇月〇日（曜日）」の形式でフォーマット
   const formatDateWithWeekday = (dateStr: string): string => {
     const date = new Date(dateStr);

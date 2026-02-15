@@ -1,64 +1,59 @@
-import { StyleSheet, Dimensions } from "react-native";
-import { colors, typography } from "@/common/common-constants/ThemeConstants";
+import { StyleSheet } from "react-native";
+import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-const { width: screenWidth } = Dimensions.get("window");
-
-export const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-  },
-  modalContent: {
-    width: screenWidth * 0.85,
-    maxWidth: 400,
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  container: {
-    padding: 20,
-    gap: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: colors.border,
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 8,
-    borderRadius: 8,
-  },
-  title: {
-    fontSize: typography.fontSize.large,
-    fontWeight: "600",
-    marginBottom: 16,
-    color: colors.text.primary,
-  },
-  label: {
-    fontSize: typography.fontSize.medium,
-    marginBottom: 4,
-    color: colors.text.primary,
-  },
-  message: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-  },
-  successMessage: {
-    backgroundColor: colors.success + "20",
-    color: colors.success,
-  },
-  errorMessage: {
-    backgroundColor: colors.error + "20",
-    color: colors.error,
-  },
-  buttonContainer: {
-    marginTop: 16,
-  },
-});
+export const createChangePasswordStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+    },
+    modalContent: {
+      width: "85%",
+      maxWidth: 400,
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.xl,
+      ...theme.elevation.level3.shadow,
+    },
+    container: {
+      padding: theme.spacing.xl,
+      gap: theme.spacing.lg,
+    },
+    input: {
+      height: 40,
+      borderColor: theme.colorScheme.outlineVariant,
+      borderWidth: 1,
+      marginBottom: theme.spacing.sm,
+      paddingLeft: theme.spacing.sm,
+      borderRadius: theme.shape.small,
+    },
+    title: {
+      ...theme.typography.titleLarge,
+      fontWeight: "600",
+      marginBottom: theme.spacing.lg,
+      color: theme.colorScheme.onSurface,
+    },
+    label: {
+      ...theme.typography.bodyLarge,
+      marginBottom: theme.spacing.xs,
+      color: theme.colorScheme.onSurface,
+    },
+    message: {
+      marginTop: theme.spacing.lg,
+      padding: theme.spacing.md,
+      borderRadius: theme.shape.small,
+    },
+    successMessage: {
+      backgroundColor: theme.colorScheme.success + "20",
+      color: theme.colorScheme.success,
+    },
+    errorMessage: {
+      backgroundColor: theme.colorScheme.error + "20",
+      color: theme.colorScheme.error,
+    },
+    buttonContainer: {
+      marginTop: theme.spacing.lg,
+    },
+  });

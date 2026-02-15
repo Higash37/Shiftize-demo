@@ -4,9 +4,11 @@ import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { styles, getStatusColor } from "./ShiftList.styles";
+import { createShiftListStyles, getStatusColor } from "./ShiftList.styles";
 import { ShiftListProps, ShiftTypeMap } from "./ShiftList.types";
 import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 /**
  * ShiftList - シフト一覧表示コンポーネント
@@ -15,6 +17,8 @@ import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
  * シフトの状態（下書き、承認待ち、承認済み、完了、削除済み）に応じて視覚的に区別されます。
  */
 export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
+  const theme = useMD3Theme();
+  const styles = useThemedStyles(createShiftListStyles);
   // シフトタイプに応じたテキストを取得する関数
   const getShiftTypeText = (type: ShiftTypeMap) => {
     switch (type) {
@@ -53,7 +57,7 @@ export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
           key={shift.id}
           style={[
             styles.shiftItem,
-            { borderColor: getStatusColor(shift.status) },
+            { borderColor: getStatusColor(theme, shift.status) },
           ]}
         >
           <View style={styles.shiftInfo}>
@@ -71,7 +75,7 @@ export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
             <Text
               style={[
                 styles.statusText,
-                { color: getStatusColor(shift.status) },
+                { color: getStatusColor(theme, shift.status) },
               ]}
             >
               {getStatusText(shift.status)}

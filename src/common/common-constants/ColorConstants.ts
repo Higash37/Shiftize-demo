@@ -1,4 +1,15 @@
 import { ShiftStatus } from "../common-models/model-shift/shiftTypes";
+import { lightColorScheme } from "../common-theme/md3/MD3Colors";
+
+/**
+ * レガシー互換カラー定義
+ *
+ * 既存コードの `import { colors } from "ThemeConstants"` を壊さないためのブリッジ。
+ * 内部値はMD3ライトスキームから導出。
+ *
+ * 新規コードでは `useMD3Theme().colorScheme` を使用してください。
+ * @deprecated 段階的に useMD3Theme() へ移行
+ */
 
 export type ColorsType = {
   primary: string;
@@ -32,46 +43,36 @@ export type ColorsType = {
   status: Record<ShiftStatus, string>;
 };
 
-const shiftStatusPalette: Record<ShiftStatus, string> = {
-  draft: "#FFFFFF",
-  pending: "#FF9F0A",
-  approved: "#0A84FF",
-  rejected: "#FF3B30",
-  deleted: "#FFFFFF",
-  completed: "#34C759",
-  deletion_requested: "#FF9F0A",
-  purged: "#FFFFFF",
-  recruitment: "#9e9e9e",
-};
+const cs = lightColorScheme;
 
 export const colors: ColorsType = {
-  primary: "#2196F3",
-  secondary: "#757575",
-  background: "rgba(255, 255, 255, 0.94)",
-  surface: "#FFFFFF",
-  surfaceElevated: "#F5F5F5",
+  primary: cs.primary,
+  secondary: cs.secondary,
+  background: cs.surface,
+  surface: cs.surfaceContainerLowest,
+  surfaceElevated: cs.surfaceContainerHigh,
   text: {
-    primary: "#333333",
-    secondary: "#757575",
+    primary: cs.onSurface,
+    secondary: cs.onSurfaceVariant,
     white: "#FFFFFF",
-    disabled: "#BDBDBD",
+    disabled: cs.outlineVariant,
   },
-  border: "#E0E0E0",
+  border: cs.outlineVariant,
   overlay: "rgba(255, 255, 255, 0.6)",
   header: {
-    background: "rgba(255, 255, 255, 0.9)",
-    tint: "#2196F3",
-    separator: "#E0E0E0",
+    background: cs.surfaceContainer,
+    tint: cs.primary,
+    separator: cs.outlineVariant,
   },
   footer: {
-    background: "rgba(255, 255, 255, 0.9)",
-    tint: "#2196F3",
-    separator: "#E0E0E0",
+    background: cs.surfaceContainer,
+    tint: cs.primary,
+    separator: cs.outlineVariant,
   },
-  error: "#F44336",
-  success: "#4CAF50",
-  warning: "#FF9800",
-  selected: "rgba(33, 150, 243, 0.08)",
-  shift: shiftStatusPalette,
-  status: shiftStatusPalette,
+  error: cs.error,
+  success: cs.success,
+  warning: cs.warning,
+  selected: cs.primaryContainer,
+  shift: cs.shift,
+  status: cs.shift,
 };

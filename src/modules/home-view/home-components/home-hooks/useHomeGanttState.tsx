@@ -19,8 +19,7 @@ export function useHomeGanttState() {
   const {
     shifts,
     loading: _loading,
-    fetchShiftsByMonth,
-  } = useShiftsRealtime(user?.storeId); // リアルタイムリスナーにより実質不要
+  } = useShiftsRealtime(user?.storeId);
   const { users } = useUsers();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -36,11 +35,6 @@ export function useHomeGanttState() {
     : shifts.filter(
         (s) => s.userId === user?.uid && s.status === "approved"
       );
-
-  useEffect(() => {
-    // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
-    fetchShiftsByMonth(currentYearMonth.year, currentYearMonth.month);
-  }, [currentYearMonth.year, currentYearMonth.month, fetchShiftsByMonth]);
 
   useEffect(() => {
     setCurrentYearMonth({

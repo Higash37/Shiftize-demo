@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
-import styles from "../GanttChartMonthView.styles";
+import { createGanttChartMonthViewStyles } from "../GanttChartMonthView.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 interface GanttHeaderProps {
   hourLabels: string[];
@@ -14,7 +15,9 @@ export const GanttHeader: React.FC<GanttHeaderProps> = ({
   dateColumnWidth,
   ganttColumnWidth,
   infoColumnWidth,
-}) => (
+}) => {
+  const styles = useThemedStyles(createGanttChartMonthViewStyles);
+  return (
   <View style={styles.headerRow}>
     <View style={[styles.headerDateCell, { width: dateColumnWidth }]} />
     <View style={[styles.headerGanttCell, { width: ganttColumnWidth }]}>
@@ -54,3 +57,4 @@ export const GanttHeader: React.FC<GanttHeaderProps> = ({
     </View>
   </View>
 );
+};

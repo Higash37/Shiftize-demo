@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   Modal,
   Pressable,
 } from "react-native";
-import { styles } from "./TimeSelect.styles";
+import { createTimeSelectStyles } from "./TimeSelect.styles";
 import { TimeSelectProps } from "./TimeSelect.types";
 import { generateTimeOptions } from "../user-shift-utils/ui-utils";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
 
 /**
  * TimeSelect - 時間選択コンポーネント
@@ -28,6 +30,10 @@ const TimeSelect: React.FC<TimeSelectProps> = ({
   onEndTimeChange,
   zIndex = 1,
 }) => {
+  const theme = useMD3Theme();
+  const breakpoint = useBreakpoint();
+  const styles = useMemo(() => createTimeSelectStyles(theme, breakpoint), [theme, breakpoint]);
+
   const [showStartOptions, setShowStartOptions] = useState(false);
   const [showEndOptions, setShowEndOptions] = useState(false);
   const timeOptions = generateTimeOptions();

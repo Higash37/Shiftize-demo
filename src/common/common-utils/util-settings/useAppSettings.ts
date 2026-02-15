@@ -14,7 +14,6 @@ export interface ShiftRuleSettings {
 }
 
 export interface ShiftAppearanceSettings {
-  darkMode: boolean;
   primaryColor?: string;
   accentColor?: string;
   fontSize: "small" | "medium" | "large";
@@ -59,7 +58,6 @@ const DEFAULT_SETTINGS: AppSettings = {
     maxShiftGap: 7,
   },
   appearance: {
-    darkMode: false,
     fontSize: "medium" as const,
     compactMode: false,
     showWeekNumbers: false,

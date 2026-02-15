@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "./DevelopmentStory.styles";
+import { createDevelopmentStoryStyles } from "./DevelopmentStory.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import {
   developmentPhases,
   insights,
@@ -12,6 +13,7 @@ import {
 
 const DevelopmentStoryPage: React.FC = () => {
   const router = useRouter();
+  const styles = useThemedStyles(createDevelopmentStoryStyles);
 
   return (
     <View style={styles.container}>

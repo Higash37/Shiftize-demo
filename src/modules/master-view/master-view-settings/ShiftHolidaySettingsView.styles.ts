@@ -1,152 +1,141 @@
-import { StyleSheet, Dimensions } from "react-native";
-import { colors } from "@/common/common-constants/ColorConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
-import { typography } from "@/common/common-constants/TypographyConstants";
+import { StyleSheet } from "react-native";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-const { width } = Dimensions.get("window");
-const isTablet = width >= 768;
-const isDesktop = width >= 1024;
-
-export const shiftHolidaySettingsViewStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: layout.padding.xlarge,
-    paddingHorizontal: layout.padding.medium,
-  },
-  containerTablet: {
-    paddingHorizontal: layout.padding.large,
-    maxWidth: 1000,
-    alignSelf: "center",
-    width: "100%",
-  },
-  containerDesktop: {
-    paddingHorizontal: layout.padding.xlarge,
-    maxWidth: 1400,
-    alignSelf: "center",
-    width: "100%",
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    width: "100%",
-  },
-  card: {
-    width: isDesktop ? "60%" : isTablet ? "80%" : "90%",
-    maxWidth: isDesktop ? 1100 : isTablet ? 850 : undefined,
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.large,
-    padding: isDesktop
-      ? layout.padding.xlarge
-      : isTablet
-      ? layout.padding.large
-      : layout.padding.large,
-    ...shadows.medium,
-    alignSelf: "center",
-    marginBottom: layout.padding.large,
-  },
-  sectionTitle: {
-    fontSize: isDesktop
-      ? typography.fontSize.large
-      : isTablet
-      ? typography.fontSize.medium
-      : typography.fontSize.medium,
-    fontWeight: "700",
-    marginBottom: layout.padding.large,
-    color: colors.text.primary,
-  },
-  calendarContainer: {
-    marginBottom: layout.padding.large,
-    borderRadius: layout.borderRadius.medium,
-    overflow: "hidden",
-  },
-  holidayList: {
-    marginTop: layout.padding.large,
-  },
-  holidayItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: layout.padding.medium,
-    paddingHorizontal: layout.padding.medium,
-    backgroundColor: colors.background,
-    borderRadius: layout.borderRadius.small,
-    marginBottom: layout.padding.small,
-    ...shadows.small,
-  },
-  holidayInfo: {
-    flex: 1,
-  },
-  holidayDate: {
-    fontSize: typography.fontSize.small,
-    color: colors.text.secondary,
-    marginBottom: layout.padding.small,
-  },
-  holidayName: {
-    fontSize: typography.fontSize.medium,
-    color: colors.text.primary,
-    fontWeight: "500",
-  },
-  deleteButton: {
-    padding: layout.padding.small,
-    borderRadius: layout.borderRadius.small,
-    backgroundColor: colors.error + "20",
-  },
-  addButton: {
-    backgroundColor: colors.primary,
-    borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
-    alignItems: "center",
-    marginTop: layout.padding.medium,
-    minHeight: isDesktop ? 48 : isTablet ? 44 : 44,
-  },
-  addButtonText: {
-    color: colors.text.white,
-    fontWeight: "600",
-    fontSize: typography.fontSize.medium,
-  },
-  bulkAddButton: {
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: layout.padding.small,
-  },
-  bulkAddButtonText: {
-    color: colors.primary,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
-    alignItems: "center",
-    marginTop: layout.padding.large,
-    width: "100%",
-    alignSelf: "center",
-    minHeight: isDesktop ? 48 : isTablet ? 44 : 44,
-  },
-  saveButtonText: {
-    color: colors.text.white,
-    fontWeight: "600",
-    fontSize: typography.fontSize.medium,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background,
-  },
-  loadingText: {
-    fontSize: typography.fontSize.medium,
-    color: colors.text.secondary,
-    marginTop: layout.padding.medium,
-  },
-  emptyText: {
-    fontSize: typography.fontSize.medium,
-    color: colors.text.secondary,
-    textAlign: "center",
-    marginTop: layout.padding.large,
-    fontStyle: "italic",
-  },
-});
+export const createShiftHolidaySettingsViewStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean },
+) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+      paddingTop: theme.spacing.xxxl,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    containerTablet: {
+      paddingHorizontal: theme.spacing.xxl,
+      maxWidth: 1000,
+      alignSelf: "center",
+      width: "100%",
+    },
+    containerDesktop: {
+      paddingHorizontal: theme.spacing.xxxl,
+      maxWidth: 1400,
+      alignSelf: "center",
+      width: "100%",
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      width: "100%",
+    },
+    card: {
+      width: breakpoint.isDesktop ? "60%" : breakpoint.isTablet ? "80%" : "90%",
+      maxWidth: breakpoint.isDesktop ? 1100 : breakpoint.isTablet ? 850 : undefined,
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.large,
+      padding: theme.spacing.xxl,
+      ...theme.elevation.level2.shadow,
+      alignSelf: "center",
+      marginBottom: theme.spacing.xxl,
+    },
+    sectionTitle: {
+      ...theme.typography.titleSmall,
+      fontWeight: "700",
+      marginBottom: theme.spacing.xxl,
+      color: theme.colorScheme.onSurface,
+    },
+    calendarContainer: {
+      marginBottom: theme.spacing.xxl,
+      borderRadius: theme.shape.medium,
+      overflow: "hidden",
+    },
+    holidayList: {
+      marginTop: theme.spacing.xxl,
+    },
+    holidayItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      borderRadius: theme.shape.small,
+      marginBottom: theme.spacing.sm,
+      ...theme.elevation.level1.shadow,
+    },
+    holidayInfo: {
+      flex: 1,
+    },
+    holidayDate: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.sm,
+    },
+    holidayName: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurface,
+      fontWeight: "500",
+    },
+    deleteButton: {
+      padding: theme.spacing.sm,
+      borderRadius: theme.shape.small,
+      backgroundColor: theme.colorScheme.error + "20",
+    },
+    addButton: {
+      backgroundColor: theme.colorScheme.primary,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.lg,
+      alignItems: "center",
+      marginTop: theme.spacing.lg,
+      minHeight: breakpoint.isDesktop ? 48 : 44,
+    },
+    addButtonText: {
+      color: theme.colorScheme.onPrimary,
+      fontWeight: "600",
+      ...theme.typography.bodyMedium,
+    },
+    bulkAddButton: {
+      backgroundColor: theme.colorScheme.surface,
+      borderWidth: 2,
+      borderColor: theme.colorScheme.primary,
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: theme.spacing.sm,
+    },
+    bulkAddButtonText: {
+      color: theme.colorScheme.primary,
+    },
+    saveButton: {
+      backgroundColor: theme.colorScheme.primary,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.lg,
+      alignItems: "center",
+      marginTop: theme.spacing.xxl,
+      width: "100%",
+      alignSelf: "center",
+      minHeight: breakpoint.isDesktop ? 48 : 44,
+    },
+    saveButtonText: {
+      color: theme.colorScheme.onPrimary,
+      fontWeight: "600",
+      ...theme.typography.bodyMedium,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.colorScheme.surface,
+    },
+    loadingText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: theme.spacing.lg,
+    },
+    emptyText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: theme.spacing.xxl,
+      fontStyle: "italic",
+    },
+  });

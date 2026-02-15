@@ -3,13 +3,11 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
 import { router } from "expo-router";
-import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "./LayoutHeader.styles";
+import { createHeaderStyles } from "./LayoutHeader.styles";
 import { HeaderProps } from "./LayoutHeader.types";
-import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-shift-component/RecruitmentShiftModal";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
-import { ServiceProvider } from "@/services/ServiceProvider";
-import { RecruitmentShift } from "@/common/common-models/model-shift/shiftTypes";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
 /**
@@ -23,42 +21,14 @@ export function Header({
   onBack,
   onPressSettings,
 }: Readonly<HeaderProps>) {
+  const styles = useThemedStyles(createHeaderStyles);
+  const { colorScheme } = useMD3Theme();
   const { signOut, user } = useAuth();
 
   // FontAwesomeフォントを遅延読み込み
   useExtendedFonts();
 
-  const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // ユーザーが応募しているかチェックするヘルパー関数
-  const hasUserApplication = (
-    shift: RecruitmentShift,
-    userId: string
-  ): boolean => {
-    return shift.applications?.some((app) => app.userId === userId) ?? false;
-  };
-
-  useEffect(() => {
-    if (!user?.storeId) return;
-
-    const unsubscribe = ServiceProvider.recruitmentShifts.onOpenRecruitmentShifts(
-      user.storeId,
-      (shifts) => {
-        // 未応募のシフト数をカウント
-        const unappliedCount = shifts.filter(
-          (shift) => !hasUserApplication(shift, user.uid)
-        ).length;
-        setUnreadCount(unappliedCount);
-      },
-      () => {
-        setUnreadCount(0);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user?.storeId, user?.uid]);
 
   const handleSignOut = async () => {
     try {
@@ -85,25 +55,13 @@ export function Header({
             <AntDesign
               name="arrow-left"
               size={24}
-              color={colors.text.primary}
+              color={colorScheme.onSurface}
             />
           </TouchableOpacity>
         )}
         <Text style={styles.title}>{title}</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <TouchableOpacity
-          onPress={() => setShowRecruitmentModal(true)}
-          style={styles.notificationButton}
-        >
-          <AntDesign name="bell" size={24} color={colors.text.primary} />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
         {/* サービス紹介ボタン */}
         <TouchableOpacity
           onPress={() => setShowServiceIntro(true)}
@@ -112,7 +70,7 @@ export function Header({
           <AntDesign
             name="question-circle"
             size={24}
-            color={colors.text.primary}
+            color={colorScheme.onSurface}
           />
         </TouchableOpacity>
 
@@ -121,19 +79,13 @@ export function Header({
             onPress={onPressSettings}
             style={styles.signOutButton}
           >
-            <FontAwesome name="cog" size={24} color={colors.text.primary} />
+            <FontAwesome name="cog" size={24} color={colorScheme.onSurface} />
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
-          <FontAwesome name="sign-out" size={24} color={colors.text.primary} />
+          <FontAwesome name="sign-out" size={24} color={colorScheme.onSurface} />
         </TouchableOpacity>
       </View>
-
-      <RecruitmentShiftModal
-        visible={showRecruitmentModal}
-        onClose={() => setShowRecruitmentModal(false)}
-        userRole="teacher"
-      />
 
       {/* サービス紹介モーダル */}
       <ServiceIntroModal

@@ -11,7 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
-import { useExtendedShiftReportStyles } from "./ExtendedShiftReportModal.styles";
+import { createExtendedShiftReportStyles } from "./ExtendedShiftReportModal.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface ExtendedShiftReportModalProps {
@@ -26,7 +27,7 @@ export const ExtendedShiftReportModal: React.FC<
   ExtendedShiftReportModalProps
 > = ({ visible, shift, storeId, onClose, onReported }) => {
   const { user } = useAuth();
-  const styles = useExtendedShiftReportStyles();
+  const styles = useThemedStyles(createExtendedShiftReportStyles);
 
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);

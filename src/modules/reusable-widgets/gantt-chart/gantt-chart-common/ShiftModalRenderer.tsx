@@ -35,7 +35,6 @@ interface ShiftModalRendererProps {
   updateShiftStatus: (shiftId: string, status: ShiftStatus) => Promise<void>;
   user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
   shifts: ShiftItem[];
-  onRecruitmentRefresh: () => void;
 }
 
 const DEFAULT_SHIFT_DATA: NewShiftData = {
@@ -62,7 +61,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
     updateShiftStatus,
     user,
     shifts,
-    onRecruitmentRefresh,
   },
   ref
 ) => {
@@ -109,44 +107,13 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
     }
 
     if (!newShiftData.userId) {
-      Alert.alert("エラー", "ユーザーまたは募集を選択してください。");
+      Alert.alert("エラー", "ユーザーを選択してください。");
       return;
     }
 
     try {
-      if (newShiftData.userId === "recruitment") {
-        const recruitmentShiftData = {
-          storeId: user?.storeId || "",
-          date: newShiftData.date,
-          startTime: newShiftData.startTime,
-          endTime: newShiftData.endTime,
-          subject: "",
-          notes: "",
-          createdBy: user?.uid || "",
-          status: "open" as const,
-        };
-
-        try {
-          await ServiceProvider.recruitmentShifts.createRecruitmentShift(recruitmentShiftData);
-          Alert.alert("成功", "募集シフトを作成しました。");
-        } catch (recruitmentError: any) {
-          if (recruitmentError?.code) {
-            Alert.alert(
-              "エラー",
-              `募集シフトの作成に失敗しました。\nエラーコード: ${recruitmentError.code}\nメッセージ: ${recruitmentError.message}`
-            );
-          } else {
-            Alert.alert(
-              "エラー",
-              `募集シフトの作成に失敗しました。\n${recruitmentError?.message || "不明なエラーが発生しました。"}`
-            );
-          }
-          throw recruitmentError;
-        }
-      } else {
-        const shiftToUpdate = showEditModal ? editingShift : null;
-        await saveShift(shiftToUpdate, newShiftData);
-      }
+      const shiftToUpdate = showEditModal ? editingShift : null;
+      await saveShift(shiftToUpdate, newShiftData);
 
       setShowEditModal(false);
       setShowAddModal(false);
@@ -162,18 +129,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
 
     const shiftId = editingShift.id;
 
-    if (shiftId.startsWith("recruitment-")) {
-      const recruitmentShiftId = shiftId.replace("recruitment-", "");
-      try {
-        await ServiceProvider.recruitmentShifts.deleteRecruitmentShift(recruitmentShiftId);
-        onRecruitmentRefresh();
-      } catch (error) {
-        Alert.alert("エラー", "募集シフトの削除に失敗しました");
-      }
-      setShowEditModal(false);
-      return;
-    }
-
     const targetShift = editingShift || shifts.find((s) => s.id === shiftId);
     if (targetShift) {
       await deleteShift(targetShift);
@@ -182,7 +137,7 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
     }
 
     setShowEditModal(false);
-  }, [editingShift, deleteShift, updateShiftStatus, shifts, onRecruitmentRefresh]);
+  }, [editingShift, deleteShift, updateShiftStatus, shifts]);
 
   const handleEditChange = useCallback(
     (field: string, value: any) => {

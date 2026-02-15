@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, Text } from "react-native";
-import { styles } from "../../home-styles/home-view-styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 interface GanttHalfSwitchProps {
   showFirst: boolean;
@@ -10,60 +10,64 @@ interface GanttHalfSwitchProps {
 export const GanttHalfSwitch: React.FC<GanttHalfSwitchProps> = ({
   showFirst,
   onChange,
-}) => (
-  <View
-    style={{
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 8,
-      gap: 8,
-    }}
-  >
-    <Pressable
-      onPress={() => onChange(true)}
+}) => {
+  const theme = useMD3Theme();
+
+  return (
+    <View
       style={{
-        backgroundColor: showFirst
-          ? styles.headerCell.backgroundColor
-          : "#f0f0f0",
-        borderRadius: 8,
-        paddingHorizontal: 18,
-        paddingVertical: 8,
-        marginRight: 4,
-        borderWidth: showFirst ? 2 : 1,
-        borderColor: showFirst ? styles.headerCell.borderColor : "#ccc",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: theme.spacing.sm,
+        gap: theme.spacing.sm,
       }}
     >
-      <Text
+      <Pressable
+        onPress={() => onChange(true)}
         style={{
-          color: showFirst ? styles.headerText.color : "#888",
-          fontWeight: "bold",
+          backgroundColor: showFirst
+            ? theme.colorScheme.surface
+            : theme.colorScheme.surfaceContainerHigh,
+          borderRadius: theme.shape.small,
+          paddingHorizontal: 18,
+          paddingVertical: theme.spacing.sm,
+          marginRight: theme.spacing.xs,
+          borderWidth: showFirst ? 2 : 1,
+          borderColor: showFirst ? theme.colorScheme.outlineVariant : theme.colorScheme.outline,
         }}
       >
-        前半
-      </Text>
-    </Pressable>
-    <Pressable
-      onPress={() => onChange(false)}
-      style={{
-        backgroundColor: !showFirst
-          ? styles.headerCell.backgroundColor
-          : "#f0f0f0",
-        borderRadius: 8,
-        paddingHorizontal: 18,
-        paddingVertical: 8,
-        borderWidth: !showFirst ? 2 : 1,
-        borderColor: !showFirst ? styles.headerCell.borderColor : "#ccc",
-      }}
-    >
-      <Text
+        <Text
+          style={{
+            color: showFirst ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+            fontWeight: "bold",
+          }}
+        >
+          前半
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={() => onChange(false)}
         style={{
-          color: !showFirst ? styles.headerText.color : "#888",
-          fontWeight: "bold",
+          backgroundColor: !showFirst
+            ? theme.colorScheme.surface
+            : theme.colorScheme.surfaceContainerHigh,
+          borderRadius: theme.shape.small,
+          paddingHorizontal: 18,
+          paddingVertical: theme.spacing.sm,
+          borderWidth: !showFirst ? 2 : 1,
+          borderColor: !showFirst ? theme.colorScheme.outlineVariant : theme.colorScheme.outline,
         }}
       >
-        後半
-      </Text>
-    </Pressable>
-  </View>
-);
+        <Text
+          style={{
+            color: !showFirst ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+            fontWeight: "bold",
+          }}
+        >
+          後半
+        </Text>
+      </Pressable>
+    </View>
+  );
+};

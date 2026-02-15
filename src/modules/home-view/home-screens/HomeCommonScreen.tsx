@@ -4,7 +4,8 @@
 // 型定義分割済み（home-view-types.ts）
 import React, { useState, useMemo } from "react";
 import { View, Modal, StyleSheet, useWindowDimensions } from "react-native";
-import { styles } from "../home-styles/home-view-styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { createHomeViewStyles } from "../home-styles/home-view-styles";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale/ja";
 import { DatePickerModal } from "@/modules/reusable-widgets/calendar/modals/DatePickerModal";
@@ -21,6 +22,7 @@ import { NextShiftDetailModal } from "../home-components/home-widgets/NextShiftD
 import { useAuth } from "@/services/auth/useAuth";
 
 export default function HomeCommonScreen() {
+  const styles = useThemedStyles(createHomeViewStyles);
   const gantt = useHomeGanttState();
   const { user } = useAuth();
   const { height } = useWindowDimensions();

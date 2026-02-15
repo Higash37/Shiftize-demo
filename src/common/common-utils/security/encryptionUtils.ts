@@ -1,6 +1,6 @@
 /**
  * 個人情報暗号化ユーティリティ
- * Firebase + React Native 環境での安全なデータ暗号化
+ * Supabase + React Native 環境での安全なデータ暗号化
  */
 
 import * as SecureStore from "expo-secure-store";
@@ -354,36 +354,20 @@ export class PersonalDataDeletion {
       // 1. 個人情報暗号化キーの削除
       await PersonalInfoEncryption.secureDelete();
 
-      // 2. Firebase関連の削除（実装は認証システム側で行う）
-      const { deleteUser } = await import("firebase/auth");
-      const { doc, deleteDoc, collection, query, where, getDocs } =
-        await import("firebase/firestore");
-      const { auth, db } = await import("@/services/firebase/firebase-core");
+      // 2. Supabaseからユーザーデータを削除
+      const { getSupabase } = await import("@/services/supabase/supabase-client");
+      const supabase = getSupabase();
 
-      // 3. Firestoreからユーザーデータを削除
-      const userRef = doc(db, "users", userId);
-      await deleteDoc(userRef);
+      await supabase.from("users").delete().eq("uid", userId);
 
-      // 4. 関連するシフトデータを削除（論理削除）
-      const shiftsQuery = query(
-        collection(db, "shifts"),
-        where("userId", "==", userId),
-        where("storeId", "==", storeId)
-      );
-      const shiftsSnapshot = await getDocs(shiftsQuery);
+      // 3. 関連するシフトデータを削除
+      await supabase
+        .from("shifts")
+        .delete()
+        .eq("user_id", userId)
+        .eq("store_id", storeId);
 
-      const deletePromises = shiftsSnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref)
-      );
-      await Promise.all(deletePromises);
-
-      // 5. Firebase Authアカウントの削除
-      if (auth.currentUser?.uid === userId) {
-        await deleteUser(auth.currentUser);
-      }
-
-      // 6. セキュリティログ
-      const { SecurityLogger } = await import("./securityUtils");
+      // 4. セキュリティログ
       SecurityLogger.logEvent({
         type: "unauthorized_access",
         userId: userId,
@@ -404,44 +388,35 @@ export class PersonalDataDeletion {
     adminUserId: string
   ): Promise<void> {
     try {
-      // 管理者権限チェックは呼び出し側で実装済みと仮定
+      const { getSupabase } = await import("@/services/supabase/supabase-client");
+      const supabase = getSupabase();
 
-      const { doc, updateDoc, collection, query, where, getDocs } =
-        await import("firebase/firestore");
-      const { db } = await import("@/services/firebase/firebase-core");
-
-      // ユーザーデータを削除ではなく論理削除に変更（監査目的）
-      const userRef = doc(db, "users", targetUserId);
-      await updateDoc(userRef, {
-        deleted: true,
-        deletedAt: new Date(),
-        deletedBy: adminUserId,
-        // 個人情報をクリア
-        realName: null,
-        phoneNumber: null,
-        address: null,
-        notes: null,
-      });
+      // ユーザーデータを論理削除（監査目的）
+      await supabase
+        .from("users")
+        .update({
+          deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: adminUserId,
+          real_name: null,
+          phone_number: null,
+          address: null,
+          notes: null,
+        })
+        .eq("uid", targetUserId);
 
       // 関連シフトも論理削除
-      const shiftsQuery = query(
-        collection(db, "shifts"),
-        where("userId", "==", targetUserId),
-        where("storeId", "==", storeId)
-      );
-      const shiftsSnapshot = await getDocs(shiftsQuery);
-
-      const updatePromises = shiftsSnapshot.docs.map((doc) =>
-        updateDoc(doc.ref, {
+      await supabase
+        .from("shifts")
+        .update({
           deleted: true,
-          deletedAt: new Date(),
-          deletedBy: adminUserId,
+          deleted_at: new Date().toISOString(),
+          deleted_by: adminUserId,
         })
-      );
-      await Promise.all(updatePromises);
+        .eq("user_id", targetUserId)
+        .eq("store_id", storeId);
 
       // セキュリティログ
-      const { SecurityLogger } = await import("./securityUtils");
       SecurityLogger.logEvent({
         type: "unauthorized_access",
         userId: adminUserId,

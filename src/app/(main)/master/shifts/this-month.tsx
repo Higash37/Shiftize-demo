@@ -1,45 +1,48 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 import { MasterShiftListView } from "@/modules/master-view/master-shift-list/MasterShiftListView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
-import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
+import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { GanttViewView } from "@/modules/master-view/ganttView/GanttViewView";
+
+const THIS_MONTH = new Date();
+const INITIAL_YEAR = THIS_MONTH.getFullYear();
+const INITIAL_MONTH = THIS_MONTH.getMonth();
 
 export default function MasterThisMonthShiftScreen() {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
   const { user } = useAuth();
-  const { shifts, fetchShiftsByMonth } = useShiftsRealtime(user?.storeId);
-  const { users } = useUsers(user?.storeId);
-
-  const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
-    const today = new Date();
-    return { year: today.getFullYear(), month: today.getMonth() };
+  const [currentYearMonth, setCurrentYearMonth] = React.useState({
+    year: INITIAL_YEAR,
+    month: INITIAL_MONTH,
   });
 
-  const generateDaysForMonth = (year: number, month: number) => {
+  const { shifts, changeMonth } = useShiftsByMonth(
+    user?.storeId,
+    currentYearMonth.year,
+    currentYearMonth.month
+  );
+  const { users } = useUsers(user?.storeId);
+
+  const days = useMemo(() => {
+    const { year, month } = currentYearMonth;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, i) => {
+    return Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month, i + 1);
       const yyyy = date.getFullYear();
       const mm = String(date.getMonth() + 1).padStart(2, "0");
       const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
     });
-    return days;
-  };
-
-  const days = generateDaysForMonth(
-    currentYearMonth.year,
-    currentYearMonth.month
-  );
+  }, [currentYearMonth]);
 
   const handleMonthChange = async (year: number, month: number) => {
     setCurrentYearMonth({ year, month });
-    fetchShiftsByMonth(year, month);
+    changeMonth(year, month);
   };
 
   const handleShiftUpdate = async () => {

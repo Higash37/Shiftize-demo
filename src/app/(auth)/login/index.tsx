@@ -1,24 +1,23 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  Platform,
-  useWindowDimensions,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
+import { getDefaultHomeRoute } from "@/common/common-constants/RouteConstants";
 import { LoginForm } from "@/modules/login-view/loginView/LoginForm";
-import { designSystem } from "@/common/common-constants/DesignSystem";
-import { colors } from "@/common/common-constants/ColorConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
 // ServiceIntroModalを遅延読み込み
-const ServiceIntroModal = lazy(() => 
+const ServiceIntroModal = lazy(() =>
   import("@/modules/reusable-widgets/service-intro/ServiceIntroModal").then(module => ({ default: module.ServiceIntroModal }))
 );
 
@@ -28,11 +27,11 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showServiceIntro, setShowServiceIntro] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
-  const { width } = useWindowDimensions();
   const params = useLocalSearchParams();
-  const isWeb = Platform.OS === "web";
-  const isDesktop = isWeb && width > 1024; // PC判定
-  const isMobile = width <= 768; // スマホ判定
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(() => createLoginScreenStyles(theme, bp), [theme, bp]);
+  const { colorScheme } = theme;
 
   // URLパラメータをチェックしてデモモーダルを自動表示
   useEffect(() => {
@@ -58,25 +57,27 @@ export default function Login() {
     setLoading(true);
     setErrorMessage("");
     try {
-      // 通常のFirebaseログイン
       const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrUsername);
 
+      let result;
       if (isEmailFormat) {
-        // 実メールアドレスの場合はそのまま使用
-        await signIn(emailOrUsername, password);
+        result = await signIn(emailOrUsername, password);
       } else {
-        // 店舗ID + ニックネーム形式の場合は自動生成メールを作成
         if (!storeId) {
           throw new Error("店舗IDが必要です");
         }
         const email = `${storeId}${emailOrUsername}@example.com`;
-        await signIn(email, password, storeId);
+        result = await signIn(email, password, storeId);
       }
 
-      // ナビゲーション処理を待つために少し待機
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // ログイン成功: 明示的にリダイレクト
+      const redirectParam = params["redirect"] as string | undefined;
+      if (redirectParam) {
+        router.replace(decodeURIComponent(redirectParam));
+      } else {
+        router.replace(getDefaultHomeRoute(result.role));
+      }
     } catch (error) {
-      // Handle login errors appropriately
       console.error("Login error:", error);
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
@@ -86,57 +87,13 @@ export default function Login() {
     }
   };
 
-  // レスポンシブヘッダースタイル
-  const getHeaderStyle = () => {
-    const baseStyle = {
-      ...designSystem.layout.headerPrimary,
-      borderTopLeftRadius: 0, // 上部角丸を明示的に削除
-      borderTopRightRadius: 0, // 上部角丸を明示的に削除
-    };
-
-    if (isDesktop || isMobile) {
-      // PC・スマホ: 高さをさらに小さく（30%さらに縮小）
-      return {
-        ...baseStyle,
-        paddingVertical: layout.padding.small, // 8px (さらに小さく)
-      };
-    } else {
-      // タブレット: そのまま（24px）
-      return baseStyle;
-    }
-  };
-
-  // レスポンシブテキストスタイル
-  const getHeaderTextStyle = () => {
-    if (isDesktop || isMobile) {
-      // PC・スマホ: 文字サイズをさらに小さく（30%さらに縮小）
-      return {
-        ...designSystem.text.headerTitle,
-        fontSize: 20, // 28px から さらに小さく
-      };
-    } else {
-      // タブレット: そのまま
-      return designSystem.text.headerTitle;
-    }
-  };
-
-  const getSubtitleTextStyle = () => {
-    if (isDesktop || isMobile) {
-      // PC・スマホ: サブタイトルをさらに小さく（30%さらに縮小）
-      return {
-        ...designSystem.text.subtitle,
-        fontSize: 12, // 16px から さらに小さく
-      };
-    } else {
-      // タブレット: そのまま
-      return designSystem.text.subtitle;
-    }
-  };
-
   return (
-    <SafeAreaView style={designSystem.page.safeContainer}>
+    <SafeAreaView style={styles.safeContainer}>
       {/* Header */}
-      <Box variant="primary" style={getHeaderStyle()}>
+      <Box
+        variant="primary"
+        style={styles.header}
+      >
         <View style={styles.headerContainer}>
           {/* Left: Spacer */}
           <View style={styles.headerSpacer} />
@@ -145,30 +102,40 @@ export default function Login() {
             style={styles.headerButton}
             onPress={() => router.push("/(main)")}
           >
-            <Text style={getHeaderTextStyle()}>Shiftize</Text>
-            <Text style={getSubtitleTextStyle()}>シフト管理システム</Text>
+            <Text style={styles.headerTitle}>
+              Shiftize
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              シフト管理システム
+            </Text>
           </TouchableOpacity>
           {/* Right: Icons */}
           <View style={styles.headerIcons}>
-            {/* Help/Support Icon */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => setShowServiceIntro(true)}
             >
-              <AntDesign name="question-circle" size={24} color="white" />
+              <AntDesign
+                name="question-circle"
+                size={24}
+                color={colorScheme.onPrimary}
+              />
             </TouchableOpacity>
-            {/* Welcome Page Icon */}
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => router.push("/(auth)/auth-welcome")}
             >
-              <AntDesign name="home" size={24} color="white" />
+              <AntDesign
+                name="home"
+                size={24}
+                color={colorScheme.onPrimary}
+              />
             </TouchableOpacity>
           </View>
         </View>
       </Box>
       {/* Content */}
-      <View style={designSystem.page.content}>
+      <View style={styles.content}>
         <LoginForm
           onLogin={handleLogin}
           loading={loading}
@@ -195,39 +162,78 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  headerButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-  },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  headerSpacer: {
-    width: 80, // アイコン2つ分の幅 + gap + padding (24 * 2 + 12 + 8 * 2)
-  },
-  iconButton: {
-    padding: 8,
-  },
-  errorContainer: {
-    ...designSystem.card.outlineCard,
-    backgroundColor: colors.error + "10", // 薄い赤背景
-    borderColor: colors.error,
-    marginTop: 16,
-  },
-  errorText: {
-    color: colors.error,
-    textAlign: "center",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-});
+const createLoginScreenStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean }
+) => {
+  const { isMobile, isDesktop } = breakpoint;
+  const isCompact = isMobile || isDesktop;
+
+  return StyleSheet.create({
+    safeContainer: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+    },
+    header: {
+      alignItems: "center",
+      paddingVertical: isCompact ? theme.spacing.sm : theme.spacing.xxl,
+      paddingHorizontal: theme.spacing.xxl,
+      borderBottomLeftRadius: theme.shape.large,
+      borderBottomRightRadius: theme.shape.large,
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      ...theme.elevation.level2.shadow,
+    },
+    headerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    headerButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      flex: 1,
+    },
+    headerTitle: {
+      ...(isCompact ? theme.typography.titleLarge : theme.typography.headlineMedium),
+      color: theme.colorScheme.onPrimary,
+      textAlign: "center",
+    },
+    headerSubtitle: {
+      ...(isCompact ? theme.typography.bodySmall : theme.typography.bodyLarge),
+      color: theme.colorScheme.onPrimary,
+      opacity: 0.9,
+      textAlign: "center",
+    },
+    headerIcons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+    },
+    headerSpacer: {
+      width: 80,
+    },
+    iconButton: {
+      padding: theme.spacing.sm,
+    },
+    content: {
+      flex: 1,
+      padding: theme.spacing.lg,
+    },
+    errorContainer: {
+      backgroundColor: theme.colorScheme.errorContainer,
+      borderRadius: theme.shape.small,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.error,
+      padding: theme.spacing.md,
+      marginTop: theme.spacing.lg,
+    },
+    errorText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onErrorContainer,
+      textAlign: "center",
+      fontWeight: "500",
+    },
+  });
+};

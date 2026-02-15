@@ -1,5 +1,4 @@
 export type ShiftAppSettings = {
-  darkMode: boolean;
   fontSize: "small" | "medium" | "large";
   compactMode: boolean;
   showWeekNumbers: boolean;

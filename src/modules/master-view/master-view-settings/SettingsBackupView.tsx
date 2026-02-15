@@ -4,17 +4,15 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
 } from "react-native";
 import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { settingsBackupViewStyles as styles } from "./SettingsBackupView.styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { createSettingsBackupViewStyles } from "./SettingsBackupView.styles";
 import type { SettingsBackupViewProps } from "./SettingsBackupView.types";
-
-const { width } = Dimensions.get("window");
-const isTablet = width >= 768;
-const isDesktop = width >= 1024;
 
 export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
   loading,
@@ -22,6 +20,10 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
   onImport,
   onReset,
 }) => {
+  const styles = useThemedStyles(createSettingsBackupViewStyles);
+  const theme = useMD3Theme();
+  const { isTablet, isDesktop } = useBreakpoint();
+
   const containerStyle = [
     styles.container,
     isTablet && styles.containerTablet,
@@ -31,7 +33,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={theme.colorScheme.primary} />
         <Text style={styles.loadingText}>処理中...</Text>
       </View>
     );
@@ -61,7 +63,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
           {/* エクスポートボタン */}
           <TouchableOpacity style={styles.actionButton} onPress={onExport}>
             <View style={styles.buttonIcon}>
-              <Ionicons name="download-outline" size={24} color="#007AFF" />
+              <Ionicons name="download-outline" size={24} color={theme.colorScheme.primary} />
             </View>
             <View style={styles.buttonContent}>
               <Text style={styles.buttonTitle}>設定をエクスポート</Text>
@@ -69,13 +71,13 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
                 現在の設定をJSONファイルとして保存します
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
           </TouchableOpacity>
 
           {/* インポートボタン */}
           <TouchableOpacity style={styles.actionButton} onPress={onImport}>
             <View style={styles.buttonIcon}>
-              <Ionicons name="cloud-upload-outline" size={24} color="#007AFF" />
+              <Ionicons name="cloud-upload-outline" size={24} color={theme.colorScheme.primary} />
             </View>
             <View style={styles.buttonContent}>
               <Text style={styles.buttonTitle}>設定をインポート</Text>
@@ -83,7 +85,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
                 保存された設定ファイルから設定を復元します
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
           </TouchableOpacity>
         </View>
 
@@ -100,7 +102,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
             onPress={onReset}
           >
             <View style={styles.buttonIcon}>
-              <Ionicons name="refresh-outline" size={24} color="#FF3B30" />
+              <Ionicons name="refresh-outline" size={24} color={theme.colorScheme.error} />
             </View>
             <View style={styles.buttonContent}>
               <Text style={[styles.buttonTitle, styles.dangerText]}>
@@ -110,7 +112,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
                 全ての設定を初期値に戻します
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
           </TouchableOpacity>
         </View>
 
@@ -120,7 +122,7 @@ export const SettingsBackupView: React.FC<SettingsBackupViewProps> = ({
             <Ionicons
               name="information-circle-outline"
               size={24}
-              color="#FF9500"
+              color={theme.colorScheme.tertiary}
             />
             <Text style={styles.infoTitle}>注意事項</Text>
           </View>

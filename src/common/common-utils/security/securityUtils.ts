@@ -215,7 +215,7 @@ export const secureFetch = async (
  * Content Security Policy (CSP) ヘッダーを取得
  *
  * XSS攻撃を防ぐためのContent Security Policyヘッダーを生成します。
- * このCSPはFirebaseサービスとの互換性を考慮して設定されています。
+ * このCSPはSupabaseサービスとの互換性を考慮して設定されています。
  *
  * ⚠️ SECURITY NOTE:
  * - 'unsafe-inline'の使用は最小限に抑えることを推奨します
@@ -230,7 +230,7 @@ export const getCSPHeader = (): string => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://firestore.googleapis.com https://firebase.googleapis.com https://functions.cloudfunctions.net",
+    "connect-src 'self' https://*.supabase.co",
     "media-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

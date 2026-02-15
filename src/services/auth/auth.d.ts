@@ -3,7 +3,7 @@ export interface User {
   nickname: string;
   role: "master" | "user";
   email?: string;
-  storeId?: string; // Store IDを追加
+  storeId?: string;
 }
 
 export interface AuthContextType {
@@ -11,6 +11,7 @@ export interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   role: "master" | "user" | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  authError: string | null;
+  signIn: (emailOrUsername: string, password: string, storeId?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }

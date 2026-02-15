@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   TouchableOpacity,
@@ -14,8 +14,7 @@ import {
   FontAwesome5,
   Ionicons,
 } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "./LayoutFooter.styles";
+import { createFooterStyles } from "./LayoutFooter.styles";
 import { TabItem } from "./ui-layout-types";
 import { FooterProps } from "./LayoutFooter.types";
 import { ServiceProvider } from "@/services/ServiceProvider";
@@ -23,13 +22,16 @@ import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissi
 import { useAuth } from "@/services/auth/useAuth";
 import { convertShadowForWeb } from "@/common/common-constants/ShadowConstants";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
 
-// 講師用フッターのタブ設定
-const user_TABS: TabItem[] = [
+/** タブ設定をテーマカラーに応じて生成 */
+const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
   {
     name: "home",
     label: "ホーム",
@@ -38,35 +40,20 @@ const user_TABS: TabItem[] = [
       <MaterialIcons
         name="home"
         size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
   },
-  // ファイル機能は凍結中（使用率が低いため）
-  // {
-  //   name: "files",
-  //   label: "ファイル",
-  //   path: "/user/files",
-  //   icon: (active: boolean) => (
-  //     <MaterialIcons
-  //       name="folder"
-  //       size={IS_SMALL_DEVICE ? 20 : 24}
-  //       color={active ? colors.primary : colors.text.secondary}
-  //     />
-  //   ),
-  //   isUnderDevelopment: false,
-  // },
   {
     name: "create",
     label: "シフト追加",
     path: "/user/shifts/create",
     icon: (active: boolean) => (
-      // 通常のタブと同じ高さのデザイン
       <AntDesign
         name="plus"
         size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -79,7 +66,7 @@ const user_TABS: TabItem[] = [
       <FontAwesome5
         name="calendar-alt"
         size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -92,7 +79,7 @@ const user_TABS: TabItem[] = [
       <Ionicons
         name="settings-outline"
         size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? colors.primary : colors.text.secondary}
+        color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
     isUnderDevelopment: false,
@@ -118,6 +105,9 @@ export function Footer(_props: Readonly<FooterProps>) {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+  const styles = useThemedStyles(createFooterStyles);
+  const { colorScheme } = useMD3Theme();
+  const userTabs = useMemo(() => createUserTabs(colorScheme), [colorScheme]);
 
   // FontAwesome5フォントを遅延読み込み
   useExtendedFonts();
@@ -181,13 +171,13 @@ export function Footer(_props: Readonly<FooterProps>) {
       }
     }
 
-    router.push(tab.path);
+    router.replace(tab.path);
   };
 
   return (
     <>
       <View style={styles.footer}>
-        {user_TABS.map((tab, index) => {
+        {userTabs.map((tab, index) => {
           // シフトタブは /user/shifts で始まるパスすべてをアクティブとする
           const active = tab.name === "shifts"
             ? pathname.startsWith(tab.path)
@@ -286,7 +276,7 @@ export function Footer(_props: Readonly<FooterProps>) {
           style={{
             height: 10,
             width: "100%",
-            backgroundColor: colors.footer.background,
+            backgroundColor: colorScheme.surfaceContainer,
           }}
         />
       )}

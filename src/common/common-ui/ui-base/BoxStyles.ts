@@ -1,67 +1,80 @@
 import { StyleSheet, ViewStyle } from "react-native";
-import { theme } from "../../common-theme/ThemeDefinition";
-import { layout } from "../../common-constants/LayoutConstants";
-import { shadows } from "../../common-constants/ShadowConstants";
+import { MD3Theme } from "../../common-theme/md3/MD3Theme.types";
 import { BoxStyleName } from "./BoxTypes";
 
 /**
- * Box コンポーネントのスタイル定義
+ * Box コンポーネントのスタイルファクトリ
+ *
+ * useThemedStyles と組み合わせて使用し、テーマ変更時に自動再生成される。
  */
-export const styles = StyleSheet.create({
-  base: {
-    borderRadius: layout.borderRadius.medium,
-  },
-  default: {
-    backgroundColor: theme.colors.background,
-  },
-  primary: {
-    backgroundColor: theme.colors.primary,
-  },
-  secondary: {
-    backgroundColor: theme.colors.secondary,
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: layout.components.card,
-    ...shadows.card,
-  },
-  outlined: {
-    backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: layout.borderRadius.medium,
-    ...shadows.small,
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: layout.borderRadius.medium,
-  },
-  padding_small: {
-    padding: layout.padding.small,
-  },
-  padding_medium: {
-    padding: layout.padding.medium,
-  },
-  padding_large: {
-    padding: layout.padding.large,
-  },
-  padding_none: {
-    padding: 0,
-  },
-  margin_small: {
-    margin: layout.padding.small,
-  },
-  margin_medium: {
-    margin: layout.padding.medium,
-  },
-  margin_large: {
-    margin: layout.padding.large,
-  },
-  margin_none: {
-    margin: 0,
-  },
-}) as Record<BoxStyleName, ViewStyle>;
+export const createBoxStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    base: {
+      borderRadius: theme.shape.medium,
+    },
+    default: {
+      backgroundColor: theme.colorScheme.surface,
+    },
+    primary: {
+      backgroundColor: theme.colorScheme.primary,
+    },
+    secondary: {
+      backgroundColor: theme.colorScheme.secondary,
+    },
+    card: {
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+      borderRadius: theme.shape.medium,
+      ...theme.elevation.level1.shadow,
+    },
+    outlined: {
+      backgroundColor: theme.colorScheme.surface,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+      borderRadius: theme.shape.medium,
+      ...theme.elevation.level1.shadow,
+    },
+    outline: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outline,
+      borderRadius: theme.shape.medium,
+    },
+    surface: {
+      backgroundColor: theme.colorScheme.surface,
+    },
+    surfaceContainer: {
+      backgroundColor: theme.colorScheme.surfaceContainer,
+    },
+    surfaceContainerHigh: {
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+    },
+    surfaceContainerLow: {
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+    },
+    padding_small: {
+      padding: theme.spacing.sm,
+    },
+    padding_medium: {
+      padding: theme.spacing.lg,
+    },
+    padding_large: {
+      padding: theme.spacing.xxl,
+    },
+    padding_none: {
+      padding: 0,
+    },
+    margin_small: {
+      margin: theme.spacing.sm,
+    },
+    margin_medium: {
+      margin: theme.spacing.lg,
+    },
+    margin_large: {
+      margin: theme.spacing.xxl,
+    },
+    margin_none: {
+      margin: 0,
+    },
+  }) as Record<BoxStyleName, ViewStyle>;

@@ -4,7 +4,8 @@ import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { useRouter } from "expo-router";
-import { styles } from "./ChangePassword.styles";
+import { createChangePasswordStyles } from "./ChangePassword.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ChangePasswordProps } from "../user-types/components";
 
 /**
@@ -15,6 +16,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
   userId,
   onComplete,
 }) => {
+  const styles = useThemedStyles(createChangePasswordStyles);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

@@ -1,21 +1,55 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    // TypeScriptの厳密な型チェックオプション
+    // null安全・暗黙any禁止などを有効化
+    // バグの早期発見を優先
     "strict": true,
+    // モジュールは最新のES仕様を維持
+    // Expo環境ではtscは型チェックのみを行い、
+    // 実際の変換はMetro/Babelが担当する。
+    // そのためmoduleはesnextのまま維持する。
     "module": "esnext",
+    // 出力ターゲット
+    // TypeScriptがどこまで古い構文へ変換するかを決める。
+    // ExpoではMetroが最終変換するため、比較的新しいES2020を指定。
+    // Metroが変換してくれる前提
     "target": "es2020",
+    // importの解決の基準をプロジェクトルートに
+    // pathsエイリアスを使うために必須
     "baseUrl": ".",
+    // ファイル名の大文字小文字を厳密にチェック
+    // 環境によって大文字小文字が異なる場合の不具合を防ぐ
     "forceConsistentCasingInFileNames": true,
+    // node_modules内の型定義の整合性チェックをスキップ。
+    // 外部パッケージの型エラーでビルドが止まるのを防ぐ。
+    // 実務ではほぼtrue推奨。
     "skipLibCheck": true,
+    // Node.jsの型定義を利用
     "types": ["node"],
-    // 追加の厳密な型チェックオプション
+    // =====追加の厳密設定群=====
+    // オーバーライドの強制
+    // 継承時の事故を防ぐ
     "noImplicitOverride": true,
+    //index signatureのアクセスを制限
+    // any逃げを防ぐ
     "noPropertyAccessFromIndexSignature": true,
+    // 配列やobj[key]アクセス時にundefined考慮を強制。
+    // 実運用で最も効果のある安全装置。
     "noUncheckedIndexedAccess": true,
+    // optionalプロパティを厳密に使う
+    // 「省略」と「undefined」を区別
     "exactOptionalPropertyTypes": true,
+    // switch文のbreak漏れを防ぐ。
     "noFallthroughCasesInSwitch": true,
+    // 到達不能コードを禁止。
     "allowUnreachableCode": false,
+    // 未使用ラベルを禁止。
     "allowUnusedLabels": false,
+    // インクリメンタルビルドを有効化
+    "incremental": true,
+    // パスエイリアスの設定
+    // モジュールの読み込みをシンプルに。
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["src/common/common-ui/*"],

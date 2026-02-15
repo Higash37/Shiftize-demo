@@ -1,13 +1,7 @@
-import { 
-  addDoc, 
-  collection, 
-  serverTimestamp,
-  Timestamp 
-} from "firebase/firestore";
-import { db } from "@/services/firebase/firebase";
+import { getSupabase } from "@/services/supabase/supabase-client";
 import { ShiftItem, ShiftStatus } from "@/common/common-models/ModelIndex";
 
-export type ShiftActionType = 
+export type ShiftActionType =
   | "create"
   | "update_time"
   | "update_user"
@@ -29,7 +23,7 @@ export interface ShiftHistoryEntry {
   shiftId?: string | null;
   action: ShiftActionType;
   actor: ShiftHistoryActor;
-  timestamp?: Timestamp;
+  timestamp?: string;
   date: string; // YYYY-MM-DD
   prev?: {
     startTime?: string;
@@ -79,20 +73,19 @@ const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
     status: shift.status,
     type: shift.type,
   };
-  
-  // undefinedの場合はプロパティを除外
+
   if (shift.subject !== undefined) {
     snapshot.subject = shift.subject;
   }
-  
+
   if (shift.notes !== undefined) {
     snapshot.notes = shift.notes;
   }
-  
+
   if (shift.classes !== undefined) {
     snapshot.classes = shift.classes;
   }
-  
+
   return snapshot;
 };
 
@@ -106,32 +99,32 @@ const generateSummary = (
   metadata?: any
 ): string => {
   const actorName = actor.role === "teacher" ? `講師 ${actor.nickname}` : actor.nickname;
-  
+
   switch (action) {
     case "create":
       return `${actorName} が ${date} のシフトを追加しました（${next?.startTime}-${next?.endTime}, 担当: ${next?.userNickname}）`;
-    
+
     case "teacher_create":
       return `講師 ${actor.nickname} が ${date} にシフトを申請しました（${next?.startTime}-${next?.endTime}）`;
-    
+
     case "update_time":
       return `${actorName} が ${date} のシフト時間を ${prev?.startTime}-${prev?.endTime} → ${next?.startTime}-${next?.endTime} に変更しました（担当: ${next?.userNickname}）`;
-    
+
     case "update_user":
       return `${actorName} が ${date} の担当を ${prev?.userNickname} → ${next?.userNickname} に変更しました（${next?.startTime}-${next?.endTime}）`;
-    
+
     case "update_status":
       return `${actorName} が ${date} のシフトステータスを ${prev?.statusLabel} → ${next?.statusLabel} に変更しました（${next?.userNickname}）`;
-    
+
     case "delete":
       return `${actorName} が ${date} のシフトを削除しました（${prev?.startTime}-${prev?.endTime}, 担当: ${prev?.userNickname}）`;
-    
+
     case "batch_approve":
       return `${actorName} が ${metadata?.yearMonth || date} のシフトを一括承認しました（対象: ${metadata?.count || 0}件）`;
-    
+
     case "teacher_update":
       return `講師 ${actor.nickname} が ${date} のシフトを変更しました`;
-    
+
     default:
       return `${actorName} が ${date} のシフトを変更しました`;
   }
@@ -160,7 +153,7 @@ export const logShiftChange = async (
       actor,
       date: shift?.date || prevShift?.date || new Date().toISOString().split("T")[0],
       summary: "",
-      ...(metadata?.notes && { notes: metadata.notes }), // undefinedの場合はフィールドを除外
+      ...(metadata?.notes && { notes: metadata.notes }),
     };
 
     // 変更前後のデータを設定
@@ -200,30 +193,27 @@ export const logShiftChange = async (
       metadata
     );
 
-    // Firestoreに保存（undefinedフィールドを除外）
-    const dataToSave = {
-      ...entry,
-      timestamp: serverTimestamp(),
-    };
-    
-    // undefinedフィールドを除外
-    Object.keys(dataToSave).forEach(key => {
-      if (dataToSave[key as keyof typeof dataToSave] === undefined) {
-        delete dataToSave[key as keyof typeof dataToSave];
-      }
+    // Supabaseに保存
+    const supabase = getSupabase();
+    const { error } = await supabase.from("shift_change_logs").insert({
+      store_id: entry.storeId,
+      shift_id: entry.shiftId,
+      action: entry.action,
+      actor: entry.actor,
+      date: entry.date,
+      prev: entry.prev || null,
+      next: entry.next || null,
+      summary: entry.summary,
+      notes: entry.notes || null,
+      prev_snapshot: entry.prevSnapshot || null,
+      next_snapshot: entry.nextSnapshot || null,
     });
-    
-    await addDoc(collection(db, "shiftChangeLogs"), dataToSave);
+
+    if (error) {
+      console.error("Shift history logging failed:", error.message);
+    }
   } catch (error: any) {
-    // ログ記録の失敗をコンソールに記録（通常の操作は継続）
     console.error("Shift history logging failed:", error);
-    console.error("Error code:", error?.code);
-    console.error("Error message:", error?.message);
-    console.error("Action:", action);
-    console.error("StoreId:", storeId);
-    console.error("Actor:", actor);
-    // ログ記録の失敗は通常の操作を妨げないようにする
-    // Silent error handling for shift change logging
   }
 };
 
@@ -254,35 +244,35 @@ export const determineActionType = (
   if (!prevShift && nextShift) {
     return actor.role === "teacher" ? "teacher_create" : "create";
   }
-  
+
   // 削除
   if (prevShift && !nextShift) {
     return "delete";
   }
-  
+
   // 更新
   if (prevShift && nextShift) {
     // 講師による変更
     if (actor.role === "teacher") {
       return "teacher_update";
     }
-    
+
     // 時間変更
-    if (prevShift.startTime !== nextShift.startTime || 
+    if (prevShift.startTime !== nextShift.startTime ||
         prevShift.endTime !== nextShift.endTime) {
       return "update_time";
     }
-    
+
     // 担当者変更
     if (prevShift.userId !== nextShift.userId) {
       return "update_user";
     }
-    
+
     // ステータス変更
     if (prevShift.status !== nextShift.status) {
       return "update_status";
     }
   }
-  
+
   return "create"; // デフォルト
 };

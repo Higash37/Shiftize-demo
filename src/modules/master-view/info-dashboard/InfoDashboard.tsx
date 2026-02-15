@@ -1,108 +1,92 @@
-import React, { useState, useEffect, Suspense, lazy, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
-  useWindowDimensions,
+  FlatList,
   TouchableOpacity,
   Modal,
   TextInput,
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ColorConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
 import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { useAuth } from "@/services/auth/useAuth";
-
-import { BudgetSection } from "./analytics-widgets";
-
-// タブコンテンツを遅延読み込み
-const StaffEfficiencyTab = lazy(() => 
-  import("./analytics-widgets/StaffEfficiencyTab").then(module => ({ default: module.StaffEfficiencyTab }))
-);
-const CostAnalysisTab = lazy(() => 
-  import("./analytics-widgets/CostAnalysisTab").then(module => ({ default: module.CostAnalysisTab }))
-);
-const ShiftMetricsTab = lazy(() => 
-  import("./analytics-widgets/ShiftMetricsTab").then(module => ({ default: module.ShiftMetricsTab }))
-);
-const ProductivityTab = lazy(() => 
-  import("./analytics-widgets/ProductivityTab").then(module => ({ default: module.ProductivityTab }))
-);
-const TrendAnalysisTab = lazy(() => 
-  import("./analytics-widgets/TrendAnalysisTab").then(module => ({ default: module.TrendAnalysisTab }))
-);
-import Box from "@/common/common-ui/ui-base/BoxComponent";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { createInfoDashboardStyles } from "./InfoDashboard.styles";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 
-type TabType =
-  | "efficiency"
-  | "cost"
-  | "shift"
-  | "productivity"
-  | "trend";
-
-interface TabItem {
-  key: TabType;
-  label: string;
-  icon: string;
+interface StaffData {
+  id: string;
+  name: string;
+  workedHours: number;
+  efficiency: number;
+  totalEarnings: number;
+  hourlyWage: number;
 }
 
-const tabs: TabItem[] = [
-  { key: "efficiency", label: "スタッフ稼働", icon: "people" },
-  { key: "cost", label: "人件費分析", icon: "attach-money" },
-  { key: "shift", label: "シフト指標", icon: "schedule" },
-  { key: "productivity", label: "生産性", icon: "trending-up" },
-  { key: "trend", label: "トレンド", icon: "analytics" },
-];
-
 /**
- * InfoDashboard - 経営ダッシュボード
- *
- * 実データ（Firebase/Firestore）を使用したシフト管理の経営分析ダッシュボード
- *
- * 機能:
- * - スタッフ稼働率分析（実データ）
- * - 人件費分析（実データ）
- * - シフト指標分析（実データ）
- * - 生産性分析（実データ）
- * - トレンド分析（実データ）
- * - 月間予算設定機能
- *
- * データソース:
- * - シフトデータ: useShiftsRealtime()から取得
- * - ユーザーデータ: useUsers()から取得
- * - 集計処理: リアルタイムで現在月のデータを計算
+ * Wrapper: auth解決後にContentをマウントし、hooks が loading=true の初期状態から開始する
  */
-
 export const InfoDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("efficiency");
-  const [monthlyBudget, setMonthlyBudget] = useState<number>(500000); // デフォルト予算
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(
+    () => createInfoDashboardStyles(theme, bp),
+    [theme, bp]
+  );
+
+  const { user, loading: authLoading } = useAuth();
+
+  if (authLoading || !user?.storeId) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator
+            size="large"
+            color={theme.colorScheme.primary}
+          />
+          <Text style={styles.loadingText}>データ読み込み中...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return <InfoDashboardContent storeId={user.storeId} />;
+};
+
+const InfoDashboardContent: React.FC<{ storeId: string }> = ({ storeId }) => {
+  const [monthlyBudget, setMonthlyBudget] = useState<number>(500000);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [budgetInputValue, setBudgetInputValue] = useState(
     monthlyBudget.toString()
   );
-  const { width } = useWindowDimensions();
-  const isTabletOrDesktop = width >= 768;
 
-  // 実際のデータを取得
-  const { user } = useAuth();
-  const { shifts, loading: shiftsLoading } = useShiftsRealtime(user?.storeId);
-  const { users, loading: usersLoading } = useUsers(user?.storeId);
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(
+    () => createInfoDashboardStyles(theme, bp),
+    [theme, bp]
+  );
 
-  // 現在の月のデータを計算（メモ化）
+  const { isTablet, isDesktop } = bp;
+
+  const numColumns = isDesktop ? 5 : isTablet ? 3 : 1;
+
+  const { shifts, loading: shiftsLoading } = useShiftsRealtime(storeId);
+  const { users, loading: usersLoading } = useUsers(storeId);
+
+  // Current month shifts
   const currentMonthShifts = useMemo(() => {
-    const currentDate = new Date();
+    const now = new Date();
     return shifts.filter((shift) => {
-      const shiftDate = new Date(shift.date);
+      const d = new Date(shift.date);
       return (
-        shiftDate.getMonth() === currentDate.getMonth() &&
-        shiftDate.getFullYear() === currentDate.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear() &&
         (shift.status === "approved" ||
           shift.status === "pending" ||
           shift.status === "completed")
@@ -110,17 +94,14 @@ export const InfoDashboard: React.FC = () => {
     });
   }, [shifts]);
 
-  // 実際の集計データを計算（ガントチャートと同じロジック、メモ化）
+  // Aggregate data
   const realData = useMemo(() => {
     let totalMinutes = 0;
     let totalAmount = 0;
 
     currentMonthShifts.forEach((shift) => {
-      // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
       const shiftUser = users.find((u) => u.uid === shift.userId);
       const hourlyWage = shiftUser?.hourlyWage || 1100;
-
-      // 授業時間を除外したシフト時間の計算
       const { totalMinutes: workMinutes, totalWage: workWage } =
         calculateTotalWage(
           {
@@ -130,7 +111,6 @@ export const InfoDashboard: React.FC = () => {
           },
           hourlyWage
         );
-
       totalMinutes += workMinutes;
       totalAmount += workWage;
     });
@@ -139,25 +119,104 @@ export const InfoDashboard: React.FC = () => {
     const totalCost = Math.round(totalAmount);
     const budgetUsage = (totalCost / monthlyBudget) * 100;
 
-    return {
-      totalHours,
-      totalCost,
-      budgetUsage,
-      staffCount: users.length,
-      completedShifts: currentMonthShifts.filter(
-        (shift) => shift.status === "completed"
-      ).length,
-      totalShifts: currentMonthShifts.length,
-    };
+    return { totalHours, totalCost, budgetUsage };
   }, [currentMonthShifts, users, monthlyBudget]);
 
-  // 予算使用率の色を動的に決定（メモ化）
-  const getBudgetStatusColor = useCallback((usageRate: number) => {
-    if (usageRate >= 90) return "#E53E3E"; // 赤色：危険
-    if (usageRate >= 75) return "#FF9800"; // オレンジ色：注意
-    if (usageRate >= 50) return "#2196F3"; // 青色：適正
-    return "#4CAF50"; // 緑色：余裕あり
-  }, []);
+  // Per-staff data
+  const staffData = useMemo<StaffData[]>(() => {
+    if (users.length === 0) return [];
+
+    return users.map((u) => {
+      const userShifts = currentMonthShifts.filter(
+        (s) => s.userId === u.uid
+      );
+      let totalWorkedMinutes = 0;
+      let totalEarnings = 0;
+      const hourlyWage = u.hourlyWage || 1100;
+
+      userShifts.forEach((shift) => {
+        const { totalMinutes, totalWage } = calculateTotalWage(
+          {
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            classes: shift.classes || [],
+          },
+          hourlyWage
+        );
+        totalWorkedMinutes += totalMinutes;
+        totalEarnings += totalWage;
+      });
+
+      const workedHours = Math.round((totalWorkedMinutes / 60) * 10) / 10;
+      const targetHours = 100;
+      const efficiency = Math.round(((workedHours / targetHours) * 100) * 10) / 10;
+
+      return {
+        id: u.uid,
+        name: u.nickname || "名前未設定",
+        workedHours,
+        efficiency,
+        totalEarnings: Math.round(totalEarnings),
+        hourlyWage,
+      };
+    });
+  }, [users, currentMonthShifts]);
+
+  // Cost breakdown
+  const costData = useMemo(() => {
+    if (currentMonthShifts.length === 0)
+      return { fixedCosts: 0, variableCosts: 0, overtimeCosts: 0, totalCost: 0 };
+
+    let totalCost = 0;
+    let totalMinutes = 0;
+
+    currentMonthShifts.forEach((shift) => {
+      const u = users.find((usr) => usr.uid === shift.userId);
+      const hourlyWage = u?.hourlyWage || 1100;
+      const { totalMinutes: wm, totalWage: ww } = calculateTotalWage(
+        {
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          classes: shift.classes || [],
+        },
+        hourlyWage
+      );
+      totalCost += ww;
+      totalMinutes += wm;
+    });
+
+    const avgHourlyWage =
+      users.length > 0
+        ? users.reduce((sum, u) => sum + (u.hourlyWage || 1100), 0) /
+          users.length
+        : 1100;
+
+    const totalHours = totalMinutes / 60;
+    const regularHours = Math.min(totalHours, users.length * 160);
+    const overtimeHours = Math.max(0, totalHours - regularHours);
+
+    const fixedCosts = regularHours * avgHourlyWage;
+    const overtimeCosts = overtimeHours * avgHourlyWage * 1.25;
+    const variableCosts = Math.max(0, totalCost - fixedCosts - overtimeCosts);
+
+    return {
+      fixedCosts: Math.max(0, Math.round(fixedCosts)),
+      variableCosts: Math.round(variableCosts),
+      overtimeCosts: Math.max(0, Math.round(overtimeCosts)),
+      totalCost: Math.round(totalCost),
+    };
+  }, [currentMonthShifts, users]);
+
+  // Budget status helpers
+  const getBudgetStatusColor = useCallback(
+    (usageRate: number) => {
+      if (usageRate >= 90) return theme.colorScheme.error;
+      if (usageRate >= 75) return theme.colorScheme.warning;
+      if (usageRate >= 50) return theme.colorScheme.primary;
+      return theme.colorScheme.success;
+    },
+    [theme]
+  );
 
   const getBudgetStatusIcon = useCallback((usageRate: number) => {
     if (usageRate >= 90) return "warning";
@@ -193,76 +252,97 @@ export const InfoDashboard: React.FC = () => {
     setShowBudgetModal(true);
   }, [monthlyBudget]);
 
-  // 共通プロップスをメモ化
-  const commonProps = useMemo(() => ({
-    shifts,
-    users,
-    totalHours: realData.totalHours,
-    totalCost: realData.totalCost,
-    budgetUsage: realData.budgetUsage,
-  }), [shifts, users, realData.totalHours, realData.totalCost, realData.budgetUsage]);
+  const getEfficiencyColor = useCallback(
+    (efficiency: number) => {
+      if (efficiency >= 100) return theme.colorScheme.success;
+      if (efficiency >= 80) return theme.colorScheme.warning;
+      return theme.colorScheme.error;
+    },
+    [theme]
+  );
 
-  const renderTabContent = useCallback(() => {
-
-    const loadingFallback = (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 40 }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+  // Render cost bar
+  const renderCostBar = (
+    amount: number,
+    total: number,
+    color: string,
+    label: string
+  ) => {
+    const percentage = total > 0 ? (amount / total) * 100 : 0;
+    return (
+      <View style={styles.costBarContainer} key={label}>
+        <View style={styles.costBarHeader}>
+          <Text style={styles.costBarLabel}>{label}</Text>
+          <Text style={styles.costBarAmount}>
+            ¥{amount.toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.costBarBg}>
+          <View
+            style={[
+              styles.costBarFill,
+              {
+                width: `${Math.min(percentage, 100)}%`,
+                backgroundColor: color,
+              },
+            ]}
+          />
+        </View>
       </View>
     );
+  };
 
-    switch (activeTab) {
-      case "efficiency":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />
-          </Suspense>
-        );
-      case "cost":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <CostAnalysisTab budget={monthlyBudget} {...commonProps} />
-          </Suspense>
-        );
-      case "shift":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <ShiftMetricsTab {...commonProps} />
-          </Suspense>
-        );
-      case "productivity":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <ProductivityTab {...commonProps} />
-          </Suspense>
-        );
-      case "trend":
-        return (
-          <Suspense fallback={loadingFallback}>
-            <TrendAnalysisTab shifts={shifts} users={users} />
-          </Suspense>
-        );
-      default:
-        return (
-          <Suspense fallback={loadingFallback}>
-            <StaffEfficiencyTab budget={monthlyBudget} {...commonProps} />
-          </Suspense>
-        );
-    }
-  }, [activeTab, monthlyBudget, commonProps, user?.storeId]);
+  // Staff card renderer
+  const renderStaffCard = useCallback(
+    ({ item }: { item: StaffData }) => {
+      const effColor = getEfficiencyColor(item.efficiency);
+      return (
+        <View style={styles.staffCard}>
+          <Text style={styles.staffName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.staffHours}>{item.workedHours}h</Text>
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBg}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(item.efficiency, 100)}%`,
+                    backgroundColor: effColor,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {item.efficiency.toFixed(0)}%
+            </Text>
+          </View>
+          <Text style={styles.staffWage}>
+            ¥{item.totalEarnings.toLocaleString()}
+          </Text>
+        </View>
+      );
+    },
+    [styles, getEfficiencyColor]
+  );
 
-  // ローディング中の早期リターンで不要なレンダリングを防ぐ
+  // Loading (データ取得中)
   if (shiftsLoading || usersLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator
+            size="large"
+            color={theme.colorScheme.primary}
+          />
           <Text style={styles.loadingText}>データ読み込み中...</Text>
         </View>
       </View>
     );
   }
 
-  // データがない場合の早期リターン
+  // No data
   if (shifts.length === 0) {
     return (
       <View style={styles.container}>
@@ -270,7 +350,7 @@ export const InfoDashboard: React.FC = () => {
           <MaterialIcons
             name="info"
             size={48}
-            color={colors.text.disabled}
+            color={theme.colorScheme.outline}
           />
           <Text style={styles.noDataTitle}>シフトデータがありません</Text>
           <Text style={styles.noDataDescription}>
@@ -281,100 +361,280 @@ export const InfoDashboard: React.FC = () => {
     );
   }
 
+  const remainingBudget = monthlyBudget - realData.totalCost;
+  const costPerHour =
+    realData.totalHours > 0
+      ? Math.round(realData.totalCost / realData.totalHours)
+      : 0;
+  const costPerStaff =
+    users.length > 0
+      ? Math.round(realData.totalCost / users.length)
+      : 0;
+  const budgetEfficiency =
+    monthlyBudget > 0
+      ? (((monthlyBudget - realData.totalCost) / monthlyBudget) * 100).toFixed(
+          1
+        )
+      : "0.0";
+
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.mainContent,
-          isTabletOrDesktop && styles.mainContentDesktop,
-        ]}
-      >
-        {/* タブナビゲーション */}
-        <View
-          style={[
-            styles.tabContainer,
-            isTabletOrDesktop && styles.tabContainerDesktop,
-          ]}
+      <View style={styles.mainContent}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabScrollContainer}
+          {/* Budget button */}
+          <TouchableOpacity
+            style={[
+              styles.budgetButton,
+              {
+                borderLeftColor: getBudgetStatusColor(realData.budgetUsage),
+                borderLeftWidth: 4,
+              },
+            ]}
+            onPress={openBudgetModal}
           >
-            {/* 月間予算表示 */}
-            <TouchableOpacity
-              style={[
-                styles.budgetTab,
-                isTabletOrDesktop && styles.budgetTabDesktop,
-                {
-                  borderLeftColor: getBudgetStatusColor(realData.budgetUsage),
-                  borderLeftWidth: 4,
-                },
-              ]}
-              onPress={openBudgetModal}
-            >
-              <MaterialIcons
-                name={getBudgetStatusIcon(realData.budgetUsage) as any}
-                size={18}
-                color={getBudgetStatusColor(realData.budgetUsage)}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.budgetTabText}>
-                  月間予算設定 {formatCurrency(monthlyBudget)}
+            <MaterialIcons
+              name={getBudgetStatusIcon(realData.budgetUsage) as any}
+              size={20}
+              color={getBudgetStatusColor(realData.budgetUsage)}
+            />
+            <View style={styles.budgetButtonContent}>
+              <Text style={styles.budgetButtonText}>
+                月間予算 {formatCurrency(monthlyBudget)}
+              </Text>
+              <Text
+                style={[
+                  styles.budgetStatusText,
+                  { color: getBudgetStatusColor(realData.budgetUsage) },
+                ]}
+              >
+                {getBudgetStatusText(realData.budgetUsage)} (
+                {realData.budgetUsage.toFixed(1)}%)
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 1. Monthly summary */}
+          <View style={styles.summaryCard}>
+            <Text style={styles.sectionTitle}>月間サマリー</Text>
+            <View style={styles.summaryGrid}>
+              <View style={styles.summaryItem}>
+                <MaterialIcons
+                  name="schedule"
+                  size={24}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.summaryValue}>
+                  {realData.totalHours.toFixed(1)}h
                 </Text>
+                <Text style={styles.summaryLabel}>総稼働時間</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <MaterialIcons
+                  name="attach-money"
+                  size={24}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.summaryValue}>
+                  ¥{realData.totalCost.toLocaleString()}
+                </Text>
+                <Text style={styles.summaryLabel}>総人件費</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <MaterialIcons
+                  name="pie-chart"
+                  size={24}
+                  color={theme.colorScheme.primary}
+                />
                 <Text
                   style={[
-                    styles.budgetStatusText,
-                    { color: getBudgetStatusColor(realData.budgetUsage) },
+                    styles.summaryValue,
+                    {
+                      color:
+                        realData.budgetUsage > 100
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.success,
+                    },
                   ]}
                 >
-                  {getBudgetStatusText(realData.budgetUsage)} (
-                  {realData.budgetUsage.toFixed(1)}%)
+                  {realData.budgetUsage.toFixed(1)}%
                 </Text>
+                <Text style={styles.summaryLabel}>予算使用率</Text>
               </View>
-            </TouchableOpacity>
+            </View>
+          </View>
 
-            {tabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                style={[
-                  styles.tab,
-                  activeTab === tab.key && styles.activeTab,
-                  isTabletOrDesktop && styles.tabDesktop,
-                ]}
-                onPress={() => setActiveTab(tab.key)}
-              >
+          {/* 2. Staff grid */}
+          <View style={styles.staffSection}>
+            <Text style={styles.sectionTitle}>スタッフ別稼働状況</Text>
+            <FlatList
+              data={staffData}
+              renderItem={renderStaffCard}
+              keyExtractor={(item) => item.id}
+              numColumns={numColumns}
+              key={numColumns}
+              columnWrapperStyle={
+                numColumns > 1 ? styles.columnWrapper : undefined
+              }
+              scrollEnabled={false}
+              contentContainerStyle={{ gap: theme.spacing.md }}
+            />
+          </View>
+
+          {/* 3. Budget vs Actual */}
+          <View style={styles.budgetCard}>
+            <Text style={styles.sectionTitle}>予算 vs 実績</Text>
+            <View style={styles.budgetGrid}>
+              <View style={styles.budgetItem}>
                 <MaterialIcons
-                  name={tab.icon as any}
-                  size={20}
+                  name="account-balance-wallet"
+                  size={24}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.budgetValue}>
+                  ¥{monthlyBudget.toLocaleString()}
+                </Text>
+                <Text style={styles.budgetLabel}>月間予算</Text>
+              </View>
+              <View style={styles.budgetItem}>
+                <MaterialIcons
+                  name="trending-down"
+                  size={24}
                   color={
-                    activeTab === tab.key
-                      ? colors.primary
-                      : colors.text.secondary
+                    realData.totalCost > monthlyBudget
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.success
                   }
                 />
                 <Text
                   style={[
-                    styles.tabText,
-                    activeTab === tab.key && styles.activeTabText,
+                    styles.budgetValue,
+                    {
+                      color:
+                        realData.totalCost > monthlyBudget
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.onSurface,
+                    },
                   ]}
                 >
-                  {tab.label}
+                  ¥{realData.totalCost.toLocaleString()}
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+                <Text style={styles.budgetLabel}>実績</Text>
+              </View>
+              <View style={styles.budgetItem}>
+                <MaterialIcons
+                  name="savings"
+                  size={24}
+                  color={
+                    remainingBudget >= 0
+                      ? theme.colorScheme.success
+                      : theme.colorScheme.error
+                  }
+                />
+                <Text
+                  style={[
+                    styles.budgetValue,
+                    {
+                      color:
+                        remainingBudget >= 0
+                          ? theme.colorScheme.success
+                          : theme.colorScheme.error,
+                    },
+                  ]}
+                >
+                  ¥{Math.abs(remainingBudget).toLocaleString()}
+                </Text>
+                <Text style={styles.budgetLabel}>
+                  {remainingBudget >= 0 ? "残予算" : "予算超過"}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.budgetProgressBg}>
+              <View
+                style={[
+                  styles.budgetProgressFill,
+                  {
+                    width: `${Math.min(realData.budgetUsage, 100)}%`,
+                    backgroundColor:
+                      realData.budgetUsage > 100
+                        ? theme.colorScheme.error
+                        : realData.budgetUsage > 80
+                          ? theme.colorScheme.warning
+                          : theme.colorScheme.success,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.budgetUsageText}>
+              予算使用率: {realData.budgetUsage.toFixed(1)}%
+            </Text>
+          </View>
 
-        {/* タブコンテンツ */}
-        <ScrollView
-          style={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderTabContent()}
+          {/* 4. Cost breakdown */}
+          <View style={styles.costCard}>
+            <Text style={styles.sectionTitle}>コスト内訳</Text>
+            {renderCostBar(
+              costData.fixedCosts,
+              costData.totalCost,
+              theme.colorScheme.primary,
+              "固定費"
+            )}
+            {renderCostBar(
+              costData.variableCosts,
+              costData.totalCost,
+              theme.colorScheme.secondary,
+              "変動費"
+            )}
+            {renderCostBar(
+              costData.overtimeCosts,
+              costData.totalCost,
+              theme.colorScheme.warning,
+              "残業代"
+            )}
+          </View>
+
+          {/* 5. Efficiency metrics */}
+          <View style={styles.metricsCard}>
+            <Text style={styles.sectionTitle}>効率指標</Text>
+            <View style={styles.metricsGrid}>
+              <View style={styles.metricItem}>
+                <MaterialIcons
+                  name="timeline"
+                  size={20}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.metricValue}>
+                  ¥{costPerHour.toLocaleString()}
+                </Text>
+                <Text style={styles.metricLabel}>時間あたりコスト</Text>
+              </View>
+              <View style={styles.metricItem}>
+                <MaterialIcons
+                  name="person"
+                  size={20}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.metricValue}>
+                  ¥{costPerStaff.toLocaleString()}
+                </Text>
+                <Text style={styles.metricLabel}>スタッフあたり</Text>
+              </View>
+              <View style={styles.metricItem}>
+                <MaterialIcons
+                  name="trending-up"
+                  size={20}
+                  color={theme.colorScheme.primary}
+                />
+                <Text style={styles.metricValue}>{budgetEfficiency}%</Text>
+                <Text style={styles.metricLabel}>予算効率</Text>
+              </View>
+            </View>
+          </View>
         </ScrollView>
 
-        {/* 予算編集モーダル */}
+        {/* Budget modal */}
         <Modal
           visible={showBudgetModal}
           transparent={true}
@@ -382,12 +642,12 @@ export const InfoDashboard: React.FC = () => {
           onRequestClose={() => setShowBudgetModal(false)}
         >
           <View style={styles.modalOverlay}>
-            <Box variant="card" style={styles.modalContent}>
+            <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <MaterialIcons
                   name="account-balance"
                   size={24}
-                  color={colors.primary}
+                  color={theme.colorScheme.primary}
                 />
                 <Text style={styles.modalTitle}>月間予算設定</Text>
                 <TouchableOpacity
@@ -397,7 +657,7 @@ export const InfoDashboard: React.FC = () => {
                   <MaterialIcons
                     name="close"
                     size={24}
-                    color={colors.text.secondary}
+                    color={theme.colorScheme.onSurfaceVariant}
                   />
                 </TouchableOpacity>
               </View>
@@ -411,7 +671,7 @@ export const InfoDashboard: React.FC = () => {
                     onChangeText={setBudgetInputValue}
                     keyboardType="numeric"
                     placeholder="500000"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={theme.colorScheme.outline}
                     autoFocus={true}
                   />
                 </View>
@@ -433,213 +693,10 @@ export const InfoDashboard: React.FC = () => {
                   style={styles.modalButton}
                 />
               </View>
-            </Box>
+            </View>
           </View>
         </Modal>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF", // 背景を白に変更
-    position: "relative",
-    alignItems: "center",
-  },
-  mainContent: {
-    flex: 1,
-    width: "100%",
-  },
-  mainContentDesktop: {
-    width: "80%",
-    maxWidth: 1200,
-  },
-  tabContainer: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    ...shadows.small,
-  },
-  tabContainerDesktop: {
-    paddingHorizontal: layout.padding.large,
-  },
-  tabScrollContainer: {
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-  },
-  budgetTab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    marginRight: layout.padding.medium,
-    borderRadius: layout.borderRadius.medium,
-    backgroundColor: colors.primary + "15",
-    borderWidth: 1,
-    borderColor: colors.primary + "30",
-  },
-  budgetTabDesktop: {
-    paddingHorizontal: layout.padding.large,
-  },
-  budgetTabText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.primary,
-    marginLeft: 6,
-  },
-  budgetStatusText: {
-    fontSize: 11,
-    fontWeight: "500",
-    marginLeft: 6,
-    marginTop: 2,
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    marginRight: layout.padding.small,
-    borderRadius: layout.borderRadius.medium,
-    minWidth: 100,
-  },
-  tabDesktop: {
-    minWidth: 120,
-    paddingHorizontal: layout.padding.large,
-  },
-  activeTab: {
-    backgroundColor: colors.primary + "15",
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.text.secondary,
-    marginLeft: 6,
-  },
-  activeTabText: {
-    color: colors.primary,
-    fontWeight: "600",
-  },
-  contentContainer: {
-    flex: 1,
-    padding: layout.padding.medium,
-  },
-  // ローディング表示のスタイル
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: layout.padding.xlarge * 2,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    marginTop: layout.padding.medium,
-  },
-  // データなし表示のスタイル
-  noDataContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: layout.padding.xlarge * 2,
-  },
-  noDataTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.text.secondary,
-    marginTop: layout.padding.medium,
-    marginBottom: layout.padding.small,
-  },
-  noDataDescription: {
-    fontSize: 14,
-    color: colors.text.disabled,
-    textAlign: "center",
-    maxWidth: 280,
-  },
-  // ローディング中オーバーレイ関連のスタイル
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-    pointerEvents: "none",
-  },
-  loadingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.primary + "E6",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    borderRadius: layout.borderRadius.large,
-    ...shadows.medium,
-    borderWidth: 1,
-    borderColor: colors.primary + "40",
-  },
-  // モーダル関連のスタイル
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: layout.padding.large,
-  },
-  modalContent: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: layout.padding.large,
-  },
-  modalTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.text.primary,
-    marginLeft: layout.padding.small,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalInputContainer: {
-    marginBottom: layout.padding.large,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    ...shadows.small,
-  },
-  currencySymbol: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.text.secondary,
-    marginRight: 8,
-  },
-  modalInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.text.primary,
-    paddingVertical: 8,
-  },
-  modalButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: layout.padding.medium,
-  },
-  modalButton: {
-    minWidth: 80,
-  },
-});

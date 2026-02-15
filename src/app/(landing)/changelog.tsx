@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "./Changelog.styles";
+import { createChangelogStyles } from "./Changelog.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import {
   categories,
   changelogEntries,
@@ -14,6 +15,7 @@ import type { ChangelogCategoryId } from "./Changelog.types";
 
 export default function ChangelogPage() {
   const router = useRouter();
+  const styles = useThemedStyles(createChangelogStyles);
   const [selectedCategory, setSelectedCategory] = useState<ChangelogCategoryId>("all");
 
   const categoryMap = useMemo(

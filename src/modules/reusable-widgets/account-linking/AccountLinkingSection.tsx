@@ -9,6 +9,7 @@ import {
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ServiceProvider } from "@/services/ServiceProvider";
+import { useAuth } from "@/services/auth/useAuth";
 
 type Provider = "google" | "apple";
 
@@ -18,6 +19,7 @@ interface LinkedIdentity {
 }
 
 export const AccountLinkingSection: React.FC = () => {
+  const { user } = useAuth();
   const [identities, setIdentities] = useState<LinkedIdentity[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<Provider | null>(null);
@@ -67,13 +69,10 @@ export const AccountLinkingSection: React.FC = () => {
             setActionLoading(provider);
             try {
               // Google解除時はカレンダーデータもクリア
-              if (provider === "google") {
-                const currentUser = ServiceProvider.auth.getCurrentUser();
-                if (currentUser) {
-                  await ServiceProvider.googleCalendar
-                    .clearCalendarData(currentUser.uid)
-                    .catch(() => {});
-                }
+              if (provider === "google" && user) {
+                await ServiceProvider.googleCalendar
+                  .clearCalendarData(user.uid)
+                  .catch(() => {});
               }
               await ServiceProvider.auth.unlinkOAuthIdentity(provider);
               await loadIdentities();

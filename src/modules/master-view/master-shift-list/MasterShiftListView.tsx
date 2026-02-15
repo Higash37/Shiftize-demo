@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
-import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
+import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
@@ -37,22 +37,22 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   targetMonth,
 }) => {
   const { user } = useAuth();
+  const initialDate = useMemo(() => {
+    const today = new Date();
+    return targetMonth === "next"
+      ? new Date(today.getFullYear(), today.getMonth() + 1, 1)
+      : today;
+  }, [targetMonth]);
   const {
     shifts,
     loading: shiftsLoading,
-    fetchShiftsByMonth,
-  } = useShiftsRealtime(user?.storeId);
+    changeMonth,
+  } = useShiftsByMonth(user?.storeId, initialDate.getFullYear(), initialDate.getMonth());
   const { users } = useUsers(user?.storeId);
   const [selectedDate, setSelectedDate] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const today = new Date();
-    if (targetMonth === "next") {
-      // 来月の場合、1ヶ月先の月を設定
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      return format(nextMonth, "yyyy-MM");
-    }
-    return format(today, "yyyy-MM");
-  });
+  const [currentMonth, setCurrentMonth] = useState(() =>
+    format(initialDate, "yyyy-MM")
+  );
   const [displayMonth, setDisplayMonth] = useState<string | null>(null);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
@@ -158,7 +158,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     setSelectedShiftId(null);
 
     // 月が変わったらシフトを取得
-    fetchShiftsByMonth(date.getFullYear(), date.getMonth());
+    changeMonth(date.getFullYear(), date.getMonth());
   };
 
   const handleDayPress = (day: { dateString: string }) => {
@@ -199,15 +199,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     }, 120);
   }, [selectedDate, monthlyShifts]);
 
-  // 初回マウント時にシフトを取得
-  useEffect(() => {
-    const today = new Date();
-    const targetDate =
-      targetMonth === "next"
-        ? new Date(today.getFullYear(), today.getMonth() + 1, 1)
-        : today;
-    fetchShiftsByMonth(targetDate.getFullYear(), targetDate.getMonth());
-  }, [targetMonth, fetchShiftsByMonth]);
+  // useShiftsByMonth が初回マウント時に自動取得するため手動fetchは不要
 
   // シフトカードをタップしたときのハンドラー（編集モーダルを開く）
   const handleShiftPress = (shift: ShiftItem) => {

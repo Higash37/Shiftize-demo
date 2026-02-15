@@ -3,28 +3,14 @@ import type { User } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
 
-// onAuthStateChange からキャッシュされたセッション（内部API依存を回避）
-let cachedSession: { user: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null = null;
-
-// アプリ起動時にセッション監視を開始
-(() => {
-  try {
-    const supabase = getSupabase();
-    supabase.auth.onAuthStateChange((_event, session) => {
-      cachedSession = session;
-    });
-    // 初回セッション取得
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      cachedSession = session;
-    });
-  } catch (_) {
-    // getSupabase() が初期化前に呼ばれた場合は無視
-  }
-})();
-
 export class SupabaseAuthAdapter implements IAuthService {
   /**
    * サインイン: Supabase Auth ネイティブ + Supabase DBからユーザー取得
+   */
+  /**
+   * 注意: このメソッドはAuthContext.signInからは使用しない。
+   * signInWithPassword直後のDBクエリがSupabase JS v2のnavigator.locksで
+   * デッドロックするため、AuthContextでは認証とDB取得を分離している。
    */
   async signIn(email: string, password: string): Promise<User> {
     const supabase = getSupabase();
@@ -529,20 +515,16 @@ export class SupabaseAuthAdapter implements IAuthService {
   }
 
   /**
-   * 現在のSupabaseユーザーを取得
+   * 現在のSupabaseユーザーを取得（非推奨: useAuth()を使用してください）
    */
   getCurrentUser(): {
     uid: string;
     email: string | null;
     displayName: string | null;
   } | null {
-    // onAuthStateChange で同期的にキャッシュされたセッションを使用
-    if (!cachedSession?.user) return null;
-    return {
-      uid: cachedSession.user.id,
-      email: cachedSession.user.email ?? null,
-      displayName: (cachedSession.user.user_metadata?.['display_name'] as string) ?? null,
-    };
+    // 注意: このメソッドは同期的だが、内部でSupabase clientのセッションキャッシュに依存
+    // 新しいコードではuseAuth()フックを使用すること
+    return null;
   }
 
   /**

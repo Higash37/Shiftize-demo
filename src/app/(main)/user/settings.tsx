@@ -1,20 +1,15 @@
-import React, { useState, Suspense, lazy } from "react";
+import React, { useState, useMemo, Suspense, lazy } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   Alert,
-  Dimensions,
-  Platform,
+  StyleSheet,
 } from "react-native";
 import { Header } from "@/common/common-ui/ui-layout";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 
-// LineAuthModalを遅延読み込み
-const LineAuthModal = lazy(() =>
-  import("@/modules/reusable-widgets/line-integration/LineAuthModal").then(module => ({ default: module.LineAuthModal }))
-);
 // AccountLinkingSectionを遅延読み込み
 const AccountLinkingSection = lazy(() =>
   import("@/modules/reusable-widgets/account-linking/AccountLinkingSection").then(module => ({ default: module.AccountLinkingSection }))
@@ -25,22 +20,20 @@ const CalendarSyncToggle = lazy(() =>
 );
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign, MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import { useRouter } from "expo-router";
 import { AppVersion } from "../../../common/common-utils/util-version/AppVersion";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [showLineAuthModal, setShowLineAuthModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-  // PC表示用の幅調整
-  const { width: screenWidth } = Dimensions.get("window");
-  const isWeb = Platform.OS === "web";
-  const isLargeScreen = screenWidth > 768;
-  const contentWidth =
-    isWeb && isLargeScreen ? screenWidth * 0.65 : screenWidth;
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(() => createSettingsStyles(theme, bp), [theme, bp]);
+  const { colorScheme } = theme;
 
   const handleLogout = () => {
     Alert.alert("ログアウト", "ログアウトしますか？", [
@@ -55,59 +48,49 @@ export default function SettingsPage() {
 
   const settingsItems = [
     {
-      id: "line",
+      id: "line" as const,
       title: "LINE連携",
       subtitle: "準備中",
-      icon: <AntDesign name="wechat" size={18} color="#fff" />,
-      onPress: () => {}, // 何もしない
+      icon: <AntDesign name="wechat" size={18} color={colorScheme.onPrimary} />,
+      onPress: () => {},
       disabled: true,
     },
     {
-      id: "password",
+      id: "password" as const,
       title: "パスワード変更",
-      icon: <MaterialIcons name="lock-outline" size={18} color="#fff" />,
+      icon: <MaterialIcons name="lock-outline" size={18} color={colorScheme.onPrimary} />,
       onPress: () => setShowPasswordModal(true),
     },
     {
-      id: "logout",
+      id: "logout" as const,
       title: "ログアウト",
-      icon: <MaterialIcons name="exit-to-app" size={18} color="#fff" />,
+      icon: <MaterialIcons name="exit-to-app" size={18} color={colorScheme.onError} />,
       onPress: handleLogout,
       isDestructive: true,
     },
   ];
 
+  const iconColors: Record<string, string> = {
+    line: "#00B900",
+    password: colorScheme.primary,
+    logout: colorScheme.error,
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#f2f2f7" }}>
+    <View style={styles.root}>
       <Header title="設定" />
 
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.scrollContainer,
-          isWeb &&
-            isLargeScreen && {
-              alignItems: "center",
-              paddingHorizontal: 0,
-            },
-        ]}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContainer}
       >
-        <View
-          style={[
-            styles.contentContainer,
-            isWeb &&
-              isLargeScreen && {
-                width: contentWidth,
-                maxWidth: 800,
-              },
-          ]}
-        >
+        <View style={styles.contentContainer}>
           {/* ユーザー情報セクション */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>アカウント情報</Text>
             <View style={styles.userInfoCard}>
               <View style={styles.userIcon}>
-                <Ionicons name="person" size={32} color={colors.primary} />
+                <Ionicons name="person" size={32} color={colorScheme.primary} />
               </View>
               <View style={styles.userDetails}>
                 <Text style={styles.userName}>
@@ -155,11 +138,7 @@ export default function SettingsPage() {
                     <View
                       style={[
                         styles.itemIcon,
-                        item.id === "line" && { backgroundColor: "#00B900" },
-                        item.id === "password" && {
-                          backgroundColor: "#007AFF",
-                        },
-                        item.id === "logout" && { backgroundColor: "#FF3B30" },
+                        { backgroundColor: iconColors[item.id] },
                       ]}
                     >
                       {item.icon}
@@ -168,8 +147,8 @@ export default function SettingsPage() {
                       <Text
                         style={[
                           styles.itemTitle,
-                          item.isDestructive && { color: "#FF3B30" },
-                          item.disabled && { color: "#c7c7cc" },
+                          item.isDestructive && styles.itemTitleDestructive,
+                          item.disabled && styles.itemTitleDisabled,
                         ]}
                       >
                         {item.title}
@@ -178,7 +157,7 @@ export default function SettingsPage() {
                         <Text
                           style={[
                             styles.itemSubtitle,
-                            item.disabled && { color: "#c7c7cc" },
+                            item.disabled && styles.itemTitleDisabled,
                           ]}
                         >
                           {item.subtitle}
@@ -186,7 +165,11 @@ export default function SettingsPage() {
                       )}
                     </View>
                   </View>
-                  <AntDesign name="right" size={13} color="#c7c7cc" />
+                  <AntDesign
+                    name="right"
+                    size={13}
+                    color={colorScheme.outlineVariant}
+                  />
                 </TouchableOpacity>
               ))}
             </View>
@@ -203,20 +186,6 @@ export default function SettingsPage() {
         </View>
       </ScrollView>
 
-      {/* LINE連携モーダル - 現在無効化 */}
-      {false && showLineAuthModal && (
-        <Suspense fallback={null}>
-          <LineAuthModal
-            visible={showLineAuthModal}
-            onClose={() => setShowLineAuthModal(false)}
-            onSuccess={() => {
-              setShowLineAuthModal(false);
-              Alert.alert("成功", "LINE連携が完了しました！");
-            }}
-          />
-        </Suspense>
-      )}
-
       {/* パスワード変更モーダル */}
       {showPasswordModal && (
         <ChangePassword onComplete={() => setShowPasswordModal(false)} />
@@ -225,131 +194,143 @@ export default function SettingsPage() {
   );
 }
 
-const styles = {
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 0,
-  },
-  contentContainer: {
-    flex: 1,
-    width: "100%" as const,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "400" as const,
-    color: colors.text.secondary,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.5,
-  },
-  userInfoCard: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    borderRadius: 10,
-    padding: 16,
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-  },
-  userIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#f2f2f7",
-    justifyContent: "center" as const,
-    alignItems: "center" as const,
-    marginRight: 16,
-  },
-  userDetails: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 17,
-    fontWeight: "600" as const,
-    color: colors.text.primary,
-    marginBottom: 2,
-  },
-  userRole: {
-    fontSize: 15,
-    color: colors.primary,
-    fontWeight: "400" as const,
-    marginBottom: 2,
-  },
-  userId: {
-    fontSize: 13,
-    color: colors.text.secondary,
-  },
-  settingsGroup: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    borderRadius: 10,
-  },
-  settingsItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#c6c6c8",
-  },
-  settingsItemLast: {
-    borderBottomWidth: 0,
-  },
-  settingsItemDisabled: {
-    opacity: 0.6,
-  },
-  itemLeft: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    flex: 1,
-  },
-  itemIcon: {
-    width: 29,
-    height: 29,
-    borderRadius: 6,
-    justifyContent: "center" as const,
-    alignItems: "center" as const,
-    marginRight: 12,
-  },
-  itemText: {
-    flex: 1,
-  },
-  itemTitle: {
-    fontSize: 17,
-    fontWeight: "400" as const,
-    color: colors.text.primary,
-  },
-  itemSubtitle: {
-    fontSize: 15,
-    color: colors.text.secondary,
-    marginTop: 1,
-  },
-  appInfoCard: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center" as const,
-  },
-  appName: {
-    fontSize: 17,
-    fontWeight: "600" as const,
-    color: colors.text.primary,
-    marginBottom: 4,
-  },
-  appVersion: {
-    fontSize: 15,
-    color: colors.text.secondary,
-    marginBottom: 8,
-  },
-  appDescription: {
-    fontSize: 15,
-    color: colors.text.secondary,
-    textAlign: "center" as const,
-    lineHeight: 20,
-  },
+const createSettingsStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean }
+) => {
+  const { isDesktop } = breakpoint;
+
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      alignItems: isDesktop ? "center" : undefined,
+    },
+    contentContainer: {
+      flex: 1,
+      width: "100%",
+      ...(isDesktop ? { maxWidth: 800 } : {}),
+    },
+    section: {
+      marginBottom: theme.spacing.xxxl,
+    },
+    sectionTitle: {
+      ...theme.typography.titleMedium,
+      fontWeight: "700",
+      color: theme.colorScheme.onSurface,
+      marginHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.sm,
+    },
+    userInfoCard: {
+      backgroundColor: theme.colorScheme.surface,
+      marginHorizontal: theme.spacing.lg,
+      borderRadius: theme.shape.small,
+      padding: theme.spacing.lg,
+      flexDirection: "row",
+      alignItems: "center",
+      ...theme.elevation.level2.shadow,
+    },
+    userIcon: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: theme.colorScheme.primaryContainer,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: theme.spacing.lg,
+    },
+    userDetails: {
+      flex: 1,
+    },
+    userName: {
+      ...theme.typography.titleMedium,
+      color: theme.colorScheme.onSurface,
+      marginBottom: 2,
+    },
+    userRole: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.primary,
+      marginBottom: 2,
+    },
+    userId: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    settingsGroup: {
+      backgroundColor: theme.colorScheme.surface,
+      marginHorizontal: theme.spacing.lg,
+      borderRadius: theme.shape.small,
+      ...theme.elevation.level2.shadow,
+    },
+    settingsItem: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colorScheme.outlineVariant,
+    },
+    settingsItemLast: {
+      borderBottomWidth: 0,
+    },
+    settingsItemDisabled: {
+      opacity: 0.5,
+    },
+    itemLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    itemIcon: {
+      width: 29,
+      height: 29,
+      borderRadius: theme.shape.small,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: theme.spacing.md,
+    },
+    itemText: {
+      flex: 1,
+    },
+    itemTitle: {
+      ...theme.typography.bodyLarge,
+      color: theme.colorScheme.onSurface,
+    },
+    itemTitleDestructive: {
+      color: theme.colorScheme.error,
+    },
+    itemTitleDisabled: {
+      color: theme.colorScheme.outlineVariant,
+    },
+    itemSubtitle: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: 1,
+    },
+    appInfoCard: {
+      backgroundColor: theme.colorScheme.surface,
+      marginHorizontal: theme.spacing.lg,
+      borderRadius: theme.shape.small,
+      padding: theme.spacing.xl,
+      alignItems: "center",
+      ...theme.elevation.level2.shadow,
+    },
+    appName: {
+      ...theme.typography.titleMedium,
+      color: theme.colorScheme.onSurface,
+      marginBottom: theme.spacing.xs,
+    },
+    appVersion: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.sm,
+    },
+  });
 };

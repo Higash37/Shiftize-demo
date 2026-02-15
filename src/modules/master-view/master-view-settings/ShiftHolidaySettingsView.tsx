@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
   TextInput,
   Alert,
   Modal,
@@ -14,19 +14,25 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getCurrentYearHolidays } from "@/common/common-utils/util-settings/japaneseHolidays";
 import { SpecialDay, Holiday } from "./ShiftHolidaySettingsView.types";
-import { shiftHolidaySettingsViewStyles as styles } from "./ShiftHolidaySettingsView.styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { createShiftHolidaySettingsViewStyles } from "./ShiftHolidaySettingsView.styles";
 import type { ShiftHolidaySettingsViewProps } from "./ShiftHolidaySettingsView.types";
-import { colors } from "@/common/common-constants/ThemeConstants";
 
-const { width, height } = Dimensions.get("window");
-const isTablet = width >= 768;
-const isDesktop = width >= 1024;
-const FOOTER_HEIGHT = 80; // フッターの高さ
-const HEADER_HEIGHT = 60; // ヘッダーの高さ
+const FOOTER_HEIGHT = 80;
+const HEADER_HEIGHT = 60;
 
 export const ShiftHolidaySettingsView: React.FC<
   ShiftHolidaySettingsViewProps
 > = ({ settings, loading, onChange, onSave }) => {
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const { height } = useWindowDimensions();
+  const styles = useMemo(
+    () => createShiftHolidaySettingsViewStyles(theme, bp),
+    [theme, bp],
+  );
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [newHolidayName, setNewHolidayName] = useState("");
@@ -35,8 +41,8 @@ export const ShiftHolidaySettingsView: React.FC<
 
   const containerStyle = [
     styles.container,
-    isTablet && styles.containerTablet,
-    isDesktop && styles.containerDesktop,
+    bp.isTablet && styles.containerTablet,
+    bp.isDesktop && styles.containerDesktop,
   ];
 
   // 祝日を追加
@@ -226,7 +232,7 @@ export const ShiftHolidaySettingsView: React.FC<
             <Ionicons
               name="calendar"
               size={20}
-              color="#007AFF"
+              color={theme.colorScheme.primary}
               style={{ marginRight: 8 }}
             />
             <Text style={[styles.addButtonText, styles.bulkAddButtonText]}>
@@ -252,7 +258,7 @@ export const ShiftHolidaySettingsView: React.FC<
                     style={styles.deleteButton}
                     onPress={() => removeHoliday(item.id, item.type)}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#f44336" />
+                    <Ionicons name="trash-outline" size={20} color={theme.colorScheme.error} />
                   </TouchableOpacity>
                 </View>
               ))
@@ -287,49 +293,55 @@ export const ShiftHolidaySettingsView: React.FC<
         >
           <View
             style={{
-              backgroundColor: "white",
+              backgroundColor: theme.colorScheme.surface,
               margin: 20,
               padding: 20,
-              borderRadius: 10,
-              width: isDesktop ? 400 : isTablet ? 350 : "90%",
+              borderRadius: theme.shape.medium,
+              width: bp.isDesktop ? 400 : bp.isTablet ? 350 : "90%",
             }}
           >
             <Text
-              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}
+              style={{
+                ...theme.typography.titleMedium,
+                fontWeight: "bold",
+                color: theme.colorScheme.onSurface,
+                marginBottom: 20,
+              }}
             >
               祝日・特別日を追加
             </Text>
 
             {/* 祝日名入力 */}
-            <Text style={{ marginBottom: 8, fontWeight: "500" }}>名前</Text>
+            <Text style={{ marginBottom: 8, fontWeight: "500", color: theme.colorScheme.onSurface }}>名前</Text>
             <TextInput
               style={{
                 borderWidth: 1,
-                borderColor: "#ddd",
-                borderRadius: 8,
+                borderColor: theme.colorScheme.outlineVariant,
+                borderRadius: theme.shape.small,
                 padding: 12,
                 marginBottom: 16,
-                fontSize: 16,
+                ...theme.typography.bodyLarge,
+                color: theme.colorScheme.onSurface,
               }}
               placeholder="祝日・特別日の名前を入力"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.colorScheme.onSurfaceVariant}
               value={newHolidayName}
               onChangeText={setNewHolidayName}
             />
 
             {/* 日付選択 */}
-            <Text style={{ marginBottom: 8, fontWeight: "500" }}>日付</Text>
+            <Text style={{ marginBottom: 8, fontWeight: "500", color: theme.colorScheme.onSurface }}>日付</Text>
             <TouchableOpacity
               style={{
                 borderWidth: 1,
-                borderColor: "#ddd",
-                borderRadius: 8,
+                borderColor: theme.colorScheme.outlineVariant,
+                borderRadius: theme.shape.small,
                 padding: 12,
                 marginBottom: 16,
               }}
               onPress={() => setShowDatePicker(true)}
             >
-              <Text style={{ fontSize: 16 }}>
+              <Text style={{ ...theme.typography.bodyLarge, color: theme.colorScheme.onSurface }}>
                 {formatDate((newHolidayDate || new Date()).toISOString().split("T")[0]!)}
               </Text>
             </TouchableOpacity>
@@ -356,12 +368,12 @@ export const ShiftHolidaySettingsView: React.FC<
                     height: 20,
                     borderRadius: 10,
                     borderWidth: 2,
-                    borderColor: colors.primary,
+                    borderColor: theme.colorScheme.primary,
                     marginRight: 8,
-                    backgroundColor: !isSpecialDay ? colors.primary : "transparent",
+                    backgroundColor: !isSpecialDay ? theme.colorScheme.primary : "transparent",
                   }}
                 />
-                <Text>祝日</Text>
+                <Text style={{ color: theme.colorScheme.onSurface }}>祝日</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -377,12 +389,12 @@ export const ShiftHolidaySettingsView: React.FC<
                     height: 20,
                     borderRadius: 10,
                     borderWidth: 2,
-                    borderColor: colors.primary,
+                    borderColor: theme.colorScheme.primary,
                     marginRight: 8,
-                    backgroundColor: isSpecialDay ? colors.primary : "transparent",
+                    backgroundColor: isSpecialDay ? theme.colorScheme.primary : "transparent",
                   }}
                 />
-                <Text>特別日</Text>
+                <Text style={{ color: theme.colorScheme.onSurface }}>特別日</Text>
               </TouchableOpacity>
             </View>
 
@@ -394,28 +406,28 @@ export const ShiftHolidaySettingsView: React.FC<
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: colors.surface,
-                  borderRadius: 8,
+                  backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                  borderRadius: theme.shape.small,
                   marginRight: 8,
                   alignItems: "center",
                 }}
                 onPress={() => setShowAddModal(false)}
               >
-                <Text>キャンセル</Text>
+                <Text style={{ color: theme.colorScheme.onSurface }}>キャンセル</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: colors.primary,
-                  borderRadius: 8,
+                  backgroundColor: theme.colorScheme.primary,
+                  borderRadius: theme.shape.small,
                   marginLeft: 8,
                   alignItems: "center",
                 }}
                 onPress={addHoliday}
               >
-                <Text style={{ color: colors.text.white, fontWeight: "600" }}>追加</Text>
+                <Text style={{ color: theme.colorScheme.onPrimary, fontWeight: "600" }}>追加</Text>
               </TouchableOpacity>
             </View>
           </View>
