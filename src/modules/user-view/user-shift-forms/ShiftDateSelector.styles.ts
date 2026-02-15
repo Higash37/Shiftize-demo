@@ -1,33 +1,34 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { ShiftDateSelectorStyles } from "./types";
 
-export const styles = StyleSheet.create<ShiftDateSelectorStyles>({
-  container: {
-    borderRadius: 8,
-    overflow: "hidden" as const,
-    alignItems: "center" as const, // 中央揃えを追加
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold" as const,
-    marginBottom: 8,
-    color: "#333",
-  },
-  calendar: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-});
+export const createShiftDateSelectorStyles = (theme: MD3Theme) =>
+  StyleSheet.create<ShiftDateSelectorStyles>({
+    container: {
+      borderRadius: theme.shape.small,
+      overflow: "hidden" as const,
+      alignItems: "center" as const,
+    },
+    label: {
+      ...theme.typography.titleMedium,
+      fontWeight: "bold" as const,
+      marginBottom: theme.spacing.sm,
+      color: theme.colorScheme.onSurface,
+    },
+    calendar: {
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+      borderRadius: theme.shape.small,
+    },
+    picker: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+    },
+  });
 
-export const calendarTheme = {
-  todayTextColor: colors.primary,
-  selectedDayBackgroundColor: colors.primary,
-  selectedDayTextColor: "#ffffff",
-};
+export const createCalendarTheme = (theme: MD3Theme) => ({
+  todayTextColor: theme.colorScheme.primary,
+  selectedDayBackgroundColor: theme.colorScheme.primary,
+  selectedDayTextColor: theme.colorScheme.onPrimary,
+});

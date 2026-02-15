@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
+/** Marketing-specific palette (not part of MD3 system) */
 const palette = {
   navSlash: "#ef4444",
   timelineLine: "#e5e7eb",
@@ -13,249 +14,257 @@ const palette = {
   updateVersionBackground: "#eff6ff",
 };
 
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  mainLayout: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  leftSidebar: {
-    width: 280,
-    backgroundColor: colors.surface,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-  },
-  rightSidebar: {
-    width: 280,
-    backgroundColor: colors.surface,
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-  },
-  sidebarHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  sidebarTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.text.primary,
-  },
-  sidebarContent: {
-    flex: 1,
-  },
-  navCategory: {
-    marginBottom: 24,
-  },
-  navCategoryTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: colors.text.secondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    paddingLeft: 4,
-  },
-  navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 4,
-    backgroundColor: "transparent",
-  },
-  navItemDisabled: {
-    opacity: 0.6,
-    backgroundColor: colors.surfaceElevated,
-  },
-  navItemIconContainer: {
-    position: "relative",
-  },
-  navItemSlash: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: 18,
-    height: 18,
-    borderWidth: 1,
-    borderColor: palette.navSlash,
-    transform: [{ rotate: "45deg" }],
-    borderRadius: 1,
-  },
-  navItemContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  navItemTitleDisabled: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.text.secondary,
-    marginBottom: 2,
-  },
-  navItemDescriptionDisabled: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    lineHeight: 14,
-    fontStyle: "italic",
-  },
-  mainContent: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  finalCTA: {
-    paddingVertical: 120,
-    paddingHorizontal: 40,
-    backgroundColor: palette.finalCtaBackground,
-    alignItems: "center",
-  },
-  finalCTAContent: {
-    maxWidth: 800,
-    alignItems: "center",
-  },
-  finalCTAHeadline: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: colors.text.white,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  finalCTASubheadline: {
-    fontSize: 20,
-    color: palette.finalCtaSubText,
-    textAlign: "center",
-    marginBottom: 40,
-  },
-  finalCTAFeatures: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 24,
-    justifyContent: "center",
-    marginBottom: 40,
-  },
-  finalCTAFeatureItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  finalCTAFeatureText: {
-    fontSize: 16,
-    color: palette.finalCtaFeature,
-  },
-  finalCTAButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: palette.finalCtaAccent,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    gap: 16,
-    shadowColor: palette.finalCtaAccent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-    marginBottom: 24,
-  },
-  finalCTAButtonContent: {
-    alignItems: "center",
-  },
-  finalCTAButtonText: {
-    color: colors.text.white,
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  finalCTAButtonSubtext: {
-    color: palette.finalCtaFeature,
-    fontSize: 14,
-  },
-  finalCTAButtonArrow: {
-    backgroundColor: palette.finalCtaArrowBackground,
-    borderRadius: 20,
-    padding: 8,
-  },
-  finalCTATrust: {
-    flexDirection: "row",
-    alignItems: "center",
-    fontSize: 14,
-    color: palette.finalCtaTrust,
-  },
-  updateItem: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  timelineContainer: {
-    alignItems: "center",
-    marginRight: 12,
-    position: "relative",
-  },
-  timelineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: colors.surface,
-    zIndex: 1,
-  },
-  timelineLine: {
-    position: "absolute",
-    top: 10,
-    width: 2,
-    height: 40,
-    backgroundColor: palette.timelineLine,
-  },
-  updateContent: {
-    flex: 1,
-    paddingBottom: 8,
-  },
-  updateHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  updateVersion: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.primary,
-    backgroundColor: palette.updateVersionBackground,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  updateDate: {
-    fontSize: 11,
-    color: colors.text.secondary,
-  },
-  updateTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  updateIcon: {
-    fontSize: 14,
-  },
-  updateTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.text.primary,
-    flex: 1,
-  },
-  updateDescription: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    lineHeight: 16,
-  },
-});
+/**
+ * SimpleLanding MD3スタイルファクトリ
+ */
+export const createSimpleLandingStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean }
+) => {
+  const { isTablet, isDesktop } = breakpoint;
+  const sidebarWidth = isTablet ? 220 : 260;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+    },
+    mainLayout: {
+      flex: 1,
+      flexDirection: "row",
+    },
+    leftSidebar: {
+      width: sidebarWidth,
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: theme.colorScheme.outlineVariant,
+      paddingVertical: theme.spacing.xl,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    rightSidebar: {
+      width: sidebarWidth,
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      borderLeftColor: theme.colorScheme.outlineVariant,
+      paddingVertical: theme.spacing.xl,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    sidebarHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.xl,
+      paddingBottom: theme.spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colorScheme.outlineVariant,
+    },
+    sidebarTitle: {
+      ...theme.typography.titleSmall,
+      color: theme.colorScheme.onSurface,
+    },
+    sidebarContent: {
+      flex: 1,
+    },
+    navCategory: {
+      marginBottom: theme.spacing.xxl,
+    },
+    navCategoryTitle: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      marginBottom: theme.spacing.sm,
+      paddingLeft: theme.spacing.xs,
+    },
+    navItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: theme.shape.small,
+      marginBottom: theme.spacing.xs,
+      backgroundColor: "transparent",
+    },
+    navItemDisabled: {
+      opacity: 0.6,
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+    },
+    navItemIconContainer: {
+      position: "relative",
+    },
+    navItemSlash: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: 18,
+      height: 18,
+      borderWidth: 1,
+      borderColor: palette.navSlash,
+      transform: [{ rotate: "45deg" }],
+      borderRadius: 1,
+    },
+    navItemContent: {
+      flex: 1,
+      marginLeft: theme.spacing.md,
+    },
+    navItemTitleDisabled: {
+      ...theme.typography.labelMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: 2,
+    },
+    navItemDescriptionDisabled: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      lineHeight: 14,
+      fontStyle: "italic",
+    },
+    mainContent: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+    },
+    // Final CTA (marketing section - uses own palette)
+    finalCTA: {
+      paddingVertical: isDesktop ? 120 : isTablet ? 80 : 60,
+      paddingHorizontal: isDesktop ? 40 : theme.spacing.xxl,
+      backgroundColor: palette.finalCtaBackground,
+      alignItems: "center",
+    },
+    finalCTAContent: {
+      maxWidth: 800,
+      alignItems: "center",
+    },
+    finalCTAHeadline: {
+      fontSize: isDesktop ? 36 : isTablet ? 28 : 24,
+      fontWeight: "bold",
+      color: "#ffffff",
+      textAlign: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    finalCTASubheadline: {
+      fontSize: isDesktop ? 20 : 16,
+      color: palette.finalCtaSubText,
+      textAlign: "center",
+      marginBottom: theme.spacing.xxxxl,
+    },
+    finalCTAFeatures: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: theme.spacing.xxl,
+      justifyContent: "center",
+      marginBottom: theme.spacing.xxxxl,
+    },
+    finalCTAFeatureItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    finalCTAFeatureText: {
+      ...theme.typography.bodyLarge,
+      color: palette.finalCtaFeature,
+    },
+    finalCTAButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: palette.finalCtaAccent,
+      paddingVertical: theme.spacing.xl,
+      paddingHorizontal: theme.spacing.xxxxl,
+      borderRadius: theme.shape.large,
+      gap: theme.spacing.lg,
+      shadowColor: palette.finalCtaAccent,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      elevation: 10,
+      marginBottom: theme.spacing.xxl,
+    },
+    finalCTAButtonContent: {
+      alignItems: "center",
+    },
+    finalCTAButtonText: {
+      color: "#ffffff",
+      fontSize: 24,
+      fontWeight: "bold",
+    },
+    finalCTAButtonSubtext: {
+      ...theme.typography.bodyMedium,
+      color: palette.finalCtaFeature,
+    },
+    finalCTAButtonArrow: {
+      backgroundColor: palette.finalCtaArrowBackground,
+      borderRadius: theme.shape.full,
+      padding: theme.spacing.sm,
+    },
+    finalCTATrust: {
+      flexDirection: "row",
+      alignItems: "center",
+      ...theme.typography.bodyMedium,
+      color: palette.finalCtaTrust,
+    },
+    // Update timeline
+    updateItem: {
+      flexDirection: "row",
+      marginBottom: theme.spacing.lg,
+    },
+    timelineContainer: {
+      alignItems: "center",
+      marginRight: theme.spacing.md,
+      position: "relative",
+    },
+    timelineDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      borderWidth: 2,
+      borderColor: theme.colorScheme.surfaceContainerLow,
+      zIndex: 1,
+    },
+    timelineLine: {
+      position: "absolute",
+      top: 10,
+      width: 2,
+      height: 40,
+      backgroundColor: palette.timelineLine,
+    },
+    updateContent: {
+      flex: 1,
+      paddingBottom: theme.spacing.sm,
+    },
+    updateHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: theme.spacing.xs,
+    },
+    updateVersion: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.primary,
+      backgroundColor: palette.updateVersionBackground,
+      paddingHorizontal: theme.spacing.xs + 2,
+      paddingVertical: 2,
+      borderRadius: theme.shape.extraSmall,
+    },
+    updateDate: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    updateTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs + 2,
+      marginBottom: theme.spacing.xs,
+    },
+    updateIcon: {
+      fontSize: 14,
+    },
+    updateTitle: {
+      ...theme.typography.labelMedium,
+      color: theme.colorScheme.onSurface,
+      flex: 1,
+    },
+    updateDescription: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      lineHeight: 16,
+    },
+  });
+};

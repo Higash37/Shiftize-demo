@@ -6,20 +6,49 @@ import { View, Platform } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { usePushNotifications } from "@/common/common-hooks/usePushNotifications";
 import { useRouteGuard } from "@/common/common-hooks/useRouteGuard";
 import { VersionManager } from "@/services/version/VersionManager";
 import { useBasicFonts } from "@/common/common-utils/performance/fontLoader";
 import { initializeServices } from "@/services/initializeServices";
+import { MD3ThemeProvider, useMD3Theme } from "@/common/common-theme/md3";
 
 initializeServices();
 
-function RootLayoutNav() {
-  // 🔔 プッシュ通知初期化
-  usePushNotifications();
+/** MD3テーマ → React Navigation ThemeProvider へのブリッジ */
+function NavigationThemeBridge({ children }: { children: React.ReactNode }) {
+  const { colorScheme } = useMD3Theme();
 
+  return (
+    <ThemeProvider
+      value={{
+        dark: false,
+        colors: {
+          primary: colorScheme.primary,
+          background: colorScheme.surface,
+          card: colorScheme.surfaceContainer,
+          text: colorScheme.onSurface,
+          border: colorScheme.outlineVariant,
+          notification: colorScheme.primary,
+        },
+        fonts: {
+          regular: { fontFamily: "System", fontWeight: "400" },
+          medium: { fontFamily: "System", fontWeight: "500" },
+          bold: { fontFamily: "System", fontWeight: "700" },
+          heavy: { fontFamily: "System", fontWeight: "900" },
+        },
+      }}
+    >
+      {children}
+    </ThemeProvider>
+  );
+}
+
+function RootLayoutNav() {
   // 🛡️ ルーティングガード（認証チェックとリダイレクト）
   useRouteGuard();
+
+  // MD3テーマ
+  const { colorScheme } = useMD3Theme();
 
   // 🔄 バージョンチェックとキャッシュ管理
   useEffect(() => {
@@ -43,18 +72,13 @@ function RootLayoutNav() {
     }
   }, []);
 
-  // シンプルなWeb/PWA対応 - CSSはindex.htmlに任せる
-  const getLayoutStyle = () => {
-    return {
-      flex: 1,
-      backgroundColor: colors.background,
-    };
-  };
-
   return (
     <>
-      <StatusBar style="light" backgroundColor={colors.primary} />
-      <View style={getLayoutStyle()}>
+      <StatusBar
+        style="dark"
+        backgroundColor={colorScheme.surface}
+      />
+      <View style={{ flex: 1, backgroundColor: colorScheme.surface }}>
         <Slot />
       </View>
     </>
@@ -72,29 +96,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider
-        value={{
-          dark: false,
-          colors: {
-            primary: colors.primary,
-            background: colors.background,
-            card: colors.surface,
-            text: colors.text.primary,
-            border: colors.border,
-            notification: colors.primary,
-          },
-          fonts: {
-            regular: { fontFamily: "System", fontWeight: "400" },
-            medium: { fontFamily: "System", fontWeight: "500" },
-            bold: { fontFamily: "System", fontWeight: "700" },
-            heavy: { fontFamily: "System", fontWeight: "900" },
-          },
-        }}
-      >
-        <AuthProvider>
-          <RootLayoutNav />
-        </AuthProvider>
-      </ThemeProvider>
+      <MD3ThemeProvider>
+        <NavigationThemeBridge>
+          <AuthProvider>
+            <RootLayoutNav />
+          </AuthProvider>
+        </NavigationThemeBridge>
+      </MD3ThemeProvider>
     </SafeAreaProvider>
   );
 }

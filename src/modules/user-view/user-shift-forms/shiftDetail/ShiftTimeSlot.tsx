@@ -1,14 +1,18 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { colors } from "@/common/common-theme/ThemeColors";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ShiftTimeSlotProps } from "./types";
-import { shiftTimeSlotStyles as styles } from "./styles";
+import { createShiftTimeSlotStyles } from "./styles";
 
 export const ShiftTimeSlot: React.FC<ShiftTimeSlotProps> = ({
   type,
   startTime,
   endTime,
 }) => {
+  const theme = useMD3Theme();
+  const styles = useThemedStyles(createShiftTimeSlotStyles);
+
   return (
     <View style={styles.timeSlot}>
       <Text
@@ -16,7 +20,10 @@ export const ShiftTimeSlot: React.FC<ShiftTimeSlotProps> = ({
           styles.timeSlotText,
           styles.timeSlotType,
           {
-            color: type === "class" ? colors.warning : colors.primary,
+            color:
+              type === "class"
+                ? theme.colorScheme.warning
+                : theme.colorScheme.primary,
           },
         ]}
       >

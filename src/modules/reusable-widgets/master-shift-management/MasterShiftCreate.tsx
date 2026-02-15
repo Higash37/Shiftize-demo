@@ -28,7 +28,8 @@ import { ja } from "date-fns/locale";
 import type { UserData } from "@/common/common-models/model-user/UserModel";
 import { Picker } from "@react-native-picker/picker";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
-import { styles } from "./MasterShiftCreate.styles";
+import { createMasterShiftCreateStyles } from "./MasterShiftCreate.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ShiftData, MasterShiftCreateProps } from "./MasterShiftCreate.types";
 
 export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
@@ -40,6 +41,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   classes,
 }) => {
   const router = useRouter();
+  const styles = useThemedStyles(createMasterShiftCreateStyles);
   const { markShiftAsDeleted, createShift } = useShift();
   const isEditMode = mode === "edit";
   const { user, role } = useAuth();
@@ -207,30 +209,8 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       const totalDays = shiftData.dates.length;
       let completedCount = 0;
 
-      // 募集シフトか通常シフトかを判定
-      if (selectedUserId === "recruitment") {
-        // 募集シフトを各日付に登録（並列処理）
-        const createPromises = shiftData.dates.map(async (date) => {
-          const recruitmentShift = {
-            storeId: user?.storeId || "",
-            date,
-            startTime: shiftData.startTime,
-            endTime: shiftData.endTime,
-            subject: "", // 必要に応じて教科を追加
-            notes: "", // 必要に応じてメモを追加
-            createdBy: user?.uid || "",
-            status: "open" as const,
-            maxApplicants: 5, // デフォルト値を設定
-          };
-
-          await ServiceProvider.recruitmentShifts.createRecruitmentShift(recruitmentShift);
-          completedCount++;
-          // プログレス更新は削除（シンプルにする）
-        });
-
-        await Promise.all(createPromises);
-      } else {
-        // 通常のシフトを各日付に登録（並列処理）
+      // シフトを各日付に登録（並列処理）
+      {
         const createPromises = shiftData.dates.map(async (date) => {
           // 時間の差を計算（duration）
           const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
@@ -444,41 +424,22 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* ステータス設定セクション（通常シフト用のみ表示） */}
-          {selectedUserId !== "recruitment" && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>ステータス設定</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedStatus}
-                  onValueChange={(itemValue) =>
-                    setSelectedStatus(itemValue as ShiftStatus)
-                  }
-                  style={styles.picker}
-                >
-                  <Picker.Item label="承認済み" value="approved" />
-                  <Picker.Item label="申請中" value="pending" />
-                </Picker>
-              </View>
+          {/* ステータス設定セクション */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>ステータス設定</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedStatus}
+                onValueChange={(itemValue) =>
+                  setSelectedStatus(itemValue as ShiftStatus)
+                }
+                style={styles.picker}
+              >
+                <Picker.Item label="承認済み" value="approved" />
+                <Picker.Item label="申請中" value="pending" />
+              </Picker>
             </View>
-          )}
-
-          {/* 募集シフト用ステータス表示 */}
-          {selectedUserId === "recruitment" && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>ステータス</Text>
-              <View style={[styles.pickerContainer, { backgroundColor: colors.selected }]}>
-                <Text style={{ 
-                  padding: 16, 
-                  fontSize: 16, 
-                  color: colors.primary, 
-                  fontWeight: "600" 
-                }}>
-                  募集中
-                </Text>
-              </View>
-            </View>
-          )}
+          </View>
 
           {/* スタッフ時間セクション */}
           <View style={styles.section}>
@@ -675,24 +636,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               }
             ]}>
               <ScrollView style={styles.dropdownList} showsVerticalScrollIndicator={false}>
-                {/* 募集シフトオプション */}
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownItem,
-                    styles.recruitmentItem,
-                  ]}
-                  onPress={() => {
-                    setSelectedUserId("recruitment");
-                    setSelectedUserNickname("募集");
-                    setShowUserPicker(false);
-                  }}
-                >
-                  <AntDesign name="bell" size={18} color={colors.primary} />
-                  <Text style={[styles.dropdownItemText, styles.recruitmentText]}>
-                    募集シフトとして作成
-                  </Text>
-                </TouchableOpacity>
-
                 {/* ユーザーリスト */}
                 {allUsers.length === 0 ? (
                   <View style={styles.dropdownItem}>

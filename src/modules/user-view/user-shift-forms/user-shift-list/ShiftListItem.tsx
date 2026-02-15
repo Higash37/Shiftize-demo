@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import React, { useMemo } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { ServiceProvider } from "@/services/ServiceProvider";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
 import { ShiftListItemProps } from "./types";
-import { shiftListItemStyles as styles } from "./styles";
-import { useAuth } from "@/services/auth/useAuth";
-
-// レスポンシブデザイン用の定数
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+import { createShiftListItemStyles } from "./styles";
 
 const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   shift,
@@ -22,79 +17,51 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   children,
   showNickname = false,
 }) => {
-  const { user } = useAuth();
-  const [storeName, setStoreName] = useState<string>("");
-  const [isFromOtherStore, setIsFromOtherStore] = useState(false);
-
-  // 店舗名を取得（依存配列を最適化）
-  useEffect(() => {
-    const fetchStoreName = async () => {
-      if (!user?.uid || !("storeId" in shift) || !shift.storeId) return;
-
-      try {
-        // ユーザーデータから現在の店舗IDを取得
-        const userData = await ServiceProvider.users.getUserData(user.uid) as (Record<string, any>) | null;
-        if (!userData) return;
-
-        const currentStoreId = userData['storeId'];
-
-        // 他店舗のシフトかどうかを判定
-        if (shift.storeId !== currentStoreId) {
-          setIsFromOtherStore(true);
-
-          // 店舗情報を直接取得
-          if (shift.storeId && typeof shift.storeId === "string") {
-            const storeData = await ServiceProvider.stores.getStore(shift.storeId as string);
-            if (storeData) {
-              setStoreName(storeData.storeName || "他店舗");
-            }
-          }
-        } else {
-          setIsFromOtherStore(false);
-          setStoreName("");
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchStoreName();
-  }, [user?.uid, shift.storeId]);
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(
+    () => createShiftListItemStyles(theme, bp),
+    [theme, bp]
+  );
 
   return (
     <View style={{ width: "100%" }}>
       <View
         style={[
           styles.shiftItem,
-          { borderColor: colors.status[shift.status] }, // 状態に応じた外枠の色
+          { borderColor: theme.colorScheme.shift[shift.status] },
           shift.date === selectedDate && styles.selectedShiftItem,
         ]}
       >
         <TouchableOpacity style={styles.shiftContent} onPress={onPress}>
           <View style={styles.textContainer}>
             <View style={styles.shiftInfoContainer}>
-              {/* 日付表示部分を固定幅に */}
+              {/* 日付 */}
               <View style={styles.dateContainer}>
-                <Text style={styles.dateText}>
+                <Text style={styles.dateText} numberOfLines={1}>
                   {format(new Date(shift.date), "d日(E)", {
                     locale: ja,
                   })}
                 </Text>
               </View>
-              {/* マスター用: ニックネーム表示 */}
+              {/* マスター用: ニックネーム */}
               {showNickname && shift.nickname && (
                 <View style={styles.nicknameContainer}>
-                  <Text style={styles.nicknameText}>{shift.nickname}</Text>
+                  <Text style={styles.nicknameText} numberOfLines={1}>
+                    {shift.nickname}
+                  </Text>
                 </View>
               )}
-              {/* ステータスラベルを固定幅に */}
+              {/* ステータス */}
               <View style={styles.statusContainer}>
                 <Text
+                  numberOfLines={1}
                   style={[
                     styles.userLabel,
                     {
-                      backgroundColor: colors.status[shift.status] + "20",
-                      color: colors.status[shift.status],
+                      backgroundColor:
+                        theme.colorScheme.shift[shift.status] + "20",
+                      color: theme.colorScheme.shift[shift.status],
                     },
                   ]}
                 >
@@ -115,38 +82,24 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
                     : ""}
                 </Text>
               </View>
-              {/* 時間表示 */}
-              <View style={styles.timeContainer}>
-                <Text
-                  style={[
-                    styles.timeText,
-                    IS_SMALL_DEVICE && styles.smallTimeText,
-                  ]}
-                >
-                  {shift.startTime} ~ {shift.endTime}
-                </Text>
-                {isFromOtherStore && storeName && (
-                  <Text
-                    style={[
-                      styles.storeLabel,
-                      {
-                        backgroundColor: "#8B5CF6" + "20", // 紫色の背景
-                        color: "#8B5CF6", // 紫色のテキスト
-                      },
-                    ]}
-                  >
-                    {storeName}
-                  </Text>
-                )}
-              </View>
+              {/* 時間 */}
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.timeText,
+                  bp.isMobile && styles.smallTimeText,
+                ]}
+              >
+                {shift.startTime}~{shift.endTime}
+              </Text>
             </View>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.detailsButton} onPress={onDetailsPress}>
           <AntDesign
             name={isSelected ? "down" : "right"}
-            size={IS_SMALL_DEVICE ? 12 : 14}
-            color={colors.text.secondary}
+            size={bp.isMobile ? 12 : 14}
+            color={theme.colorScheme.onSurfaceVariant}
             style={styles.detailsIcon}
           />
         </TouchableOpacity>

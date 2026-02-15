@@ -1,42 +1,42 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Alert, useWindowDimensions } from "react-native";
 import { MasterShiftListView } from "@/modules/master-view/master-shift-list/MasterShiftListView";
-import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
+import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 
+const NEXT_MONTH = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+const INITIAL_YEAR = NEXT_MONTH.getFullYear();
+const INITIAL_MONTH = NEXT_MONTH.getMonth();
+
 export default function MasterNextMonthShiftScreen() {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
   const { user } = useAuth();
+  const [currentYearMonth, setCurrentYearMonth] = React.useState({
+    year: INITIAL_YEAR,
+    month: INITIAL_MONTH,
+  });
+
   const {
     shifts,
-    fetchShiftsByMonth,
+    changeMonth,
     loading: shiftsLoading,
     error: shiftsError,
-  } = useShiftsRealtime(user?.storeId);
+  } = useShiftsByMonth(user?.storeId, currentYearMonth.year, currentYearMonth.month);
   const {
     users,
     loading: usersLoading,
     error: usersError,
   } = useUsers(user?.storeId);
 
-  const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
-    const today = new Date();
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    return {
-      year: nextMonth.getFullYear(),
-      month: nextMonth.getMonth(),
-    };
-  });
-
   const handleMonthChange = async (year: number, month: number) => {
     setCurrentYearMonth({ year, month });
-    fetchShiftsByMonth(year, month);
+    changeMonth(year, month);
   };
 
   const handleShiftUpdate = async () => {
@@ -135,22 +135,17 @@ export default function MasterNextMonthShiftScreen() {
     }
   };
 
-  const generateDaysForMonth = (year: number, month: number) => {
+  const days = useMemo(() => {
+    const { year, month } = currentYearMonth;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, i) => {
+    return Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month, i + 1);
       const yyyy = date.getFullYear();
       const mm = String(date.getMonth() + 1).padStart(2, "0");
       const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
     });
-    return days;
-  };
-
-  const days = generateDaysForMonth(
-    currentYearMonth.year,
-    currentYearMonth.month
-  );
+  }, [currentYearMonth]);
 
   // スマホ用：カレンダー+リスト表示
   if (isMobile) {

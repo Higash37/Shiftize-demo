@@ -4,15 +4,13 @@ import type { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLog
 import { getSupabase } from "./supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import {
-  ShiftNotificationService,
-  EmailNotificationService,
-} from "@/services/notifications";
-import { Platform } from "react-native";
-import {
   logShiftChange,
   determineActionType,
 } from "@/services/shift-history/shiftHistoryLogger";
 import { ServiceProvider } from "../ServiceProvider";
+
+/** チャンネル名の一意性を保証するカウンター */
+let channelCounter = 0;
 
 const toShiftItemFromRow = (row: any): ShiftItem => ({
   id: row.id,
@@ -180,24 +178,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
     const shiftId = data.id;
 
-    // 通知
-    try {
-      const createdShift: Shift = { id: shiftId, ...shift };
-      const creatorNickname = shift.nickname || "Unknown User";
-
-      if (Platform.OS === "web") {
-        await EmailNotificationService.notifyShiftCreatedByEmail(
-          createdShift,
-          creatorNickname
-        );
-      } else {
-        await ShiftNotificationService.notifyShiftCreated(
-          createdShift,
-          creatorNickname
-        );
-      }
-    } catch (_) {}
-
     // 監査ログ
     if (actor) {
       const next = shiftToShiftItem({
@@ -281,25 +261,6 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     const shiftData = shiftRow ? toShiftFromRow(shiftRow) : null;
 
-    // 通知
-    if (shiftData && deletedBy) {
-      try {
-        if (Platform.OS === "web") {
-          await EmailNotificationService.notifyShiftDeletedByEmail(
-            shiftData,
-            deletedBy.nickname,
-            reason
-          );
-        } else {
-          await ShiftNotificationService.notifyShiftDeleted(
-            shiftData,
-            deletedBy.nickname,
-            reason
-          );
-        }
-      } catch (_) {}
-    }
-
     // Google Calendarイベント削除 (fire-and-forget)
     if (shiftData?.googleCalendarEventId) {
       ServiceProvider.googleCalendar
@@ -370,24 +331,6 @@ export class SupabaseShiftAdapter implements IShiftService {
         .update({ status: "approved" })
         .eq("id", id);
       if (error) throw error;
-    }
-
-    // 通知
-    if ((isPendingToApproved || hasRequestedChanges) && approver) {
-      try {
-        if (Platform.OS === "web") {
-          await EmailNotificationService.notifyShiftApprovedByEmail(
-            shiftData,
-            approver.nickname
-          );
-        } else {
-          await ShiftNotificationService.notifyShiftApproved(
-            shiftData,
-            approver.nickname,
-            shiftData.nickname || "Unknown User"
-          );
-        }
-      } catch (_) {}
     }
 
     // Google Calendar同期: 承認時にイベント作成 (fire-and-forget)
@@ -520,14 +463,28 @@ export class SupabaseShiftAdapter implements IShiftService {
       return (data || []).map(toShiftItemFromRow);
     };
 
-    // 初回データ取得
-    fetchAsShiftItems()
-      .then(callback)
-      .catch((err) => onError?.(err));
+    let aborted = false;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // Realtime購読
+    const debouncedFetch = () => {
+      if (aborted) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (aborted) return;
+        fetchAsShiftItems()
+          .then((items) => { if (!aborted) callback(items); })
+          .catch((err) => { if (!aborted) onError?.(err); });
+      }, 300);
+    };
+
+    // 初回データ取得（デバウンスなし）
+    fetchAsShiftItems()
+      .then((items) => { if (!aborted) callback(items); })
+      .catch((err) => { if (!aborted) onError?.(err); });
+
+    // Realtime購読（デバウンスあり）
     channel = supabase
-      .channel(`shifts-${storeId}`)
+      .channel(`shifts-${storeId}-${++channelCounter}`)
       .on(
         "postgres_changes",
         {
@@ -536,17 +493,15 @@ export class SupabaseShiftAdapter implements IShiftService {
           table: "shifts",
           filter: `store_id=eq.${storeId}`,
         },
-        () => {
-          fetchAsShiftItems()
-            .then(callback)
-            .catch((err) => onError?.(err));
-        }
+        debouncedFetch
       )
       .subscribe();
 
     return () => {
+      aborted = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (channel) {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(channel).catch(() => {});
       }
     };
   }
@@ -578,14 +533,28 @@ export class SupabaseShiftAdapter implements IShiftService {
       return (data || []).map(toShiftItemFromRow);
     };
 
-    // 初回データ取得
-    fetchMonthShifts()
-      .then(callback)
-      .catch((err) => onError?.(err));
+    let aborted = false;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // Realtime購読
+    const debouncedFetch = () => {
+      if (aborted) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (aborted) return;
+        fetchMonthShifts()
+          .then((items) => { if (!aborted) callback(items); })
+          .catch((err) => { if (!aborted) onError?.(err); });
+      }, 300);
+    };
+
+    // 初回データ取得（デバウンスなし）
+    fetchMonthShifts()
+      .then((items) => { if (!aborted) callback(items); })
+      .catch((err) => { if (!aborted) onError?.(err); });
+
+    // Realtime購読（デバウンスあり）
     channel = supabase
-      .channel(`shifts-month-${storeId}-${year}-${month}`)
+      .channel(`shifts-month-${storeId}-${year}-${month}-${++channelCounter}`)
       .on(
         "postgres_changes",
         {
@@ -594,17 +563,15 @@ export class SupabaseShiftAdapter implements IShiftService {
           table: "shifts",
           filter: `store_id=eq.${storeId}`,
         },
-        () => {
-          fetchMonthShifts()
-            .then(callback)
-            .catch((err) => onError?.(err));
-        }
+        debouncedFetch
       )
       .subscribe();
 
     return () => {
+      aborted = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (channel) {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(channel).catch(() => {});
       }
     };
   }

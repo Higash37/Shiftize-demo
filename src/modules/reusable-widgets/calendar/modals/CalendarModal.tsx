@@ -1,10 +1,11 @@
 import React from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { styles } from "./CalendarModal.styles";
+import { createCalendarModalStyles } from "./CalendarModal.styles";
 import { CalendarModalProps } from "./CalendarModal.types";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { DAY_WIDTH } from "./CalendarModal.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 /**
  * CalendarModal - カレンダーモーダルコンポーネント
@@ -18,6 +19,7 @@ const CalendarModal: React.FC<CalendarModalProps> = ({
   onConfirm,
   initialDates = [],
 }) => {
+  const styles = useThemedStyles(createCalendarModalStyles);
   const [selectedDates, setSelectedDates] =
     React.useState<string[]>(initialDates);
 

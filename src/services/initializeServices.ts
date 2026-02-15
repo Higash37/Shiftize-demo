@@ -11,7 +11,6 @@ import { SupabaseShiftConfirmationAdapter } from "./supabase/SupabaseShiftConfir
 import { SupabaseQuickShiftTokenAdapter } from "./supabase/SupabaseQuickShiftTokenAdapter";
 import { SupabaseTeacherStatusAdapter } from "./supabase/SupabaseTeacherStatusAdapter";
 import { SupabaseShiftSubmissionAdapter } from "./supabase/SupabaseShiftSubmissionAdapter";
-import { SupabaseRecruitmentShiftAdapter } from "./supabase/SupabaseRecruitmentShiftAdapter";
 import { SupabaseMultiStoreAdapter } from "./supabase/SupabaseMultiStoreAdapter";
 import { GoogleCalendarSyncService } from "./google-calendar/GoogleCalendarSyncService";
 
@@ -30,7 +29,6 @@ export function initializeServices(): void {
   ServiceProvider.setQuickShiftTokenService(new SupabaseQuickShiftTokenAdapter());
   ServiceProvider.setTeacherStatusService(new SupabaseTeacherStatusAdapter());
   ServiceProvider.setShiftSubmissionService(new SupabaseShiftSubmissionAdapter());
-  ServiceProvider.setRecruitmentShiftService(new SupabaseRecruitmentShiftAdapter());
   ServiceProvider.setMultiStoreService(new SupabaseMultiStoreAdapter());
   ServiceProvider.setGoogleCalendarService(new GoogleCalendarSyncService());
 

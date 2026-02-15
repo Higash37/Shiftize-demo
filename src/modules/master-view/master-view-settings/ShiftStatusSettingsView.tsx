@@ -2,7 +2,8 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Stack } from "expo-router";
 import { ColorPicker } from "@/common/common-ui/ui-forms/FormColorPicker";
-import { shiftStatusSettingsViewStyles as styles } from "./ShiftStatusSettingsView.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { createShiftStatusSettingsViewStyles } from "./ShiftStatusSettingsView.styles";
 import type { ShiftStatusSettingsViewProps } from "./ShiftStatusSettingsView.types";
 
 export const ShiftStatusSettingsView: React.FC<
@@ -15,6 +16,8 @@ export const ShiftStatusSettingsView: React.FC<
   onOpenColorPicker,
   onCloseColorPicker,
 }) => {
+  const styles = useThemedStyles(createShiftStatusSettingsViewStyles);
+
   return (
     <View style={styles.container}>
       <Stack.Screen

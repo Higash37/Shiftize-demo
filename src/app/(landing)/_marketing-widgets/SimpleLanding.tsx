@@ -1,31 +1,32 @@
-import React, { useState, Suspense, lazy } from "react";
-import { View, Text, TouchableOpacity, ScrollView, useWindowDimensions } from "react-native";
+import React, { useState, useMemo, Suspense, lazy } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import SimpleHeader from "./SimpleHeader";
 import { SectionLoadingFallback } from "./components/SectionLoadingFallback";
-import { styles } from "./SimpleLanding.styles";
+import { createSimpleLandingStyles } from "./SimpleLanding.styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
 
 // DemoModalを遅延読み込み
-const DemoModal = lazy(() => 
+const DemoModal = lazy(() =>
   import("./DemoModal").then(module => ({ default: module.DemoModal }))
 );
 
 // セクションコンポーネントを遅延読み込み
-const HeroSection = lazy(() => 
+const HeroSection = lazy(() =>
   import("./components/hero-section").then(module => ({ default: module.HeroSection }))
 );
-const SocialProofSection = lazy(() => 
+const SocialProofSection = lazy(() =>
   import("./components/social-proof-section").then(module => ({ default: module.SocialProofSection }))
 );
-const FeaturesSection = lazy(() => 
+const FeaturesSection = lazy(() =>
   import("./components/features-section").then(module => ({ default: module.FeaturesSection }))
 );
-const SecuritySection = lazy(() => 
+const SecuritySection = lazy(() =>
   import("./components/security-section").then(module => ({ default: module.SecuritySection }))
 );
-const InteractiveDemoSection = lazy(() => 
+const InteractiveDemoSection = lazy(() =>
   import("./components/interactive-demo-section").then(module => ({ default: module.InteractiveDemoSection }))
 );
 import {
@@ -39,20 +40,21 @@ const CTA_CHECK_ICON_COLOR = updateTypeMeta.feature.color;
 
 const SimpleLanding: React.FC = () => {
   const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
   const [demoModalVisible, setDemoModalVisible] = useState(false);
-
-  const isDesktop = screenWidth >= 1024;
-  const isTablet = screenWidth >= 768 && screenWidth < 1024;
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(() => createSimpleLandingStyles(theme, bp), [theme, bp]);
+  const { colorScheme } = theme;
+  const showSidebars = bp.isDesktop || bp.isTablet;
 
   return (
     <View style={styles.container}>
       <SimpleHeader />
       <View style={styles.mainLayout}>
-        {(isDesktop || isTablet) && (
+        {showSidebars && (
           <View style={styles.leftSidebar}>
             <View style={styles.sidebarHeader}>
-              <MaterialIcons name="menu" size={20} color={colors.primary} />
+              <MaterialIcons name="menu" size={20} color={colorScheme.primary} />
               <Text style={styles.sidebarTitle}>導線リスト</Text>
             </View>
 
@@ -66,7 +68,7 @@ const SimpleLanding: React.FC = () => {
                         <MaterialIcons
                           name={item.icon}
                           size={18}
-                          color={colors.text.secondary}
+                          color={colorScheme.onSurfaceVariant}
                         />
                         <View style={styles.navItemSlash} />
                       </View>
@@ -74,7 +76,7 @@ const SimpleLanding: React.FC = () => {
                         <Text style={styles.navItemTitleDisabled}>{item.title}</Text>
                         <Text style={styles.navItemDescriptionDisabled}>準備中 - {item.description}</Text>
                       </View>
-                      <MaterialIcons name="lock" size={16} color={colors.text.disabled} />
+                      <MaterialIcons name="lock" size={16} color={colorScheme.outlineVariant} />
                     </View>
                   ))}
                 </View>
@@ -124,18 +126,20 @@ const SimpleLanding: React.FC = () => {
                 </View>
               </TouchableOpacity>
 
-              <Text style={styles.finalCTATrust}>
-                <MaterialIcons name="shield" size={16} color={colors.text.secondary} />{" "}
-                SSL 暗号化通信・データは安全に保護されています
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                <MaterialIcons name="shield" size={16} color={colorScheme.onSurfaceVariant} />
+                <Text style={styles.finalCTATrust}>
+                  {" "}SSL 暗号化通信・データは安全に保護されています
+                </Text>
+              </View>
             </View>
           </View>
         </ScrollView>
 
-        {(isDesktop || isTablet) && (
+        {showSidebars && (
           <View style={styles.rightSidebar}>
             <View style={styles.sidebarHeader}>
-              <MaterialIcons name="timeline" size={20} color={colors.primary} />
+              <MaterialIcons name="timeline" size={20} color={colorScheme.primary} />
               <Text style={styles.sidebarTitle}>更新履歴</Text>
             </View>
 

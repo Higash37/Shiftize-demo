@@ -1,55 +1,56 @@
 import { StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 16,
-    elevation: 2,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold" as const,
-    marginBottom: 8,
-    color: colors.text.primary,
-  },
-  calendar: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "bold" as const,
-    marginBottom: 12,
-    color: colors.primary,
-  },
-  item: {
-    backgroundColor: colors.surfaceElevated,
-    padding: 12,
-    borderRadius: 12,
-    flexDirection: "row" as const,
-    justifyContent: "space-between" as const,
-    alignItems: "center" as const,
-    marginBottom: 8,
-  },
-  dateText: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  removeText: {
-    color: colors.primary,
-    fontWeight: "bold" as const,
-  },
-  noneText: {
-    color: colors.text.secondary,
-    fontStyle: "italic",
-  },
-  picker: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-});
+export const createSelectedDateListStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+      padding: theme.spacing.lg,
+      borderRadius: theme.shape.large,
+      elevation: 2,
+    },
+    label: {
+      ...theme.typography.titleMedium,
+      fontWeight: "bold" as const,
+      marginBottom: theme.spacing.sm,
+      color: theme.colorScheme.onSurface,
+    },
+    calendar: {
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+      borderRadius: theme.shape.small,
+    },
+    title: {
+      ...theme.typography.titleMedium,
+      fontWeight: "bold" as const,
+      marginBottom: theme.spacing.md,
+      color: theme.colorScheme.primary,
+    },
+    item: {
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      padding: theme.spacing.md,
+      borderRadius: theme.shape.medium,
+      flexDirection: "row" as const,
+      justifyContent: "space-between" as const,
+      alignItems: "center" as const,
+      marginBottom: theme.spacing.sm,
+    },
+    dateText: {
+      fontSize: 15,
+      fontWeight: "500",
+    },
+    removeText: {
+      color: theme.colorScheme.primary,
+      fontWeight: "bold" as const,
+    },
+    noneText: {
+      color: theme.colorScheme.onSurfaceVariant,
+      fontStyle: "italic",
+    },
+    picker: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+    },
+  });

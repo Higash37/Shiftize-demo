@@ -1,11 +1,10 @@
 /**
  * バージョン管理とアプリ自動更新システム
- * 
+ *
  * デプロイ後に既存ユーザーのアプリを自動更新する仕組み
  */
 
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/services/firebase/firebase-core';
+import { getSupabase } from "@/services/supabase/supabase-client";
 
 // アプリのバージョン（package.jsonから取得するか、環境変数で管理）
 const CURRENT_VERSION = '1.0.1'; // デプロイ時に更新
@@ -14,7 +13,7 @@ interface AppVersion {
   version: string;
   forceUpdate: boolean;
   updateMessage?: string;
-  updatedAt: Date;
+  updatedAt: string;
 }
 
 export class VersionManager {
@@ -51,22 +50,34 @@ export class VersionManager {
   }
 
   /**
+   * Supabaseから最新バージョン情報を取得
+   */
+  private static async fetchVersionData(): Promise<AppVersion | null> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("settings")
+      .select("data")
+      .eq("settings_key", "app_version")
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data.data as AppVersion;
+  }
+
+  /**
    * 現在のバージョンをチェック
    */
   private static async checkVersion(onUpdateRequired?: () => void) {
     try {
-      // Firestoreから最新バージョン情報を取得
-      const versionDoc = await getDoc(doc(db, 'settings', 'app_version'));
-      
-      if (versionDoc.exists()) {
-        const data = versionDoc.data() as AppVersion;
-        
+      const versionData = await this.fetchVersionData();
+
+      if (versionData) {
         // バージョン比較
-        if (this.isUpdateRequired(CURRENT_VERSION, data.version)) {
-          
+        if (this.isUpdateRequired(CURRENT_VERSION, versionData.version)) {
+
           // 強制アップデート or 通知
-          if (data.forceUpdate) {
-            this.forceReload(data.updateMessage);
+          if (versionData.forceUpdate) {
+            this.forceReload(versionData.updateMessage);
           } else if (onUpdateRequired) {
             onUpdateRequired();
           }
@@ -87,11 +98,11 @@ export class VersionManager {
     for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
       const currentPart = currentParts[i] || 0;
       const latestPart = latestParts[i] || 0;
-      
+
       if (latestPart > currentPart) return true;
       if (latestPart < currentPart) return false;
     }
-    
+
     return false;
   }
 
@@ -137,22 +148,20 @@ export class VersionManager {
    */
   static async checkForUpdatesOnStartup(): Promise<boolean> {
     try {
-      const versionDoc = await getDoc(doc(db, 'settings', 'app_version'));
-      
-      if (versionDoc.exists()) {
-        const data = versionDoc.data() as AppVersion;
-        
-        if (this.isUpdateRequired(CURRENT_VERSION, data.version)) {
-          if (data.forceUpdate) {
+      const versionData = await this.fetchVersionData();
+
+      if (versionData) {
+        if (this.isUpdateRequired(CURRENT_VERSION, versionData.version)) {
+          if (versionData.forceUpdate) {
             // 強制アップデート
-            this.forceReload(data.updateMessage);
+            this.forceReload(versionData.updateMessage);
             return true;
           } else {
             // オプショナルアップデート
             const userChoice = confirm(
-              data.updateMessage || '新しいバージョンが利用可能です。今すぐ更新しますか？'
+              versionData.updateMessage || '新しいバージョンが利用可能です。今すぐ更新しますか？'
             );
-            
+
             if (userChoice) {
               this.forceReload();
               return true;
@@ -160,7 +169,7 @@ export class VersionManager {
           }
         }
       }
-      
+
       return false;
     } catch (error) {
       // Silent error handling for startup version check
@@ -177,16 +186,38 @@ export async function updateAppVersion(
   forceUpdate: boolean = false,
   updateMessage?: string
 ) {
-  try {
-    await setDoc(doc(db, 'settings', 'app_version'), {
-      version,
-      forceUpdate,
-      updateMessage,
-      updatedAt: new Date()
-    });
-    
-  } catch (error) {
-    // Silent error handling for version update
-    throw error;
+  const supabase = getSupabase();
+
+  const versionData = {
+    version,
+    forceUpdate,
+    updateMessage,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 既存レコードを確認
+  const { data: existing } = await supabase
+    .from("settings")
+    .select("store_id")
+    .eq("settings_key", "app_version")
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("settings")
+      .update({ data: versionData })
+      .eq("settings_key", "app_version")
+      .eq("store_id", existing.store_id);
+    if (error) throw error;
+  } else {
+    // 新規作成（グローバル設定としてstore_id空文字で保存）
+    const { error } = await supabase
+      .from("settings")
+      .insert({
+        store_id: "",
+        settings_key: "app_version",
+        data: versionData,
+      });
+    if (error) throw error;
   }
 }

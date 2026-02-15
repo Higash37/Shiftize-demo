@@ -1,32 +1,37 @@
 /**
- * アプリケーションのテーマ設定
+ * レガシー互換テーマ定義
+ *
+ * 既存コードの `import { theme } from "ThemeDefinition"` を壊さないためのブリッジ。
+ * 内部値はMD3から導出。
+ *
+ * 新規コードでは `useMD3Theme()` を使用してください。
+ * @deprecated 段階的に useMD3Theme() へ移行
  */
 
 import { colors } from "./ThemeColors";
 import { typography } from "./ThemeTypography";
 import { shadows } from "../common-constants/ShadowConstants";
+import { md3Spacing } from "./md3/MD3Spacing";
+import { md3Shape } from "./md3/MD3Shape";
 
-/**
- * アプリケーションのテーマ
- */
 export const theme = {
   colors,
   typography,
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
+    xs: md3Spacing.xs,
+    sm: md3Spacing.sm,
+    md: md3Spacing.lg,
+    lg: md3Spacing.xxl,
+    xl: md3Spacing.xxxl,
+    xxl: md3Spacing.xxxxxl,
   },
   borderRadius: {
-    xs: 2,
-    sm: 4,
-    md: 8,
-    lg: 16,
-    xl: 24,
-    round: 1000, // 円形用
+    xs: md3Shape.extraSmall,
+    sm: md3Shape.small,
+    md: md3Shape.medium,
+    lg: md3Shape.large,
+    xl: md3Shape.extraLarge,
+    round: md3Shape.full,
   },
   shadows: {
     none: shadows.none,
@@ -41,12 +46,5 @@ export const theme = {
   },
 };
 
-/**
- * テーマ型定義
- */
 export type Theme = typeof theme;
-
-/**
- * デフォルトテーマをエクスポート
- */
 export default theme;

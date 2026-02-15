@@ -40,7 +40,8 @@ import {
   DEFAULT_SHIFT_STATUS_CONFIG,
   ShiftStatusConfig,
 } from "@/common/common-models/model-shift/shiftTypes";
-import styles from "./GanttChartMonthView.styles";
+import { createGanttChartMonthViewStyles } from "./GanttChartMonthView.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { GanttChartMonthViewProps } from "./GanttChartProps";
 import {
   generateTimeOptions,
@@ -87,6 +88,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   classTimes = [],
   refreshPage,
 }) => {
+  const styles = useThemedStyles(createGanttChartMonthViewStyles);
   // 簡略化されたステータス設定（承認済み、申請中、却下、削除済み、完了のみ）
   const simplifiedStatusConfigs: ShiftStatusConfig[] = [
     {
@@ -129,7 +131,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     simplifiedStatusConfigs
   );
-  const [recruitmentShifts, setRecruitmentShifts] = useState<any[]>([]);
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   const modalRef = useRef<ShiftModalRendererHandle>(null);
   const [isLoading, setIsLoading] = useState(false); // モーダルのローディング状態用（オーバーレイなし）
@@ -220,52 +221,15 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     };
   };
 
-  // 表示対象のシフト（deleted, purgedは除外）＋募集シフト
+  // 表示対象のシフト（deleted, purgedは除外）
   const visibleShifts = useMemo(() => {
-    // 通常のシフト（deleted, purgedは除外）
-    const regularShifts = shifts.filter((s) => s.status !== "deleted" && s.status !== "purged");
+    return shifts.filter((s) => s.status !== "deleted" && s.status !== "purged");
+  }, [shifts]);
 
-    // 募集シフトを通常シフト形式に変換
-    const convertedRecruitmentShifts = recruitmentShifts.map((recruitmentShift) => ({
-      id: `recruitment-${recruitmentShift.id}`,
-      userId: "recruitment",
-      nickname: "募集中",
-      date: recruitmentShift.date,
-      startTime: recruitmentShift.startTime,
-      endTime: recruitmentShift.endTime,
-      status: "recruitment" as const, // 募集中ステータス（灰色で表示）
-      notes: recruitmentShift.notes || "",
-      storeId: recruitmentShift.storeId,
-      type: "recruitment" as const,
-      isRecruitment: true, // 募集シフトであることを示すフラグ
-      classes: [],
-      isCompleted: false, // ShiftItemに必要
-      duration: "0", // ShiftItemに必要（計算は後で行われる）
-      createdAt: recruitmentShift.createdAt || new Date(), // ShiftItemに必要
-      updatedAt: recruitmentShift.updatedAt || new Date(), // ShiftItemに必要
-    }));
-
-
-    return [...regularShifts, ...convertedRecruitmentShifts];
-  }, [shifts, recruitmentShifts]);
-
-  // コンポーネントが期待するroleプロパティを追加したusers配列＋募集用ユーザー
+  // コンポーネントが期待するroleプロパティを追加したusers配列
   const usersWithRole = useMemo(() => {
-    const regularUsers = users.map(user => ({ ...user, role: "staff" as string }));
-
-    // 募集シフトが存在する場合は募集用ユーザーを追加
-    const hasRecruitmentShifts = recruitmentShifts.length > 0;
-    const recruitmentUser = hasRecruitmentShifts ? [{
-      uid: "recruitment",
-      nickname: "募集中",
-      role: "recruitment" as string,
-      color: "#000000", // 黒色
-      storeId: user?.storeId || "",
-    }] : [];
-
-
-    return [...regularUsers, ...recruitmentUser];
-  }, [users, recruitmentShifts, user?.storeId]);
+    return users.map(user => ({ ...user, role: "staff" as string }));
+  }, [users]);
 
   // 日付ごとにシフトをグループ化（useMemoで安定化）
   const rows = useMemo(() => {
@@ -322,17 +286,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
       onMonthChange(date.getFullYear(), date.getMonth());
     }
   }, [onMonthChange]);
-
-  // 募集シフトデータの再取得
-  const refreshRecruitmentShifts = useCallback(async () => {
-    if (!user?.storeId) return;
-    try {
-      const recruitmentData = await ServiceProvider.recruitmentShifts.getRecruitmentShifts(user.storeId);
-      setRecruitmentShifts(recruitmentData);
-    } catch (error) {
-      // エラーは無視
-    }
-  }, [user?.storeId]);
 
   const handleBatchDelete = async () => {
     const rejectedShifts = shifts.filter(
@@ -459,7 +412,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     });
 
     // 募集シフト用の黒色を追加
-    map["recruitment"] = "#000000";
 
     return map;
   }, [users]);
@@ -538,24 +490,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     const { totalAmount, totalHours } = calculateMonthlyTotals();
     setTotalWage({ totalAmount, totalHours });
   }, [shifts, users, calculateMonthlyTotals]);
-
-  // 募集シフトを取得
-  useEffect(() => {
-    const fetchRecruitmentShifts = async () => {
-      if (!user?.storeId) {
-        return;
-      }
-
-      try {
-        const recruitmentData = await ServiceProvider.recruitmentShifts.getRecruitmentShifts(user.storeId);
-        setRecruitmentShifts(recruitmentData);
-      } catch (error) {
-      }
-    };
-
-    fetchRecruitmentShifts();
-  }, [user?.storeId, refreshKey]);
-  
 
   // MobileVerticalView / GoogleCalendarView 共通コールバック
   const handleMobileEmptyCellClick = useCallback((date: string, time: string, userId: string) => {
@@ -757,7 +691,6 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         updateShiftStatus={updateShiftStatus}
         user={user}
         shifts={shifts}
-        onRecruitmentRefresh={refreshRecruitmentShifts}
       />
       {/* 給与詳細モーダル */}
       {showPayrollModal && (

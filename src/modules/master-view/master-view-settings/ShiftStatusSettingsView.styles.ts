@@ -1,58 +1,59 @@
 import { StyleSheet } from "react-native";
-import { colors, shadows } from "@/common/common-constants/ThemeConstants";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-export const shiftStatusSettingsViewStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 32,
-  },
-  scrollContent: {
-    paddingBottom: 16,
-    width: "100%",
-  },
-  statusItem: {
-    marginBottom: 16,
-    padding: 20,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 0,
-    ...shadows.none,
-  },
-  statusHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  colorPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  statusLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  description: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 8,
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
-  colorButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-  },
-  colorButtonText: {
-    color: colors.text.white,
-    fontSize: 14,
-  },
-});
+export const createShiftStatusSettingsViewStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colorScheme.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingTop: theme.spacing.xxxl,
+    },
+    scrollContent: {
+      paddingBottom: theme.spacing.lg,
+      width: "100%",
+    },
+    statusItem: {
+      marginBottom: theme.spacing.lg,
+      padding: theme.spacing.xl,
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.medium,
+      borderWidth: 0,
+      ...theme.elevation.level0.shadow,
+    },
+    statusHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    colorPreview: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      marginRight: theme.spacing.sm,
+    },
+    statusLabel: {
+      ...theme.typography.bodyLarge,
+      fontWeight: "bold",
+    },
+    description: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.sm,
+    },
+    actions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+    },
+    colorButton: {
+      backgroundColor: theme.colorScheme.primary,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.shape.extraSmall,
+    },
+    colorButtonText: {
+      color: theme.colorScheme.onPrimary,
+      ...theme.typography.bodyMedium,
+    },
+  });

@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
 import { AntDesign } from "@expo/vector-icons";
-import styles from "../GanttChartMonthView.styles";
+import { createGanttChartMonthViewStyles } from "../GanttChartMonthView.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { PrintButton } from "../print/PrintButton";
 import { ColorToggleButton } from "./ColorToggleButton";
 import { ViewToggleButton } from "./ViewToggleButton";
@@ -40,6 +41,7 @@ interface MonthSelectorBarProps {
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
+  const styles = useThemedStyles(createGanttChartMonthViewStyles);
   const { signOut } = useAuth();
   const {
     selectedDate,

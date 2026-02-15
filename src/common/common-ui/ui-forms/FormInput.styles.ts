@@ -1,39 +1,39 @@
 import { StyleSheet } from "react-native";
-import { theme } from "../../common-theme/ThemeDefinition";
-import { layout } from "../../common-constants/LayoutConstants";
+import { MD3Theme } from "../../common-theme/md3/MD3Theme.types";
 
 /**
- * Inputコンポーネントのスタイル定義
+ * MD3 Outlined TextField スタイルファクトリ
  */
-export const styles = StyleSheet.create({
-  container: {
-    marginBottom: layout.padding.medium,
-  },
-  label: {
-    fontSize: theme.typography.fontSize.medium,
-    color: theme.colors.text?.secondary,
-    marginBottom: layout.padding.small,
-  },
-  input: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: layout.components.input,
-    padding: layout.padding.medium,
-    fontSize: Math.max(theme.typography.fontSize.medium, 16), // ズーム防止のため16px以上
-    color: theme.colors.text?.primary,
-    // 影は削除（よりクリーンな見た目）
-  },
-  inputError: {
-    borderColor: theme.colors.error,
-    borderWidth: 2,
-  },
-  helperText: {
-    fontSize: theme.typography.fontSize.small,
-    color: theme.colors.text?.secondary,
-    marginTop: layout.padding.small,
-  },
-  errorText: {
-    color: theme.colors.error,
-  },
-});
+export const createInputStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: theme.spacing.lg,
+    },
+    label: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.xs,
+    },
+    input: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outline,
+      borderRadius: theme.shape.extraSmall,
+      padding: theme.spacing.lg,
+      fontSize: Math.max(theme.typography.bodyLarge.fontSize ?? 16, 16),
+      lineHeight: theme.typography.bodyLarge.lineHeight,
+      color: theme.colorScheme.onSurface,
+    },
+    inputError: {
+      borderColor: theme.colorScheme.error,
+      borderWidth: 2,
+    },
+    helperText: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: theme.spacing.xs,
+    },
+    errorText: {
+      color: theme.colorScheme.error,
+    },
+  });

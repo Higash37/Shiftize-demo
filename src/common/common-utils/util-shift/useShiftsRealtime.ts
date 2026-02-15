@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 
@@ -79,4 +79,80 @@ export const useShiftsRealtime = (storeId?: string) => {
     error,
     fetchShiftsByMonth,
   };
+};
+
+/**
+ * 月別シフト専用フック（全件取得を回避）
+ * this-month / next-month ページ向けに最適化
+ */
+export const useShiftsByMonth = (
+  storeId: string | undefined,
+  initialYear: number,
+  initialMonth: number
+) => {
+  const [shifts, setShifts] = useState<ShiftItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
+
+  const subscribe = useCallback(
+    (year: number, month: number) => {
+      // 前のサブスクリプションをクリーンアップ
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+
+      if (!storeId) {
+        setShifts([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const unsub = ServiceProvider.shifts.onShiftsByMonth(
+          storeId,
+          year,
+          month,
+          (data) => {
+            setShifts(data);
+            setLoading(false);
+          },
+          (err) => {
+            setError(err);
+            setLoading(false);
+          }
+        );
+        unsubRef.current = unsub;
+      } catch (err) {
+        setError(err as Error);
+        setLoading(false);
+      }
+    },
+    [storeId]
+  );
+
+  // 初回マウント時に指定月のみ購読
+  useEffect(() => {
+    subscribe(initialYear, initialMonth);
+    return () => {
+      if (unsubRef.current) {
+        unsubRef.current();
+        unsubRef.current = null;
+      }
+    };
+  }, [storeId, initialYear, initialMonth, subscribe]);
+
+  /** 月変更時に呼ぶ（サブスクリプションを切り替え） */
+  const changeMonth = useCallback(
+    (year: number, month: number) => {
+      subscribe(year, month);
+    },
+    [subscribe]
+  );
+
+  return { shifts, loading, error, changeMonth };
 };

@@ -2,7 +2,9 @@ import React, { memo, useMemo } from "react";
 import { TouchableOpacity, Text, View } from "react-native";
 import { DayComponentPropsExtended } from "./DayComponent.types";
 import { useResponsiveCalendarSize } from "../constants";
-import { styles, getIOSDayColor } from "./DayComponent.styles";
+import { createDayComponentStyles, getIOSDayColor } from "./DayComponent.styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 /**
  * カレンダーの日付コンポーネント
@@ -11,7 +13,9 @@ import { styles, getIOSDayColor } from "./DayComponent.styles";
 export const DayComponent = memo<DayComponentPropsExtended>(
   ({ date, state, marking, onPress, responsiveSize }) => {
     // レスポンシブサイズの取得
-    const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize(); // スタイルの動的生成
+    const { dayWidth, dayHeight, isSmallScreen } = useResponsiveCalendarSize();
+    const theme = useMD3Theme();
+    const styles = useThemedStyles(createDayComponentStyles); // スタイルの動的生成
     const dynamicStyles = useMemo(() => {
       return {
         dayContainer: {
@@ -37,7 +41,7 @@ export const DayComponent = memo<DayComponentPropsExtended>(
     // ドットマーカーの有無
     const hasMarker = marking?.marked;
     // 日付の色を取得（iOS風）
-    const dayColor = getIOSDayColor(date?.dateString, state, isSelected);
+    const dayColor = getIOSDayColor(theme, date?.dateString, state, isSelected);
 
     return (
       <TouchableOpacity

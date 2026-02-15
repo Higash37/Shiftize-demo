@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/services/auth/useAuth";
 import { useRouter } from "expo-router";
 import { View, Dimensions, StyleSheet } from "react-native";
@@ -24,9 +24,14 @@ function isStandalonePWA() {
 const { height: screenHeight } = Dimensions.get("window");
 
 export default function MasterLayout() {
-  const { user, role } = useAuth();
+  const { user, role, loading } = useAuth();
   const router = useRouter();
   const [isPWA, setIsPWA] = useState(false);
+  const wasAuthorized = useRef(false);
+
+  if (user && role === "master") {
+    wasAuthorized.current = true;
+  }
 
   useEffect(() => {
     // PWAモードかどうかを検出
@@ -40,8 +45,13 @@ export default function MasterLayout() {
     }
   }, [user, role, router]);
 
-  // 未認証の場合は何も表示しない（リダイレクト待ち）
-  if (!user || role !== "master") {
+  // ロード中は何も表示しない
+  if (loading) {
+    return null;
+  }
+
+  // 一度も認可されていない場合のみnullを返す（リダイレクト待ち）
+  if ((!user || role !== "master") && !wasAuthorized.current) {
     return null;
   }
 

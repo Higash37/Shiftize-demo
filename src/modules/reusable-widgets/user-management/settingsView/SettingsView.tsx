@@ -5,7 +5,6 @@ import { Footer } from "@/common/common-ui/ui-layout";
 import { settingsViewStyles as styles } from "./SettingsView.styles";
 import type { SettingsViewProps } from "./SettingsView.types";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
-import { LineAuthModal } from "@/modules/reusable-widgets/line-integration/LineAuthModal";
 import { useState } from "react";
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -25,11 +24,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         ]
       : []),
     {
-      label: "LINE連携",
-      onPress: () => setShowLineAuthModal(true),
-      icon: "💬",
-    },
-    {
       label: "ログアウト",
       onPress: onLogout,
       icon: "🚪",
@@ -37,7 +31,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   ];
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showLineAuthModal, setShowLineAuthModal] = useState(false);
 
   return (
     <>
@@ -69,14 +62,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       >
         <ChangePassword onComplete={() => setShowPasswordModal(false)} />
       </Modal>
-      <LineAuthModal
-        visible={showLineAuthModal}
-        onClose={() => setShowLineAuthModal(false)}
-        onSuccess={() => {
-          setShowLineAuthModal(false);
-          // TODO: 連携成功時の処理
-        }}
-      />
     </>
   );
 };

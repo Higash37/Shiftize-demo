@@ -1,31 +1,38 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
   Switch,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
   Alert,
 } from "react-native";
 import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { shiftAppearanceSettingsViewStyles as styles } from "./ShiftAppearanceSettingsView.styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
+import { createShiftAppearanceSettingsViewStyles } from "./ShiftAppearanceSettingsView.styles";
 import type { ShiftAppearanceSettingsViewProps } from "./ShiftAppearanceSettingsView.types";
 
-const { width, height } = Dimensions.get("window");
-const isTablet = width >= 768;
-const isDesktop = width >= 1024;
-const FOOTER_HEIGHT = 80; // フッターの高さ
-const HEADER_HEIGHT = 60; // ヘッダーの高さ
+const FOOTER_HEIGHT = 80;
+const HEADER_HEIGHT = 60;
 
 export const ShiftAppearanceSettingsView: React.FC<
   ShiftAppearanceSettingsViewProps
 > = ({ settings, loading, onChange, onSave }) => {
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const { height } = useWindowDimensions();
+  const styles = useMemo(
+    () => createShiftAppearanceSettingsViewStyles(theme, bp),
+    [theme, bp],
+  );
+
   const containerStyle = [
     styles.container,
-    isTablet && styles.containerTablet,
-    isDesktop && styles.containerDesktop,
+    bp.isTablet && styles.containerTablet,
+    bp.isDesktop && styles.containerDesktop,
   ];
 
   // フォントサイズ選択
@@ -146,17 +153,6 @@ export const ShiftAppearanceSettingsView: React.FC<
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>外観</Text>
 
-          {/* ダークモード */}
-          <View style={styles.listItem}>
-            <Text style={styles.listText}>ダークモード</Text>
-            <Switch
-              value={settings.darkMode}
-              onValueChange={(v) => onChange({ ...settings, darkMode: v })}
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={settings.darkMode ? "#f5dd4b" : "#f4f3f4"}
-            />
-          </View>
-
           {/* フォントサイズ */}
           <View style={styles.listItem}>
             <Text style={styles.listText}>フォントサイズ</Text>
@@ -165,7 +161,7 @@ export const ShiftAppearanceSettingsView: React.FC<
               style={styles.valueButton}
             >
               <Text style={styles.valueText}>{getFontSizeLabel()}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
+              <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
 
@@ -175,8 +171,8 @@ export const ShiftAppearanceSettingsView: React.FC<
             <Switch
               value={settings.compactMode}
               onValueChange={(v) => onChange({ ...settings, compactMode: v })}
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={settings.compactMode ? "#f5dd4b" : "#f4f3f4"}
+              trackColor={{ false: "#767577", true: theme.colorScheme.primaryContainer }}
+              thumbColor={settings.compactMode ? theme.colorScheme.primary : "#f4f3f4"}
             />
           </View>
 
@@ -188,8 +184,8 @@ export const ShiftAppearanceSettingsView: React.FC<
               onValueChange={(v) =>
                 onChange({ ...settings, showWeekNumbers: v })
               }
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={settings.showWeekNumbers ? "#f5dd4b" : "#f4f3f4"}
+              trackColor={{ false: "#767577", true: theme.colorScheme.primaryContainer }}
+              thumbColor={settings.showWeekNumbers ? theme.colorScheme.primary : "#f4f3f4"}
             />
           </View>
 
@@ -201,7 +197,7 @@ export const ShiftAppearanceSettingsView: React.FC<
               style={styles.valueButton}
             >
               <Text style={styles.valueText}>{getCalendarViewLabel()}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
+              <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
 
@@ -213,7 +209,7 @@ export const ShiftAppearanceSettingsView: React.FC<
               style={styles.valueButton}
             >
               <Text style={styles.valueText}>{getLanguageLabel()}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
+              <Ionicons name="chevron-forward" size={20} color={theme.colorScheme.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
 

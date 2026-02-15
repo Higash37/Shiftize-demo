@@ -9,12 +9,13 @@ import {
 import { format } from "date-fns";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import ShiftDateSelector from "@/modules/user-view/user-shift-forms/ShiftDateSelector";
-import { styles } from "./DatePickerModal.styles";
+import { createDatePickerModalStyles } from "./DatePickerModal.styles";
 import {
   DatePickerModalProps,
   YearPickerProps,
   MonthPickerProps,
 } from "./DatePickerModal.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 /**
  * 年選択コンポーネント
@@ -24,6 +25,7 @@ const YearPicker: React.FC<YearPickerProps> = ({
   onYearSelect,
   onCancel,
 }) => {
+  const styles = useThemedStyles(createDatePickerModalStyles);
   // 年の配列を生成（現在の年から前後5年）
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
@@ -69,6 +71,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
   onMonthSelect,
   onBack,
 }) => {
+  const styles = useThemedStyles(createDatePickerModalStyles);
   // 月の配列を生成（1月から12月まで）
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -114,6 +117,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
   onClose,
   onSelect,
 }) => {
+  const styles = useThemedStyles(createDatePickerModalStyles);
   const [tempDate, setTempDate] = useState<Date>(initialDate);
   const [showYearPicker, setShowYearPicker] = useState(true);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -219,7 +223,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 </View>
               )}
             </View>
-          </TouchableWithoutFeedback>{" "}
+          </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>

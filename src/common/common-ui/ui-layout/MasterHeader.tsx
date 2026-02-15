@@ -10,16 +10,15 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import type { UserStoreAccess } from "@/services/interfaces/IMultiStoreService";
 import { StoreConnectionModal } from "@/modules/reusable-widgets/store-connection/StoreConnectionModal";
-import { styles } from "./LayoutHeader.styles";
+import { createHeaderStyles } from "./LayoutHeader.styles";
 import { MasterHeaderProps } from "./LayoutHeader.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { useAuth } from "@/services/auth/useAuth";
-import { RecruitmentShiftModal } from "@/modules/reusable-widgets/recruitment-shift-component/RecruitmentShiftModal";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
-import { LineNotificationModal } from "@/modules/reusable-widgets/line-notification/LineNotificationModal";
 
 /**
  * MasterHeader - マスター用ヘッダーコンポーネント
@@ -31,6 +30,8 @@ export function MasterHeader({
   showBackButton = false,
   onBack,
 }: Readonly<MasterHeaderProps>) {
+  const styles = useThemedStyles(createHeaderStyles);
+  const { colorScheme } = useMD3Theme();
   const router = useRouter();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
@@ -40,27 +41,22 @@ export function MasterHeader({
   const [showStoreSelector, setShowStoreSelector] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [currentStoreInfo, setCurrentStoreInfo] = useState<string>(""); // デフォルト値
-  const [showRecruitmentModal, setShowRecruitmentModal] = useState(false);
-  const [recruitmentCount, setRecruitmentCount] = useState(0);
   const [showServiceIntro, setShowServiceIntro] = useState(false);
-  const [showLineNotification, setShowLineNotification] = useState(false);
 
   const storeButtonStyles = useMemo(
     () => [
       styles.storeButton,
-      { backgroundColor: colors.primary },
       isCompactLayout && styles.storeButtonCompact,
     ],
-    [isCompactLayout]
+    [isCompactLayout, styles]
   );
 
   const storeButtonTextStyles = useMemo(
     () => [
       styles.storeButtonText,
-      { color: "#FFFFFF" },
       isCompactLayout && styles.storeButtonTextCompact,
     ],
-    [isCompactLayout]
+    [isCompactLayout, styles]
   );
 
   const storeButtonLabel = useMemo(() => {
@@ -111,23 +107,6 @@ export function MasterHeader({
 
     fetchUserStoreAccess();
   }, [user]);
-
-  // 募集シフトの数を監視
-  useEffect(() => {
-    if (!user?.storeId) return;
-
-    const unsubscribe = ServiceProvider.recruitmentShifts.onOpenRecruitmentShifts(
-      user.storeId,
-      (shifts) => {
-        setRecruitmentCount(shifts.length);
-      },
-      () => {
-        setRecruitmentCount(0);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user?.storeId]);
 
   const handleBack = () => {
     if (onBack) {
@@ -196,7 +175,7 @@ export function MasterHeader({
       </Text>
       <Text style={styles.storeItemName}>{item.storeName}</Text>
       {item.storeId === currentStoreInfo && (
-        <AntDesign name="check" size={16} color={colors.primary} />
+        <AntDesign name="check" size={16} color={colorScheme.primary} />
       )}
     </TouchableOpacity>
   );
@@ -217,7 +196,7 @@ export function MasterHeader({
       >
         {showBackButton && (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <AntDesign name="left" size={24} color={colors.text.primary} />
+            <AntDesign name="left" size={24} color={colorScheme.onSurface} />
           </TouchableOpacity>
         )}
         <Text style={[styles.title, isCompactLayout && styles.titleCompact]}>
@@ -230,34 +209,7 @@ export function MasterHeader({
           isCompactLayout && styles.rightContainerCompact,
         ]}
       >
-        {/* 募集シフト通知ボタン */}
-        <TouchableOpacity
-          onPress={() => setShowRecruitmentModal(true)}
-          style={[
-            styles.notificationButton,
-            isCompactLayout && styles.compactActionButton,
-          ]}
-        >
-          <AntDesign name="bell" size={24} color={colors.primary} />
-          {recruitmentCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{recruitmentCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {/* LINE通知送信ボタン */}
-        <TouchableOpacity
-          onPress={() => setShowLineNotification(true)}
-          style={[
-            styles.lineNotificationButton,
-            isCompactLayout && styles.compactActionButton,
-          ]}
-        >
-          <AntDesign name="message" size={24} color={colors.success} />
-        </TouchableOpacity>
-
-        {/* 店舗管理ボタン - 常にクリック可能 */}
+        {/* 店舗管理ボタン */}
         <TouchableOpacity
           onPress={() => setShowStoreSelector(true)}
           style={storeButtonStyles}
@@ -272,7 +224,7 @@ export function MasterHeader({
           <AntDesign
             name={availableStores.length > 1 ? "down" : "setting"}
             size={16}
-            color="#FFFFFF"
+            color={colorScheme.onPrimary}
           />
         </TouchableOpacity>
 
@@ -284,7 +236,7 @@ export function MasterHeader({
             isCompactLayout && styles.compactActionButton,
           ]}
         >
-          <AntDesign name="question-circle" size={24} color={colors.primary} />
+          <AntDesign name="question-circle" size={24} color={colorScheme.primary} />
         </TouchableOpacity>
 
         {/* サインアウトボタン */}
@@ -295,7 +247,7 @@ export function MasterHeader({
             isCompactLayout && styles.compactActionButton,
           ]}
         >
-          <AntDesign name="logout" size={24} color={colors.text.primary} />
+          <AntDesign name="logout" size={24} color={colorScheme.onSurface} />
         </TouchableOpacity>
       </View>
 
@@ -317,7 +269,7 @@ export function MasterHeader({
                 {availableStores.length > 1 ? "教室を選択" : "教室管理"}
               </Text>
               <TouchableOpacity onPress={() => setShowStoreSelector(false)}>
-                <AntDesign name="close" size={20} color={colors.text.primary} />
+                <AntDesign name="close" size={20} color={colorScheme.onSurface} />
               </TouchableOpacity>
             </View>
 
@@ -340,7 +292,7 @@ export function MasterHeader({
                   setShowConnectionModal(true);
                 }}
               >
-                <AntDesign name="link" size={20} color={colors.primary} />
+                <AntDesign name="link" size={20} color={colorScheme.primary} />
                 <View style={{ marginLeft: 12, flex: 1 }}>
                   <Text style={styles.managementOptionText}>教室連携</Text>
                   <Text style={styles.managementOptionSubtext}>
@@ -379,26 +331,12 @@ export function MasterHeader({
         }}
       />
 
-      {/* 募集シフトモーダル */}
-      <RecruitmentShiftModal
-        visible={showRecruitmentModal}
-        onClose={() => setShowRecruitmentModal(false)}
-        userRole="master"
-      />
-
       {/* サービス紹介モーダル */}
       <ServiceIntroModal
         visible={showServiceIntro}
         onClose={() => setShowServiceIntro(false)}
       />
 
-      {/* LINE通知送信モーダル */}
-      <LineNotificationModal
-        visible={showLineNotification}
-        onClose={() => setShowLineNotification(false)}
-        storeId={currentStoreInfo}
-        recruitmentCount={recruitmentCount}
-      />
     </View>
   );
 }

@@ -1,26 +1,18 @@
 import React from "react";
 import { View } from "react-native";
 import { BoxProps, BoxStyleName } from "./BoxTypes";
-import { styles } from "./BoxStyles";
-import { theme } from "../../common-theme/ThemeDefinition";
+import { createBoxStyles } from "./BoxStyles";
+import { useThemedStyles } from "../../common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "../../common-theme/md3/MD3ThemeContext";
 
 /**
  * シャドウスタイルを取得するヘルパー関数
  */
-const getShadowStyle = (shadow: string) => {
-  if (shadow === "none") {
-    return null;
-  }
-
-  const shadowMap: Record<string, "sm" | "md" | "lg" | "none"> = {
-    small: "sm",
-    medium: "md",
-    large: "lg",
-  };
-
-  const shadowKey = shadowMap[shadow] || "none";
-  return theme.shadows[shadowKey];
-};
+const shadowMap = {
+  small: "level1",
+  medium: "level2",
+  large: "level3",
+} as const;
 
 /**
  * alignItems値を取得するヘルパー関数
@@ -105,7 +97,14 @@ const Box: React.FC<BoxProps> = ({
   gap,
   ...props
 }) => {
-  const shadowStyle = getShadowStyle(shadow);
+  const styles = useThemedStyles(createBoxStyles);
+  const { elevation } = useMD3Theme();
+
+  const shadowStyle =
+    shadow !== "none"
+      ? elevation[shadowMap[shadow as keyof typeof shadowMap] ?? "level0"]
+          ?.shadow
+      : null;
 
   return (
     <View

@@ -8,7 +8,6 @@ import type { IShiftConfirmationService } from "./interfaces/IShiftConfirmationS
 import type { IQuickShiftTokenService } from "./interfaces/IQuickShiftTokenService";
 import type { ITeacherStatusService } from "./interfaces/ITeacherStatusService";
 import type { IShiftSubmissionService } from "./interfaces/IShiftSubmissionService";
-import type { IRecruitmentShiftService } from "./interfaces/IRecruitmentShiftService";
 import type { IMultiStoreService } from "./interfaces/IMultiStoreService";
 import type { IGoogleCalendarService } from "./interfaces/IGoogleCalendarService";
 
@@ -23,7 +22,6 @@ class ServiceProviderImpl {
   private _quickShiftTokens: IQuickShiftTokenService | null = null;
   private _teacherStatus: ITeacherStatusService | null = null;
   private _shiftSubmissions: IShiftSubmissionService | null = null;
-  private _recruitmentShifts: IRecruitmentShiftService | null = null;
   private _multiStore: IMultiStoreService | null = null;
   private _googleCalendar: IGoogleCalendarService | null = null;
 
@@ -115,15 +113,6 @@ class ServiceProviderImpl {
   }
   setShiftSubmissionService(service: IShiftSubmissionService): void {
     this._shiftSubmissions = service;
-  }
-
-  // --- RecruitmentShifts ---
-  get recruitmentShifts(): IRecruitmentShiftService {
-    if (!this._recruitmentShifts) throw new Error("RecruitmentShiftService not initialized.");
-    return this._recruitmentShifts;
-  }
-  setRecruitmentShiftService(service: IRecruitmentShiftService): void {
-    this._recruitmentShifts = service;
   }
 
   // --- MultiStore ---

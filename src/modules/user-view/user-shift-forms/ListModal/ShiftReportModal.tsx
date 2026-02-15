@@ -8,7 +8,7 @@ import {
   Modal,
 } from "react-native";
 import { modalStyles } from "./ModalStyles";
-import { ShiftService } from "../../../../services/firebase/firebase-shift";
+import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 
@@ -31,18 +31,10 @@ const ShiftReportModal = ({
   const handleReportSubmit = async () => {
     if (modalShift) {
       try {
-        await ShiftService.updateShift(
-          modalShift.id,
-          {
-            status: "completed",
-            notes: comments,
-          },
-          {
-            userId: user?.uid || modalShift?.userId || "",
-            nickname: user?.nickname || modalShift?.nickname || "不明",
-            role: ((user?.role as "master" | "teacher") || "teacher") as "master" | "teacher"
-          }
-        );
+        await ServiceProvider.shifts.updateShift(modalShift.id, {
+          status: "completed",
+          notes: comments,
+        });
 
         fetchShifts();
         setReportModalVisible(false);

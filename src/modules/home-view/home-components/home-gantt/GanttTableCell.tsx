@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Pressable } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
-import { styles } from "../../home-styles/home-view-styles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { createHomeViewStyles } from "../../home-styles/home-view-styles";
 
 type GanttCellSlot = {
   type?: string;
@@ -23,64 +24,40 @@ export const GanttTableCell: React.FC<GanttTableCellProps> = ({
   onPress,
   children,
 }) => {
-  const defaultSlotFill = colors.primary + "1A";
-  const defaultSlotBorder = colors.primary + "66";
+  const styles = useThemedStyles(createHomeViewStyles);
+  const theme = useMD3Theme();
+
+  const defaultSlotFill = theme.colorScheme.primary + "1A";
+  const defaultSlotBorder = theme.colorScheme.primary + "66";
+
+  const cellStyle = [
+    styles.cell,
+    {
+      width: cellWidth,
+      height: cellHeight,
+      backgroundColor: slot
+        ? slot.type === "class"
+          ? theme.colorScheme.surfaceContainerHigh
+          : slot.color || defaultSlotFill
+        : undefined,
+      borderColor: slot
+        ? slot.type === "class"
+          ? theme.colorScheme.outlineVariant
+          : slot.color || defaultSlotBorder
+        : undefined,
+      borderWidth: slot ? 1 : 0,
+      opacity: slot ? 1 : 0.1,
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+    },
+  ];
 
   if (onPress) {
     return (
-      <Pressable
-        style={[
-          styles.cell,
-          {
-            width: cellWidth,
-            height: cellHeight,
-            backgroundColor: slot
-              ? slot.type === "class"
-                ? colors.surfaceElevated
-                : slot.color || defaultSlotFill
-              : undefined,
-            borderColor: slot
-              ? slot.type === "class"
-                ? colors.border
-                : slot.color || defaultSlotBorder
-              : undefined,
-            borderWidth: slot ? 1 : 0,
-            opacity: slot ? 1 : 0.1,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-        onPress={onPress}
-      >
+      <Pressable style={cellStyle} onPress={onPress}>
         {children}
       </Pressable>
     );
   }
-  return (
-    <View
-      style={[
-        styles.cell,
-        {
-          width: cellWidth,
-          height: cellHeight,
-          backgroundColor: slot
-            ? slot.type === "class"
-              ? colors.surfaceElevated
-              : slot.color || defaultSlotFill
-            : undefined,
-          borderColor: slot
-            ? slot.type === "class"
-              ? colors.border
-              : slot.color || defaultSlotBorder
-            : undefined,
-          borderWidth: slot ? 1 : 0,
-          opacity: slot ? 1 : 0.1,
-          justifyContent: "center",
-          alignItems: "center",
-        },
-      ]}
-    >
-      {children}
-    </View>
-  );
+  return <View style={cellStyle}>{children}</View>;
 };

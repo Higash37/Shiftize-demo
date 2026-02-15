@@ -274,11 +274,12 @@ export class SupabaseUserAdapter implements IUserService {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
-      .select("*")
+      .select("uid,nickname,role,email,store_id,connected_stores,color,hourly_wage")
       .eq("uid", userId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) return null;
+    if (!data) return null;
 
     return {
       ...data,

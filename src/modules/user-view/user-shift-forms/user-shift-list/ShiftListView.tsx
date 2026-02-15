@@ -3,25 +3,23 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Text,
-  FlexAlignType,
-  useWindowDimensions,
   Modal,
   Alert,
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { useBreakpoint } from "@/common/common-constants/Breakpoints";
 import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../user-shift-utils/shift-time.utils";
-import { shiftListViewStyles as styles } from "./styles";
+import { createShiftListViewStyles } from "./styles";
 import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
@@ -32,7 +30,7 @@ export const UserShiftList = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
-  const { shifts, loading: shiftsLoading, fetchShifts } = useShift(); // storeIdを削除
+  const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => {
     const today = new Date();
@@ -50,9 +48,15 @@ export const UserShiftList = () => {
   const [comments, setComments] = useState("");
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shiftPositionsRef = useRef<Record<string, number>>({});
-  const { width, height } = useWindowDimensions();
-  const isTablet = width >= 768 && width < 1024; // タブレット判定
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  // MD3 theme hooks
+  const theme = useMD3Theme();
+  const bp = useBreakpoint();
+  const styles = useMemo(
+    () => createShiftListViewStyles(theme, bp),
+    [theme, bp]
+  );
 
   // シフト確定ボタン用の状態
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
@@ -60,6 +64,7 @@ export const UserShiftList = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // 画面がフォーカスされた時にデータを更新
+  // 初回マウント時のfetchはuseShift内のuseEffectで実行されるため不要
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchShifts();
@@ -67,11 +72,6 @@ export const UserShiftList = () => {
 
     return unsubscribe;
   }, [navigation, fetchShifts]);
-
-  // 初回マウント時にデータを取得
-  useEffect(() => {
-    fetchShifts();
-  }, []);
 
   // 期間設定を読み込む
   useEffect(() => {
@@ -306,14 +306,9 @@ export const UserShiftList = () => {
     setModalVisible(false);
   };
 
-  const containerStyle = isTablet
-    ? {
-        width: width * 0.8,
-        height: height * 0.8,
-        alignSelf: "center" as FlexAlignType,
-        backgroundColor: "#FFFFFF",
-      } // タブレット用スタイル
-    : { flex: 1, backgroundColor: "#FFFFFF" }; // スマホやPC用スタイル
+  const containerStyle = bp.isTablet
+    ? styles.tabletContainer
+    : styles.defaultContainer;
 
   return (
     <>
@@ -326,14 +321,14 @@ export const UserShiftList = () => {
           style={[styles.calendarContainer, styles.calendarContainerCompact]}
         >
           <ShiftCalendar
-            key={`calendar-${currentMonth}`} // 月が変わったら強制再レンダリング
+            key={`calendar-${currentMonth}`}
             shifts={monthlyShifts}
             selectedDate={selectedDate}
             currentMonth={currentMonth + "-01"}
             currentUserStoreId={currentUserStoreId ?? ""}
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
-            onMount={handleCalendarMount} // レスポンシブ対応のプロパティを追加
+            onMount={handleCalendarMount}
             responsiveSize={{
               container: {
                 width: "98%",
@@ -341,39 +336,29 @@ export const UserShiftList = () => {
                 paddingVertical: 0,
               },
               day: { fontSize: 32, fontWeight: "700" },
-              scale: 0.8, // スケールも少し大きくしてバランス調整
+              scale: 0.8,
             }}
           />
         </View>
         {isCalendarMounted && displayMonth && (
           <ScrollView
             ref={scrollViewRef}
-            style={styles.listContainer} // スタイル定義を使用
+            style={styles.listContainer}
             contentContainerStyle={styles.listContentContainer}
-            showsVerticalScrollIndicator={false} // スクロールバーを非表示に
+            showsVerticalScrollIndicator={false}
           >
             {/* シフト確定ボタン */}
             {period && (
-              <View style={{ alignItems: "center", marginVertical: 0 }}>
+              <View style={styles.confirmButtonWrapper}>
                 <TouchableOpacity
-                  style={{
-                    backgroundColor: isCompleted ? "#6c757d" : colors.primary,
-                    borderRadius: 4,
-                    paddingVertical: 6,
-                    paddingHorizontal: 12,
-                    alignItems: "center",
-                    opacity: isCompleted ? 0.7 : 1,
-                  }}
+                  style={[
+                    styles.confirmButton,
+                    isCompleted && styles.confirmButtonCompleted,
+                  ]}
                   onPress={handleShiftConfirm}
                   disabled={isCompleted}
                 >
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 11,
-                      fontWeight: "600",
-                    }}
-                  >
+                  <Text style={styles.confirmButtonText}>
                     {isCompleted ? "確定済み" : "シフト確定"}
                   </Text>
                 </TouchableOpacity>
@@ -390,7 +375,7 @@ export const UserShiftList = () => {
                 return (
                   <View
                     key={shift.id}
-                    style={{ width: "100%" }} // 親Viewの幅を100%に設定
+                    style={{ width: "100%" }}
                     onLayout={({ nativeEvent }) => {
                       shiftPositionsRef.current[shift.id] =
                         nativeEvent.layout.y;
@@ -454,95 +439,38 @@ export const UserShiftList = () => {
         onRequestClose={() => setShowConfirmModal(false)}
       >
         <TouchableOpacity
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+          style={styles.confirmModalOverlay}
           activeOpacity={1}
           onPress={() => setShowConfirmModal(false)}
         >
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => {}}
-            style={{
-              backgroundColor: "white",
-              borderRadius: 12,
-              padding: 24,
-              margin: 20,
-              maxWidth: 320,
-              width: "90%",
-            }}
+            style={styles.confirmModalContent}
           >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "600",
-                color: colors.text.primary,
-                textAlign: "center",
-                marginBottom: 12,
-              }}
-            >
+            <Text style={styles.confirmModalTitle}>
               シフト確定{" "}
             </Text>
 
-            <Text
-              style={{
-                fontSize: 16,
-                color: colors.text.secondary,
-                textAlign: "center",
-                marginBottom: 24,
-                lineHeight: 22,
-              }}
-            >
+            <Text style={styles.confirmModalDescription}>
               現在提出しているシフトで一旦確定でよろしいですか？
             </Text>
 
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 12,
-              }}
-            >
+            <View style={styles.confirmModalButtonRow}>
               <TouchableOpacity
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.border,
-                  borderRadius: 8,
-                  paddingVertical: 12,
-                  alignItems: "center",
-                }}
+                style={styles.confirmModalCancelButton}
                 onPress={() => setShowConfirmModal(false)}
               >
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: 16,
-                    fontWeight: "600",
-                  }}
-                >
+                <Text style={styles.confirmModalCancelText}>
                   キャンセル
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.primary,
-                  borderRadius: 8,
-                  paddingVertical: 12,
-                  alignItems: "center",
-                }}
+                style={styles.confirmModalConfirmButton}
                 onPress={handleConfirmComplete}
               >
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 16,
-                    fontWeight: "600",
-                  }}
-                >
+                <Text style={styles.confirmModalConfirmText}>
                   決定{" "}
                 </Text>
               </TouchableOpacity>

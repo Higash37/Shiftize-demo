@@ -7,12 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { designSystem } from "../../common-constants/DesignSystem";
-import { colors } from "../../common-constants/ColorConstants";
-import { shadows } from "../../common-constants/ShadowConstants";
-import { layout } from "../../common-constants/LayoutConstants";
 import { PRESET_COLORS } from "./FormColorPicker.constants";
 import type { ColorPickerProps } from "./FormColorPicker.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
 /**
  * カラーピッカーコンポーネント
@@ -25,6 +24,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   initialColor = PRESET_COLORS[0],
 }) => {
   const [selectedColor, setSelectedColor] = useState(initialColor);
+  const styles = useThemedStyles(createColorPickerStyles);
+  const { colorScheme } = useMD3Theme();
 
   const handleSelectColor = (color: string) => {
     setSelectedColor(color);
@@ -50,7 +51,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                   style={[
                     styles.colorItem,
                     { backgroundColor: color },
-                    selectedColor === color && styles.selectedColor,
+                    selectedColor === color && {
+                      borderWidth: 3,
+                      borderColor: colorScheme.primary,
+                    },
                   ]}
                   onPress={() => handleSelectColor(color)}
                 />
@@ -66,49 +70,58 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  modalOverlay: {
-    ...designSystem.modal.overlay,
-  },
-  modalContent: {
-    ...designSystem.modal.modal,
-    width: "80%",
-    maxHeight: "80%",
-  },
-  title: {
-    ...designSystem.text.welcomeText,
-    fontSize: 18,
-    marginBottom: layout.padding.medium,
-  },
-  colorList: {
-    maxHeight: 300,
-  },
-  colorGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: layout.padding.small,
-  },
-  colorItem: {
-    width: 40,
-    height: 40,
-    borderRadius: layout.borderRadius.full,
-    margin: 4,
-    ...shadows.small,
-  },
-  selectedColor: {
-    borderWidth: 3,
-    borderColor: colors.primary,
-    ...shadows.medium,
-  },
-  closeButton: {
-    ...designSystem.button.outline,
-    marginTop: layout.padding.medium,
-  },
-  closeButtonText: {
-    ...designSystem.text.outlineButtonText,
-  },
-});
+const createColorPickerStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.32)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+    },
+    modalContent: {
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      borderRadius: theme.shape.extraLarge,
+      padding: theme.spacing.xxl,
+      width: "80%",
+      maxHeight: "80%",
+    },
+    title: {
+      ...theme.typography.titleLarge,
+      color: theme.colorScheme.onSurface,
+      textAlign: "center",
+      marginBottom: theme.spacing.lg,
+    },
+    colorList: {
+      maxHeight: 300,
+    },
+    colorGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: theme.spacing.sm,
+    },
+    colorItem: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.shape.full,
+      margin: 4,
+      ...theme.elevation.level1.shadow,
+    },
+    closeButton: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outline,
+      borderRadius: theme.shape.full,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.xxl,
+      alignItems: "center",
+      marginTop: theme.spacing.lg,
+    },
+    closeButtonText: {
+      ...theme.typography.labelLarge,
+      color: theme.colorScheme.primary,
+    },
+  });
 
-// デフォルトエクスポートを追加
 export default ColorPicker;

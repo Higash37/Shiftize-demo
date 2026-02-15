@@ -1,13 +1,12 @@
 import React from "react";
 import { View, TextInput, Text, StyleProp, TextStyle } from "react-native";
-import { styles } from "./FormInput.styles";
+import { createInputStyles } from "./FormInput.styles";
 import { InputProps } from "./FormInput.types";
+import { useThemedStyles } from "../../common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "../../common-theme/md3/MD3ThemeContext";
 
 /**
- * Input - 汎用的なテキスト入力コンポーネント
- *
- * ラベル、エラーメッセージ、ヘルパーテキストをサポートする入力フィールドです。
- * フォーム要素として使用するための基本的な入力コンポーネントです。
+ * Input - MD3 Outlined TextField スタイルの入力コンポーネント
  *
  * @example
  * ```tsx
@@ -30,6 +29,9 @@ const Input: React.FC<InputProps> = ({
   testID,
   ...props
 }) => {
+  const styles = useThemedStyles(createInputStyles);
+  const { colorScheme } = useMD3Theme();
+
   return (
     <View style={styles.container} testID={testID}>
       {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
@@ -41,7 +43,7 @@ const Input: React.FC<InputProps> = ({
             style,
           ] as StyleProp<TextStyle>
         }
-        placeholderTextColor="#999"
+        placeholderTextColor={colorScheme.onSurfaceVariant}
         {...props}
       />
       {(error || helper) && (

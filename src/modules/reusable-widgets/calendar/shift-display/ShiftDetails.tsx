@@ -2,8 +2,9 @@ import React, { useRef } from "react";
 import { View, Text, Animated } from "react-native";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { styles } from "./ShiftDetails.styles";
+import { createShiftDetailsStyles } from "./ShiftDetails.styles";
 import { ShiftDetailsProps } from "./ShiftDetails.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 // import { parseTimeString } from "../../calendar-utils/shift.utils";
 import { parseTimeString } from "../calendar-utils/shift.utils";
 
@@ -18,6 +19,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
   maxHeight = 500,
   isOpen,
 }) => {
+  const styles = useThemedStyles(createShiftDetailsStyles);
   const heightAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -30,7 +32,6 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
 
   return (
     <Animated.View style={[styles.container, { maxHeight: heightAnim }]}>
-      {" "}
       <View style={styles.header}>
         <Text style={styles.nickname}>{shift.nickname}</Text>
         <Text style={styles.date}>
@@ -42,7 +43,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
           <>
             {/* 最初のスタッフ時間 */}
             <View style={styles.timeSlot}>
-              <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
+              <Text style={styles.timeSlotLabel}>スタッフ</Text>
               <Text style={styles.timeText}>
                 {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}
                 {" ~ "}
@@ -62,7 +63,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                   <View style={[styles.timeSlot, styles.classTimeSlot]}>
                     <Text style={[styles.timeSlotLabel, styles.classLabel]}>
                       授業
-                    </Text>{" "}
+                    </Text>
                     <Text style={[styles.timeText, styles.classTime]}>
                       {format(
                         parseTimeString(shift.date, classTime.startTime),
@@ -78,7 +79,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
 
                   {shift.classes?.[index + 1] && (
                     <View style={styles.timeSlot}>
-                      <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
+                      <Text style={styles.timeSlotLabel}>スタッフ</Text>
                       <Text style={styles.timeText}>
                         {format(
                           parseTimeString(shift.date, classTime.endTime),
@@ -100,7 +101,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
             )}
             {/* 最後のスタッフ時間 */}
             <View style={styles.timeSlot}>
-              <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
+              <Text style={styles.timeSlotLabel}>スタッフ</Text>
               <Text style={styles.timeText}>
                 {format(
                   parseTimeString(
@@ -116,7 +117,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
           </>
         ) : (
           <View style={styles.timeSlot}>
-            <Text style={styles.timeSlotLabel}>スタッフ</Text>{" "}
+            <Text style={styles.timeSlotLabel}>スタッフ</Text>
             <Text style={styles.timeText}>
               {format(parseTimeString(shift.date, shift.startTime), "HH:mm")}
               {" ~ "}

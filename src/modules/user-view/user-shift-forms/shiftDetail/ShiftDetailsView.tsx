@@ -1,12 +1,15 @@
 import React from "react";
 import { View } from "react-native";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ShiftTimeSlot } from "./ShiftTimeSlot";
 import { ShiftDetailsViewProps } from "./types";
-import { shiftDetailsViewStyles as styles } from "./styles";
+import { createShiftDetailsViewStyles } from "./styles";
 
 export const ShiftDetailsView: React.FC<ShiftDetailsViewProps> = ({
   timeSlots,
 }) => {
+  const styles = useThemedStyles(createShiftDetailsViewStyles);
+
   return (
     <View style={styles.detailsContainer}>
       {timeSlots.map((slot, index) => (

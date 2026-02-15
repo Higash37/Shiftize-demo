@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { styles, calendarTheme } from "./ShiftDateSelector.styles";
+import { createShiftDateSelectorStyles, createCalendarTheme } from "./ShiftDateSelector.styles";
 import { ShiftDateSelectorProps } from "./ShiftDateSelector.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 /**
  * ShiftDateSelector - シフト日付選択用カレンダーコンポーネント
@@ -15,6 +17,10 @@ const ShiftDateSelector: React.FC<ShiftDateSelectorProps> = ({
   selectedDate,
   onSelect,
 }) => {
+  const theme = useMD3Theme();
+  const styles = useThemedStyles(createShiftDateSelectorStyles);
+  const calendarTheme = useMemo(() => createCalendarTheme(theme), [theme]);
+
   return (
     <View style={styles.container}>
       <Calendar

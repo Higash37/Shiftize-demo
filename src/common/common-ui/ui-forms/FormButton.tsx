@@ -1,13 +1,12 @@
 import React from "react";
 import { TouchableOpacity, Text, ActivityIndicator } from "react-native";
-import { theme } from "../../common-theme/ThemeDefinition";
-import { styles } from "./FormButton.styles";
+import { createButtonStyles } from "./FormButton.styles";
 import { ButtonProps, ButtonStyleName } from "./FormButton.types";
+import { useThemedStyles } from "../../common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "../../common-theme/md3/MD3ThemeContext";
 
 /**
- * Button - 汎用的なボタンコンポーネント
- *
- * 様々なスタイルとサイズを持ち、アプリケーション内でアクションを実行するために使用します。
+ * Button - MD3準拠の汎用ボタンコンポーネント
  *
  * @example
  * ```tsx
@@ -31,37 +30,39 @@ const Button: React.FC<ButtonProps> = ({
   style,
   testID,
 }) => {
-  
+  const styles = useThemedStyles(createButtonStyles);
+  const { colorScheme } = useMD3Theme();
+
+  const indicatorColor =
+    variant === "primary"
+      ? colorScheme.onPrimary
+      : colorScheme.primary;
+
   return (
     <TouchableOpacity
       style={[
-        styles['base'],
+        styles["base"],
         styles[variant],
         styles[`size_${size}` as ButtonStyleName],
-        fullWidth && styles['fullWidth'],
-        disabled && styles['disabled'],
+        fullWidth && styles["fullWidth"],
+        disabled && styles["disabled"],
         style,
       ]}
       onPress={onPress}
       disabled={disabled || loading}
+      testID={testID}
     >
       {loading ? (
-        <ActivityIndicator
-          color={
-            variant === "outline"
-              ? theme.colors.primary
-              : theme.colors.text?.white || "#FFFFFF"
-          }
-        />
+        <ActivityIndicator color={indicatorColor} />
       ) : (
         <Text
           style={[
-            styles.text,
+            styles.text_base,
             styles[`text_${variant}` as ButtonStyleName],
             styles[`text_${size}` as ButtonStyleName],
           ]}
         >
-          {typeof title === 'string' ? title : 'Button'}
+          {typeof title === "string" ? title : "Button"}
         </Text>
       )}
     </TouchableOpacity>

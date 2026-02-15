@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "../../home-styles/home-view-styles";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { createHomeViewStyles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn, SampleSlot } from "../../home-types/home-view-types";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import { MaterialIcons } from "@expo/vector-icons";
 import type {
   ShiftItem,
@@ -43,12 +44,15 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
   userColorsMap = {},
   getStatusConfig,
 }) => {
+  const styles = useThemedStyles(createHomeViewStyles);
+  const theme = useMD3Theme();
+
   return (
     <View
       style={{
         flexDirection: "row",
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: theme.colorScheme.outlineVariant,
       }}
     >
       <View
@@ -61,20 +65,20 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
         if (shifts.length > 0 && date && users.length > 0) {
           const user = users.find(u => u.nickname === name);
           if (!user) return null;
-          
+
           // この時間とユーザーのシフトを検索
-          const userShift = shifts.find(shift => 
-            shift.userId === user.uid && 
+          const userShift = shifts.find(shift =>
+            shift.userId === user.uid &&
             shift.date === date &&
-            time >= shift.startTime && 
+            time >= shift.startTime &&
             time < shift.endTime
           );
-          
+
           const statusConfig = getStatusConfig ? getStatusConfig(userShift?.status || 'approved') : null;
           const backgroundColor = userShift
-            ? userColorsMap[user.uid] || statusConfig?.color || colors.primary
+            ? userColorsMap[user.uid] || statusConfig?.color || theme.colorScheme.primary
             : "transparent";
-            
+
           return (
             <TouchableOpacity
               key={`${name}-${index}`}
@@ -84,7 +88,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                   width: cellWidth,
                   height: cellHeight,
                   backgroundColor: userShift ? backgroundColor : "transparent",
-                  borderColor: userShift ? colors.border : colors.border,
+                  borderColor: theme.colorScheme.outlineVariant,
                   borderWidth: 1,
                   opacity: userShift ? 0.8 : 0.3,
                   justifyContent: "center",
@@ -105,13 +109,13 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                   <MaterialIcons
                     name={userShift.type === "class" ? "school" : "person"}
                     size={14}
-                    color="white"
+                    color={theme.colorScheme.onPrimary}
                   />
                   {userShift.subject && (
                   <Text
                     style={{
                       fontSize: 10,
-                      color: colors.text.white,
+                      color: theme.colorScheme.onPrimary,
                       textAlign: "center",
                       marginTop: 2,
                     }}
@@ -126,7 +130,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
             </TouchableOpacity>
           );
         }
-        
+
         // 従来のサンプルデータ表示（後方互換性のため）
         const classSlot: SampleSlot | undefined = sampleSchedule
           .flatMap((col) => col.slots)
@@ -157,13 +161,13 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 height: cellHeight,
                 backgroundColor: slot
                   ? slot.type === "class"
-                    ? colors.surfaceElevated
-                    : slot.color || colors.primary + "1A"
+                    ? theme.colorScheme.surfaceContainerHigh
+                    : slot.color || theme.colorScheme.primary + "1A"
                   : undefined,
                 borderColor: slot
                   ? slot.type === "class"
-                    ? colors.border
-                    : slot.color || colors.primary
+                    ? theme.colorScheme.outlineVariant
+                    : slot.color || theme.colorScheme.primary
                   : undefined,
                 borderWidth: slot ? 1 : 0,
                 opacity: slot ? 1 : 0.1,
@@ -180,8 +184,8 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
                 size={16}
                 color={
                   slot.type === "class"
-                    ? colors.text.secondary
-                    : colors.text.white
+                    ? theme.colorScheme.onSurfaceVariant
+                    : theme.colorScheme.onPrimary
                 }
                 style={{ marginRight: 4 }}
               />
@@ -190,7 +194,7 @@ export const GanttRowMobile: React.FC<GanttRowMobileProps> = ({
               <Text
                 style={[
                   styles.taskText,
-                  slot.type !== "class" && { color: colors.text.white },
+                  slot.type !== "class" && { color: theme.colorScheme.onPrimary },
                 ]}
               >
                 {slot.task}

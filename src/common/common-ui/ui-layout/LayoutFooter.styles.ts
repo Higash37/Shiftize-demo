@@ -1,68 +1,71 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
-import { colors } from "@/common/common-theme/ThemeColors";
-import { getPlatformShadow } from "@/common/common-utils/util-style/StyleGenerator";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
-export const styles = StyleSheet.create({
-  footer: {
-    flexDirection: "row",
-    backgroundColor: colors.footer.background,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.footer.separator,
-    width: "100%", // 画面端まで伸ばす
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    justifyContent: "space-around", // タブを均等に配置
-    alignItems: "center", // 縦方向の中央揃え
-    minHeight: 40, // 最小高さを保証
-    paddingHorizontal: 12, // 左右の余白
-    paddingVertical: 2,
-    ...(Platform.OS === "web" &&
-      ({
-        position: "relative" as any,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backdropFilter: "blur(18px)",
-      } as any)),
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: IS_SMALL_DEVICE ? 6 : 8,
-    minWidth: 0, // flex子要素の最小幅を0に
-    maxWidth: "100%", // 最大幅制限
-    justifyContent: "center",
-  },
-  createTab: {
-    marginTop: IS_SMALL_DEVICE ? -15 : -20,
-  },
-  disabledTab: {
-    opacity: 0.5,
-  },
-  label: {
-    fontSize: IS_SMALL_DEVICE ? 10 : 12,
-    color: colors.text.secondary,
-    marginTop: IS_SMALL_DEVICE ? 2 : 4,
-  },
-  activeLabel: {
-    color: colors.footer.tint,
-  },
-  createLabel: {
-    color: colors.footer.tint,
-  },
-  disabledLabel: {
-    color: colors.text.secondary,
-  },
-  addButtonContainer: {
-    width: IS_SMALL_DEVICE ? 48 : 56,
-    height: IS_SMALL_DEVICE ? 48 : 56,
-    borderRadius: IS_SMALL_DEVICE ? 24 : 28,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    ...getPlatformShadow(4),
-  },
-});
+
+/**
+ * LayoutFooter MD3スタイルファクトリ
+ */
+export const createFooterStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    footer: {
+      flexDirection: "row",
+      backgroundColor: theme.colorScheme.surfaceContainer,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colorScheme.outlineVariant,
+      width: "100%",
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      justifyContent: "space-around",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.md,
+      padding: theme.spacing.xs,
+      ...(Platform.OS === "web" &&
+        ({
+          position: "relative" as any,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backdropFilter: "blur(18px)",
+        } as any)),
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: IS_SMALL_DEVICE ? 6 : 8,
+      minWidth: 0,
+      maxWidth: "100%",
+      justifyContent: "center",
+    },
+    createTab: {
+      marginTop: IS_SMALL_DEVICE ? -15 : -20,
+    },
+    disabledTab: {
+      opacity: 0.5,
+    },
+    label: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: IS_SMALL_DEVICE ? 2 : 4,
+    },
+    activeLabel: {
+      color: theme.colorScheme.primary,
+    },
+    createLabel: {
+      color: theme.colorScheme.primary,
+    },
+    disabledLabel: {
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    addButtonContainer: {
+      width: IS_SMALL_DEVICE ? 48 : 56,
+      height: IS_SMALL_DEVICE ? 48 : 56,
+      borderRadius: IS_SMALL_DEVICE ? 24 : 28,
+      backgroundColor: theme.colorScheme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      ...theme.elevation.level3.shadow,
+    },
+  });

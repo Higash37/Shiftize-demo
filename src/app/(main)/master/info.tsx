@@ -1,29 +1,19 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
-import { colors } from "@/common/common-constants/ColorConstants";
-
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { InfoDashboard } from "@/modules/master-view";
 
 export default function InfoPage() {
+  const theme = useMD3Theme();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colorScheme.surfaceContainerLowest }}>
       <Header title="経営ダッシュボード" showBackButton={false} />
-      <View style={styles.content}>
+      <View style={{ flex: 1 }}>
         <InfoDashboard />
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flex: 1,
-  },
-});

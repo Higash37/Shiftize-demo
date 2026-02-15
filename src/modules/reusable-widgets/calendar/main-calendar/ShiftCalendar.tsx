@@ -54,8 +54,9 @@ LocaleConfig.defaultLocale = "ja";
 import { CalendarHeader } from "../CalendarHeader";
 import { DatePickerModal } from "../modals/DatePickerModal";
 import { useResponsiveCalendarSize } from "../constants";
-import { styles } from "./ShiftCalendar.styles";
+import { createShiftCalendarStyles } from "./ShiftCalendar.styles";
 import { ShiftCalendarProps } from "./ShiftCalendar.types";
+import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   shifts,
@@ -71,6 +72,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(currentMonth));
   const { isSmallScreen } = useResponsiveCalendarSize();
+  const styles = useThemedStyles(createShiftCalendarStyles);
   const scale = responsiveSize?.scale ?? 1;
 
   // currentMonthが変わったらtempDateも更新

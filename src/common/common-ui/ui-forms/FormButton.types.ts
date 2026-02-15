@@ -1,15 +1,24 @@
-import { Size, Variant, BaseComponentProps } from "../componentTypes";
+import { Size, BaseComponentProps } from "../componentTypes";
+
+/**
+ * MD3ボタンバリアント
+ * - primary (filled): 最も目立つアクション
+ * - secondary (filled-tonal): 重要度中のアクション
+ * - outline: 境界線付き
+ * - text: テキストのみ（最も控えめ）
+ */
+export type ButtonVariant = "primary" | "secondary" | "outline" | "text";
 
 /**
  * ボタンのスタイル名
  */
 export type ButtonStyleName =
-  | Variant
+  | ButtonVariant
   | `size_${Size}`
-  | `text_${Variant}`
+  | `text_${ButtonVariant}`
   | `text_${Size}`
   | "base"
-  | "text"
+  | "text_base"
   | "fullWidth"
   | "disabled";
 
@@ -30,7 +39,7 @@ export interface ButtonProps extends BaseComponentProps {
   /**
    * ボタンの表示バリアント
    */
-  variant?: Extract<Variant, "primary" | "secondary" | "outline">;
+  variant?: ButtonVariant;
 
   /**
    * ボタンのサイズ

@@ -51,7 +51,7 @@ const ShiftItem = memo(({ shift, isExpanded, onToggle }: ShiftItemProps) => {
           size={14}
           color={colors.text.primary}
           style={styles.expandIcon}
-        />{" "}
+        />
       </TouchableOpacity>
       <ShiftDetailsAdapter shift={shift} isOpen={isExpanded} />
     </View>

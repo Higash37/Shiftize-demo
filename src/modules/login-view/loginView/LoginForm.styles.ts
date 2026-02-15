@@ -1,204 +1,210 @@
-import { StyleSheet, Dimensions, Platform } from "react-native";
-import { shadows, colors } from "@/common/common-constants/ThemeConstants";
+import { StyleSheet } from "react-native";
+import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_TABLET = SCREEN_WIDTH >= 768 && SCREEN_WIDTH < 1000;
+/**
+ * LoginForm MD3スタイルファクトリ
+ */
+export const createLoginFormStyles = (
+  theme: MD3Theme,
+  breakpoint: { isMobile: boolean; isTablet: boolean; isDesktop: boolean }
+) => {
+  const { isTablet, isDesktop } = breakpoint;
+  const isTabletOrDesktop = isTablet || isDesktop;
 
-export const loginFormStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: IS_TABLET ? colors.surfaceElevated : colors.surface,
-  },
-  header: {
-    backgroundColor: colors.primary, // タブレットは少し濃い青
-    width: "100%",
-    ...(IS_TABLET && {
-      paddingVertical: 40,
-      ...shadows.header,
-    }),
-  },
-  headerContent: {
-    width: "100%",
-    padding: 16,
-  },
-  titleContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    color: colors.text.white,
-    fontSize: IS_TABLET ? 38 : 20,
-    fontWeight: "bold",
-    ...(IS_TABLET && {
-      letterSpacing: 1.5,
-    }),
-  },
-  contentContainer: {
-    flex: 1,
-    width: "100%",
-  },
-  formWrapper: {
-    flex: 1,
-    width: "100%",
-    padding: 16,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingTop: "10%",
-  },
-  formWrapperWeb: {
-    width: IS_TABLET ? "55%" : "65%",
-    maxWidth: IS_TABLET ? 700 : 600,
-    minWidth: 260,
-    alignSelf: "center",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: IS_TABLET ? "8%" : "3%",
-  },
-  formContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: IS_TABLET ? 20 : 12,
-    padding: IS_TABLET ? 56 : 24,
-    width: "100%",
-    ...(IS_TABLET ? shadows.large : shadows.medium),
-    ...(IS_TABLET && {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: theme.spacing.lg,
+      ...(isTabletOrDesktop ? { alignItems: "center" as const } : {}),
+    },
+    formCard: {
+      marginBottom: theme.spacing.xl,
+      ...(isTablet
+        ? { width: "80%", maxWidth: 600 }
+        : isDesktop
+          ? { width: "60%", maxWidth: 500 }
+          : {}),
+    },
+    // ヘッダー
+    titleContainer: {
+      marginBottom: theme.spacing.xl,
+    },
+    title: {
+      ...theme.typography.headlineSmall,
+      color: theme.colorScheme.onSurface,
+      textAlign: "center",
+    },
+    // エラー
+    errorContainer: {
+      backgroundColor: theme.colorScheme.errorContainer,
+      padding: theme.spacing.md,
+      borderRadius: theme.shape.small,
+      marginBottom: theme.spacing.lg,
+    },
+    errorText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onErrorContainer,
+      textAlign: "center",
+      fontWeight: "500",
+    },
+    // タブ切り替え
+    tabContainer: {
+      flexDirection: "row",
+      marginBottom: theme.spacing.xl,
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      borderRadius: theme.shape.small,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      borderRadius: theme.shape.small,
+    },
+    tabActive: {
+      backgroundColor: theme.colorScheme.primary,
+    },
+    tabIcon: {
+      marginRight: theme.spacing.sm,
+    },
+    tabText: {
+      ...theme.typography.labelLarge,
+      color: theme.colorScheme.primary,
+    },
+    tabTextActive: {
+      color: theme.colorScheme.onPrimary,
+    },
+    // 入力フィールド
+    inputGroup: {
+      marginBottom: theme.spacing.xl,
+    },
+    labelContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    labelIcon: {
+      marginRight: theme.spacing.sm,
+    },
+    label: {
+      ...theme.typography.bodyMedium,
+      fontWeight: "500",
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    input: {
       borderWidth: 1,
-      borderColor: colors.border,
-    }),
-  },
-  loginTitle: {
-    fontSize: IS_TABLET ? 42 : 24,
-    fontWeight: IS_TABLET ? "700" : "600",
-    marginBottom: IS_TABLET ? 48 : 24,
-    textAlign: "center",
-    ...(IS_TABLET && {
-      color: colors.primary,
-      letterSpacing: 1,
-    }),
-  },
-  form: {
-    gap: 20,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  label: {
-    fontSize: IS_TABLET ? 20 : 14,
-    fontWeight: IS_TABLET ? "600" : "500",
-    color: IS_TABLET ? colors.primary : colors.text.primary,
-    ...(IS_TABLET && {
-      marginBottom: 8,
-      letterSpacing: 0.5,
-    }),
-  },
-  input: {
-    borderWidth: IS_TABLET ? 2 : 1,
-    borderColor: IS_TABLET ? colors.selected : colors.border,
-    borderRadius: IS_TABLET ? 12 : 6,
-    padding: IS_TABLET ? 22 : 12,
-    fontSize: IS_TABLET ? 24 : 16,
-    backgroundColor: IS_TABLET ? colors.selected : colors.surface,
-    ...(IS_TABLET && {
-      ...shadows.small,
-    }),
-  },
-  rememberMe: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  checkbox: {
-    width: IS_TABLET ? 32 : 20,
-    height: IS_TABLET ? 32 : 20,
-    borderWidth: IS_TABLET ? 3 : 2,
-    borderColor: IS_TABLET ? colors.primary : colors.text.secondary,
-    borderRadius: IS_TABLET ? 8 : 4,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  checkmark: {
-    color: colors.text.white,
-    fontSize: IS_TABLET ? 20 : 14,
-    fontWeight: "bold",
-  },
-  rememberMeText: {
-    color: IS_TABLET ? colors.text.primary : colors.text.secondary,
-    fontSize: IS_TABLET ? 20 : 14,
-    ...(IS_TABLET && {
-      fontWeight: "500",
-    }),
-  },
-  loginButton: {
-    backgroundColor: colors.primary,
-    padding: IS_TABLET ? 24 : 12,
-    borderRadius: IS_TABLET ? 14 : 6,
-    alignItems: "center",
-    ...(IS_TABLET ? shadows.large : shadows.button),
-    ...(IS_TABLET &&
-      Platform.OS === "web" && {
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-        ":hover": {
-          backgroundColor: colors.primary + "DD",
-          transform: [{ scale: 1.02 }],
-        },
-      }),
-  },
-  loginButtonDisabled: {
-    backgroundColor: colors.text.disabled,
-  },
-  loginButtonText: {
-    color: colors.text.white,
-    fontSize: IS_TABLET ? 26 : 16,
-    fontWeight: IS_TABLET ? "700" : "600",
-    ...(IS_TABLET && {
-      letterSpacing: 1,
-    }),
-  },
-  forgotPassword: {
-    alignItems: "center",
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 14,
-    textDecorationLine: "underline",
-  },
-  maintenanceText: {
-    color: IS_TABLET ? colors.text.secondary : colors.text.secondary,
-    fontSize: IS_TABLET ? 16 : 12,
-    textAlign: "center",
-    marginTop: IS_TABLET ? 32 : 16,
-    ...(IS_TABLET && {
-      fontWeight: "500",
-      maxWidth: "80%",
-    }),
-  },
-  storeIdContainer: {
-    marginBottom: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  storeIdDisplay: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: "bold",
-    textDecorationLine: "underline",
-  },
-  confirmButton: {
-    marginLeft: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  confirmButtonText: {
-    color: colors.text.white,
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-});
+      borderColor: theme.colorScheme.outline,
+      borderRadius: theme.shape.extraSmall,
+      padding: theme.spacing.md,
+      fontSize: 16,
+      backgroundColor: "transparent",
+      color: theme.colorScheme.onSurface,
+    },
+    // ログインボタン
+    loginButton: {
+      backgroundColor: theme.colorScheme.primary,
+      padding: theme.spacing.lg,
+      borderRadius: theme.shape.full,
+      alignItems: "center",
+      width: "100%",
+      ...theme.elevation.level1.shadow,
+    },
+    loginButtonDisabled: {
+      opacity: 0.38,
+    },
+    loginButtonText: {
+      ...theme.typography.labelLarge,
+      color: theme.colorScheme.onPrimary,
+    },
+    // デモリンク
+    demoLink: {
+      marginTop: theme.spacing.xl,
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.lg,
+    },
+    demoLinkText: {
+      ...theme.typography.labelLarge,
+      color: theme.colorScheme.primary,
+      textDecorationLine: "underline",
+      textAlign: "center",
+    },
+    // デモモーダル
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.32)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+    },
+    modalContent: {
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      borderRadius: theme.shape.extraLarge,
+      padding: theme.spacing.xxl,
+      width: "100%",
+      maxWidth: 400,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: theme.spacing.xl,
+    },
+    modalTitle: {
+      ...theme.typography.titleLarge,
+      color: theme.colorScheme.onSurface,
+      flex: 1,
+      marginLeft: theme.spacing.md,
+    },
+    modalCloseButton: {
+      padding: 4,
+    },
+    modalDescription: {
+      ...theme.typography.bodyMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.xxl,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+    modalButtonGroup: {
+      gap: theme.spacing.md,
+    },
+    // デモボタン - 教室長
+    demoButtonMaster: {
+      backgroundColor: theme.colorScheme.primaryContainer,
+      borderWidth: 2,
+      borderColor: theme.colorScheme.primary,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.lg,
+      alignItems: "center",
+    },
+    demoButtonMasterTitle: {
+      ...theme.typography.titleMedium,
+      color: theme.colorScheme.primary,
+      marginBottom: theme.spacing.xs,
+    },
+    // デモボタン - 講師
+    demoButtonTeacher: {
+      backgroundColor: theme.colorScheme.tertiaryContainer,
+      borderWidth: 2,
+      borderColor: theme.colorScheme.tertiary,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.lg,
+      alignItems: "center",
+    },
+    demoButtonTeacherTitle: {
+      ...theme.typography.titleMedium,
+      color: theme.colorScheme.tertiary,
+      marginBottom: theme.spacing.xs,
+    },
+    demoButtonSub: {
+      ...theme.typography.bodySmall,
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    demoButtonCaption: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: theme.spacing.xs,
+    },
+  });
+};
