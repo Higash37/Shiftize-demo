@@ -5,38 +5,6 @@
 import { Platform } from 'react-native';
 
 /**
- * 開発環境での特定のReact Native警告を抑制
- */
-export const suppressReactNativeWebWarnings = () => {
-  if (Platform.OS === 'web' && process.env['NODE_ENV'] === 'development') {
-    const originalWarn = console.warn;
-    const originalViolation = console.error;
-
-    // wheel event警告の抑制
-    console.warn = (...args: any[]) => {
-      const message = args[0]?.toString?.() || '';
-      if (
-        message.includes('Added non-passive event listener') ||
-        message.includes('shadow*') ||
-        message.includes('message handler took')
-      ) {
-        return; // 特定の警告をスキップ
-      }
-      originalWarn(...args);
-    };
-
-    // Violation警告の抑制
-    console.error = (...args: any[]) => {
-      const message = args[0]?.toString?.() || '';
-      if (message.includes('[Violation]')) {
-        return; // Violation警告をスキップ
-      }
-      originalViolation(...args);
-    };
-  }
-};
-
-/**
  * FlatListのWeb最適化設定
  */
 export const getOptimizedFlatListProps = () => {
@@ -61,23 +29,3 @@ export const getOptimizedFlatListProps = () => {
   };
 };
 
-/**
- * パッシブイベントリスナー対応のスクロールハンドラ
- */
-export const createOptimizedScrollHandler = (callback: (event: any) => void) => {
-  if (Platform.OS === 'web') {
-    let ticking = false;
-    
-    return (event: any) => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          callback(event);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-  }
-  
-  return callback;
-};

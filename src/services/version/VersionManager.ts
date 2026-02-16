@@ -5,11 +5,11 @@
  */
 
 import { getSupabase } from "@/services/supabase/supabase-client";
+import { AppVersion } from "@/common/common-utils/util-version/AppVersion";
 
-// アプリのバージョン（package.jsonから取得するか、環境変数で管理）
-const CURRENT_VERSION = '1.0.1'; // デプロイ時に更新
+const CURRENT_VERSION = AppVersion.getVersion();
 
-interface AppVersion {
+interface AppVersionData {
   version: string;
   forceUpdate: boolean;
   updateMessage?: string;
@@ -52,7 +52,7 @@ export class VersionManager {
   /**
    * Supabaseから最新バージョン情報を取得
    */
-  private static async fetchVersionData(): Promise<AppVersion | null> {
+  private static async fetchVersionData(): Promise<AppVersionData | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from("settings")
@@ -61,7 +61,7 @@ export class VersionManager {
       .maybeSingle();
 
     if (error || !data) return null;
-    return data.data as AppVersion;
+    return data.data as AppVersionData;
   }
 
   /**

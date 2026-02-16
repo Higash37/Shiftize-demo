@@ -15,20 +15,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "最寄り駅を表示するために位置情報を使用します。"
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ]
+      }
     },
     "web": {
       "favicon": "./public/favicon.ico",
@@ -48,12 +41,6 @@
       "expo-router",
       "expo-secure-store",
       "expo-font",
-      [
-        "expo-location",
-        {
-          "locationWhenInUsePermission": "最寄り駅を表示するために位置情報を使用します。"
-        }
-      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {
