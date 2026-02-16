@@ -2,7 +2,7 @@
 
 ## 概要
 
-Shiftize は、店舗運営におけるシフト管理を効率化する Web アプリケーションです。React Native for Web + Expo Router で構築され、Supabase をバックエンドとして使用しています。7 ヶ月以上の実運用実績があり、シフト提出文化の定着に貢献しています。
+Shiftize は、店舗運営におけるシフト管理を効率化する Web アプリケーションです。React Native for Web + Expo Router で構築され、Supabase をバックエンドとして使用しています。1 年以上の実運用実績があります。
 
 ## 主要機能
 
@@ -10,9 +10,16 @@ Shiftize は、店舗運営におけるシフト管理を効率化する Web ア
 
 - ガントチャート表示（PC / タブレット / モバイル対応）
 - 分割レイアウト（カレンダー + 1 日ガントチャート）
+- モバイル版シフト一覧（月別表示・ステータス管理）
 - シフト申請・承認フロー（複数選択・一括承認対応）
-- シフト変更の即時同期
+- Supabase Realtime によるシフト変更の即時同期
 - PDF 出力機能
+
+### Google Calendar 同期
+
+- 承認済みシフトを Google Calendar に自動同期（一方向）
+- OAuth 連携によるトークン管理
+- Supabase Edge Function によるトークンリフレッシュ
 
 ### 募集シフト
 
@@ -22,6 +29,7 @@ Shiftize は、店舗運営におけるシフト管理を効率化する Web ア
 ### ユーザー管理
 
 - Supabase Auth によるネイティブ認証
+- Google OAuth 連携
 - ロールベースアクセス制御（master / user）
 - 多店舗対応（店舗間連携・招待機能）
 
@@ -35,22 +43,20 @@ Shiftize は、店舗運営におけるシフト管理を効率化する Web ア
 
 ### フロントエンド
 
-- React Native for Web
-- TypeScript
-- Expo Router
-- React Native Elements
+- React Native for Web + React 19
+- TypeScript 5.9
+- Expo SDK 54 + Expo Router 6
+- MD3（Material Design 3）テーマシステム
 
 ### バックエンド
 
-- **Supabase** (PostgreSQL + Auth + Realtime)
+- **Supabase** (PostgreSQL + Auth + Realtime + Edge Functions)
 - **Supabase RLS** (店舗分離 + ロールベースアクセス制御)
-- **Firebase Firestore** (レガシー・段階的移行中)
 
-### デプロイ・開発
+### デプロイ
 
-- Render（本番環境）
-- Expo Development Build
-- Git / GitHub
+- Render（本番ホスティング）
+- Supabase Edge Functions（トークンリフレッシュ等）
 
 ## 開発環境セットアップ
 
@@ -64,13 +70,13 @@ npm run dev
 # ビルド
 npm run build
 
-# TypeScript型チェック
+# TypeScript 型チェック
 npx tsc --noEmit
 ```
 
 ## バージョン管理
 
-セマンティックバージョニング（major.minor.patch）を採用。
+セマンティックバージョニング（major.minor.patch）を採用。現在 v2.0.0。
 
 ```bash
 # パッチリリース（バグフィックス）
