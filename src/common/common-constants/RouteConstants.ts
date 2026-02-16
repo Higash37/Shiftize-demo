@@ -16,7 +16,6 @@ export const Routes = {
       home: "/(main)/master/home",
       ganttView: "/(main)/master/gantt-view",
       ganttEdit: "/(main)/master/gantt-edit",
-      files: "/(main)/master/files",
       info: "/(main)/master/info",
       users: "/(main)/master/users",
       settings: "/(main)/master/master-settings",
@@ -25,8 +24,6 @@ export const Routes = {
       home: "/(main)/user/home",
       shifts: "/(main)/user/shifts",
       shiftsCreate: "/(main)/user/shifts/create",
-      files: "/(main)/user/files",
-      recruitment: "/(main)/user/recruitment",
       changePassword: "/(main)/user/change-password",
     },
   },
@@ -59,7 +56,6 @@ export const RouteGroups = {
   isMainGroup: (segments: string[]): boolean => {
     return (
       segments[0] === "(main)" ||
-      segments[0] === "(quick)" ||
       segments[0] === "user" ||
       segments[0] === "master" ||
       segments[0] === "user-settings" ||
