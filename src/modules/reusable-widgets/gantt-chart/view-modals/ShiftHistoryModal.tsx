@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  ActivityIndicator,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -316,7 +315,8 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
               >
                 {isLoading ? (
                   <View style={{ padding: 40, alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#4A90E2" />
+                    <Ionicons name="hourglass-outline" size={32} color="#999" />
+                    <Text style={{ marginTop: 8, color: "#999", fontSize: 13 }}>読み込み中...</Text>
                   </View>
                 ) : error ? (
                   <View style={{ padding: 40, alignItems: "center" }}>
