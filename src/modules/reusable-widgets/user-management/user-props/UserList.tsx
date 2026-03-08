@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,16 +8,23 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { User } from "@/common/common-models/model-user/UserModel";
 import Button from "@/common/common-ui/ui-forms/FormButton";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
-import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
 import { styles } from "./UserList.styles";
 import { UserListProps } from "../user-types/components";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+
+type SortKey = "name" | "role" | "joined";
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "name", label: "名前順" },
+  { key: "role", label: "権限順" },
+  { key: "joined", label: "登録順" },
+];
 
 /**
  * ユーザー一覧表示コンポーネント
@@ -32,20 +39,22 @@ export const UserList: React.FC<UserListProps> = ({
   userPasswords = {},
 }) => {
   const { width } = useWindowDimensions();
+  const theme = useMD3Theme();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   // MaterialCommunityIconsフォントを遅延読み込み
   const [fontsLoaded] = useExtendedFonts();
 
   // レスポンシブ設定
   const isTablet = width >= 768;
   const isDesktop = width >= 1024;
-  const numColumns = isDesktop ? 4 : isTablet ? 2 : 1;
+  const numColumns = isDesktop ? 5 : isTablet ? 3 : 1;
 
-  const filteredUserList =
-    userList?.filter((user) => {
+  const filteredUserList = useMemo(() => {
+    const filtered = userList?.filter((user) => {
       if (!user) return false;
       const query = searchQuery.toLowerCase();
       return (
@@ -54,12 +63,28 @@ export const UserList: React.FC<UserListProps> = ({
       );
     }) ?? [];
 
+    const sorted = [...filtered];
+    switch (sortKey) {
+      case "name":
+        sorted.sort((a, b) =>
+          (a.furigana || a.nickname || "").localeCompare(b.furigana || b.nickname || "", "ja")
+        );
+        break;
+      case "role":
+        sorted.sort((a, b) => {
+          const order: Record<string, number> = { master: 0, user: 1 };
+          return (order[a.role] ?? 2) - (order[b.role] ?? 2);
+        });
+        break;
+      case "joined":
+        // デフォルト順（登録順）なのでそのまま
+        break;
+    }
+    return sorted;
+  }, [userList, searchQuery, sortKey]);
+
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return null;
   }
 
   const handleDeletePress = (user: User) => {
@@ -78,66 +103,49 @@ export const UserList: React.FC<UserListProps> = ({
     setDeleteTarget(null);
   };
 
-  const renderItem = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      style={[
-        styles.userCard,
-        isTablet && styles.userCardTablet,
-        isDesktop && styles.userCardDesktop,
-      ]}
-      activeOpacity={0.8}
-      onPress={() => onEdit(item)}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons
-            name="account-circle"
-            size={isTablet ? 36 : 32}
-            color={item.role === "master" ? colors.secondary : colors.primary}
+  const renderItem = ({ item }: { item: User }) => {
+    const userColor = item.color || theme.colorScheme.primary;
+    return (
+      <TouchableOpacity
+        style={{
+          flex: 1,
+          backgroundColor: theme.colorScheme.surface,
+          borderRadius: theme.shape.small,
+          padding: theme.spacing.sm,
+          borderWidth: 1,
+          borderColor: theme.colorScheme.outlineVariant,
+        }}
+        activeOpacity={0.7}
+        onPress={() => onEdit(item)}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: theme.spacing.xs }}>
+          <View
+            style={{ backgroundColor: userColor + "22", width: 28, height: 28, borderRadius: 14, justifyContent: "center", alignItems: "center", marginRight: theme.spacing.xs }}
+          >
+            <MaterialIcons name="person" size={16} color={userColor} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ ...theme.typography.labelLarge, color: theme.colorScheme.onSurface }} numberOfLines={1}>
+              {item.nickname || "名前なし"}{item.furigana ? <Text style={{ ...theme.typography.bodySmall, color: theme.colorScheme.onSurfaceVariant }}>（{item.furigana}）</Text> : null}
+            </Text>
+            <Text style={{ ...theme.typography.bodySmall, color: theme.colorScheme.onSurfaceVariant }}>
+              {item.role === "master" ? "マスター" : "一般ユーザー"}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.cardActions}>
+          <Button
+            title="削除"
+            onPress={() => handleDeletePress(item)}
+            variant="outline"
+            size="small"
+            style={styles.deleteButton}
           />
         </View>
-        <View style={styles.userInfo}>
-          <View style={styles.nameContainer}>
-            <Text style={[styles.userName, isTablet && styles.userNameLarge]}>
-              {item.nickname || "名前なし"}
-            </Text>
-            <View
-              style={[
-                styles.colorMark,
-                { backgroundColor: item.color || colors.text.disabled },
-              ]}
-            />
-          </View>
-          <Text style={styles.userRole}>
-            {item.role === "master" ? "マスター" : "一般ユーザー"}
-          </Text>
-          {item.email && (
-            <Text style={styles.userEmail}>📧 {item.email}</Text>
-          )}
-          {item.storeId && (
-            <Text style={styles.storeId}>店舗ID: {item.storeId}</Text>
-          )}
-        </View>
-      </View>
-
-      {userPasswords[item.uid] && (
-        <View style={styles.passwordSection}>
-          <Text style={styles.passwordLabel}>パスワード</Text>
-          <Text style={styles.passwordValue}>{userPasswords[item.uid]}</Text>
-        </View>
-      )}
-
-      <View style={styles.cardActions}>
-        <Button
-          title="削除"
-          onPress={() => handleDeletePress(item)}
-          variant="outline"
-          size="small"
-          style={styles.deleteButton}
-        />
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -155,6 +163,25 @@ export const UserList: React.FC<UserListProps> = ({
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        <View style={{
+          borderWidth: 1,
+          borderColor: theme.colorScheme.outlineVariant,
+          borderRadius: theme.shape.small,
+          backgroundColor: theme.colorScheme.surface,
+          height: 44,
+          justifyContent: "center",
+          minWidth: 110,
+        }}>
+          <Picker
+            selectedValue={sortKey}
+            onValueChange={(v) => setSortKey(v as SortKey)}
+            style={{ height: 44, color: theme.colorScheme.onSurface, border: "none", outline: "none", backgroundColor: "transparent" } as any}
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <Picker.Item key={opt.key} label={opt.label} value={opt.key} />
+            ))}
+          </Picker>
+        </View>
         <Button
           title={isTablet ? "ユーザーを追加" : "追加"}
           onPress={onAdd}
@@ -217,5 +244,3 @@ export const UserList: React.FC<UserListProps> = ({
     </View>
   );
 };
-
-// エクスポートは上部で直接行うように修正

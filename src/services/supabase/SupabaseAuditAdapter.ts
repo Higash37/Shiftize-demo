@@ -37,6 +37,9 @@ const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
   return snapshot;
 };
 
+const formatShiftTime = (shift?: any): string =>
+  shift ? `${shift.startTime}-${shift.endTime}` : "N/A";
+
 const generateSummary = (
   action: ShiftActionType,
   actor: ShiftHistoryActor,
@@ -47,20 +50,24 @@ const generateSummary = (
 ): string => {
   const actorName =
     actor.role === "teacher" ? `講師 ${actor.nickname}` : actor.nickname;
+  const nextTime = formatShiftTime(next);
+  const prevTime = formatShiftTime(prev);
+  const nextUser = next?.userNickname ?? "未割当";
+  const prevUser = prev?.userNickname ?? "未割当";
 
   switch (action) {
     case "create":
-      return `${actorName} が ${date} のシフトを追加しました（${next?.startTime}-${next?.endTime}, 担当: ${next?.userNickname}）`;
+      return `${actorName} が ${date} のシフトを追加しました（${nextTime}, 担当: ${nextUser}）`;
     case "teacher_create":
-      return `講師 ${actor.nickname} が ${date} にシフトを申請しました（${next?.startTime}-${next?.endTime}）`;
+      return `講師 ${actor.nickname} が ${date} にシフトを申請しました（${nextTime}）`;
     case "update_time":
-      return `${actorName} が ${date} のシフト時間を ${prev?.startTime}-${prev?.endTime} → ${next?.startTime}-${next?.endTime} に変更しました（担当: ${next?.userNickname}）`;
+      return `${actorName} が ${date} のシフト時間を ${prevTime} → ${nextTime} に変更しました（担当: ${nextUser}）`;
     case "update_user":
-      return `${actorName} が ${date} の担当を ${prev?.userNickname} → ${next?.userNickname} に変更しました（${next?.startTime}-${next?.endTime}）`;
+      return `${actorName} が ${date} の担当を ${prevUser} → ${nextUser} に変更しました（${nextTime}）`;
     case "update_status":
-      return `${actorName} が ${date} のシフトステータスを ${prev?.statusLabel} → ${next?.statusLabel} に変更しました（${next?.userNickname}）`;
+      return `${actorName} が ${date} のシフトステータスを ${prev?.statusLabel} → ${next?.statusLabel} に変更しました（${nextUser}）`;
     case "delete":
-      return `${actorName} が ${date} のシフトを削除しました（${prev?.startTime}-${prev?.endTime}, 担当: ${prev?.userNickname}）`;
+      return `${actorName} が ${date} のシフトを削除しました（${prevTime}, 担当: ${prevUser}）`;
     case "batch_approve":
       return `${actorName} が ${metadata?.yearMonth || date} のシフトを一括承認しました（対象: ${metadata?.count || 0}件）`;
     case "teacher_update":

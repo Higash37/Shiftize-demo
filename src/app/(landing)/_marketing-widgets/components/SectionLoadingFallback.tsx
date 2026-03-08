@@ -8,9 +8,7 @@ import { colors } from "@/common/common-constants/ThemeConstants";
  */
 export const SectionLoadingFallback: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="small" color={colors.primary} />
-    </View>
+    <View style={styles.container} />
   );
 };
 

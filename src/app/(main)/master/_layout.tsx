@@ -83,62 +83,26 @@ export default function MasterLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="files"
+        <Stack.Screen
+          name="today"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen 
+        <Stack.Screen
           name="info"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="tasks"
+        <Stack.Screen
+          name="settings"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen 
+        <Stack.Screen
           name="users/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/backup"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/shift-appearance"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/shift-holiday"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/shift-rule"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="master-settings/shift-status"
           options={{
             headerShown: false,
           }}
@@ -157,12 +121,6 @@ export default function MasterLayout() {
         />
         <Stack.Screen
           name="shifts/next-month"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="taskManagement/index"
           options={{
             headerShown: false,
           }}

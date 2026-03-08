@@ -18,6 +18,8 @@ export const ShiftDetailsView: React.FC<ShiftDetailsViewProps> = ({
           type={slot.type}
           startTime={slot.startTime}
           endTime={slot.endTime}
+          typeId={slot.typeId}
+          typeName={slot.typeName}
         />
       ))}
     </View>

@@ -29,7 +29,7 @@ export const CreateGroupSuccessScreen: React.FC = () => {
   const params = useLocalSearchParams();
   const groupName = (params["groupName"] as string) || "";
   const storeId = (params["storeId"] as string) || "";
-  const memberCount = parseInt((params["memberCount"] as string) || "0");
+  const memberCount = Number.parseInt((params["memberCount"] as string) || "0", 10);
   const adminNickname = (params["adminNickname"] as string) || "";
   const adminPassword = (params["adminPassword"] as string) || "";
 

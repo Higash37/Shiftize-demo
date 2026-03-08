@@ -108,7 +108,9 @@ export class SupabaseSettingsAdapter implements ISettingsService {
           filter: "settings_key=eq.shiftApp",
         },
         (payload) => {
-          if (payload.new && typeof payload.new === "object" && "data" in payload.new) {
+          const isValidSettingsPayload =
+            payload.new && typeof payload.new === "object" && "data" in payload.new;
+          if (isValidSettingsPayload) {
             callback((payload.new as any).data as AppSettings);
           } else {
             callback(null);

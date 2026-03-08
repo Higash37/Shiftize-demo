@@ -7,21 +7,22 @@ import { MD3Theme } from "../../common-theme/md3/MD3Theme.types";
 export const createInputStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     container: {
-      marginBottom: theme.spacing.lg,
+      marginBottom: theme.spacing.xs,
     },
     label: {
       ...theme.typography.bodySmall,
       color: theme.colorScheme.onSurfaceVariant,
-      marginBottom: theme.spacing.xs,
+      marginBottom: 2,
     },
     input: {
       backgroundColor: "transparent",
       borderWidth: 1,
       borderColor: theme.colorScheme.outline,
       borderRadius: theme.shape.extraSmall,
-      padding: theme.spacing.lg,
-      fontSize: Math.max(theme.typography.bodyLarge.fontSize ?? 16, 16),
-      lineHeight: theme.typography.bodyLarge.lineHeight,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      fontSize: theme.typography.bodyMedium.fontSize ?? 14,
+      lineHeight: theme.typography.bodyMedium.lineHeight,
       color: theme.colorScheme.onSurface,
     },
     inputError: {

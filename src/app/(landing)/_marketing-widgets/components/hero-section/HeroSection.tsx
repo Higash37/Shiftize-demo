@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { styles } from "./hero-section.styles";
+import { styles } from "./HeroSection.styles";
 
 // 画像は既にプレースホルダーに置き換え済み
 

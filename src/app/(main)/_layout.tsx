@@ -2,6 +2,9 @@ import { useRef } from "react";
 import { Slot } from "expo-router";
 import { useAuth } from "@/services/auth/useAuth";
 import { SettingsProvider } from "@/common/common-utils/util-settings";
+import { TimeSegmentTypesProvider } from "@/common/common-context/TimeSegmentTypesContext";
+import { StaffRolesProvider } from "@/common/common-context/StaffRolesContext";
+import { ShiftTaskAssignmentsProvider } from "@/common/common-context/ShiftTaskAssignmentsContext";
 
 /**
  * メインレイアウト
@@ -31,7 +34,13 @@ export default function MainLayout() {
 
   return (
     <SettingsProvider>
-      <Slot />
+      <TimeSegmentTypesProvider storeId={user?.storeId || ""}>
+        <StaffRolesProvider storeId={user?.storeId || ""}>
+          <ShiftTaskAssignmentsProvider storeId={user?.storeId || ""}>
+            <Slot />
+          </ShiftTaskAssignmentsProvider>
+        </StaffRolesProvider>
+      </TimeSegmentTypesProvider>
     </SettingsProvider>
   );
 }

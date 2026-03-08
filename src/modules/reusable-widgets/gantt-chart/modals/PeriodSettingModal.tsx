@@ -204,8 +204,8 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
     }
 
     const [targetYear, targetMonthNum] = targetMonth.split('-');
-    const year = parseInt(targetYear || "0");
-    const month = parseInt(targetMonthNum || "0");
+    const year = Number.parseInt(targetYear || "0", 10);
+    const month = Number.parseInt(targetMonthNum || "0", 10);
 
     const teacherShifts = shifts.filter((shift) => {
       const shiftDate = new Date(shift.date);
@@ -673,11 +673,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 500,
     maxHeight: "85%",
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    elevation: 0,
   },
   header: {
     flexDirection: "row",
@@ -880,11 +876,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#e9ecef",
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    elevation: 0,
   },
   confirmedTeacherCard: {
     backgroundColor: "#f8fff8",
@@ -991,11 +983,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: "100%",
     maxWidth: 400,
-    elevation: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
+    elevation: 0,
   },
   confirmHeader: {
     alignItems: "center",

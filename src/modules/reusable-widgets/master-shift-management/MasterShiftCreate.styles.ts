@@ -249,7 +249,10 @@ export const createMasterShiftCreateStyles = (theme: MD3Theme) =>
     picker: {
       height: 56,
       width: "100%",
-    },
+      border: "none",
+      outline: "none",
+      backgroundColor: "transparent",
+    } as any,
     selectedDatesContainer: {
       marginTop: 10,
     },

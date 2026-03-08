@@ -170,11 +170,7 @@ export const createSimpleLandingStyles = (
       paddingHorizontal: theme.spacing.xxxxl,
       borderRadius: theme.shape.large,
       gap: theme.spacing.lg,
-      shadowColor: palette.finalCtaAccent,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.4,
-      shadowRadius: 16,
-      elevation: 10,
+      elevation: 0,
       marginBottom: theme.spacing.xxl,
     },
     finalCTAButtonContent: {

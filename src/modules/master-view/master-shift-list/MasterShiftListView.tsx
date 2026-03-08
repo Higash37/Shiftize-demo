@@ -1,3 +1,4 @@
+import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   View,
@@ -18,12 +19,13 @@ import { ja } from "date-fns/locale";
 import { ShiftListItem } from "@/modules/user-view/user-shift-forms/user-shift-list/ShiftListItem";
 import { ShiftDetailsView } from "@/modules/user-view/user-shift-forms/shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "@/modules/user-view/user-shift-utils/shift-time.utils";
-import type { ShiftItem } from "@/common/common-models/model-shift/shiftTypes";
+import type { ShiftItem, ShiftStatus, ClassTimeSlot } from "@/common/common-models/model-shift/shiftTypes";
 import { StyleSheet } from "react-native";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { EditShiftModalView } from "@/modules/reusable-widgets/gantt-chart/view-modals/EditShiftModalView";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { ServiceProvider } from "@/services/ServiceProvider";
+import { calculateDurationHours, compareByDateThenTime } from "@/common/common-utils/util-shift/wageCalculator";
 import { DEFAULT_SHIFT_STATUS_CONFIG } from "@/common/common-models/model-shift/shiftTypes";
 import { createGanttChartMonthViewStyles } from "@/modules/reusable-widgets/gantt-chart/GanttChartMonthView.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
@@ -32,6 +34,22 @@ import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickS
 interface MasterShiftListViewProps {
   targetMonth: "this" | "next"; // 今月または来月
 }
+
+// 時間オプション（9:00-22:00を15分刻み）— 静的定数
+const TIME_OPTIONS: string[] = (() => {
+  const options: string[] = [];
+  for (let hour = SHIFT_HOURS.START_HOUR_INCLUSIVE; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      if (hour === SHIFT_HOURS.END_HOUR_INCLUSIVE && minute > 0) break;
+      options.push(
+        `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`
+      );
+    }
+  }
+  return options;
+})();
 
 export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   targetMonth,
@@ -71,11 +89,22 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   // 編集モーダル用の状態
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingShift, setEditingShift] = useState<ShiftItem | null>(null);
-  const [newShiftData, setNewShiftData] = useState<any>({
+  const [newShiftData, setNewShiftData] = useState<{
+    id?: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    userId: string;
+    nickname: string;
+    subject: string;
+    status: ShiftStatus;
+    classes: ClassTimeSlot[];
+  }>({
     date: "",
     startTime: "",
     endTime: "",
     userId: "",
+    nickname: "",
     subject: "",
     status: "approved",
     classes: [],
@@ -85,21 +114,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   // URL発行モーダル用の状態
   const [showUrlModal, setShowUrlModal] = useState(false);
 
-  // 時間オプション（9:00-22:00を15分刻み）
-  const timeOptions = useMemo(() => {
-    const options: string[] = [];
-    for (let hour = 9; hour <= 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        if (hour === 22 && minute > 0) break;
-        options.push(
-          `${hour.toString().padStart(2, "0")}:${minute
-            .toString()
-            .padStart(2, "0")}`
-        );
-      }
-    }
-    return options;
-  }, []);
+  const timeOptions = TIME_OPTIONS;
 
   // ステータス設定（削除済み・purgedはピッカーから除外）
   const statusConfigs = useMemo(
@@ -141,17 +156,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
 
         return isInDateRange && isNotDeleted;
       })
-      .sort((a, b) => {
-        const dateCompare =
-          new Date(a.date).getTime() - new Date(b.date).getTime();
-        if (dateCompare === 0) {
-          return (
-            new Date(`2000-01-01T${a.startTime}`).getTime() -
-            new Date(`2000-01-01T${b.startTime}`).getTime()
-          );
-        }
-        return dateCompare;
-      });
+      .sort(compareByDateThenTime);
 
     return filteredShifts;
   }, [shifts, displayMonth]);
@@ -223,6 +228,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       startTime: shift.startTime,
       endTime: shift.endTime,
       userId: shift.userId,
+      nickname: shift.nickname,
       subject: shift.subject || "",
       status: shift.status,
       classes: shift.classes || [],
@@ -237,12 +243,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
     try {
       setIsLoading(true);
 
-      // 時間の差を計算（duration）
-      const startTimeDate = new Date(`2000-01-01T${newShiftData.startTime}`);
-      const endTimeDate = new Date(`2000-01-01T${newShiftData.endTime}`);
-      const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-      const durationHours =
-        Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
+      const durationHours = calculateDurationHours(newShiftData.startTime, newShiftData.endTime);
 
       await ServiceProvider.shifts.updateShift(newShiftData.id, {
         userId: newShiftData.userId,
@@ -292,14 +293,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   const title = targetMonth === "next" ? "来月のシフト" : "今月のシフト";
 
   if (shiftsLoading) {
-    return (
-      <View style={styles.container}>
-        <MasterHeader title={title} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </View>
-    );
+    return null;
   }
 
   return (
@@ -349,11 +343,11 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
                   }}
                 >
                   <ShiftListItem
-                    shift={shift as unknown as ShiftItem}
+                    shift={shift}
                     isSelected={isSelected}
                     selectedDate={selectedDate}
                     onPress={() => {
-                      handleShiftPress(shift as unknown as ShiftItem);
+                      handleShiftPress(shift);
                     }}
                     onDetailsPress={() => {
                       setSelectedShiftId(isSelected ? null : shift.id);
@@ -386,7 +380,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           isLoading={isLoading}
           styles={mobileGanttStyles}
           onChange={(field, value) =>
-            setNewShiftData({ ...newShiftData, [field]: value })
+            setNewShiftData((prev) => ({ ...prev, [field]: value }))
           }
           onClose={() => {
             setShowEditModal(false);

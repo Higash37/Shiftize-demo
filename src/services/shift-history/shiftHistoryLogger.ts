@@ -11,10 +11,45 @@ export type ShiftActionType =
   | "teacher_update"
   | "batch_approve";
 
+/** シフト変更のアクター（操作実行者）のロール */
+export type ActorRole = "master" | "teacher" | "system";
+
 export interface ShiftHistoryActor {
   userId: string;
   nickname: string;
-  role: "master" | "teacher" | "system";
+  role: ActorRole;
+}
+
+/** ユーザー情報から監査ログ用のアクターを構築する */
+export const createActor = (
+  user: { uid: string; nickname?: string; role?: string } | null | undefined,
+  defaultRole: ActorRole = "master"
+): ShiftHistoryActor | undefined => {
+  if (!user) return undefined;
+  return {
+    userId: user.uid,
+    nickname: user.nickname || "教室長",
+    role: (user.role as ActorRole) || defaultRole,
+  };
+};
+
+/** シフト変更前後の差分スナップショット */
+export interface ShiftChangeSnapshot {
+  startTime?: string;
+  endTime?: string;
+  userId?: string;
+  userNickname?: string;
+  status?: ShiftStatus;
+  statusLabel?: string;
+  type?: string;
+}
+
+/** シフト変更時のメタデータ */
+export interface ShiftChangeMetadata {
+  yearMonth?: string;
+  count?: number;
+  notes?: string;
+  reason?: string;
 }
 
 export interface ShiftHistoryEntry {
@@ -25,24 +60,8 @@ export interface ShiftHistoryEntry {
   actor: ShiftHistoryActor;
   timestamp?: string;
   date: string; // YYYY-MM-DD
-  prev?: {
-    startTime?: string;
-    endTime?: string;
-    userId?: string;
-    userNickname?: string;
-    status?: ShiftStatus;
-    statusLabel?: string;
-    type?: string;
-  };
-  next?: {
-    startTime?: string;
-    endTime?: string;
-    userId?: string;
-    userNickname?: string;
-    status?: ShiftStatus;
-    statusLabel?: string;
-    type?: string;
-  };
+  prev?: ShiftChangeSnapshot;
+  next?: ShiftChangeSnapshot;
   summary: string;
   notes?: string;
   prevSnapshot?: Partial<ShiftItem>;
@@ -94,9 +113,9 @@ const generateSummary = (
   action: ShiftActionType,
   actor: ShiftHistoryActor,
   date: string,
-  prev?: any,
-  next?: any,
-  metadata?: any
+  prev?: ShiftChangeSnapshot,
+  next?: ShiftChangeSnapshot,
+  metadata?: ShiftChangeMetadata
 ): string => {
   const actorName = actor.role === "teacher" ? `講師 ${actor.nickname}` : actor.nickname;
 
@@ -137,7 +156,7 @@ export const logShiftChange = async (
   storeId: string,
   shift?: ShiftItem | null,
   prevShift?: ShiftItem | null,
-  metadata?: any
+  metadata?: ShiftChangeMetadata
 ): Promise<void> => {
   try {
     if (!storeId) {
@@ -151,7 +170,7 @@ export const logShiftChange = async (
       shiftId: shift?.id || prevShift?.id || null,
       action,
       actor,
-      date: shift?.date || prevShift?.date || new Date().toISOString().split("T")[0],
+      date: shift?.date || prevShift?.date || new Date().toISOString().split("T")[0]!,
       summary: "",
       ...(metadata?.notes && { notes: metadata.notes }),
     };

@@ -6,6 +6,11 @@ import { createHomeViewStyles } from "../../home-styles/home-view-styles";
 import type { SampleScheduleColumn } from "../../home-types/home-view-types";
 import { MaterialIcons } from "@expo/vector-icons";
 
+const isSlotActiveAtTime = (time: string, slot: { start: string; end: string }): boolean => {
+  const isEndOfDay = time === slot.start && time === slot.end && time === "22:00";
+  return isEndOfDay || (time >= slot.start && time < slot.end);
+};
+
 interface GanttRowTabletProps {
   time: string;
   names: string[];
@@ -42,12 +47,7 @@ export const GanttRowTablet: React.FC<GanttRowTabletProps> = ({
       {names.map((name) => {
         const slot = sampleSchedule
           .flatMap((col) => col.slots)
-          .find((s) => {
-            if (s.name !== name) return false;
-            if (time === s.start && time === s.end && time === "22:00")
-              return true;
-            return time >= s.start && time < s.end;
-          });
+          .find((s) => s.name === name && isSlotActiveAtTime(time, s));
         return (
           <View
             key={name}

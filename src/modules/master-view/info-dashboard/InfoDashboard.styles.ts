@@ -25,16 +25,16 @@ export const createInfoDashboardStyles = (
       width: "100%",
     },
     scrollContent: {
-      paddingTop: theme.spacing.xl,
-      paddingBottom: theme.spacing.xxxxxl,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.xxxl,
     },
 
     // Section title
     sectionTitle: {
-      ...theme.typography.titleMedium,
+      ...theme.typography.labelLarge,
       fontWeight: "700",
       color: theme.colorScheme.onSurface,
-      marginBottom: theme.spacing.lg,
+      marginBottom: theme.spacing.sm,
     },
 
     // Budget button
@@ -43,8 +43,8 @@ export const createInfoDashboardStyles = (
       alignItems: "center",
       backgroundColor: theme.colorScheme.primaryContainer,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.lg,
-      marginBottom: theme.spacing.xxl,
+      padding: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
       ...theme.elevation.level1.shadow,
     },
     budgetButtonContent: {
@@ -64,9 +64,9 @@ export const createInfoDashboardStyles = (
     summaryCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.xxl,
-      marginBottom: theme.spacing.xxl,
-      ...theme.elevation.level2.shadow,
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.md,
+      ...theme.elevation.level1.shadow,
     },
     summaryGrid: {
       flexDirection: "row",
@@ -77,7 +77,7 @@ export const createInfoDashboardStyles = (
       flex: 1,
     },
     summaryValue: {
-      ...(isWide ? theme.typography.headlineSmall : theme.typography.titleLarge),
+      ...(isWide ? theme.typography.titleMedium : theme.typography.titleSmall),
       fontWeight: "700",
       color: theme.colorScheme.onSurface,
       marginTop: theme.spacing.xs,
@@ -89,9 +89,32 @@ export const createInfoDashboardStyles = (
       textAlign: "center",
     },
 
+    // Mini card — individual metric box
+    miniCard: {
+      flex: 1,
+      minWidth: isDesktop ? 140 : isTablet ? 120 : 100,
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.small,
+      padding: theme.spacing.sm,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outlineVariant,
+    },
+    miniCardValue: {
+      ...theme.typography.titleSmall,
+      fontWeight: "700",
+      color: theme.colorScheme.onSurface,
+      marginTop: 2,
+    },
+    miniCardLabel: {
+      ...theme.typography.labelSmall,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginTop: 1,
+    },
+
     // Staff grid
     staffSection: {
-      marginBottom: theme.spacing.xxl,
+      marginBottom: theme.spacing.md,
     },
     columnWrapper: {
       gap: theme.spacing.md,
@@ -100,23 +123,22 @@ export const createInfoDashboardStyles = (
       flex: 1,
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.lg,
+      padding: theme.spacing.sm,
       borderWidth: 1,
       borderColor: theme.colorScheme.outlineVariant,
       ...theme.elevation.level1.shadow,
     },
     staffName: {
-      ...theme.typography.titleSmall,
+      ...theme.typography.labelLarge,
       color: theme.colorScheme.onSurface,
-      marginBottom: theme.spacing.xs,
     },
     staffHours: {
       ...theme.typography.bodySmall,
       color: theme.colorScheme.onSurfaceVariant,
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.xs,
     },
     staffWage: {
-      ...theme.typography.labelMedium,
+      ...theme.typography.labelSmall,
       color: theme.colorScheme.primary,
       fontWeight: "600",
     },
@@ -147,14 +169,14 @@ export const createInfoDashboardStyles = (
     budgetCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.xxl,
-      marginBottom: theme.spacing.xxl,
-      ...theme.elevation.level2.shadow,
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.md,
+      ...theme.elevation.level1.shadow,
     },
     budgetGrid: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: theme.spacing.lg,
+      marginBottom: theme.spacing.sm,
     },
     budgetItem: {
       alignItems: "center",
@@ -193,12 +215,12 @@ export const createInfoDashboardStyles = (
     costCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.xxl,
-      marginBottom: theme.spacing.xxl,
-      ...theme.elevation.level2.shadow,
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.md,
+      ...theme.elevation.level1.shadow,
     },
     costBarContainer: {
-      marginBottom: theme.spacing.lg,
+      marginBottom: theme.spacing.sm,
     },
     costBarHeader: {
       flexDirection: "row",
@@ -229,9 +251,9 @@ export const createInfoDashboardStyles = (
     metricsCard: {
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.small,
-      padding: theme.spacing.xxl,
-      marginBottom: theme.spacing.xxl,
-      ...theme.elevation.level2.shadow,
+      padding: theme.spacing.md,
+      marginBottom: theme.spacing.md,
+      ...theme.elevation.level1.shadow,
     },
     metricsGrid: {
       flexDirection: "row",
@@ -252,6 +274,91 @@ export const createInfoDashboardStyles = (
       color: theme.colorScheme.onSurfaceVariant,
       marginTop: theme.spacing.xs,
       textAlign: "center",
+    },
+
+    // Task badges on staff cards
+    taskBadgeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 4,
+      marginBottom: theme.spacing.xs,
+    },
+    taskBadge: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    taskBadgeText: {
+      fontSize: 13,
+      fontWeight: "700",
+    },
+
+    // Task management section
+    taskActionBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.xs,
+      borderRadius: theme.shape.small,
+    },
+    taskRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.sm,
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      borderRadius: theme.shape.small,
+    },
+    taskBadgeLg: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    taskInputLabel: {
+      ...theme.typography.labelMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+      marginBottom: theme.spacing.xs,
+    },
+    taskInput: {
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      borderRadius: theme.shape.small,
+      borderWidth: 1,
+      borderColor: theme.colorScheme.outline,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      color: theme.colorScheme.onSurface,
+      ...theme.typography.bodyMedium,
+    },
+
+    // Assignment matrix
+    assignHeaderRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      paddingBottom: theme.spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colorScheme.outlineVariant,
+      marginBottom: theme.spacing.sm,
+    },
+    assignHeaderCell: {
+      flex: 1,
+      alignItems: "center",
+      minWidth: 48,
+    },
+    assignUserRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: theme.spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colorScheme.surfaceContainerHigh,
+    },
+    assignCheckCell: {
+      flex: 1,
+      alignItems: "center",
+      minWidth: 48,
     },
 
     // Loading / empty states
@@ -347,6 +454,36 @@ export const createInfoDashboardStyles = (
     },
     modalButton: {
       minWidth: 80,
+    },
+
+    // Tab bar
+    tabBar: {
+      flexDirection: "row",
+      backgroundColor: theme.colorScheme.surface,
+      borderRadius: theme.shape.small,
+      padding: 3,
+      marginBottom: theme.spacing.md,
+      ...theme.elevation.level1.shadow,
+    },
+    tabItem: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.shape.small,
+    },
+    tabItemActive: {
+      backgroundColor: theme.colorScheme.primaryContainer,
+    },
+    tabLabel: {
+      ...theme.typography.labelMedium,
+      color: theme.colorScheme.onSurfaceVariant,
+    },
+    tabLabelActive: {
+      color: theme.colorScheme.primary,
+      fontWeight: "700",
     },
   });
 };

@@ -156,10 +156,10 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
           {/* 授業設定 */}
           <View style={styles.formSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>授業</Text>
+              <Text style={styles.sectionTitle}>途中時間</Text>
               <TouchableOpacity style={styles.addButton} onPress={addClass}>
                 <AntDesign name="plus" size={18} color="white" />
-                <Text style={styles.addButtonText}>授業を追加</Text>
+                <Text style={styles.addButtonText}>途中時間を追加</Text>
               </TouchableOpacity>
             </View>
 
@@ -168,7 +168,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
                 {shiftData.classes.map((classItem, index) => (
                   <View key={index} style={styles.classItem}>
                     <View style={styles.classHeader}>
-                      <Text style={styles.classTitle}>授業 {index + 1}</Text>
+                      <Text style={styles.classTitle}>途中時間 {index + 1}</Text>
                       <TouchableOpacity
                         style={styles.removeButton}
                         onPress={() => removeClass(index)}
@@ -204,7 +204,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
                           onPress={addClass}
                         >
                           <AntDesign name="plus" size={18} color="white" />
-                          <Text style={styles.addButtonText}>授業を追加</Text>
+                          <Text style={styles.addButtonText}>途中時間を追加</Text>
                         </TouchableOpacity>
                       )}
                   </View>
@@ -213,7 +213,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
             ) : (
               <View style={styles.noClassContainer}>
                 <Text style={styles.noClassText}>
-                  授業がありません。追加してください。
+                  途中時間がありません。追加してください。
                 </Text>
               </View>
             )}

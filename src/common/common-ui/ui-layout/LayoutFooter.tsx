@@ -26,9 +26,11 @@ import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 
+import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
+
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
 
 /** タブ設定をテーマカラーに応じて生成 */
 const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
@@ -39,6 +41,19 @@ const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
     icon: (active: boolean) => (
       <MaterialIcons
         name="home"
+        size={IS_SMALL_DEVICE ? 20 : 24}
+        color={active ? cs.primary : cs.onSurfaceVariant}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
+    name: "today",
+    label: "当日",
+    path: "/user/today",
+    icon: (active: boolean) => (
+      <Ionicons
+        name="today-outline"
         size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
@@ -65,19 +80,6 @@ const createUserTabs = (cs: MD3ColorScheme): TabItem[] => [
     icon: (active: boolean) => (
       <FontAwesome5
         name="calendar-alt"
-        size={IS_SMALL_DEVICE ? 20 : 24}
-        color={active ? cs.primary : cs.onSurfaceVariant}
-      />
-    ),
-    isUnderDevelopment: false,
-  },
-  {
-    name: "settings",
-    label: "設定",
-    path: "/user/settings",
-    icon: (active: boolean) => (
-      <Ionicons
-        name="settings-outline"
         size={IS_SMALL_DEVICE ? 20 : 24}
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
@@ -125,7 +127,7 @@ export function Footer(_props: Readonly<FooterProps>) {
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
         user?.storeId || ""
       );
-      setPeriod(periods.length > 0 ? periods[0] || null : null);
+      setPeriod(periods?.[0] ?? null);
     } catch (error) {
       console.warn("Failed to load active period:", error);
     }

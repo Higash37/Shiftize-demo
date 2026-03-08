@@ -39,7 +39,7 @@ const CalendarHeaderComponent: React.FC<CalendarHeaderProps> = ({
     }),
     [isSmallScreen, responsiveStyle]
   ); // 日付が無効な場合のフォールバック値
-  const validDate = isNaN(date.getTime()) ? new Date() : date;
+  const validDate = Number.isNaN(date.getTime()) ? new Date() : date;
   const year = validDate.getFullYear();
   const month = validDate.getMonth() + 1;
   const formattedDate = `${year}年${month}月`;

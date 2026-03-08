@@ -1,3 +1,5 @@
+import { APP_FONT_FAMILY } from "@/common/common-constants/FontConstants";
+
 export const typography = {
   fontSize: {
     small: 12,
@@ -19,8 +21,8 @@ export const typography = {
     xlarge: 28,
   },
   fontFamily: {
-    regular: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    bold: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    regular: APP_FONT_FAMILY,
+    bold: APP_FONT_FAMILY,
   },
   letterSpacing: {
     tight: -0.5,

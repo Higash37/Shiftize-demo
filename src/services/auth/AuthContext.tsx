@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import { User } from "./auth";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 import { ServiceProvider } from "../ServiceProvider";
 import { getSupabase } from "../supabase/supabase-client";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
@@ -15,13 +16,13 @@ const getSafeOrigin = () => typeof window !== "undefined" && window.location ? w
 
 interface AuthState {
   user: User | null;
-  role: "master" | "user" | null;
+  role: UserRole | null;
   loading: boolean;
   authError: string | null;
 }
 
 type AuthAction =
-  | { type: "AUTH_SUCCESS"; user: User; role: "master" | "user" }
+  | { type: "AUTH_SUCCESS"; user: User; role: UserRole }
   | { type: "AUTH_CLEAR" }
   | { type: "AUTH_ERROR"; error: string };
 
@@ -49,11 +50,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 interface AuthContextValue {
   user: User | null;
-  role: "master" | "user" | null;
+  role: UserRole | null;
   loading: boolean;
   isAuthenticated: boolean;
   authError: string | null;
-  signIn: (emailOrUsername: string, password: string, storeId?: string) => Promise<{ role: "master" | "user" }>;
+  signIn: (emailOrUsername: string, password: string, storeId?: string) => Promise<{ role: UserRole }>;
   signOut: () => Promise<void>;
 }
 
@@ -68,14 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInInProgress = useRef(false);
 
   // プロフィールキャッシュ: TOKEN_REFRESHED時やDB障害時のDB再クエリを回避
-  const cachedProfile = useRef<{ uid: string; nickname: string; role: "master" | "user"; email: string; storeId: string } | null>(null);
+  const cachedProfile = useRef<{ uid: string; nickname: string; role: UserRole; email: string; storeId: string } | null>(null);
 
   // --- signIn ---
   const signIn = useCallback(async (
     emailOrUsernameWithStore: string,
     password: string,
     storeId?: string
-  ): Promise<{ role: "master" | "user" }> => {
+  ): Promise<{ role: UserRole }> => {
     try {
       // セキュリティ検証
       const userAgent = getSafeUserAgent();
@@ -169,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const nickname = userData['nickname'] as string || "";
-      const userRole = (userData['role'] as "master" | "user") || "user";
+      const userRole = (userData['role'] as UserRole) || "user";
       const profile = {
         uid: authData.user.id,
         nickname,
@@ -187,9 +188,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: userRole,
       });
 
-      // 店舗IDを保存
+      // 店舗IDをバックグラウンドで保存（ログイン完了をブロックしない）
       if (profile.storeId) {
-        await StoreIdStorage.saveStoreId(profile.storeId);
+        StoreIdStorage.saveStoreId(profile.storeId).catch(() => {});
       }
 
       // セキュリティ: ログイン成功ログ
@@ -238,49 +239,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const supabase = getSupabase();
 
+    /** キャッシュからフォールバック復旧、なければサインアウト */
+    const fallbackOrSignOut = async (errorMessage: string) => {
+      if (cachedProfile.current) {
+        dispatch({
+          type: "AUTH_SUCCESS",
+          user: cachedProfile.current,
+          role: cachedProfile.current.role,
+        });
+        return;
+      }
+      await ServiceProvider.auth.signOut();
+      dispatch({ type: "AUTH_ERROR", error: errorMessage });
+    };
+
     /** DB操作を含むプロフィール取得＋dispatch（ロックスコープ外で実行） */
     const fetchAndDispatchProfile = async (userId: string, email: string) => {
       try {
         const userData = await ServiceProvider.users.getUserFullProfile(userId);
 
-        if (userData) {
-          const nickname = userData['nickname'] as string || "";
-          const userRole = (userData['role'] as "master" | "user") || "user";
-          const profile = {
-            uid: userId,
-            nickname,
-            role: userRole,
-            email,
-            storeId: userData['storeId'] || "",
-          };
+        if (!userData) {
+          await fallbackOrSignOut("ユーザー情報が見つかりません。");
+          return;
+        }
 
-          cachedProfile.current = profile;
-          dispatch({ type: "AUTH_SUCCESS", user: profile, role: userRole });
+        const nickname = userData['nickname'] as string || "";
+        const userRole = (userData['role'] as UserRole) || "user";
+        const profile = {
+          uid: userId,
+          nickname,
+          role: userRole,
+          email,
+          storeId: userData['storeId'] || "",
+        };
 
-          if (profile.storeId) {
-            await StoreIdStorage.saveStoreId(profile.storeId);
-          }
-        } else if (cachedProfile.current) {
-          dispatch({
-            type: "AUTH_SUCCESS",
-            user: cachedProfile.current,
-            role: cachedProfile.current.role,
-          });
-        } else {
-          await ServiceProvider.auth.signOut();
-          dispatch({ type: "AUTH_ERROR", error: "ユーザー情報が見つかりません。" });
+        cachedProfile.current = profile;
+        dispatch({ type: "AUTH_SUCCESS", user: profile, role: userRole });
+
+        if (profile.storeId) {
+          await StoreIdStorage.saveStoreId(profile.storeId);
         }
       } catch {
-        if (cachedProfile.current) {
-          dispatch({
-            type: "AUTH_SUCCESS",
-            user: cachedProfile.current,
-            role: cachedProfile.current.role,
-          });
-        } else {
-          await ServiceProvider.auth.signOut();
-          dispatch({ type: "AUTH_ERROR", error: "認証エラーが発生しました。" });
-        }
+        await fallbackOrSignOut("認証エラーが発生しました。");
       }
     };
 

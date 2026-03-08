@@ -2,6 +2,7 @@
  * 入力検証・サニタイゼーション ユーティリティ
  * セキュリティ強化のための包括的な入力検証システム
  */
+import { DATE_VALIDATION } from "@/common/common-constants/BoundaryConstants";
 
 // メールアドレス検証
 export const validateEmail = (
@@ -150,26 +151,26 @@ export const validateDate = (
     return { isValid: false, error: "有効な日付を入力してください" };
   }
 
-  // 未来日の制限（シフト管理では通常必要）
+  // 未来日の制限（inclusive: ちょうどN年後まで有効）
   const today = new Date();
-  const maxFutureDate = new Date(
-    today.getFullYear() + 2,
+  const futureLimit = new Date(
+    today.getFullYear() + DATE_VALIDATION.MAX_FUTURE_YEARS_INCLUSIVE,
     today.getMonth(),
     today.getDate()
   );
 
-  if (date > maxFutureDate) {
-    return { isValid: false, error: "日付が遠すぎます（2年以内）" };
+  if (date >= futureLimit) {
+    return { isValid: false, error: `日付が遠すぎます（${DATE_VALIDATION.MAX_FUTURE_YEARS_INCLUSIVE}年以内）` };
   }
 
-  // 過去日の制限
-  const minPastDate = new Date(
-    today.getFullYear() - 5,
+  // 過去日の制限（inclusive: ちょうどN年前まで有効）
+  const pastLimit = new Date(
+    today.getFullYear() - DATE_VALIDATION.MAX_PAST_YEARS_INCLUSIVE,
     today.getMonth(),
     today.getDate()
   );
-  if (date < minPastDate) {
-    return { isValid: false, error: "日付が古すぎます（5年以内）" };
+  if (date <= pastLimit) {
+    return { isValid: false, error: `日付が古すぎます（${DATE_VALIDATION.MAX_PAST_YEARS_INCLUSIVE}年以内）` };
   }
 
   return { isValid: true };
@@ -248,7 +249,7 @@ export const validateNumber = (
 
 // 包括的なフォーム検証
 export interface FormValidationRule {
-  value: any;
+  value: string | number;
   type:
     | "email"
     | "password"
@@ -263,46 +264,49 @@ export interface FormValidationRule {
   maxLength?: number;
   min?: number;
   max?: number;
-  customValidator?: (value: any) => { isValid: boolean; error?: string };
+  customValidator?: (value: string | number) => { isValid: boolean; error?: string };
 }
 
 // 型別検証を実行するヘルパー関数
 const validateByType = (
-  value: any,
+  value: string | number,
   type: FormValidationRule["type"],
   rule: FormValidationRule
 ): { isValid: boolean; error?: string } => {
+  const str = String(value);
   switch (type) {
     case "email":
-      return validateEmail(value);
+      return validateEmail(str);
     case "password":
-      return validatePassword(value);
+      return validatePassword(str);
     case "filename":
-      return validateFileName(value);
+      return validateFileName(str);
     case "date":
-      return validateDate(value);
+      return validateDate(str);
     case "time":
-      return validateTime(value);
+      return validateTime(str);
     case "storeId":
-      return validateStoreId(value);
+      return validateStoreId(str);
     case "number":
       return validateNumber(value, rule.min, rule.max);
     case "text":
-    default:
+    default: {
       // 基本的なテキスト検証
-      if (rule.minLength && value.length < rule.minLength) {
+      const text = String(value);
+      if (rule.minLength && text.length < rule.minLength) {
         return {
           isValid: false,
           error: `${rule.minLength}文字以上入力してください`,
         };
       }
-      if (rule.maxLength && value.length > rule.maxLength) {
+      if (rule.maxLength && text.length > rule.maxLength) {
         return {
           isValid: false,
           error: `${rule.maxLength}文字以内で入力してください`,
         };
       }
       return { isValid: true };
+    }
   }
 };
 

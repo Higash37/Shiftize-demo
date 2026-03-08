@@ -1,3 +1,5 @@
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
+
 export interface CreateGroupData {
   groupName: string;
   storeId: string;
@@ -10,7 +12,7 @@ export interface CreateGroupData {
 export interface InitialMember {
   nickname: string;
   password: string;
-  role: "master" | "user";
+  role: UserRole;
   color: string;
   hourlyWage?: number;
 }
@@ -23,8 +25,16 @@ export interface GroupCreationResult {
   message: string;
 }
 
+export interface StoreProfile {
+  storeId: string;
+  storeName: string;
+  adminUid?: string;
+  adminNickname?: string;
+  isActive?: boolean;
+}
+
 export interface IStoreService {
-  getStore(storeId: string): Promise<{ storeId: string; storeName: string; adminUid?: string; adminNickname?: string; [key: string]: any } | null>;
+  getStore(storeId: string): Promise<StoreProfile | null>;
 
   checkStoreIdExists(storeId: string): Promise<boolean>;
 

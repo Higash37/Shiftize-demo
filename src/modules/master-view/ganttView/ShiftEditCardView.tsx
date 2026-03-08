@@ -17,15 +17,16 @@ import { shadows } from "@/common/common-constants/ShadowConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { ShiftModal, ShiftData } from "./gantt-modals/ShiftModal";
+import type { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface ShiftEditCardViewProps {
-  shifts: any[];
+  shifts: ShiftItem[];
   users: Array<{ uid: string; nickname: string; color?: string }>;
   days: string[];
   currentYearMonth: { year: number; month: number };
   onMonthChange: (year: number, month: number) => void;
   onShiftUpdate: () => void;
-  onShiftPress: (shift: any) => void;
+  onShiftPress: (shift: ShiftItem) => void;
   onShiftCreate?: (date: string) => void;
   onShiftSave?: (data: ShiftData) => void;
   onShiftDelete?: (shiftId: string) => void;
@@ -53,27 +54,16 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   const [modalMode, setModalMode] = useState<"create" | "edit" | "delete">(
     "create"
   );
-  const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [selectedShift, setSelectedShift] = useState<ShiftItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const getShiftsForDate = (date: string) => {
-    const dateShifts = shifts.filter((shift) => {
-      // 削除されていないシフトのみを表示
-      const isNotDeleted =
-        shift.status !== "deleted" && shift.status !== "purged";
-      const matchesDate = shift.date === date;
-      return isNotDeleted && matchesDate;
-    });
-    return dateShifts;
-  };
-
-  const getUserById = (userId: string) => {
-    return users.find((user) => user.uid === userId);
-  };
-
-  const formatTime = (time: string) => {
-    return time.substring(0, 5); // HH:MM形式に変換
-  };
+  const getShiftsForDate = (date: string) =>
+    shifts.filter(
+      (shift) =>
+        shift.status !== "deleted" &&
+        shift.status !== "purged" &&
+        shift.date === date
+    );
 
   const handlePrevMonth = () => {
     const prevDate = subMonths(
@@ -99,14 +89,14 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
     setModalVisible(true);
   };
 
-  const openEditModal = (shift: any) => {
+  const openEditModal = (shift: ShiftItem) => {
     setSelectedShift(shift);
     setSelectedDate(shift.date);
     setModalMode("edit");
     setModalVisible(true);
   };
 
-  const openDeleteModal = (shift: any) => {
+  const openDeleteModal = (shift: ShiftItem) => {
     setSelectedShift(shift);
     setSelectedDate(shift.date);
     setModalMode("delete");
@@ -137,10 +127,8 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
     }
   };
 
-  const renderShiftCard = (shift: any) => {
-    const user = getUserById(shift.userId);
-    const startTime = formatTime(shift.startTime);
-    const endTime = formatTime(shift.endTime);
+  const renderShiftCard = (shift: ShiftItem) => {
+    const user = users.find((u) => u.uid === shift.userId);
 
     return (
       <View
@@ -160,7 +148,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
           <View style={styles.shiftHeader}>
             <Text style={styles.shiftUser}>{user?.nickname || "不明"}</Text>
             <Text style={styles.shiftTime}>
-              {startTime} - {endTime}
+              {shift.startTime.substring(0, 5)} - {shift.endTime.substring(0, 5)}
             </Text>
           </View>
           {shift.subject && (
@@ -193,9 +181,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
 
   const renderDayCard = (date: string) => {
     const dayShifts = getShiftsForDate(date);
-    const dayOfWeek = new Date(date).getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const day = new Date(date).getDate();
+    const isWeekend = [0, 6].includes(new Date(date).getDay());
 
     return (
       <Box
@@ -210,7 +196,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
         <View style={styles.dayHeader}>
           <View style={styles.dayInfo}>
             <Text style={[styles.dayNumber, isWeekend && styles.weekendText]}>
-              {day}
+              {new Date(date).getDate()}
             </Text>
             <Text style={[styles.dayOfWeek, isWeekend && styles.weekendText]}>
               {format(new Date(date), "E", { locale: ja })}
@@ -273,7 +259,7 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
       <ShiftModal
         visible={modalVisible}
         mode={modalMode}
-        shiftData={selectedShift}
+        shiftData={selectedShift ?? undefined}
         date={selectedDate}
         users={users}
         onClose={closeModal}

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { View, ScrollView, Text, TouchableOpacity, Dimensions, StyleSheet } from "react-native";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
@@ -43,7 +44,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
   const convertedShifts = useMemo(() => {
     return shifts.map(shift => ({
       ...shift,
-      duration: typeof shift.duration === 'string' ? parseFloat(shift.duration) : shift.duration
+      duration: typeof shift.duration === 'string' ? Number.parseFloat(shift.duration) : shift.duration
     }));
   }, [shifts]);
 
@@ -97,7 +98,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
   // 時間のラベル（全日 + 9:00〜22:00）
   const timeLabels = useMemo(() => {
     const labels = ["終日"];
-    for (let hour = 9; hour <= 22; hour++) {
+    for (let hour = SHIFT_HOURS.START_HOUR_INCLUSIVE; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
       labels.push(`${hour}:00`);
     }
     return labels;
@@ -455,11 +456,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
             borderRadius: 28,
             justifyContent: "center",
             alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 6,
+            elevation: 0,
           }}
           onPress={onAddShift}
         >

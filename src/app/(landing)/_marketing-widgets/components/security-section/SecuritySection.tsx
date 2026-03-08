@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, useWindowDimensions } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { styles } from "./security-section.styles";
+import { styles } from "./SecuritySection.styles";
 
 export const SecuritySection: React.FC = () => {
   const { width: screenWidth } = useWindowDimensions();

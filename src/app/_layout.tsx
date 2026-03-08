@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Slot } from "expo-router";
 import { AuthProvider } from "@/services/auth/AuthContext";
 import { StatusBar } from "expo-status-bar";
-import { View, Platform } from "react-native";
+import { View, Text, TextInput, Platform } from "react-native";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { ThemeProvider } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -11,6 +11,14 @@ import { VersionManager } from "@/services/version/VersionManager";
 import { useBasicFonts } from "@/common/common-utils/performance/fontLoader";
 import { initializeServices } from "@/services/initializeServices";
 import { MD3ThemeProvider, useMD3Theme } from "@/common/common-theme/md3";
+import { APP_FONT_FAMILY } from "@/common/common-constants/FontConstants";
+
+// アプリ全体のデフォルトフォントを設定
+if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
+(Text as any).defaultProps.style = { fontFamily: APP_FONT_FAMILY };
+
+if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
+(TextInput as any).defaultProps.style = { fontFamily: APP_FONT_FAMILY };
 
 initializeServices();
 
@@ -31,10 +39,10 @@ function NavigationThemeBridge({ children }: { children: React.ReactNode }) {
           notification: colorScheme.primary,
         },
         fonts: {
-          regular: { fontFamily: "System", fontWeight: "400" },
-          medium: { fontFamily: "System", fontWeight: "500" },
-          bold: { fontFamily: "System", fontWeight: "700" },
-          heavy: { fontFamily: "System", fontWeight: "900" },
+          regular: { fontFamily: APP_FONT_FAMILY, fontWeight: "400" },
+          medium: { fontFamily: APP_FONT_FAMILY, fontWeight: "500" },
+          bold: { fontFamily: APP_FONT_FAMILY, fontWeight: "700" },
+          heavy: { fontFamily: APP_FONT_FAMILY, fontWeight: "900" },
         },
       }}
     >

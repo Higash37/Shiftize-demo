@@ -1,4 +1,9 @@
 import React, { useState, useContext, useMemo, createContext } from "react";
+import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
+import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
+import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext";
+import type { TimeSegmentType } from "@/common/common-models/model-shift/shiftTypes";
+import type { ShiftTaskAssignment } from "@/modules/master-view/info-dashboard/useShiftTaskAssignments";
 import {
   View,
   Text,
@@ -142,20 +147,63 @@ export type GanttChartGridProps = {
   colorMode?: "status" | "user"; // 色表示モード
 };
 
-// 授業データをタスク表示形式に変換するヘルパー関数
-const convertClassesToTasks = (shift: ShiftItem) => {
+// typeIdがない既存データ用に名前で「授業」タイプを検索
+const findDefaultType = (typesMap?: Record<string, TimeSegmentType>) => {
+  if (!typesMap) return undefined;
+  return Object.values(typesMap).find((t) => t.name === "授業");
+};
+
+// 途中時間データをタスク表示形式に変換するヘルパー関数
+const convertClassesToTasks = (shift: ShiftItem, typesMap?: Record<string, TimeSegmentType>) => {
   if (!shift.classes || shift.classes.length === 0) return [];
 
-  return shift.classes.map((classTime, index) => ({
-    id: `${shift.id}-class-${index}`,
-    title: `授業 ${classTime.startTime}-${classTime.endTime}`,
-    shortName: "授業", // 授業の略称
-    startTime: classTime.startTime,
-    endTime: classTime.endTime,
-    color: "#757575", // 授業用のグレー系色
-    icon: "book-outline", // 授業用アイコン
-    type: "custom", // 授業は独自設定タスクとして扱う
-  }));
+  const defaultType = findDefaultType(typesMap);
+
+  return shift.classes.map((classTime, index) => {
+    const segType = classTime.typeId ? typesMap?.[classTime.typeId] : defaultType;
+    const name = segType?.name || classTime.typeName || "授業";
+    const icon = segType?.icon || "";
+    return {
+      id: `${shift.id}-class-${index}`,
+      title: `${icon ? icon + " " : ""}${name} ${classTime.startTime}-${classTime.endTime}`,
+      shortName: `${icon ? icon + " " : ""}${name}`,
+      startTime: classTime.startTime,
+      endTime: classTime.endTime,
+      color: segType?.color || "#757575",
+      icon: "book-outline",
+      type: "custom",
+    };
+  });
+};
+
+// 自動配置タスクをタスク表示形式に変換するヘルパー関数
+const convertAutoAssignedToTasks = (
+  shiftId: string,
+  assignmentsByShift: Record<string, ShiftTaskAssignment[]>,
+  rolesMap: Record<string, { name: string; icon: string; color: string }>,
+  tasksMap: Record<string, { name: string; icon: string; color: string }>
+) => {
+  const assignments = assignmentsByShift[shiftId];
+  if (!assignments || assignments.length === 0) return [];
+
+  return assignments.map((a, index) => {
+    const taskInfo = a.taskId ? tasksMap[a.taskId] : undefined;
+    const roleInfo = a.roleId ? rolesMap[a.roleId] : undefined;
+    const info = taskInfo || roleInfo;
+    const name = info?.name || "";
+    const icon = info?.icon || "";
+    const color = info?.color || "#4CAF50";
+    return {
+      id: `${shiftId}-auto-${index}`,
+      title: `${icon ? icon + " " : ""}${name} ${a.scheduledStartTime}-${a.scheduledEndTime}`,
+      shortName: `${icon ? icon + " " : ""}${name}`,
+      startTime: a.scheduledStartTime,
+      endTime: a.scheduledEndTime,
+      color,
+      icon: "construct-outline",
+      type: "auto",
+    };
+  });
 };
 
 export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
@@ -174,48 +222,44 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   getTimeWidth,
   colorMode = "status", // デフォルトはステータス色
 }) => {
+  const { typesMap: segTypesMap } = useTimeSegmentTypesContext();
+  const { assignmentsByShift } = useShiftTaskAssignmentsContext();
+  const { rolesMap, tasksMap } = useStaffRolesContext();
+
+  /** 時刻文字列("HH:MM")を分に変換する。不正な形式の場合は 0 を返す。 */
+  function parseMinutes(timeStr: string): number {
+    const parts = timeStr.split(":");
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+    return (Number.isNaN(h) ? 0 : h) * 60 + (Number.isNaN(m) ? 0 : m);
+  }
+
+  // セル幅を取得
+  function getCellWidthAt(index: number): number {
+    return getTimeWidth ? getTimeWidth(halfHourLines[index] ?? "00:00") : cellWidth;
+  }
+
   // 動的時間位置の計算
   function timeToPosition(time: string): number {
     let position = 0;
-    const [targetHour, targetMin] = time.split(":").map(Number);
-    const targetMinutes = (targetHour ?? 0) * 60 + (targetMin ?? 0);
+    const targetMinutes = parseMinutes(time);
 
     for (let i = 0; i < halfHourLines.length; i++) {
-      const [hourStr, minStr] = halfHourLines[i]?.split(":") || ["0", "0"];
-      const hour = hourStr ? Number(hourStr) : 0;
-      const min = minStr ? Number(minStr) : 0;
-      const currentMinutes = hour * 60 + min;
+      const currentMinutes = parseMinutes(halfHourLines[i] ?? "0:00");
 
-      if (currentMinutes >= targetMinutes) {
-        // 目標時間に到達または超えた場合
-        if (currentMinutes === targetMinutes) {
-          return position; // 正確に一致
-        } else {
-          // 前の時間からの補間計算
-          const prevMinutes =
-            i > 0
-              ? (() => {
-                  const [prevHourStr, prevMinStr] = halfHourLines[i - 1]
-                    ?.split(":") || ["0", "0"];
-                  const prevHour = prevHourStr ? Number(prevHourStr) : 0;
-                  const prevMin = prevMinStr ? Number(prevMinStr) : 0;
-                  return prevHour * 60 + prevMin;
-                })()
-              : currentMinutes;
-          const ratio =
-            (targetMinutes - prevMinutes) / (currentMinutes - prevMinutes);
-          const prevPosition =
-            i > 0
-              ? position -
-                (getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth)
-              : 0;
-          return (
-            prevPosition +
-            ratio * (getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth)
-          );
-        }
+      if (currentMinutes === targetMinutes) {
+        return position;
       }
-      position += getTimeWidth ? getTimeWidth(halfHourLines[i] ?? "00:00") : cellWidth;
+
+      if (currentMinutes > targetMinutes) {
+        const prevMinutes = i > 0 ? parseMinutes(halfHourLines[i - 1] ?? "0:00") : currentMinutes;
+        const span = currentMinutes - prevMinutes;
+        const ratio = span > 0 ? (targetMinutes - prevMinutes) / span : 0;
+        const prevPosition = i > 0 ? position - getCellWidthAt(i) : 0;
+        return prevPosition + ratio * getCellWidthAt(i);
+      }
+
+      position += getCellWidthAt(i);
     }
     return position;
   }
@@ -260,7 +304,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
     }
 
     // 範囲外の場合は最後の時間を返す
-    return halfHourLines[halfHourLines.length - 1] ?? "22:00";
+    return halfHourLines.at(-1) ?? "22:00";
   }
 
   return (
@@ -311,7 +355,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           if (otherIndex === index) return false;
           const otherStartPos = timeToPosition(otherShift.startTime);
           const otherEndPos = timeToPosition(otherShift.endTime);
-          return !(endPos <= otherStartPos || startPos >= otherEndPos);
+          return endPos > otherStartPos && startPos < otherEndPos;
         });
 
         let singleBarHeight;
@@ -513,9 +557,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                   borderTopColor: "rgba(0, 0, 0, 0.1)",
                 }}
               >
-                {/* タスク表示エリア - 授業を表示 */}
+                {/* タスク表示エリア - 授業 + 自動配置タスクを表示 */}
                 {(() => {
-                  const allTasks = convertClassesToTasks(shift);
+                  const classTasks = convertClassesToTasks(shift, segTypesMap);
+                  const autoTasks = convertAutoAssignedToTasks(shift.id, assignmentsByShift, rolesMap, tasksMap);
+                  const allTasks = [...classTasks, ...autoTasks];
 
                   return allTasks.length > 0 ? (
                     <View
@@ -548,7 +594,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               left: relativeStartPos + 2, // 少し余白を追加
                               width: relativeWidth,
                               height: "100%",
-                              backgroundColor: task.color || "#4CAF50",
+                              backgroundColor: task.type === "auto" ? (task.color || "#4CAF50") + "CC" : (task.color || "#4CAF50"),
                               borderRadius: 4,
 
                               flexDirection: "row",
@@ -556,8 +602,9 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                               justifyContent: "flex-start",
                               paddingHorizontal: 0,
                               ...shadows.small,
-                              borderWidth: 0.5,
-                              borderColor: "rgba(255, 255, 255, 0.3)",
+                              borderWidth: task.type === "auto" ? 1.5 : 0.5,
+                              borderColor: task.type === "auto" ? task.color || "#4CAF50" : "rgba(255, 255, 255, 0.3)",
+                              borderStyle: task.type === "auto" ? "dashed" : "solid",
                             }}
                           >
                             {/* タスク名または略称（中央部分） */}

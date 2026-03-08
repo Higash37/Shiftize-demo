@@ -1,11 +1,11 @@
-import { User } from "@/common/common-models/model-user/UserModel";
+import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 
 export interface IAuthService {
   signIn(email: string, password: string): Promise<User>;
 
   signOut(): Promise<void>;
 
-  getUserRole(user: { uid: string }): Promise<"master" | "user">;
+  getUserRole(user: { uid: string }): Promise<UserRole>;
 
   createUser(
     email: string,
@@ -13,17 +13,19 @@ export interface IAuthService {
     nickname?: string,
     color?: string,
     storeId?: string,
-    role?: "master" | "user",
-    hourlyWage?: number
+    role?: UserRole,
+    hourlyWage?: number,
+    furigana?: string
   ): Promise<User>;
 
   updateUser(
     user: User,
     updates: {
       nickname?: string;
+      furigana?: string;
       email?: string;
       password?: string;
-      role?: "master" | "user";
+      role?: UserRole;
       color?: string;
       storeId?: string;
     }

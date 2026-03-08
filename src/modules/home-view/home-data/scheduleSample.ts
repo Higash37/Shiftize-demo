@@ -79,8 +79,8 @@ function makeSlots90min(name: string): SampleSlot[] {
     }
     // 90分後の時刻を計算
     const timeParts = cur.split(":");
-    const h = timeParts[0] ? parseInt(timeParts[0], 10) : 0;
-    const m = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
+    const h = timeParts[0] ? Number.parseInt(timeParts[0], 10) : 0;
+    const m = timeParts[1] ? Number.parseInt(timeParts[1], 10) : 0;
     const endMin = h * 60 + m + 90;
     const endH = Math.floor(endMin / 60);
     const endM = endMin % 60;

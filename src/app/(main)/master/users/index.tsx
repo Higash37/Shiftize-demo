@@ -5,6 +5,7 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 import { useUser } from "@/modules/reusable-widgets/user-management/user-hooks/useUser";
 import { UserForm } from "@/modules/reusable-widgets/user-management/user-props/UserForm";
 import { UserList } from "@/modules/reusable-widgets/user-management/user-props/UserList";
@@ -22,7 +23,8 @@ interface UserFormData {
   email: string;
   password?: string;
   nickname: string;
-  role: "master" | "user";
+  furigana?: string;
+  role: UserRole;
   color?: string;
   storeId?: string;
   hourlyWage?: number;
@@ -60,7 +62,8 @@ export default function UsersScreen() {
         data.role,
         data.color,
         data.storeId,
-        data.hourlyWage
+        data.hourlyWage,
+        data.furigana
       );
 
       if (newUser) {
@@ -85,7 +88,7 @@ export default function UsersScreen() {
       
       const updateData = {
         nickname: data.nickname,
-        email: data.email, // メールアドレス更新を追加
+        ...(data.furigana !== undefined ? { furigana: data.furigana } : {}),
         role: data.role,
         ...(data.password ? { password: data.password } : {}),
         ...(data.color ? { color: data.color } : {}),

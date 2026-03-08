@@ -32,7 +32,7 @@ export const validateEmail = (value: unknown): string | undefined => {
 /**
  * パスワードの強度チェック
  * @param value チェックする値
- * @param minLength 最小文字数
+ * @param minLength 最小文字数（inclusive: この文字数以上で有効）
  * @returns エラーメッセージまたは undefined
  */
 export const validatePassword = (
@@ -68,10 +68,10 @@ export const validatePassword = (
 };
 
 /**
- * 数値範囲チェック
+ * 数値範囲チェック（両端 inclusive）
  * @param value チェックする値
- * @param min 最小値
- * @param max 最大値
+ * @param min 最小値（inclusive: この値以上で有効）
+ * @param max 最大値（inclusive: この値以下で有効）
  * @returns エラーメッセージまたは undefined
  */
 export const validateNumberRange = (
@@ -107,10 +107,19 @@ export const validateDate = (value: unknown): string | undefined => {
 };
 
 /**
- * 文字列の長さチェック
+ * 時間文字列（HH:MM）の形式チェック
+ * @param time チェックする時間文字列
+ * @returns 有効な場合 true
+ */
+export const validateTimeFormat = (time: string): boolean => {
+  return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
+};
+
+/**
+ * 文字列の長さチェック（両端 inclusive）
  * @param value チェックする値
- * @param min 最小文字数
- * @param max 最大文字数
+ * @param min 最小文字数（inclusive: この文字数以上で有効）
+ * @param max 最大文字数（inclusive: この文字数以下で有効）
  * @returns エラーメッセージまたは undefined
  */
 export const validateLength = (

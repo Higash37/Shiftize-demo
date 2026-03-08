@@ -32,8 +32,9 @@ export const ShiftSubmissionTooltip: React.FC<ShiftSubmissionTooltipProps> = ({
     try {
       setLoading(true);
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(storeId);
-      setPeriod(periods && periods.length > 0 ? periods[0] || null : null);
+      setPeriod(periods?.[0] ?? null);
     } catch (error) {
+      console.warn("シフト提出期間の取得に失敗しました:", error);
     } finally {
       setLoading(false);
     }
@@ -151,11 +152,7 @@ const styles = StyleSheet.create({
     padding: 12,
     minWidth: 200,
     maxWidth: 280,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    elevation: 0,
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },

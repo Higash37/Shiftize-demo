@@ -21,6 +21,7 @@ import Button from "@/common/common-ui/ui-forms/FormButton";
 import TextInput from "@/common/common-ui/ui-forms/FormInput";
 import {
   ShiftStatus,
+  ShiftItem,
   ClassTimeSlot,
   DEFAULT_SHIFT_STATUS_CONFIG,
 } from "@/common/common-models/ModelIndex";
@@ -28,17 +29,7 @@ import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 
-// 時間オプション生成（15分刻み）
-const generateTimeOptions = () => {
-  const options: string[] = [];
-  for (let hour = 9; hour <= 22; hour++) {
-    options.push(`${hour.toString().padStart(2, "0")}:00`);
-    options.push(`${hour.toString().padStart(2, "0")}:15`);
-    options.push(`${hour.toString().padStart(2, "0")}:30`);
-    options.push(`${hour.toString().padStart(2, "0")}:45`);
-  }
-  return options;
-};
+import { generateTimeOptions } from "@/modules/reusable-widgets/gantt-chart/gantt-chart-common/utils";
 
 export interface ShiftData {
   id?: string;
@@ -54,7 +45,7 @@ export interface ShiftData {
 export interface ShiftModalProps {
   visible: boolean;
   mode: "create" | "edit" | "delete";
-  shiftData?: ShiftData;
+  shiftData?: ShiftData | ShiftItem | undefined;
   date?: string;
   users: Array<{ uid: string; nickname: string; color?: string }>;
   onClose: () => void;
@@ -110,6 +101,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         );
         setConnectedStoreUsers(users);
       } catch (error) {
+        console.warn("連携校舎ユーザーの取得に失敗しました:", error);
       }
     };
 
@@ -173,29 +165,25 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
     return true;
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      const data: ShiftData = {
-        ...(shiftData?.id && { id: shiftData.id }),
-        userId: selectedUserId,
-        date: date || shiftData?.date || "",
-        startTime: `${startTime}:00`,
-        endTime: `${endTime}:00`,
-        subject: subject.trim(),
-        status: status,
-        classes: classes,
-      };
+    const data: ShiftData = {
+      ...(shiftData?.id && { id: shiftData.id }),
+      userId: selectedUserId,
+      date: date || shiftData?.date || "",
+      startTime: `${startTime}:00`,
+      endTime: `${endTime}:00`,
+      subject: subject.trim(),
+      status: status,
+      classes: classes,
+    };
 
-      await onSave?.(data);
-      onClose();
-    } catch (error) {
-      Alert.alert("エラー", "シフトの保存に失敗しました");
-    } finally {
-      setLoading(false);
-    }
+    // モーダルを即座に閉じる
+    onClose();
+
+    // バックグラウンドで保存（リアルタイムリスナーが自動反映）
+    onSave?.(data);
   };
 
   const handleDelete = () => {
@@ -330,7 +318,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
 
   const renderClassTimesSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>授業時間（任意・複数可）</Text>
+      <Text style={styles.sectionTitle}>途中時間（任意・複数可）</Text>
       {classes.map((classTime, idx) => (
         <View key={idx} style={styles.classTimeRow}>
           <View style={styles.classTimeInputContainer}>
@@ -392,7 +380,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
           setClasses([...classes, newClass]);
         }}
       >
-        <Text style={styles.addClassText}>＋授業時間を追加</Text>
+        <Text style={styles.addClassText}>＋途中時間を追加</Text>
       </TouchableOpacity>
     </View>
   );
@@ -614,7 +602,10 @@ const styles = StyleSheet.create({
   picker: {
     height: 44,
     width: "100%",
-  },
+    border: "none",
+    outline: "none",
+    backgroundColor: "transparent",
+  } as any,
   classTimeRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -109,8 +109,8 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
             const parseDate = (dateStr: string) => {
               const match = dateStr.match(/(\d+)月(\d+)日/);
               if (match) {
-                const month = parseInt(match[1] || "0", 10);
-                const day = parseInt(match[2] || "0", 10);
+                const month = Number.parseInt(match[1] || "0", 10);
+                const day = Number.parseInt(match[2] || "0", 10);
                 return new Date(selectedYear, month - 1, day);
               }
               return new Date();
@@ -172,6 +172,42 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     }
   };
 
+  const renderPreviewColumn = (columnData: UserShiftData[]) => (
+    <View style={styles.previewColumn}>
+      {columnData.map((userData) => (
+        <View key={userData.userId} style={styles.previewShiftSheet}>
+          <View style={styles.previewUserHeader}>
+            <Text style={styles.previewUserHeaderText}>
+              {userData.nickname}
+            </Text>
+          </View>
+          <View style={styles.previewShiftsContainer}>
+            <View style={styles.previewShiftList}>
+              {userData.shifts.map((shift, index) => (
+                <View key={index} style={styles.previewShiftItem}>
+                  <Text style={styles.previewShiftDate}>
+                    {shift.date} {shift.dayOfWeek}
+                  </Text>
+                  <Text style={styles.previewShiftTime}>
+                    {shift.startTime.substring(0, 5)}{" "}
+                    {shift.endTime.substring(0, 5)}
+                  </Text>
+                </View>
+              ))}
+              {userData.shifts.length === 0 && (
+                <Text style={styles.previewNoShifts}>シフトなし</Text>
+              )}
+            </View>
+            <View style={styles.previewNotesSection}>
+              <Text style={styles.previewNotesTitle}>連絡</Text>
+              <View style={styles.previewNotesArea} />
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
   const handleSavePDF = async () => {
     if (selectedUsers.length === 0) {
       Alert.alert("警告", "印刷対象のスタッフを選択してください");
@@ -181,47 +217,31 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     try {
       const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
 
+      const downloadPdfBlob = (blob: Blob, filename: string) => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      };
+
       if (printFormat === "all") {
-        // 全ての場合は3つのPDFを生成
         const listBlob = await generatePdfBlob("list");
         const calendarBlob = await generatePdfBlob("calendar");
         const unifiedCalendarBlob = await generatePdfBlob("unified-calendar");
 
         if (listBlob && calendarBlob && unifiedCalendarBlob) {
-          // リスト形式のPDF
-          const listLink = document.createElement("a");
-          listLink.href = URL.createObjectURL(listBlob);
-          listLink.download = `スタッフ勤務表_リスト形式_${monthYear}.pdf`;
-          document.body.appendChild(listLink);
-          listLink.click();
-          document.body.removeChild(listLink);
-          URL.revokeObjectURL(listLink.href);
-
-          // カレンダー形式のPDF
-          const calendarLink = document.createElement("a");
-          calendarLink.href = URL.createObjectURL(calendarBlob);
-          calendarLink.download = `スタッフ勤務表_カレンダー形式_${monthYear}.pdf`;
-          document.body.appendChild(calendarLink);
-          calendarLink.click();
-          document.body.removeChild(calendarLink);
-          URL.revokeObjectURL(calendarLink.href);
-
-          // 統合カレンダー形式のPDF
-          const unifiedCalendarLink = document.createElement("a");
-          unifiedCalendarLink.href = URL.createObjectURL(unifiedCalendarBlob);
-          unifiedCalendarLink.download = `スタッフ勤務表_統合カレンダー形式_${monthYear}.pdf`;
-          document.body.appendChild(unifiedCalendarLink);
-          unifiedCalendarLink.click();
-          document.body.removeChild(unifiedCalendarLink);
-          URL.revokeObjectURL(unifiedCalendarLink.href);
-
+          downloadPdfBlob(listBlob, `スタッフ勤務表_リスト形式_${monthYear}.pdf`);
+          downloadPdfBlob(calendarBlob, `スタッフ勤務表_カレンダー形式_${monthYear}.pdf`);
+          downloadPdfBlob(unifiedCalendarBlob, `スタッフ勤務表_統合カレンダー形式_${monthYear}.pdf`);
           Alert.alert(
             "成功",
             "PDFファイル（リスト形式・カレンダー形式・統合カレンダー形式）が保存されました"
           );
         }
       } else {
-        // 単一形式の場合
         const blob = await generatePdfBlob(printFormat);
         if (blob) {
           const formatName =
@@ -230,13 +250,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
               : printFormat === "calendar"
               ? "カレンダー形式"
               : "統合カレンダー形式";
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `スタッフ勤務表_${formatName}_${monthYear}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(link.href);
+          downloadPdfBlob(blob, `スタッフ勤務表_${formatName}_${monthYear}.pdf`);
           Alert.alert("成功", `PDFファイル（${formatName}）が保存されました`);
         }
       }
@@ -820,7 +834,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
               const userShiftsMap = userData.shifts.reduce((acc, shift) => {
                 const dayMatch = shift.date.match(/(\d+)月(\d+)日/);
                 if (dayMatch) {
-                  const day = parseInt(dayMatch[2] || "0", 10);
+                  const day = Number.parseInt(dayMatch[2] || "0", 10);
                   acc[day] = shift;
                 }
                 return acc;
@@ -953,7 +967,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
       userData.shifts.forEach((shift) => {
         const dayMatch = shift.date.match(/(\d+)月(\d+)日/);
         if (dayMatch) {
-          const day = parseInt(dayMatch[2] || "0", 10);
+          const day = Number.parseInt(dayMatch[2] || "0", 10);
           if (!shiftsByDate[day]) {
             shiftsByDate[day] = [];
           }
@@ -968,7 +982,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
     // 各日のシフトを時間順にソート
     Object.keys(shiftsByDate).forEach((day) => {
-      shiftsByDate[parseInt(day)]?.sort((a, b) =>
+      shiftsByDate[Number.parseInt(day, 10)]?.sort((a, b) =>
         a.startTime.localeCompare(b.startTime)
       );
     });
@@ -1134,7 +1148,7 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
 
                 // 各日のシフトを時間順にソート
                 Object.keys(nextShiftsByDate).forEach((day) => {
-                  nextShiftsByDate[parseInt(day)]?.sort((a, b) =>
+                  nextShiftsByDate[Number.parseInt(day, 10)]?.sort((a, b) =>
                     a.startTime.localeCompare(b.startTime)
                   );
                 });
@@ -1847,92 +1861,8 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                       {format(selectedDate, "yyyy年M月", { locale: ja })}版
                     </Text>
                     <View style={styles.previewColumnsContainer}>
-                      <View style={styles.previewColumn}>
-                        {leftColumn.map((userData) => (
-                          <View
-                            key={userData.userId}
-                            style={styles.previewShiftSheet}
-                          >
-                            <View style={styles.previewUserHeader}>
-                              <Text style={styles.previewUserHeaderText}>
-                                {userData.nickname}
-                              </Text>
-                            </View>
-                            <View style={styles.previewShiftsContainer}>
-                              <View style={styles.previewShiftList}>
-                                {userData.shifts.map((shift, index) => (
-                                  <View
-                                    key={index}
-                                    style={styles.previewShiftItem}
-                                  >
-                                    <Text style={styles.previewShiftDate}>
-                                      {shift.date} {shift.dayOfWeek}
-                                    </Text>
-                                    <Text style={styles.previewShiftTime}>
-                                      {shift.startTime.substring(0, 5)}{" "}
-                                      {shift.endTime.substring(0, 5)}
-                                    </Text>
-                                  </View>
-                                ))}
-                                {userData.shifts.length === 0 && (
-                                  <Text style={styles.previewNoShifts}>
-                                    シフトなし
-                                  </Text>
-                                )}
-                              </View>
-                              <View style={styles.previewNotesSection}>
-                                <Text style={styles.previewNotesTitle}>
-                                  連絡
-                                </Text>
-                                <View style={styles.previewNotesArea} />
-                              </View>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                      <View style={styles.previewColumn}>
-                        {rightColumn.map((userData) => (
-                          <View
-                            key={userData.userId}
-                            style={styles.previewShiftSheet}
-                          >
-                            <View style={styles.previewUserHeader}>
-                              <Text style={styles.previewUserHeaderText}>
-                                {userData.nickname}
-                              </Text>
-                            </View>
-                            <View style={styles.previewShiftsContainer}>
-                              <View style={styles.previewShiftList}>
-                                {userData.shifts.map((shift, index) => (
-                                  <View
-                                    key={index}
-                                    style={styles.previewShiftItem}
-                                  >
-                                    <Text style={styles.previewShiftDate}>
-                                      {shift.date} {shift.dayOfWeek}
-                                    </Text>
-                                    <Text style={styles.previewShiftTime}>
-                                      {shift.startTime.substring(0, 5)}{" "}
-                                      {shift.endTime.substring(0, 5)}
-                                    </Text>
-                                  </View>
-                                ))}
-                                {userData.shifts.length === 0 && (
-                                  <Text style={styles.previewNoShifts}>
-                                    シフトなし
-                                  </Text>
-                                )}
-                              </View>
-                              <View style={styles.previewNotesSection}>
-                                <Text style={styles.previewNotesTitle}>
-                                  連絡
-                                </Text>
-                                <View style={styles.previewNotesArea} />
-                              </View>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
+                      {renderPreviewColumn(leftColumn)}
+                      {renderPreviewColumn(rightColumn)}
                     </View>
                   </View>
                 );

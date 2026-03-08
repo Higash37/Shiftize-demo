@@ -60,12 +60,16 @@ export const getDayColor = (
   return colors.text.primary; // その他の日付
 };
 
-// 日付文字列と時間文字列を組み合わせてDateオブジェクトを生成する関数
+/**
+ * 日付文字列と時間文字列を組み合わせてDateオブジェクトを生成する。
+ * 不正な日付文字列の場合は現在日時をベースに時間を設定して返す。
+ */
 export function parseTimeString(dateStr: string, timeStr: string): Date {
-  const [hoursStr, minutesStr] = timeStr.split(":");
-  const hours = hoursStr ? Number(hoursStr) : 0;
-  const minutes = minutesStr ? Number(minutesStr) : 0;
   const date = new Date(dateStr);
-  date.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-  return date;
+  const base = Number.isNaN(date.getTime()) ? new Date() : date;
+  const parts = timeStr.split(":");
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+  base.setHours(Number.isNaN(hours) ? 0 : hours, Number.isNaN(minutes) ? 0 : minutes, 0, 0);
+  return base;
 }

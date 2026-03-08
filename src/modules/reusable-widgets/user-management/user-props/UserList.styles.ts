@@ -57,8 +57,8 @@ export const styles = StyleSheet.create({
   },
   userCard: {
     backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
+    borderRadius: layout.borderRadius.small,
+    padding: layout.padding.small,
     borderWidth: 1,
     borderColor: colors.border,
     flex: 1,
@@ -67,11 +67,9 @@ export const styles = StyleSheet.create({
   },
   userCardTablet: {
     maxWidth: 350,
-    padding: layout.padding.medium,
   },
   userCardDesktop: {
     maxWidth: 280,
-    padding: layout.padding.medium,
   },
   cardHeader: {
     flexDirection: "row",
@@ -86,45 +84,19 @@ export const styles = StyleSheet.create({
   userInfo: {
     flex: 1,
   },
-  nameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
-  },
   userName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: colors.text.primary,
-    flex: 1,
-    marginRight: layout.padding.small,
   },
   userNameLarge: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
   userRole: {
-    fontSize: 12,
+    fontSize: 10,
     color: colors.text.secondary,
     fontWeight: "500",
-    marginBottom: 2,
-  },
-  userEmail: {
-    fontSize: 11,
-    color: colors.primary,
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-  storeId: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    fontWeight: "400",
-  },
-  colorMark: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.border,
   },
   passwordSection: {
     backgroundColor: colors.background,
@@ -217,28 +189,5 @@ export const styles = StyleSheet.create({
   },
   deleteButtonModal: {
     backgroundColor: colors.error,
-  },
-
-  // 以下は後方互換性のため残しておく（削除予定）
-  leftSection: {
-    justifyContent: "center",
-  },
-  middleSection: {
-    flex: 1,
-    gap: 4,
-  },
-  rightSection: {
-    alignItems: "flex-end",
-    gap: 8,
-  },
-  passwordContainer: {
-    alignItems: "flex-end",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  actionButton: {
-    minWidth: 80,
   },
 });

@@ -183,7 +183,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 
   const handleBlur = () => {
     // フォーカスが外れた時に不完全な入力を補完
-    if (displayValue && displayValue.length > 0 && displayValue.length < 5) {
+    if (displayValue && displayValue.length < 5) {
       let completed = displayValue;
 
       // コロンがある場合とない場合で処理を分ける

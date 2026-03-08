@@ -143,13 +143,35 @@ export type TimeSlot = {
 };
 
 /**
- * 授業時間スロット
+ * 途中時間スロット（休憩・授業など）
  */
 export type ClassTimeSlot = {
   startTime: string;
   endTime: string;
   id?: string;
+  typeId?: string;    // time_segment_types.id
+  typeName?: string;  // 非正規化（タイプ削除後も表示用）
 };
+
+/**
+ * 途中時間タイプの給与モード
+ */
+export type WageMode = "exclude" | "include" | "custom_rate";
+
+/**
+ * 途中時間タイプ（マスター管理）
+ */
+export interface TimeSegmentType {
+  id: string;
+  storeId: string;
+  name: string;
+  icon: string;
+  color: string;
+  wageMode: WageMode;
+  customRate: number;
+  sortOrder: number;
+  allowTaskOverlap: boolean;
+}
 
 /**
  * 繰り返し設定
@@ -176,6 +198,15 @@ export interface ShiftData {
   status: ShiftStatus;
 }
 
+/** シフトの変更リクエスト内容 */
+export interface ShiftRequestedChanges {
+  startTime?: string;
+  endTime?: string;
+  date?: string;
+  type?: ShiftType;
+  subject?: string;
+}
+
 /**
  * シフト項目（表示用の拡張情報を含む）
  */
@@ -189,7 +220,7 @@ export interface ShiftItem {
   endTime: string;
   type: ShiftType;
   subject?: string;
-  notes?: string; // メモを追加
+  notes?: string;
   isCompleted: boolean;
   status: ShiftStatus;
   duration: string;
@@ -197,13 +228,7 @@ export interface ShiftItem {
   updatedAt: Date;
   googleCalendarEventId?: string;
   classes?: Array<ClassTimeSlot>;
-  requestedChanges?: {
-    startTime?: string;
-    endTime?: string;
-    date?: string;
-    type?: ShiftType;
-    subject?: string;
-  };
+  requestedChanges?: ShiftRequestedChanges;
 }
 
 /**

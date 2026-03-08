@@ -208,11 +208,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 400,
     maxHeight: "90%" as any,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 25,
-    elevation: 10,
+    elevation: 0,
     overflow: "hidden",
   },
   header: {

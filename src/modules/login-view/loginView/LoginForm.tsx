@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import type { LoginFormProps } from "./LoginForm.types";
-import { YoutubeSkeleton } from "@/common/common-ui/ui-loading/SkeletonLoader";
 import { useAutoReloadOnLayoutBug } from "@/common/common-ui/ui-loading/useAutoReloadOnLayoutBug";
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
@@ -32,8 +31,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [storeIdAndUsername, setStoreIdAndUsername] = useState("");
-  const [loginMode, setLoginMode] = useState<"storeId" | "email">("storeId");
-  const [emailInput, setEmailInput] = useState("");
   const [saveStoreId, setSaveStoreId] = useState(true);
   const [demoRoleModalVisible, setDemoRoleModalVisible] = useState(
     externalShowDemoModal || false
@@ -68,60 +65,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   const handleLogin = async () => {
-    if (loginMode === "storeId") {
-      const { storeId, username } = parseStoreIdAndUsername(storeIdAndUsername);
+    const { storeId, username } = parseStoreIdAndUsername(storeIdAndUsername);
 
-      if (!username || !password || !storeId) {
-        setErrorMessage(
-          "店舗ID（4桁）+ ニックネーム・パスワードを入力してください"
-        );
-        return;
-      }
-
-      if (!/^\d{4}$/.test(storeId)) {
-        setErrorMessage("店舗IDは4桁の数字で入力してください");
-        return;
-      }
-
-      if (onLogin) {
-        try {
-          await onLogin(username, password, storeId);
-          if (saveStoreId) {
-            await StoreIdStorage.saveStoreId(storeId);
-          } else {
-            await StoreIdStorage.clearStoreId();
-          }
-          setErrorMessage("");
-        } catch (error) {
-          setErrorMessage("ログインに失敗しました。再度お試しください。");
-        }
-      }
-    } else {
-      if (!emailInput || !password) {
-        setErrorMessage("メールアドレスとパスワードを入力してください");
-        return;
-      }
-
-      const { validateEmail } = await import(
-        "@/common/common-utils/validation/inputValidation"
+    if (!username || !password || !storeId) {
+      setErrorMessage(
+        "店舗ID（4桁）+ ニックネーム・パスワードを入力してください"
       );
-      const emailValidation = validateEmail(emailInput);
-      if (!emailValidation.isValid) {
-        setErrorMessage(
-          emailValidation.error || "有効なメールアドレスを入力してください"
-        );
-        return;
-      }
+      return;
+    }
 
-      if (onLogin) {
-        try {
-          const storeId =
-            (await StoreIdStorage.getStoreId()) || "default";
-          await onLogin(emailInput, password, storeId);
-          setErrorMessage("");
-        } catch (error) {
-          setErrorMessage("ログインに失敗しました。再度お試しください。");
+    if (!/^\d{4}$/.test(storeId)) {
+      setErrorMessage("店舗IDは4桁の数字で入力してください");
+      return;
+    }
+
+    if (onLogin) {
+      try {
+        await onLogin(username, password, storeId);
+        if (saveStoreId) {
+          await StoreIdStorage.saveStoreId(storeId);
+        } else {
+          await StoreIdStorage.clearStoreId();
         }
+        setErrorMessage("");
+      } catch (error) {
+        setErrorMessage("ログインに失敗しました。再度お試しください。");
       }
     }
   };
@@ -132,10 +100,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       externalSetShowDemoModal(false);
     }
   };
-
-  if (loading) {
-    return <YoutubeSkeleton />;
-  }
 
   return (
     <View style={styles.container}>
@@ -153,106 +117,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </View>
           )}
 
-          {/* ログイン方式切り替えタブ */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                loginMode === "storeId" && styles.tabActive,
-              ]}
-              onPress={() => setLoginMode("storeId")}
-            >
+          {/* 入力フィールド */}
+          <View style={styles.inputGroup}>
+            <View style={styles.labelContainer}>
               <MaterialIcons
                 name="store"
-                size={18}
-                color={
-                  loginMode === "storeId"
-                    ? colorScheme.onPrimary
-                    : colorScheme.primary
-                }
-                style={styles.tabIcon}
+                size={20}
+                color={colorScheme.primary}
+                style={styles.labelIcon}
               />
-              <Text
-                style={[
-                  styles.tabText,
-                  loginMode === "storeId" && styles.tabTextActive,
-                ]}
-              >
-                店舗ID
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                loginMode === "email" && styles.tabActive,
-              ]}
-              onPress={() => setLoginMode("email")}
-            >
-              <MaterialIcons
-                name="email"
-                size={18}
-                color={
-                  loginMode === "email"
-                    ? colorScheme.onPrimary
-                    : colorScheme.primary
-                }
-                style={styles.tabIcon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  loginMode === "email" && styles.tabTextActive,
-                ]}
-              >
-                メール
-              </Text>
-            </TouchableOpacity>
+              <Text style={styles.label}>店舗ID + ニックネーム</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={storeIdAndUsername}
+              onChangeText={setStoreIdAndUsername}
+              placeholder="例: 1234山田太郎"
+              placeholderTextColor={colorScheme.onSurfaceVariant}
+              autoCapitalize="none"
+            />
           </View>
-
-          {/* 入力フィールド - ログイン方式により切り替え */}
-          {loginMode === "storeId" && (
-            <View style={styles.inputGroup}>
-              <View style={styles.labelContainer}>
-                <MaterialIcons
-                  name="store"
-                  size={20}
-                  color={colorScheme.primary}
-                  style={styles.labelIcon}
-                />
-                <Text style={styles.label}>店舗ID + ニックネーム</Text>
-              </View>
-              <TextInput
-                style={styles.input}
-                value={storeIdAndUsername}
-                onChangeText={setStoreIdAndUsername}
-                placeholder="例: 1234山田太郎"
-                placeholderTextColor={colorScheme.onSurfaceVariant}
-                autoCapitalize="none"
-              />
-            </View>
-          )}
-          {loginMode === "email" && (
-            <View style={styles.inputGroup}>
-              <View style={styles.labelContainer}>
-                <MaterialIcons
-                  name="email"
-                  size={20}
-                  color={colorScheme.primary}
-                  style={styles.labelIcon}
-                />
-                <Text style={styles.label}>メールアドレス</Text>
-              </View>
-              <TextInput
-                style={styles.input}
-                value={emailInput}
-                onChangeText={setEmailInput}
-                placeholder="example@email.com"
-                placeholderTextColor={colorScheme.onSurfaceVariant}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          )}
 
           {/* パスワード入力 */}
           <View style={styles.inputGroup}>
@@ -272,6 +156,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               placeholder="パスワードを入力"
               placeholderTextColor={colorScheme.onSurfaceVariant}
               secureTextEntry
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
             />
           </View>
 
@@ -346,7 +232,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                   onPress={() => {
                     setStoreIdAndUsername("0000佐藤");
                     setPassword("123456");
-                    setLoginMode("storeId");
                     closeDemoModal();
                   }}
                 >
@@ -367,7 +252,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                   onPress={() => {
                     setStoreIdAndUsername("0000町田");
                     setPassword("123456");
-                    setLoginMode("storeId");
                     closeDemoModal();
                   }}
                 >

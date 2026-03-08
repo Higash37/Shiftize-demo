@@ -2,18 +2,23 @@
  * ユーザー関連の型定義
  */
 
+/** ユーザーのロール */
+export type UserRole = "master" | "user";
+
 /**
  * ユーザーの基本情報
  */
 export interface User {
   uid: string;
-  role: "master" | "user";
+  role: UserRole;
   nickname: string;
-  email?: string; // メールアドレスを追加
-  storeId?: string; // 店舗IDを追加
-  color?: string; // 講師ごとの色
-  hourlyWage?: number; // 時給
-  currentPassword?: string; // パスワード
+  furigana?: string;
+  email?: string;
+  storeId?: string;
+  color?: string;
+  hourlyWage?: number;
+  currentPassword?: string;
+  createdAt?: string;
 }
 
 /**
@@ -21,9 +26,9 @@ export interface User {
  */
 export interface UserData {
   nickname: string;
-  role: "master" | "user";
+  role: UserRole;
   email: string;
   currentPassword?: string;
   createdAt: Date;
-  hourlyWage?: number; // 時給
+  hourlyWage?: number;
 }

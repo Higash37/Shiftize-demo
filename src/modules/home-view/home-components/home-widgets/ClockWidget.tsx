@@ -82,25 +82,50 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
 
   // 時間文字列("HH:MM")を角度に変換
   const timeStringToAngle = (timeStr: string): number => {
-    const [h, m] = timeStr.split(":").map((v) => parseInt(v, 10));
+    const [h, m] = timeStr.split(":").map((v) => Number.parseInt(v, 10));
     return timeToAngle(h || 0, m || 0);
   };
 
-  // 午前/午後に応じてスケジュールをフィルタリング
-  const filteredSchedules = staffSchedules.filter((schedule) => {
-    const startHour = schedule.startTime.split(":").map(Number)[0] ?? 0;
-    const endHour = schedule.endTime.split(":").map(Number)[0] ?? 0;
+  // 時間文字列を分に変換
+  const timeStrToMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
 
-    if (isPM) {
-      // 午後モード: 12:00-24:00のスケジュールのみ
-      // 開始時刻が12時以降、または終了時刻が12時より後（12時ちょうどは含まない）
-      return startHour >= 12 || endHour > 12;
-    } else {
-      // 午前モード: 0:00-12:00のスケジュールのみ
-      // 開始時刻が12時未満、または終了時刻が12時以下（12時ちょうどを含む）
-      return startHour < 12 || (startHour === 12 && endHour <= 12);
-    }
-  });
+  // 分を時間文字列に変換
+  const minutesToTimeStr = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+
+  // 午前/午後に応じてスケジュールをフィルタリング＋時間帯をクリップ
+  const NOON = 720; // 12:00 = 720分
+  const filteredSchedules = staffSchedules
+    .filter((schedule) => {
+      const startMins = timeStrToMinutes(schedule.startTime);
+      const endMins = timeStrToMinutes(schedule.endTime);
+      if (isPM) {
+        // 午後モード: 終了時刻が12:00より後のもの
+        return endMins > NOON;
+      } else {
+        // 午前モード: 開始時刻が12:00より前のもの
+        return startMins < NOON;
+      }
+    })
+    .map((schedule) => {
+      const startMins = timeStrToMinutes(schedule.startTime);
+      const endMins = timeStrToMinutes(schedule.endTime);
+      if (isPM) {
+        // PMモード: 開始時刻を12:00以降にクリップ
+        const clampedStart = Math.max(startMins, NOON);
+        return { startTime: minutesToTimeStr(clampedStart), endTime: schedule.endTime };
+      } else {
+        // AMモード: 終了時刻を12:00以前にクリップ
+        const clampedEnd = Math.min(endMins, NOON);
+        return { startTime: schedule.startTime, endTime: minutesToTimeStr(clampedEnd) };
+      }
+    });
 
   // スタッフがいる時間帯を青い円弧で描画
   const renderStaffArcs = () => {

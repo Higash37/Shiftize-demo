@@ -11,4 +11,5 @@ export type SampleSlot = {
 export type SampleScheduleColumn = {
   position: string;
   slots: SampleSlot[];
+  status?: string;
 };

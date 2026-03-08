@@ -1,5 +1,5 @@
 import type { IShiftService } from "../interfaces/IShiftService";
-import type { Shift, ShiftItem } from "@/common/common-models/ModelIndex";
+import type { Shift, ShiftItem, ShiftType, ShiftStatus, ClassTimeSlot, ShiftRequestedChanges } from "@/common/common-models/ModelIndex";
 import type { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLogger";
 import { getSupabase } from "./supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -9,50 +9,81 @@ import {
 } from "@/services/shift-history/shiftHistoryLogger";
 import { ServiceProvider } from "../ServiceProvider";
 
+/** Supabase shifts テーブルの行型 */
+interface ShiftRow {
+  id: string;
+  user_id?: string;
+  store_id?: string;
+  nickname?: string;
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  type?: ShiftType;
+  subject?: string;
+  notes?: string;
+  is_completed?: boolean;
+  status?: ShiftStatus;
+  duration?: number;
+  created_at?: string;
+  updated_at?: string;
+  classes?: ClassTimeSlot[];
+  requested_changes?: Shift["requestedChanges"] | null;
+  google_calendar_event_id?: string;
+  approved_by?: string;
+  rejected_reason?: string;
+}
+
 /** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
-const toShiftItemFromRow = (row: any): ShiftItem => ({
-  id: row.id,
-  userId: row.user_id || "",
-  storeId: row.store_id || "",
-  nickname: row.nickname || "",
-  date: row.date || "",
-  startTime: row.start_time || "",
-  endTime: row.end_time || "",
-  type: row.type || "user",
-  subject: row.subject || "",
-  notes: row.notes,
-  isCompleted: row.is_completed || false,
-  status: row.status || "draft",
-  duration: String(row.duration || ""),
-  createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-  updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
-  classes: row.classes || [],
-  requestedChanges: row.requested_changes || undefined,
-  googleCalendarEventId: row.google_calendar_event_id || undefined,
-});
+const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
+  const item: ShiftItem = {
+    id: row.id,
+    userId: row.user_id || "",
+    storeId: row.store_id || "",
+    nickname: row.nickname || "",
+    date: row.date || "",
+    startTime: row.start_time || "",
+    endTime: row.end_time || "",
+    type: row.type || "user",
+    isCompleted: row.is_completed || false,
+    status: row.status || "draft",
+    duration: String(row.duration ?? ""),
+    createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+  };
+  if (row.subject != null) item.subject = row.subject;
+  if (row.notes != null) item.notes = row.notes;
+  if (row.classes) item.classes = row.classes;
+  if (row.google_calendar_event_id) item.googleCalendarEventId = row.google_calendar_event_id;
+  const firstChange = row.requested_changes?.[0];
+  if (firstChange) item.requestedChanges = { startTime: firstChange.startTime, endTime: firstChange.endTime };
+  return item;
+};
 
-const toShiftFromRow = (row: any): Shift => ({
-  id: row.id,
-  userId: row.user_id || "",
-  storeId: row.store_id || "",
-  nickname: row.nickname || "",
-  date: row.date || "",
-  startTime: row.start_time || "",
-  endTime: row.end_time || "",
-  type: row.type || "user",
-  subject: row.subject || "",
-  notes: row.notes,
-  isCompleted: row.is_completed || false,
-  status: row.status || "draft",
-  duration: row.duration || "",
-  createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-  updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
-  classes: row.classes || [],
-  requestedChanges: row.requested_changes || undefined,
-  googleCalendarEventId: row.google_calendar_event_id || undefined,
-});
+const toShiftFromRow = (row: ShiftRow): Shift => {
+  const shift: Shift = {
+    id: row.id,
+    userId: row.user_id || "",
+    storeId: row.store_id || "",
+    date: row.date || "",
+    startTime: row.start_time || "",
+    endTime: row.end_time || "",
+    status: row.status || "draft",
+    createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+  };
+  if (row.nickname != null) shift.nickname = row.nickname;
+  if (row.type) shift.type = row.type;
+  if (row.subject != null) shift.subject = row.subject;
+  if (row.notes != null) shift.notes = row.notes;
+  if (row.is_completed != null) shift.isCompleted = row.is_completed;
+  if (row.duration != null) shift.duration = row.duration;
+  if (row.classes) shift.classes = row.classes;
+  if (row.requested_changes) shift.requestedChanges = row.requested_changes;
+  if (row.google_calendar_event_id) shift.googleCalendarEventId = row.google_calendar_event_id;
+  return shift;
+};
 
 const toInsertRow = (shift: Omit<Shift, "id"> & { id?: string }) => {
   const row: Record<string, unknown> = {
@@ -96,28 +127,31 @@ const toUpdateRow = (shift: Partial<Shift>) => {
   return row;
 };
 
-const shiftToShiftItem = (s: Shift & { id: string }): ShiftItem => {
+const shiftToShiftItem = (shift: Shift & { id: string }): ShiftItem => {
   const item: ShiftItem = {
-    id: s.id,
-    userId: s.userId || "",
-    storeId: s.storeId || "",
-    nickname: s.nickname || "",
-    date: s.date || "",
-    startTime: s.startTime || "",
-    endTime: s.endTime || "",
-    type: s.type || "user",
-    isCompleted: s.isCompleted || false,
-    status: s.status || "draft",
-    duration: String(s.duration || ""),
-    createdAt: s.createdAt || new Date(),
-    updatedAt: s.updatedAt || new Date(),
+    id: shift.id,
+    userId: shift.userId || "",
+    storeId: shift.storeId || "",
+    nickname: shift.nickname || "",
+    date: shift.date || "",
+    startTime: shift.startTime || "",
+    endTime: shift.endTime || "",
+    type: shift.type || "user",
+    isCompleted: shift.isCompleted || false,
+    status: shift.status || "draft",
+    duration: String(shift.duration || ""),
+    createdAt: shift.createdAt || new Date(),
+    updatedAt: shift.updatedAt || new Date(),
   };
-  if (s.subject !== undefined) item.subject = s.subject;
-  if (s.notes !== undefined) item.notes = s.notes;
-  if (s.classes !== undefined) item.classes = s.classes;
-  if (s.requestedChanges && Array.isArray(s.requestedChanges) && s.requestedChanges.length > 0) {
-    const rc = s.requestedChanges[0]!;
-    item.requestedChanges = { startTime: rc.startTime, endTime: rc.endTime };
+  if (shift.subject !== undefined) item.subject = shift.subject;
+  if (shift.notes !== undefined) item.notes = shift.notes;
+  if (shift.classes !== undefined) item.classes = shift.classes;
+  const firstChange =
+    shift.requestedChanges && Array.isArray(shift.requestedChanges) && shift.requestedChanges.length > 0
+      ? shift.requestedChanges[0]
+      : null;
+  if (firstChange) {
+    item.requestedChanges = { startTime: firstChange.startTime, endTime: firstChange.endTime };
   }
   return item;
 };
@@ -129,11 +163,45 @@ const mergeShiftForLogging = (
 ): { prev: ShiftItem | null; next: ShiftItem | null } => {
   const prev = prevData ? shiftToShiftItem({ ...prevData, id }) : null;
   if (!updates) return { prev, next: prev };
-  const merged = shiftToShiftItem({ ...(prevData || {} as Shift), ...updates, id });
+  const base: Partial<Shift> = prevData || {};
+  const merged = shiftToShiftItem({ ...base, ...updates, id } as Shift & { id: string });
   return { prev, next: merged };
 };
 
+// --- 副作用ヘルパー（監査ログ / Google Calendar 同期） ---
+
+/** 監査ログを記録する。ログ失敗時は握りつぶさず警告のみ。 */
+const recordAuditLog = async (
+  actor: ShiftHistoryActor,
+  prev: ShiftItem | null,
+  next: ShiftItem | null,
+) => {
+  const storeId = next?.storeId || prev?.storeId || "";
+  const action = determineActionType(prev, next, actor);
+  await logShiftChange(action, actor, storeId, next, prev);
+};
+
+/** Google Calendar にシフトを同期する（fire-and-forget）。 */
+const syncCalendar = (shift: Shift & { id: string }) => {
+  ServiceProvider.googleCalendar
+    .syncShiftToCalendar(shift)
+    .catch((err) => console.warn("Google Calendar同期に失敗しました:", err));
+};
+
+/** Google Calendar からシフトを削除する（fire-and-forget）。 */
+const removeFromCalendar = (shiftId: string, eventId: string) => {
+  ServiceProvider.googleCalendar
+    .removeShiftFromCalendar(shiftId, eventId)
+    .catch((err) => console.warn("Google Calendarイベント削除に失敗しました:", err));
+};
+
 export class SupabaseShiftAdapter implements IShiftService {
+  private async fetchShiftById(id: string): Promise<Shift | null> {
+    const supabase = getSupabase();
+    const { data } = await supabase.from("shifts").select("*").eq("id", id).single();
+    return data ? toShiftFromRow(data) : null;
+  }
+
   async getShift(id: string): Promise<Shift | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -178,24 +246,17 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
     const shiftId = data.id;
 
-    // 監査ログ
     if (actor) {
       const next = shiftToShiftItem({
-        ...shift,
-        id: shiftId,
+        ...shift, id: shiftId,
         status: shift.status || "draft",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date(), updatedAt: new Date(),
       });
-      const action = determineActionType(null, next as any, actor);
-      await logShiftChange(action, actor, next.storeId, next as any, undefined);
+      await recordAuditLog(actor, null, next);
     }
 
-    // Google Calendar同期 (fire-and-forget)
     if (shift.status === "approved") {
-      ServiceProvider.googleCalendar
-        .syncShiftToCalendar({ id: shiftId, ...shift } as any)
-        .catch(() => {});
+      syncCalendar({ id: shiftId, ...shift } as Shift & { id: string });
     }
 
     return shiftId;
@@ -208,14 +269,7 @@ export class SupabaseShiftAdapter implements IShiftService {
   ): Promise<void> {
     const supabase = getSupabase();
 
-    // 変更前のデータ取得
-    const { data: prevRow } = await supabase
-      .from("shifts")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    const previousData = prevRow ? toShiftFromRow(prevRow) : null;
+    const previousData = await this.fetchShiftById(id);
 
     const row = toUpdateRow(shift);
     const { error } = await supabase.from("shifts").update(row).eq("id", id);
@@ -223,28 +277,17 @@ export class SupabaseShiftAdapter implements IShiftService {
 
     if (actor && previousData) {
       const { prev, next } = mergeShiftForLogging(id, previousData, {
-        ...shift,
-        updatedAt: new Date(),
+        ...shift, updatedAt: new Date(),
       });
       if (next) {
-        const action = determineActionType(prev as any, next as any, actor);
-        await logShiftChange(
-          action,
-          actor,
-          next.storeId || prev?.storeId || "",
-          next as any,
-          prev as any
-        );
+        await recordAuditLog(actor, prev, next);
       }
     }
 
-    // Google Calendar同期 (fire-and-forget)
-    // 承認済み or カレンダーイベントIDがある場合のみ同期/削除を試行
-    const merged = { ...previousData, ...shift, id } as any;
-    if (merged.status === "approved" || merged.googleCalendarEventId) {
-      ServiceProvider.googleCalendar
-        .syncShiftToCalendar(merged)
-        .catch(() => {});
+    const merged = { ...previousData, ...shift, id } as Shift & { id: string };
+    const shouldSync = merged.status === "approved" || merged.googleCalendarEventId;
+    if (shouldSync) {
+      syncCalendar(merged);
     }
   }
 
@@ -255,38 +298,18 @@ export class SupabaseShiftAdapter implements IShiftService {
   ): Promise<void> {
     const supabase = getSupabase();
 
-    // 削除前にシフト情報を取得（通知・ログ用）
-    const { data: shiftRow } = await supabase
-      .from("shifts")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const shiftData = await this.fetchShiftById(id);
 
-    const shiftData = shiftRow ? toShiftFromRow(shiftRow) : null;
-
-    // Google Calendarイベント削除 (fire-and-forget)
     if (shiftData?.googleCalendarEventId) {
-      ServiceProvider.googleCalendar
-        .removeShiftFromCalendar(id, shiftData.googleCalendarEventId)
-        .catch(() => {});
+      removeFromCalendar(id, shiftData.googleCalendarEventId);
     }
 
-    // 削除
     const { error } = await supabase.from("shifts").delete().eq("id", id);
     if (error) throw error;
 
-    // 監査ログ
     if (deletedBy && shiftData) {
       const prev = shiftToShiftItem({ ...shiftData, id });
-      const action = determineActionType(prev as any, null, deletedBy);
-      await logShiftChange(
-        action,
-        deletedBy,
-        prev.storeId,
-        undefined,
-        prev as any,
-        reason ? { reason } : undefined
-      );
+      await recordAuditLog(deletedBy, prev, null);
     }
   }
 
@@ -296,91 +319,103 @@ export class SupabaseShiftAdapter implements IShiftService {
   ): Promise<void> {
     const supabase = getSupabase();
 
-    const { data: shiftRow } = await supabase
-      .from("shifts")
-      .select("*")
-      .eq("id", id)
-      .single();
+    // 1. 現在のシフトデータを取得
+    const shiftData = await this.fetchShiftById(id);
+    if (!shiftData) return;
 
-    if (!shiftRow) return;
+    const isPending = shiftData.status === "pending";
+    const hasRequestedChanges = shiftData.requestedChanges;
+    if (!isPending && !hasRequestedChanges) return;
 
-    const shiftData = toShiftFromRow(shiftRow);
-    const isPendingToApproved = shiftData.status === "pending";
+    // 2. DB更新：変更リクエスト適用 or 単純ステータス変更
+    await this.applyApproval(id, shiftData);
+
+    // 3. Google Calendar同期（fire-and-forget）
+    const updatedShift = await this.fetchShiftById(id);
+    if (updatedShift) {
+      syncCalendar({ ...updatedShift, id } as Shift & { id: string });
+    }
+
+    // 4. 監査ログ
+    if (approver) {
+      const updates = this.buildApprovalUpdates(shiftData);
+      const { prev, next } = mergeShiftForLogging(id, shiftData, updates);
+      if (next) {
+        await recordAuditLog(approver, prev, next);
+      }
+    }
+  }
+
+  /** 承認時のDB更新を実行する */
+  private async applyApproval(id: string, shiftData: Shift): Promise<void> {
+    const supabase = getSupabase();
     const hasRequestedChanges = shiftData.requestedChanges;
 
-    if (hasRequestedChanges) {
-      const changes =
-        Array.isArray(hasRequestedChanges)
-          ? hasRequestedChanges[0]
-          : hasRequestedChanges;
-      const updateData: Record<string, unknown> = {
-        status: "approved",
-        requested_changes: null,
-      };
-      if (changes && changes.startTime) updateData['start_time'] = changes.startTime;
-      if (changes && changes.endTime) updateData['end_time'] = changes.endTime;
-      if (changes && changes.date) updateData['date'] = changes.date;
-      if (changes && changes.type) updateData['type'] = changes.type;
-      if (changes && changes.subject) updateData['subject'] = changes.subject;
-
-      const { error } = await supabase
-        .from("shifts")
-        .update(updateData)
-        .eq("id", id);
-      if (error) throw error;
-    } else if (isPendingToApproved) {
+    if (!hasRequestedChanges) {
+      // 単純承認：ステータスのみ変更
       const { error } = await supabase
         .from("shifts")
         .update({ status: "approved" })
         .eq("id", id);
       if (error) throw error;
+      return;
     }
 
-    // Google Calendar同期: 承認時にイベント作成 (fire-and-forget)
-    if (isPendingToApproved || hasRequestedChanges) {
-      const { data: updatedRow } = await supabase
+    // 変更リクエスト適用：リクエスト内容をシフトに反映
+    const changes = Array.isArray(hasRequestedChanges)
+      ? hasRequestedChanges[0]
+      : hasRequestedChanges;
+
+    // 空配列だった場合、適用する変更がないので単純承認にフォールバック
+    if (!changes) {
+      const { error } = await supabase
         .from("shifts")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      if (updatedRow) {
-        ServiceProvider.googleCalendar
-          .syncShiftToCalendar(toShiftFromRow(updatedRow) as any)
-          .catch(() => {});
-      }
+        .update({ status: "approved", requested_changes: null })
+        .eq("id", id);
+      if (error) throw error;
+      return;
     }
 
-    // 監査ログ
-    if (
-      approver &&
-      shiftData &&
-      (isPendingToApproved || hasRequestedChanges)
-    ) {
-      const changesObj = (Array.isArray(hasRequestedChanges)
-        ? hasRequestedChanges[0]
-        : hasRequestedChanges) || {};
-      const updates: Partial<Shift> = hasRequestedChanges
-        ? {
-            ...changesObj,
-            status: "approved",
-            updatedAt: new Date(),
-          }
-        : { status: "approved", updatedAt: new Date() };
-      // Clear requestedChanges from the merged result
-      delete updates.requestedChanges;
+    const updateData: Record<string, unknown> = {
+      status: "approved",
+      requested_changes: null,
+    };
+    if (changes.startTime) updateData['start_time'] = changes.startTime;
+    if (changes.endTime) updateData['end_time'] = changes.endTime;
+    if (changes.date) updateData['date'] = changes.date;
+    if (changes.type) updateData['type'] = changes.type;
+    if (changes.subject) updateData['subject'] = changes.subject;
 
-      const { prev, next } = mergeShiftForLogging(id, shiftData, updates);
-      if (next) {
-        const action = determineActionType(prev as any, next as any, approver);
-        await logShiftChange(
-          action,
-          approver,
-          next.storeId || prev?.storeId || "",
-          next as any,
-          prev as any
-        );
-      }
+    const { error } = await supabase
+      .from("shifts")
+      .update(updateData)
+      .eq("id", id);
+    if (error) throw error;
+  }
+
+  /** 承認内容から監査ログ用の更新差分を構築する */
+  private buildApprovalUpdates(shiftData: Shift): Partial<Shift> {
+    const hasRequestedChanges = shiftData.requestedChanges;
+    if (!hasRequestedChanges) {
+      return { status: "approved", updatedAt: new Date() };
     }
+
+    const changes = Array.isArray(hasRequestedChanges)
+      ? hasRequestedChanges[0]
+      : hasRequestedChanges;
+
+    // 空配列で changes が undefined の場合は単純承認と同じ
+    if (!changes) {
+      return { status: "approved", updatedAt: new Date() };
+    }
+
+    const updates: Partial<Shift> = {
+      ...changes,
+      status: "approved",
+      updatedAt: new Date(),
+    };
+    delete updates.requestedChanges;
+    return updates;
   }
 
   async markShiftAsCompleted(id: string): Promise<void> {

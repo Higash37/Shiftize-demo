@@ -1,7 +1,9 @@
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
+
 export interface StoreAccess {
   storeId: string;
   storeName: string;
-  role: "master" | "user";
+  role: UserRole;
   nickname: string;
   joinedAt: Date;
   isActive: boolean;
@@ -45,7 +47,7 @@ export interface IMultiStoreService {
     inviterStoreId: string,
     userEmail: string,
     nickname: string,
-    role?: "master" | "user"
+    role?: UserRole
   ): Promise<void>;
 
   switchCurrentStore(userUid: string, storeId: string): Promise<void>;

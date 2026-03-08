@@ -32,7 +32,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const convertedShifts = useMemo(() => {
     return shifts.map(shift => ({
       ...shift,
-      duration: typeof shift.duration === 'string' ? parseFloat(shift.duration) : shift.duration
+      duration: typeof shift.duration === 'string' ? Number.parseFloat(shift.duration) : shift.duration
     }));
   }, [shifts]);
 
@@ -163,7 +163,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       // 少し遅延を入れてスクロールを実行（レイアウト計算のため）
       setTimeout(() => {
         const shiftRef = shiftRefs[selectedShift.id];
-        if (shiftRef && 'measureLayout' in shiftRef && typeof shiftRef.measureLayout === 'function') {
+        const canMeasure = shiftRef && 'measureLayout' in shiftRef && typeof shiftRef.measureLayout === 'function';
+        if (canMeasure) {
           shiftRef.measureLayout(
             // @ts-ignore
             scrollViewRef.current?._nativeRef,
@@ -250,11 +251,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       marginHorizontal: 3,
                       borderWidth: 1,
                       borderColor: borderColor,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 2,
-                      elevation: 1,
+                      elevation: 0,
                     }}
                     onPress={() => onShiftPress && onShiftPress(shift)}
                     activeOpacity={0.7}

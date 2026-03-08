@@ -5,7 +5,7 @@ import { ja } from "date-fns/locale";
 import { createShiftDetailsStyles } from "./ShiftDetails.styles";
 import { ShiftDetailsProps } from "./ShiftDetails.types";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
-// import { parseTimeString } from "../../calendar-utils/shift.utils";
+import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
 import { parseTimeString } from "../calendar-utils/shift.utils";
 
 /**
@@ -20,6 +20,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
   isOpen,
 }) => {
   const styles = useThemedStyles(createShiftDetailsStyles);
+  const { typesMap } = useTimeSegmentTypesContext();
   const heightAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -56,13 +57,19 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
             {/* 授業時間とその間のスタッフ時間 */}
             {shift.classes.map(
               (
-                classTime: { startTime: string; endTime: string },
+                classTime: { startTime: string; endTime: string; typeId?: string; typeName?: string },
                 index: number
-              ) => (
+              ) => {
+                const defaultType = Object.values(typesMap).find((t) => t.name === "授業");
+                const segType = classTime.typeId ? typesMap[classTime.typeId] : defaultType;
+                const displayName = segType?.name || classTime.typeName || "授業";
+                const displayIcon = segType?.icon || "";
+                const displayColor = segType?.color;
+                return (
                 <React.Fragment key={index}>
-                  <View style={[styles.timeSlot, styles.classTimeSlot]}>
-                    <Text style={[styles.timeSlotLabel, styles.classLabel]}>
-                      授業
+                  <View style={[styles.timeSlot, styles.classTimeSlot, displayColor ? { backgroundColor: displayColor + "18" } : undefined]}>
+                    <Text style={[styles.timeSlotLabel, styles.classLabel, displayColor ? { color: displayColor } : undefined]}>
+                      {displayIcon ? `${displayIcon} ${displayName}` : displayName}
                     </Text>
                     <Text style={[styles.timeText, styles.classTime]}>
                       {format(
@@ -97,7 +104,8 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                     </View>
                   )}
                 </React.Fragment>
-              )
+              );
+              }
             )}
             {/* 最後のスタッフ時間 */}
             <View style={styles.timeSlot}>
@@ -106,7 +114,7 @@ export const ShiftDetails: React.FC<ShiftDetailsProps> = ({
                 {format(
                   parseTimeString(
                     shift.date,
-                    shift.classes[shift.classes.length - 1]?.endTime || "22:00"
+                    shift.classes.at(-1)?.endTime || "22:00"
                   ),
                   "HH:mm"
                 )}

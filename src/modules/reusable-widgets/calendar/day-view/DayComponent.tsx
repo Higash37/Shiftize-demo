@@ -5,6 +5,7 @@ import { useResponsiveCalendarSize } from "../constants";
 import { createDayComponentStyles, getIOSDayColor } from "./DayComponent.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { APP_FONT_FAMILY } from "@/common/common-constants/FontConstants";
 
 /**
  * カレンダーの日付コンポーネント
@@ -49,30 +50,22 @@ export const DayComponent = memo<DayComponentPropsExtended>(
           styles.dayContainer,
           dynamicStyles.dayContainer,
           {
-            // 選択中はすべての境界線を0にして、白い線が表示されないようにする
+            // 選択セル・その右隣セルはボーダーなし
             borderLeftWidth:
-              isSelected ||
-              (date &&
-                date.dateString &&
+              isSelected || (marking as any)?.afterSelected ||
+              (date && date.dateString &&
                 (new Date(date.dateString).getDay() === 0 || state === "today"))
-                ? 0
-                : 1,
-            borderLeftColor: isSelected ? "transparent" : "#E5E5E5",
-            // 選択中は右側に青い境界線を追加して、隣のグレーの線を覆う
-            borderRightWidth: isSelected ? 2 : 0,
-            borderRightColor: isSelected ? "#007AFF" : "transparent",
+                ? 0 : 1,
+            borderLeftColor: "#E5E5E5",
+            borderRightWidth: 0,
             borderTopWidth: 0,
             borderBottomWidth: 0,
             borderRadius: 0,
             backgroundColor: isSelected ? "#007AFF" : "transparent",
-            // 選択された日付を右側に広げて、隣のセルの線を完全に覆う
-            paddingRight: isSelected ? 1 : 0,
-            marginRight: isSelected ? -1 : 0,
-            zIndex: isSelected ? 10 : 0,
           },
         ]}
         onPress={() => date && onPress(date.dateString)}
-        activeOpacity={isSelected ? 0.8 : 0.6} // iOS風にやや弱め
+        activeOpacity={isSelected ? 0.8 : 0.6}
       >
         <Text
           style={[
@@ -80,12 +73,11 @@ export const DayComponent = memo<DayComponentPropsExtended>(
             dynamicStyles.dayText,
             {
               color: isSelected ? "#fff" : dayColor,
-              fontFamily:
-                "SF Pro Text, San Francisco, Helvetica Neue, Arial, sans-serif",
+              fontFamily: APP_FONT_FAMILY,
               fontWeight: isToday ? "700" : "500",
               fontSize: isToday ? 20 : 18,
               backgroundColor:
-                isToday && !isSelected ? "#F2F6FF" : "transparent", // 今日のセルを淡色でハイライト
+                isToday && !isSelected ? "#F2F6FF" : "transparent",
               borderRadius: 8,
               paddingHorizontal: 2,
               paddingVertical: 1,

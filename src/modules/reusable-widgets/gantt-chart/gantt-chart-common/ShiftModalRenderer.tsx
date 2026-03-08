@@ -30,7 +30,7 @@ interface ShiftModalRendererProps {
   timeOptions: string[];
   statusConfigs: ShiftStatusConfig[];
   styles: any;
-  saveShift: (editingShift: ShiftItem | null, newShiftData: any) => Promise<void>;
+  saveShift: (editingShift: ShiftItem | null, newShiftData: NewShiftData) => Promise<void>;
   deleteShift: (shift: { id: string; status: string }) => Promise<void>;
   updateShiftStatus: (shiftId: string, status: ShiftStatus) => Promise<void>;
   user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
@@ -111,17 +111,17 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
       return;
     }
 
-    try {
-      const shiftToUpdate = showEditModal ? editingShift : null;
-      await saveShift(shiftToUpdate, newShiftData);
+    // モーダルを即座に閉じる
+    const shiftToUpdate = showEditModal ? editingShift : null;
+    setShowEditModal(false);
+    setShowAddModal(false);
+    setEditingShift(null);
+    setNewShiftData(DEFAULT_SHIFT_DATA);
 
-      setShowEditModal(false);
-      setShowAddModal(false);
-      setEditingShift(null);
-      setNewShiftData(DEFAULT_SHIFT_DATA);
-    } catch (error) {
+    // バックグラウンドで保存（リアルタイムリスナーがガントチャートを自動更新）
+    saveShift(shiftToUpdate, newShiftData).catch(() => {
       Alert.alert("エラー", "シフトの保存に失敗しました。");
-    }
+    });
   }, [editingShift, newShiftData, saveShift, showEditModal, user]);
 
   const handleDeleteShift = useCallback(async () => {
@@ -193,7 +193,6 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
           newShiftData={newShiftData}
           users={users}
           timeOptions={timeOptions}
-          statusConfigs={statusConfigs}
           isLoading={isLoading}
           styles={styles}
           onChange={handleAddChange}

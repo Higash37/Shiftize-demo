@@ -7,7 +7,7 @@ export default function MasterShiftCreateScreen() {
     useLocalSearchParams();
   return (
     <MasterShiftCreateView
-      mode={mode as string}
+      mode={(mode as string) === "edit" ? "edit" : "create"}
       shiftId={shiftId as string}
       date={date as string}
       startTime={startTime as string}

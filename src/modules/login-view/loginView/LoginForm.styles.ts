@@ -47,35 +47,6 @@ export const createLoginFormStyles = (
       textAlign: "center",
       fontWeight: "500",
     },
-    // タブ切り替え
-    tabContainer: {
-      flexDirection: "row",
-      marginBottom: theme.spacing.xl,
-      backgroundColor: theme.colorScheme.surfaceContainerHigh,
-      borderRadius: theme.shape.small,
-    },
-    tab: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      borderRadius: theme.shape.small,
-    },
-    tabActive: {
-      backgroundColor: theme.colorScheme.primary,
-    },
-    tabIcon: {
-      marginRight: theme.spacing.sm,
-    },
-    tabText: {
-      ...theme.typography.labelLarge,
-      color: theme.colorScheme.primary,
-    },
-    tabTextActive: {
-      color: theme.colorScheme.onPrimary,
-    },
     // 入力フィールド
     inputGroup: {
       marginBottom: theme.spacing.xl,

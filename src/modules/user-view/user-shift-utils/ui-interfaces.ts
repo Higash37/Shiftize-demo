@@ -11,18 +11,18 @@ export interface BaseUIProps {
 /**
  * 入力系コンポーネントの基本プロパティ
  */
-export interface BaseInputProps extends BaseUIProps {
+export interface BaseInputProps<T = string> extends BaseUIProps {
   label?: string;
   error?: string;
   disabled?: boolean;
-  onChange?: (value: any) => void;
-  value?: any;
+  onChange?: (value: T) => void;
+  value?: T;
 }
 
 /**
  * 時間関連コンポーネントの基本プロパティ
  */
-export interface BaseTimeProps extends BaseInputProps {
+export interface BaseTimeProps<T = string> extends BaseInputProps<T> {
   timeFormat?: "24h" | "12h";
   minuteInterval?: 5 | 10 | 15 | 30;
 }

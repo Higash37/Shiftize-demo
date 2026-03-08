@@ -1,4 +1,5 @@
 import { TextStyle } from "react-native";
+import { APP_FONT_FAMILY } from "@/common/common-constants/FontConstants";
 
 /**
  * Material Design 3 タイポグラフィスケール
@@ -28,8 +29,7 @@ export interface MD3TypeScale {
   labelSmall: TextStyle;
 }
 
-const fontFamily =
-  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+const fontFamily = APP_FONT_FAMILY;
 
 export const md3Typography: MD3TypeScale = {
   // Display - 画面タイトル、大きな数値表示

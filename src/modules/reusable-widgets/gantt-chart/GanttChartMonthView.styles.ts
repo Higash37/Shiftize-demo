@@ -23,11 +23,7 @@ export const createGanttChartMonthViewStyles = (theme: MD3Theme) =>
       height: 29,
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: theme.colorScheme.primary,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.25,
-      shadowRadius: 5,
-      elevation: 4,
+      elevation: 0,
     },
     modalOverlay: {
       flex: 1,
@@ -269,7 +265,7 @@ export const createGanttChartMonthViewStyles = (theme: MD3Theme) =>
       alignItems: "center",
       paddingHorizontal: 0,
       paddingVertical: 0,
-      elevation: 3,
+      elevation: 0,
       borderWidth: 0,
     },
     shiftBarText: {
