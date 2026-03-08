@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from './interactive-demo-viewer.styles';
+import { styles } from './InteractiveDemoViewer.styles';
 
 interface InteractiveDemoViewerProps {
   onDemoClick: () => void;

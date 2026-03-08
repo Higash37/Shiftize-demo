@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter, useNavigation } from "expo-router";
 import { ServiceProvider } from "@/services/ServiceProvider";
+import { compareByDateThenTime } from "@/common/common-utils/util-shift/wageCalculator";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { Header } from "@/common/common-ui/ui-layout/LayoutHeader";
@@ -43,7 +44,7 @@ export const UserShiftList = () => {
   const [modalShift, setModalShift] = useState<ShiftItem | null>(null);
   const [currentUserStoreId, setCurrentUserStoreId] = useState<
     string | undefined
-  >(undefined);
+  >(user?.storeId);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [comments, setComments] = useState("");
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -85,7 +86,7 @@ export const UserShiftList = () => {
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
         user?.storeId || ""
       );
-      const currentPeriod = periods.length > 0 ? periods[0] : null;
+      const currentPeriod = periods[0] ?? null;
       setPeriod(currentPeriod ?? null);
 
       // 確定状況もロード
@@ -137,11 +138,12 @@ export const UserShiftList = () => {
 
   const handleConfirmComplete = async () => {
     try {
-      if (user?.uid && user?.storeId && period?.id) {
+      const canConfirm = user?.uid && user?.storeId && period?.id;
+      if (canConfirm) {
         await ServiceProvider.shiftConfirmations.confirmShift(
-          user.uid,
-          user.storeId,
-          period.id
+          user!.uid,
+          user!.storeId!,
+          period!.id
         );
         setIsCompleted(true);
         setShowConfirmModal(false);
@@ -152,23 +154,12 @@ export const UserShiftList = () => {
     }
   };
 
-  // ユーザーの店舗IDを取得
+  // AuthContextのstoreIdを同期
   useEffect(() => {
-    const fetchUserStoreId = async () => {
-      if (!user?.uid) return;
-
-      try {
-        const userData = await ServiceProvider.users.getUserData(user.uid) as (Record<string, any>) | null;
-        if (userData) {
-          setCurrentUserStoreId(userData['storeId']);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchUserStoreId();
-  }, [user]);
+    if (user?.storeId) {
+      setCurrentUserStoreId(user.storeId);
+    }
+  }, [user?.storeId]);
 
   // カレンダーがマウントされた時に現在の月を設定
   const handleCalendarMount = () => {
@@ -218,17 +209,7 @@ export const UserShiftList = () => {
 
         return isInDateRange && isUserShift && isNotDeleted;
       })
-      .sort((a, b) => {
-        const dateCompare =
-          new Date(a.date).getTime() - new Date(b.date).getTime();
-        if (dateCompare === 0) {
-          return (
-            new Date(`2000-01-01T${a.startTime}`).getTime() -
-            new Date(`2000-01-01T${b.startTime}`).getTime()
-          );
-        }
-        return dateCompare;
-      });
+      .sort(compareByDateThenTime);
 
     return filteredShifts;
   }, [shifts, displayMonth, user]);

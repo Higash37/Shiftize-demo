@@ -1,4 +1,4 @@
-import { User } from "@/common/common-models/model-user/UserModel";
+import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 
 /**
  * ユーザー関連コンポーネントの型定義
@@ -30,7 +30,7 @@ export interface UserFormProps extends BaseUserProps {
     email: string;
     password?: string;
     nickname: string;
-    role: "master" | "user";
+    role: UserRole;
     color?: string;
     storeId?: string;
     hourlyWage?: number;

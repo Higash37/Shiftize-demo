@@ -14,6 +14,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { createExtendedShiftReportStyles } from "./ExtendedShiftReportModal.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { createActor } from "@/services/shift-history/shiftHistoryLogger";
 
 interface ExtendedShiftReportModalProps {
   visible: boolean;
@@ -46,10 +47,10 @@ export const ExtendedShiftReportModal: React.FC<
           status: "completed",
           notes: comments || shift.notes || "",
         },
-        {
-          userId: user?.uid || shift?.userId || "",
-          nickname: user?.nickname || shift?.nickname || "不明",
-          role: ((user?.role as "master" | "teacher") || "teacher") as "master" | "teacher"
+        createActor(user, "teacher") ?? {
+          userId: shift?.userId || "",
+          nickname: shift?.nickname || "不明",
+          role: "teacher" as const,
         }
       );
 

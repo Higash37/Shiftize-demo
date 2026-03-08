@@ -40,7 +40,7 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   },
   {
     name: "info",
-    label: "インフォ",
+    label: "業務",
     path: "/master/info",
     icon: (active: boolean) => (
       <Ionicons
@@ -52,12 +52,12 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
     isUnderDevelopment: false,
   },
   {
-    name: "thisMonth",
-    label: "今月のシフト",
-    path: "/master/shifts/this-month",
+    name: "today",
+    label: "当日",
+    path: "/master/today",
     icon: (active: boolean) => (
-      <FontAwesome5
-        name="calendar-alt"
+      <Ionicons
+        name="today"
         size={24}
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
@@ -66,7 +66,7 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   },
   {
     name: "create",
-    label: "シフト追加",
+    label: "追加",
     path: "/master/shifts/create",
     icon: (active: boolean) => (
       <AntDesign
@@ -78,8 +78,21 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
     isUnderDevelopment: false,
   },
   {
+    name: "thisMonth",
+    label: "今月",
+    path: "/master/shifts/this-month",
+    icon: (active: boolean) => (
+      <FontAwesome5
+        name="calendar-alt"
+        size={24}
+        color={active ? cs.primary : cs.onSurfaceVariant}
+      />
+    ),
+    isUnderDevelopment: false,
+  },
+  {
     name: "nextMonth",
-    label: "来月のシフト",
+    label: "来月",
     path: "/master/shifts/next-month",
     icon: (active: boolean) => (
       <FontAwesome5
@@ -92,7 +105,7 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   },
   {
     name: "users",
-    label: "ユーザー管理",
+    label: "ユーザー",
     path: "/master/users",
     icon: (active: boolean) => (
       <MaterialIcons
@@ -106,7 +119,7 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
   {
     name: "settings",
     label: "設定",
-    path: "/master/master-settings",
+    path: "/master/settings",
     icon: (active: boolean) => (
       <Ionicons
         name="settings"
@@ -114,7 +127,7 @@ const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
         color={active ? cs.primary : cs.onSurfaceVariant}
       />
     ),
-    isUnderDevelopment: false,
+    isUnderDevelopment: true,
   },
 ];
 function isStandalonePWA() {
@@ -156,7 +169,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
         user?.storeId || ""
       );
-      setPeriod(periods.length > 0 ? periods[0] || null : null);
+      setPeriod(periods?.[0] ?? null);
     } catch (error) {
       console.warn("Failed to load active period:", error);
     }

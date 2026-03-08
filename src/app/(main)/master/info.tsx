@@ -10,7 +10,7 @@ export default function InfoPage() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colorScheme.surfaceContainerLowest }}>
-      <Header title="経営ダッシュボード" showBackButton={false} />
+      <Header title="業務" showBackButton={false} />
       <View style={{ flex: 1 }}>
         <InfoDashboard />
       </View>

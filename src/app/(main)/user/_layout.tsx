@@ -37,7 +37,8 @@ export default function userLayout() {
   }
 
   // 一度も認可されていない場合のみnullを返す（リダイレクト待ち）
-  if ((!user || (role !== "user" && !isRecruitmentPage)) && !wasAuthorized.current) {
+  const isUnauthorized = !user || (role !== "user" && !isRecruitmentPage);
+  if (isUnauthorized && !wasAuthorized.current) {
     return null;
   }
 
@@ -57,13 +58,7 @@ export default function userLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen 
-          name="files"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
+        <Stack.Screen
           name="shifts/index"
           options={{
             headerShown: false,
@@ -75,7 +70,13 @@ export default function userLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen 
+        <Stack.Screen
+          name="today"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="change-password"
           options={{
             headerShown: false,

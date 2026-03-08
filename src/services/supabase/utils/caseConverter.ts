@@ -12,6 +12,10 @@ function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+function isNonNullObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 /**
  * オブジェクトのキーを camelCase → snake_case に変換
  * INSERT/UPDATE前に使用
@@ -22,9 +26,7 @@ export function toSnakeCase<T extends Record<string, unknown>>(
   if (obj === null || obj === undefined) return obj;
   if (Array.isArray(obj)) {
     return obj.map((item) =>
-      typeof item === "object" && item !== null
-        ? toSnakeCase(item as Record<string, unknown>)
-        : item
+      isNonNullObject(item) ? toSnakeCase(item) : item
     ) as unknown as Record<string, unknown>;
   }
   if (typeof obj !== "object") return obj;
@@ -33,19 +35,18 @@ export function toSnakeCase<T extends Record<string, unknown>>(
   for (const [key, value] of Object.entries(obj)) {
     const snakeKey = camelToSnake(key);
     if (value !== undefined) {
-      // Date -> ISO string
       if (value instanceof Date) {
         result[snakeKey] = value.toISOString();
       } else if (Array.isArray(value)) {
         result[snakeKey] = value.map((item) =>
-          typeof item === "object" && item !== null && !(item instanceof Date)
-            ? toSnakeCase(item as Record<string, unknown>)
-            : item instanceof Date
-              ? item.toISOString()
+          item instanceof Date
+            ? item.toISOString()
+            : isNonNullObject(item)
+              ? toSnakeCase(item)
               : item
         );
-      } else if (typeof value === "object" && value !== null) {
-        result[snakeKey] = toSnakeCase(value as Record<string, unknown>);
+      } else if (isNonNullObject(value)) {
+        result[snakeKey] = toSnakeCase(value);
       } else {
         result[snakeKey] = value;
       }
@@ -64,9 +65,7 @@ export function toCamelCase<T = Record<string, unknown>>(
   if (obj === null || obj === undefined) return obj as unknown as T;
   if (Array.isArray(obj)) {
     return obj.map((item) =>
-      typeof item === "object" && item !== null
-        ? toCamelCase(item as Record<string, unknown>)
-        : item
+      isNonNullObject(item) ? toCamelCase(item) : item
     ) as unknown as T;
   }
   if (typeof obj !== "object") return obj as unknown as T;
@@ -76,12 +75,10 @@ export function toCamelCase<T = Record<string, unknown>>(
     const camelKey = snakeToCamel(key);
     if (Array.isArray(value)) {
       result[camelKey] = value.map((item) =>
-        typeof item === "object" && item !== null
-          ? toCamelCase(item as Record<string, unknown>)
-          : item
+        isNonNullObject(item) ? toCamelCase(item) : item
       );
-    } else if (typeof value === "object" && value !== null) {
-      result[camelKey] = toCamelCase(value as Record<string, unknown>);
+    } else if (isNonNullObject(value)) {
+      result[camelKey] = toCamelCase(value);
     } else {
       result[camelKey] = value;
     }

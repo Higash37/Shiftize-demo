@@ -7,6 +7,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import CryptoJS from "crypto-js";
 import { SecurityLogger } from "./securityUtils";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 
 // 本格的なAES暗号化 - 業界標準のセキュリティレベル
 export class AESEncryption {
@@ -222,7 +223,7 @@ export interface EncryptedPersonalInfo {
   nickname: string; // ニックネーム（平文OK）
   email: string; // メールアドレス（Supabase Auth管理）
   birthdayYear?: number; // 誕生年（年のみなら平文OK）
-  role: "master" | "user";
+  role: UserRole;
   storeId: string;
 }
 

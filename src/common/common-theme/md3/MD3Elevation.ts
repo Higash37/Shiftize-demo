@@ -29,24 +29,22 @@ export interface MD3ElevationScale {
   level5: MD3ElevationLevel;
 }
 
-/** プラットフォーム対応のシャドウ生成 */
+/** プラットフォーム対応のシャドウ生成（影は全体的に無効化済み） */
 const createShadow = (
-  y: number,
-  blur: number,
-  opacity: number,
-  elevation: number,
+  _y: number,
+  _blur: number,
+  _opacity: number,
+  _elevation: number,
 ): ViewStyle => {
   if (Platform.OS === "web") {
-    return {
-      boxShadow: `0px ${y}px ${blur}px rgba(0, 0, 0, ${opacity})`,
-    } as ViewStyle;
+    return { boxShadow: "none" } as ViewStyle;
   }
   return {
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: y },
-    shadowOpacity: opacity,
-    shadowRadius: blur,
-    elevation,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   };
 };
 

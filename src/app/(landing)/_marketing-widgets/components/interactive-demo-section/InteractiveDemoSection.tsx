@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native"
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { InteractiveDemoViewer } from "../interactive-demo-viewer";
-import { styles } from "./interactive-demo-section.styles";
+import { styles } from "./InteractiveDemoSection.styles";
 
 interface InteractiveDemoSectionProps {
   onDemoClick: () => void;

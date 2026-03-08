@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { styles } from "./social-proof-section.styles";
+import { styles } from "./SocialProofSection.styles";
 
 export const SocialProofSection: React.FC = () => {
   const router = useRouter();

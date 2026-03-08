@@ -155,7 +155,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
               </Text>
             </View>
             <Text style={styles.summarySubtext}>
-              総シフト数: {grandTotal.shiftCount}件 | ※授業時間を除く
+              総シフト数: {grandTotal.shiftCount}件 | ※途中時間（給与除外分）を除く
             </Text>
             <Text style={styles.summaryNote}>
               ※承認済み・完了のシフトのみ計算対象
@@ -228,11 +228,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 500,
     maxHeight: "85%",
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    elevation: 0,
   },
   header: {
     flexDirection: "row",

@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
+import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import { format, addMonths, subMonths, addDays, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
@@ -15,6 +16,35 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import type { MarkedDates } from "react-native-calendars/src/types";
+
+/** 時刻文字列を分に変換 */
+function timeToMinutesLocal(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+}
+
+/** time が [startTime, endTime) の範囲内かチェック */
+function isTimeInRange(time: string, startTime: string, endTime: string): boolean {
+  const current = timeToMinutesLocal(time);
+  return current >= timeToMinutesLocal(startTime) && current < timeToMinutesLocal(endTime);
+}
+
+/** シフトステータスに対応する色を取得 */
+const STATUS_COLORS: Record<string, string> = {
+  approved: "#90caf9",
+  pending: "#FFD700",
+  rejected: "#ffcdd2",
+  completed: "#4CAF50",
+  deleted: "#9e9e9e",
+};
+
+function getShiftStatusColor(
+  status: string,
+  getStatusConfig?: ((status: string) => { color?: string } | null)
+): string {
+  if (getStatusConfig) return getStatusConfig(status)?.color || "#90caf9";
+  return STATUS_COLORS[status] || "#90caf9";
+}
 
 interface MobileVerticalViewProps {
   shifts: ShiftItem[];
@@ -134,7 +164,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
       ...shift,
       duration:
         typeof shift.duration === "string"
-          ? parseFloat(shift.duration)
+          ? Number.parseFloat(shift.duration)
           : shift.duration,
     }));
   }, [shifts]);
@@ -142,11 +172,13 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   // 時間のラベル（9:00〜22:00、30分刻み または 13:00〜22:00、30分刻み）
   const timeLabels = useMemo(() => {
     const labels = [];
-    const startHour = hideEarlyHours ? 13 : 9;
-    for (let hour = startHour; hour <= 22; hour++) {
+    const startHour = hideEarlyHours
+      ? SHIFT_HOURS.AFTERNOON_START_HOUR_INCLUSIVE
+      : SHIFT_HOURS.START_HOUR_INCLUSIVE;
+    for (let hour = startHour; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
       labels.push(`${hour}:00`);
-      if (hour < 22) {
-        // 最後の時間は30分を追加しない
+      if (hour < SHIFT_HOURS.END_HOUR_INCLUSIVE) {
+        // 最終時刻（END_HOUR_INCLUSIVE）では:30を生成しない（22:30はシフト範囲外）
         labels.push(`${hour}:30`);
       }
     }
@@ -462,66 +494,16 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
 
                             {/* 時間スロット */}
                             <View style={{ position: "relative" }}>
-                              {timeLabels.map((time, timeIndex) => {
-                                // この時間がユーザーの授業時間に含まれるかチェック
-                                const isClassTime = userShift && userShift.classes && userShift.classes.some(classTime => {
-                                  const [classStartHour, classStartMin] = classTime.startTime.split(":").map(Number);
-                                  const [classEndHour, classEndMin] = classTime.endTime.split(":").map(Number);
-                                  const [timeHour, timeMin] = time.split(":").map(Number);
-                                  
-                                  const classStartMinutes = (classStartHour ?? 0) * 60 + (classStartMin ?? 0);
-                                  const classEndMinutes = (classEndHour ?? 0) * 60 + (classEndMin ?? 0);
-                                  const currentTimeMinutes = (timeHour ?? 0) * 60 + (timeMin ?? 0);
-                                  
-                                  return currentTimeMinutes >= classStartMinutes && currentTimeMinutes < classEndMinutes;
-                                });
+                              {timeLabels.map((time) => {
+                                const isClassTime = userShift?.classes?.some(
+                                  (ct: any) => isTimeInRange(time, ct.startTime, ct.endTime)
+                                );
+                                const isShiftTime = userShift && isTimeInRange(time, userShift.startTime, userShift.endTime);
 
-                                // この時間がシフト時間に含まれるかチェック
-                                const isShiftTime = userShift && (() => {
-                                  const [shiftStartHour, shiftStartMin] = userShift.startTime.split(":").map(Number);
-                                  const [shiftEndHour, shiftEndMin] = userShift.endTime.split(":").map(Number);
-                                  const [timeHour, timeMin] = time.split(":").map(Number);
-                                  
-                                  const shiftStartMinutes = (shiftStartHour ?? 0) * 60 + (shiftStartMin ?? 0);
-                                  const shiftEndMinutes = (shiftEndHour ?? 0) * 60 + (shiftEndMin ?? 0);
-                                  const currentTimeMinutes = (timeHour ?? 0) * 60 + (timeMin ?? 0);
-                                  
-                                  return currentTimeMinutes >= shiftStartMinutes && currentTimeMinutes < shiftEndMinutes;
-                                })();
+                                const backgroundColor = isShiftTime && userShift
+                                  ? getShiftStatusColor(userShift.status, getStatusConfig) + "30"
+                                  : "transparent";
 
-                                // ステータス色を取得
-                                let backgroundColor = "transparent";
-                                if (isShiftTime && userShift) {
-                                  let statusColor = "#90caf9"; // デフォルト色（承認済み青）
-
-                                  if (getStatusConfig) {
-                                    statusColor = getStatusConfig(userShift.status)?.color || statusColor;
-                                  } else {
-                                    // フォールバック用の色マッピング
-                                    switch (userShift.status) {
-                                      case "approved":
-                                        statusColor = "#90caf9";
-                                        break;
-                                      case "pending":
-                                        statusColor = "#FFD700";
-                                        break;
-                                      case "rejected":
-                                        statusColor = "#ffcdd2";
-                                        break;
-                                      case "completed":
-                                        statusColor = "#4CAF50";
-                                        break;
-                                      case "deleted":
-                                        statusColor = "#9e9e9e";
-                                        break;
-                                      default:
-                                        statusColor = "#90caf9";
-                                    }
-                                  }
-
-                                  backgroundColor = statusColor + "30"; // 薄く表示
-                                }
-                                
                                 return (
                                   <View key={time} style={{ position: "relative" }}>
                                     <TouchableOpacity
@@ -532,42 +514,26 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                         borderBottomWidth: 1,
                                         borderBottomColor: colors.border,
                                         backgroundColor,
-                                        zIndex: 1, // シフトバーより下に配置
+                                        zIndex: 1,
                                       }}
                                       onPress={() =>
                                         onEmptyCellClick?.(displayDate, time, "")
                                       }
                                     />
                                     {/* 授業時間のオーバーレイ */}
-                                    {isClassTime && userShift && (() => {
-                                      let statusColor = "#90caf9";
-                                      if (getStatusConfig) {
-                                        statusColor = getStatusConfig(userShift.status)?.color || statusColor;
-                                      } else {
-                                        switch (userShift.status) {
-                                          case "approved": statusColor = "#90caf9"; break;
-                                          case "pending": statusColor = "#FFD700"; break;
-                                          case "rejected": statusColor = "#ffcdd2"; break;
-                                          case "completed": statusColor = "#4CAF50"; break;
-                                          case "deleted": statusColor = "#9e9e9e"; break;
-                                          default: statusColor = "#90caf9";
-                                        }
-                                      }
-                                      
-                                      return (
-                                        <View
-                                          style={{
-                                            position: "absolute",
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundColor: statusColor + "60", // ステータス色をより濃く
-                                            zIndex: 2,
-                                          }}
-                                        />
-                                      );
-                                    })()}
+                                    {isClassTime && userShift && (
+                                      <View
+                                        style={{
+                                          position: "absolute",
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                          bottom: 0,
+                                          backgroundColor: getShiftStatusColor(userShift.status, getStatusConfig) + "60",
+                                          zIndex: 2,
+                                        }}
+                                      />
+                                    )}
                                   </View>
                                 );
                               })}
@@ -582,7 +548,9 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                     .map(Number);
 
                                   // 30分刻みでの位置計算
-                                  const baseHour = hideEarlyHours ? 13 : 9;
+                                  const baseHour = hideEarlyHours
+                                    ? SHIFT_HOURS.AFTERNOON_START_HOUR_INCLUSIVE
+                                    : SHIFT_HOURS.START_HOUR_INCLUSIVE;
                                   const startSlots =
                                     ((startHour ?? 0) - baseHour) * 2 +
                                     ((startMin ?? 0) >= 30 ? 1 : 0);
@@ -606,7 +574,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                                         padding: 1,
                                         justifyContent: "center",
                                         alignItems: "center",
-                                        elevation: 1,
+                                        elevation: 0,
                                         zIndex: 10, // 空白セルより上に配置
                                       }}
                                       onPress={() => onShiftPress?.(userShift)}

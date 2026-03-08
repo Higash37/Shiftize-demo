@@ -17,13 +17,15 @@ export const Routes = {
       ganttView: "/(main)/master/gantt-view",
       ganttEdit: "/(main)/master/gantt-edit",
       info: "/(main)/master/info",
+      today: "/(main)/master/today",
+      settings: "/(main)/master/settings",
       users: "/(main)/master/users",
-      settings: "/(main)/master/master-settings",
     },
     user: {
       home: "/(main)/user/home",
       shifts: "/(main)/user/shifts",
       shiftsCreate: "/(main)/user/shifts/create",
+      today: "/(main)/user/today",
       changePassword: "/(main)/user/change-password",
     },
   },
@@ -37,7 +39,9 @@ export const Routes = {
 /**
  * ロールに応じたデフォルトホームパスを取得
  */
-export const getDefaultHomeRoute = (role: "master" | "user" | null): string => {
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
+
+export const getDefaultHomeRoute = (role: UserRole | null): string => {
   if (role === "master") {
     return Routes.main.master.home;
   }
@@ -58,7 +62,6 @@ export const RouteGroups = {
       segments[0] === "(main)" ||
       segments[0] === "user" ||
       segments[0] === "master" ||
-      segments[0] === "user-settings" ||
       segments.includes("user") ||
       segments.includes("master")
     );

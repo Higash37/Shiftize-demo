@@ -16,6 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { ClockWidget } from "../home-components/home-widgets/ClockWidget";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { getShiftStatus, groupConsecutiveSlots } from "../home-utils/shiftStatusUtils";
 
 interface Props {
   namesFirst: string[];
@@ -66,49 +67,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
     (col) => col.slots && col.slots.length > 0
   );
 
-  // スタッフがいる時間帯を抽出（時計ウィジェット用）
-  // スロットデータから連続したスタッフシフトの塊をグループ化
-  const staffWorkingHours: Array<{ startTime: string; endTime: string }> = [];
-  sampleSchedule.forEach((col) => {
-    const staffSlots = col.slots
-      .filter((s) => s.type !== "class")
-      .sort((a, b) => a.start.localeCompare(b.start));
-
-    // 連続したスタッフスロットをグループ化
-    let currentGroup: typeof staffSlots = [];
-    staffSlots.forEach((slot, index) => {
-      if (currentGroup.length === 0) {
-        currentGroup.push(slot);
-      } else {
-        const lastSlot = currentGroup[currentGroup.length - 1];
-        // 前のスロットの終了時刻と現在のスロットの開始時刻が連続しているか確認
-        if (lastSlot && lastSlot.end === slot.start) {
-          currentGroup.push(slot);
-        } else {
-          // 連続していない場合、現在のグループを保存して新しいグループを開始
-          if (currentGroup.length > 0 && currentGroup[0] && lastSlot) {
-            staffWorkingHours.push({
-              startTime: currentGroup[0].start,
-              endTime: lastSlot.end,
-            });
-          }
-          currentGroup = [slot];
-        }
-      }
-
-      // 最後のスロットの場合、グループを保存
-      if (index === staffSlots.length - 1 && currentGroup.length > 0) {
-        const firstSlot = currentGroup[0];
-        const lastSlot = currentGroup[currentGroup.length - 1];
-        if (firstSlot && lastSlot) {
-          staffWorkingHours.push({
-            startTime: firstSlot.start,
-            endTime: lastSlot.end,
-          });
-        }
-      }
-    });
-  });
+  const staffWorkingHours = groupConsecutiveSlots(sampleSchedule);
 
   // シフトカードのレンダリング
   const renderShiftCard = (schedule: SampleScheduleColumn) => {
@@ -121,75 +80,25 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
 
     // 最初と最後の時間を取得
     const firstSlot = staffSlots[0];
-    const lastSlot = staffSlots[staffSlots.length - 1];
+    const lastSlot = staffSlots.at(-1);
     const staffTimes =
       firstSlot && lastSlot ? `${firstSlot.start} - ${lastSlot.end}` : "";
 
     // 現在の状態を判定
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedDateOnly = new Date(selectedDate);
-    selectedDateOnly.setHours(0, 0, 0, 0);
+    const { currentStatus, statusIcon, statusColor } = getShiftStatus(
+      selectedDate, staffSlots, classSlots
+    );
 
-    const isToday = today.getTime() === selectedDateOnly.getTime();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentTimeStr = `${currentHour
-      .toString()
-      .padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
-
-    let currentStatus = "";
-    let statusIcon = "";
-    let statusColor = colors.text.secondary;
-
-    if (!isToday) {
-      currentStatus = "";
-    } else if (staffSlots.length > 0 || classSlots.length > 0) {
-      const isInStaff = staffSlots.some((slot) => {
-        return slot.start <= currentTimeStr && currentTimeStr < slot.end;
-      });
-
-      const isInClass = classSlots.some((slot) => {
-        return slot.start <= currentTimeStr && currentTimeStr < slot.end;
-      });
-
-      const allSlots = [...staffSlots, ...classSlots].sort((a, b) =>
-        a.start.localeCompare(b.start)
-      );
-      const firstSlot = allSlots[0];
-      const lastSlot = allSlots[allSlots.length - 1];
-
-      const isBeforeShift = firstSlot && currentTimeStr < firstSlot.start;
-      const isAfterShift = lastSlot && currentTimeStr >= lastSlot.end;
-
-      if (isBeforeShift) {
-        currentStatus = `このあと ${firstSlot.start}~`;
-        statusIcon = "schedule";
-        statusColor = colors.text.secondary;
-      } else if (isAfterShift) {
-        currentStatus = "勤務終了";
-        statusIcon = "done";
-        statusColor = colors.text.disabled;
-      } else if (isInStaff) {
-        currentStatus = "現在: スタッフ中";
-        statusIcon = "work";
-        statusColor = colors.primary;
-      } else if (isInClass) {
-        currentStatus = "現在: 授業中";
-        statusIcon = "school";
-        statusColor = colors.text.secondary;
-      } else {
-        currentStatus = "現在: 休憩中";
-        statusIcon = "free-breakfast";
-        statusColor = colors.text.disabled;
-      }
-    }
+    const statusBorderColor =
+      schedule.status === "completed" ? "#10B981" :
+      schedule.status === "approved" ? "#0EA5E9" :
+      schedule.status === "pending" ? "#FFB800" :
+      schedule.status === "rejected" ? "#EF4444" : colors.border;
 
     return (
       <TouchableOpacity
         key={userName}
-        style={styles.shiftCard}
+        style={[styles.shiftCard, { borderWidth: 2, borderColor: statusBorderColor }]}
         onPress={() => setSelectedUser(schedule)}
         activeOpacity={0.7}
       >

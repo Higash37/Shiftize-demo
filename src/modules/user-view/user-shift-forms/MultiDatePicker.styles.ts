@@ -9,7 +9,7 @@ export const createMultiDatePickerStyles = (theme: MD3Theme) =>
       backgroundColor: theme.colorScheme.surface,
       borderRadius: theme.shape.large,
       padding: theme.spacing.lg,
-      elevation: 2,
+      elevation: 0,
       maxWidth: 600,
       alignSelf: "center" as const,
     },

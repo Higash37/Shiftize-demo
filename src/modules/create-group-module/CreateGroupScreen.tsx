@@ -15,19 +15,17 @@ import { router } from "expo-router";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { typography } from "@/common/common-constants/TypographyConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import { ServiceProvider } from "@/services/ServiceProvider";
-import type { InitialMember as GroupInitialMember } from "@/services/interfaces/IStoreService";
 import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker.constants";
 import { useAuth } from "@/services/auth/useAuth";
 import { Routes } from "@/common/common-constants/RouteConstants";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 
 interface GroupCreationForm {
   groupName: string;
   adminNickname: string;
-  adminEmail: string; // 実際のメールアドレス（任意）
   adminPassword: string;
   confirmPassword: string;
 }
@@ -36,7 +34,7 @@ interface InitialMember {
   id: string;
   nickname: string;
   password: string;
-  role: "master" | "user";
+  role: UserRole;
   color: string;
   hourlyWage?: number;
 }
@@ -50,7 +48,6 @@ export const CreateGroupScreen: React.FC = () => {
   const [form, setForm] = useState<GroupCreationForm>({
     groupName: "",
     adminNickname: "",
-    adminEmail: "",
     adminPassword: "",
     confirmPassword: "",
   });
@@ -61,8 +58,6 @@ export const CreateGroupScreen: React.FC = () => {
   const [storeIdCheckLoading, setStoreIdCheckLoading] = useState(false);
   const [storeIdError, setStoreIdError] = useState<string>("");
   const [initialMembers, setInitialMembers] = useState<InitialMember[]>([]);
-  const [showMemberForm, setShowMemberForm] = useState(false);
-
   // 4桁の店舗IDを生成（重複チェック付き）
   const generateStoreId = async () => {
     try {
@@ -95,13 +90,12 @@ export const CreateGroupScreen: React.FC = () => {
     try {
       const exists = await ServiceProvider.stores.checkStoreIdExists(storeId);
 
-      if (exists) {
-        setStoreIdError("この店舗IDは既に使用されています");
-        return false;
-      } else {
+      if (!exists) {
         setStoreIdError("");
         return true;
       }
+      setStoreIdError("この店舗IDは既に使用されています");
+      return false;
     } catch (error) {
       setStoreIdError("店舗IDの確認に失敗しました");
       return false;
@@ -181,14 +175,6 @@ export const CreateGroupScreen: React.FC = () => {
       Alert.alert("エラー", "管理者ニックネームを入力してください");
       return false;
     }
-    // メールアドレスのバリデーション（入力されている場合のみ）
-    if (
-      form.adminEmail &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail)
-    ) {
-      Alert.alert("エラー", "有効なメールアドレスを入力してください");
-      return false;
-    }
     if (!form.adminPassword.trim()) {
       Alert.alert("エラー", "パスワードを入力してください");
       return false;
@@ -233,25 +219,18 @@ export const CreateGroupScreen: React.FC = () => {
   };
 
   const handleCreateGroup = async () => {
-    console.log("🔵 handleCreateGroup called");
     if (!validateForm()) {
-      console.log("❌ Validation failed");
       return;
     }
 
-    console.log("✅ Validation passed");
     setLoading(true);
     try {
       const currentStoreId = getCurrentStoreId();
-      console.log("🏪 Store ID:", currentStoreId);
 
-      // Supabase を使用してグループを作成
-      console.log("🚀 Calling ServiceProvider.stores.createGroup...");
       const result = await ServiceProvider.stores.createGroup({
         groupName: form.groupName,
         storeId: currentStoreId,
         adminNickname: form.adminNickname,
-        ...(form.adminEmail.trim() && { adminEmail: form.adminEmail }), // 実際のメールアドレス（任意）
         adminPassword: form.adminPassword,
         initialMembers:
           initialMembers.length > 0
@@ -267,24 +246,38 @@ export const CreateGroupScreen: React.FC = () => {
             : [],
       });
 
-      console.log("📦 Result:", result);
-
       if (result.success) {
-        console.log("✅ Group creation successful, navigating...");
+        // デフォルトの途中時間タイプをシード
+        try {
+          const { getSupabase } = await import("@/services/supabase/supabase-client");
+          await getSupabase().from("time_segment_types").insert([
+            {
+              store_id: result.storeId,
+              name: "授業",
+              icon: "📚",
+              color: "#4A90E2",
+              wage_mode: "exclude",
+              custom_rate: 0,
+              sort_order: 0,
+            },
+            {
+              store_id: result.storeId,
+              name: "休憩",
+              icon: "⏸",
+              color: "#9e9e9e",
+              wage_mode: "exclude",
+              custom_rate: 0,
+              sort_order: 1,
+            },
+          ]);
+        } catch (_) { /* seed failure is non-critical */ }
 
         try {
-          // 管理者として自動ログイン（secureLogin経由でカスタムトークン取得）
-          console.log("🔐 Auto-login as master...");
           const adminEmail = result.adminEmail || `${result.storeId}-admin@example.com`;
-          console.log("📧 Admin email for login:", adminEmail);
           await signIn(adminEmail, form.adminPassword, result.storeId);
-          console.log("✅ Auto-login successful");
 
-          // マスターホーム画面に遷移
           router.replace(Routes.main.master.home);
         } catch (loginError) {
-          console.error("❌ Auto-login failed:", loginError);
-          // ログインに失敗した場合、手動ログインを促す
           Alert.alert(
             "グループ作成成功",
             `グループが作成されました。\n\n店舗ID: ${result.storeId}\n管理者: ${form.adminNickname}\n\nログイン画面から店舗IDとパスワードでログインしてください。`,
@@ -297,19 +290,23 @@ export const CreateGroupScreen: React.FC = () => {
           );
         }
       } else {
-        console.log("❌ Group creation failed:", result.message);
         Alert.alert("エラー", result.message);
       }
     } catch (error) {
-      console.error("💥 Error in handleCreateGroup:", error);
       Alert.alert(
         "エラー",
         "グループの作成に失敗しました。再度お試しください。"
       );
     } finally {
-      console.log("🏁 setLoading(false)");
       setLoading(false);
     }
+  };
+
+  const renderStoreIdStatus = () => {
+    if (storeIdCheckLoading) return <Text style={styles.checkingText}>確認中...</Text>;
+    if (storeIdError) return <Text style={styles.errorText}>{storeIdError}</Text>;
+    if (customStoreId.length === 4) return <Text style={styles.successText}>✓ 使用可能です</Text>;
+    return null;
   };
 
   const handleBack = () => {
@@ -401,14 +398,7 @@ export const CreateGroupScreen: React.FC = () => {
                     keyboardType="numeric"
                     maxLength={4}
                   />
-                  {storeIdCheckLoading && (
-                    <Text style={styles.checkingText}>確認中...</Text>
-                  )}
-                  {storeIdError ? (
-                    <Text style={styles.errorText}>{storeIdError}</Text>
-                  ) : customStoreId.length === 4 && !storeIdCheckLoading ? (
-                    <Text style={styles.successText}>✓ 使用可能です</Text>
-                  ) : null}
+                  {renderStoreIdStatus()}
                 </View>
               )}
 
@@ -443,27 +433,6 @@ export const CreateGroupScreen: React.FC = () => {
                 placeholderTextColor="#999"
                 maxLength={20}
               />
-            </View>
-
-            {/* 管理者メールアドレス入力 */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>メールアドレス（任意）</Text>
-              <TextInput
-                style={styles.input}
-                value={form.adminEmail}
-                onChangeText={(value) => handleInputChange("adminEmail", value)}
-                placeholder="example@email.com"
-                placeholderTextColor="#999"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                maxLength={100}
-              />
-              {!form.adminEmail && (
-                <Text style={styles.inputHelper}>
-                  未入力の場合、自動生成されます：{getCurrentStoreId()}
-                  {form.adminNickname}@example.com
-                </Text>
-              )}
             </View>
 
             {/* パスワード入力 */}
@@ -610,7 +579,7 @@ export const CreateGroupScreen: React.FC = () => {
                               member.id,
                               "hourlyWage",
                               numericValue
-                                ? parseFloat(numericValue)
+                                ? Number.parseFloat(numericValue)
                                 : undefined
                             );
                           }}
@@ -966,11 +935,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.small,
     color: colors.success,
     textAlign: "center",
-    marginTop: layout.padding.small,
-  },
-  inputHelper: {
-    fontSize: typography.fontSize.small,
-    color: colors.text.secondary,
     marginTop: layout.padding.small,
   },
 });

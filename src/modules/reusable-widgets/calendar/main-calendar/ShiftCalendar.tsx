@@ -118,6 +118,11 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         selectedColor: colors.primary + "20",
         selectedTextColor: colors.text.primary,
       };
+      // 選択日の翌日に borderLeft を消すフラグを付与
+      const nextDay = new Date(selectedDate + "T00:00:00");
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nd = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+      marks[nd] = { ...(marks[nd] || {}), afterSelected: true } as any;
     }
 
     // 予定がある日付にドットマーカーを追加（全てのステータス）
@@ -127,9 +132,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         case "pending":
           return "#FFB800"; // オレンジ（承認待ち）
         case "approved":
-          return "#10B981"; // 緑（承認済み）
+          return "#0EA5E9"; // 青（承認済み）
         case "completed":
-          return "#0EA5E9"; // 青（完了）
+          return "#10B981"; // 緑（完了）
         case "draft":
           return "#9CA3AF"; // グレー（下書き）
         case "rejected":

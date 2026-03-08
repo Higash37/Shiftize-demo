@@ -10,6 +10,12 @@ import type { ITeacherStatusService } from "./interfaces/ITeacherStatusService";
 import type { IShiftSubmissionService } from "./interfaces/IShiftSubmissionService";
 import type { IMultiStoreService } from "./interfaces/IMultiStoreService";
 import type { IGoogleCalendarService } from "./interfaces/IGoogleCalendarService";
+import { ServiceNotInitializedError } from "@/common/common-errors/AppErrors";
+
+function requireService<T>(service: T | null, name: string): T {
+  if (!service) throw new ServiceNotInitializedError(name);
+  return service;
+}
 
 class ServiceProviderImpl {
   private _auth: IAuthService | null = null;
@@ -25,113 +31,41 @@ class ServiceProviderImpl {
   private _multiStore: IMultiStoreService | null = null;
   private _googleCalendar: IGoogleCalendarService | null = null;
 
-  // --- Auth ---
-  get auth(): IAuthService {
-    if (!this._auth) throw new Error("AuthService not initialized. Call ServiceProvider.setAuthService() first.");
-    return this._auth;
-  }
-  setAuthService(service: IAuthService): void {
-    this._auth = service;
-  }
+  get auth(): IAuthService { return requireService(this._auth, "AuthService"); }
+  setAuthService(service: IAuthService): void { this._auth = service; }
 
-  // --- Users ---
-  get users(): IUserService {
-    if (!this._users) throw new Error("UserService not initialized. Call ServiceProvider.setUserService() first.");
-    return this._users;
-  }
-  setUserService(service: IUserService): void {
-    this._users = service;
-  }
+  get users(): IUserService { return requireService(this._users, "UserService"); }
+  setUserService(service: IUserService): void { this._users = service; }
 
-  // --- Shifts ---
-  get shifts(): IShiftService {
-    if (!this._shifts) throw new Error("ShiftService not initialized. Call ServiceProvider.setShiftService() first.");
-    return this._shifts;
-  }
-  setShiftService(service: IShiftService): void {
-    this._shifts = service;
-  }
+  get shifts(): IShiftService { return requireService(this._shifts, "ShiftService"); }
+  setShiftService(service: IShiftService): void { this._shifts = service; }
 
-  // --- Stores ---
-  get stores(): IStoreService {
-    if (!this._stores) throw new Error("StoreService not initialized. Call ServiceProvider.setStoreService() first.");
-    return this._stores;
-  }
-  setStoreService(service: IStoreService): void {
-    this._stores = service;
-  }
+  get stores(): IStoreService { return requireService(this._stores, "StoreService"); }
+  setStoreService(service: IStoreService): void { this._stores = service; }
 
-  // --- Settings ---
-  get settings(): ISettingsService {
-    if (!this._settings) throw new Error("SettingsService not initialized. Call ServiceProvider.setSettingsService() first.");
-    return this._settings;
-  }
-  setSettingsService(service: ISettingsService): void {
-    this._settings = service;
-  }
+  get settings(): ISettingsService { return requireService(this._settings, "SettingsService"); }
+  setSettingsService(service: ISettingsService): void { this._settings = service; }
 
-  // --- Audit ---
-  get audit(): IAuditService {
-    if (!this._audit) throw new Error("AuditService not initialized. Call ServiceProvider.setAuditService() first.");
-    return this._audit;
-  }
-  setAuditService(service: IAuditService): void {
-    this._audit = service;
-  }
+  get audit(): IAuditService { return requireService(this._audit, "AuditService"); }
+  setAuditService(service: IAuditService): void { this._audit = service; }
 
-  // --- ShiftConfirmations ---
-  get shiftConfirmations(): IShiftConfirmationService {
-    if (!this._shiftConfirmations) throw new Error("ShiftConfirmationService not initialized.");
-    return this._shiftConfirmations;
-  }
-  setShiftConfirmationService(service: IShiftConfirmationService): void {
-    this._shiftConfirmations = service;
-  }
+  get shiftConfirmations(): IShiftConfirmationService { return requireService(this._shiftConfirmations, "ShiftConfirmationService"); }
+  setShiftConfirmationService(service: IShiftConfirmationService): void { this._shiftConfirmations = service; }
 
-  // --- QuickShiftTokens ---
-  get quickShiftTokens(): IQuickShiftTokenService {
-    if (!this._quickShiftTokens) throw new Error("QuickShiftTokenService not initialized.");
-    return this._quickShiftTokens;
-  }
-  setQuickShiftTokenService(service: IQuickShiftTokenService): void {
-    this._quickShiftTokens = service;
-  }
+  get quickShiftTokens(): IQuickShiftTokenService { return requireService(this._quickShiftTokens, "QuickShiftTokenService"); }
+  setQuickShiftTokenService(service: IQuickShiftTokenService): void { this._quickShiftTokens = service; }
 
-  // --- TeacherStatus ---
-  get teacherStatus(): ITeacherStatusService {
-    if (!this._teacherStatus) throw new Error("TeacherStatusService not initialized.");
-    return this._teacherStatus;
-  }
-  setTeacherStatusService(service: ITeacherStatusService): void {
-    this._teacherStatus = service;
-  }
+  get teacherStatus(): ITeacherStatusService { return requireService(this._teacherStatus, "TeacherStatusService"); }
+  setTeacherStatusService(service: ITeacherStatusService): void { this._teacherStatus = service; }
 
-  // --- ShiftSubmissions ---
-  get shiftSubmissions(): IShiftSubmissionService {
-    if (!this._shiftSubmissions) throw new Error("ShiftSubmissionService not initialized.");
-    return this._shiftSubmissions;
-  }
-  setShiftSubmissionService(service: IShiftSubmissionService): void {
-    this._shiftSubmissions = service;
-  }
+  get shiftSubmissions(): IShiftSubmissionService { return requireService(this._shiftSubmissions, "ShiftSubmissionService"); }
+  setShiftSubmissionService(service: IShiftSubmissionService): void { this._shiftSubmissions = service; }
 
-  // --- MultiStore ---
-  get multiStore(): IMultiStoreService {
-    if (!this._multiStore) throw new Error("MultiStoreService not initialized.");
-    return this._multiStore;
-  }
-  setMultiStoreService(service: IMultiStoreService): void {
-    this._multiStore = service;
-  }
+  get multiStore(): IMultiStoreService { return requireService(this._multiStore, "MultiStoreService"); }
+  setMultiStoreService(service: IMultiStoreService): void { this._multiStore = service; }
 
-  // --- GoogleCalendar ---
-  get googleCalendar(): IGoogleCalendarService {
-    if (!this._googleCalendar) throw new Error("GoogleCalendarService not initialized.");
-    return this._googleCalendar;
-  }
-  setGoogleCalendarService(service: IGoogleCalendarService): void {
-    this._googleCalendar = service;
-  }
+  get googleCalendar(): IGoogleCalendarService { return requireService(this._googleCalendar, "GoogleCalendarService"); }
+  setGoogleCalendarService(service: IGoogleCalendarService): void { this._googleCalendar = service; }
 }
 
 export const ServiceProvider = new ServiceProviderImpl();

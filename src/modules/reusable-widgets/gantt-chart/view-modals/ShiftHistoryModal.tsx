@@ -315,12 +315,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                 nestedScrollEnabled={true}
               >
                 {isLoading ? (
-                  <View style={{ padding: 40, alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#4A90E2" />
-                    <Text style={{ marginTop: 10, color: "#666" }}>
-                      読み込み中...
-                    </Text>
-                  </View>
+                  <View style={{ padding: 40 }} />
                 ) : error ? (
                   <View style={{ padding: 40, alignItems: "center" }}>
                     <Ionicons
@@ -363,11 +358,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                           selectedEntry?.id === entry.id
                             ? "#4A90E2"
                             : "#E0E0E0",
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 2,
-                        elevation: 2,
+                        elevation: 0,
                       }}
                     >
                       <View

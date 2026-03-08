@@ -5,6 +5,8 @@ import {
   ClassTimeSlot,
 } from "@/common/common-models/ModelIndex";
 import { ServiceProvider } from "@/services/ServiceProvider";
+import { AuthError } from "@/common/common-errors/AppErrors";
+import { createActor } from "@/services/shift-history/shiftHistoryLogger";
 
 export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
@@ -22,7 +24,99 @@ export function useGanttShiftActions({
   // 保存処理中のフラグ（重複防止）
   const savingRef = useRef(false);
 
-  // シフト保存（追加・編集）
+  const buildActor = useCallback(() => createActor(user), [user]);
+
+  /** 既存シフトを編集する */
+  const updateExistingShift = async (
+    editingShift: ShiftItem,
+    newShiftData: {
+      date: string;
+      startTime: string;
+      endTime: string;
+      userId: string;
+      nickname: string;
+      status: ShiftStatus;
+      classes: ClassTimeSlot[];
+    }
+  ) => {
+    const actor = buildActor();
+
+    // 削除申請中のシフト → 却下に変更
+    if (editingShift.status === "deletion_requested") {
+      newShiftData.status = "rejected";
+    }
+
+    // 却下の場合はそのまま更新して終了
+    if (newShiftData.status === "rejected") {
+      await ServiceProvider.shifts.updateShift(
+        editingShift.id,
+        { ...newShiftData, updatedAt: new Date() },
+        actor
+      );
+      return;
+    }
+
+    // 承認への変更 → approveShiftChanges を使用
+    const isApproving =
+      editingShift.status !== newShiftData.status &&
+      newShiftData.status === "approved";
+
+    if (isApproving) {
+      await ServiceProvider.shifts.approveShiftChanges(editingShift.id, actor);
+
+      // ステータス以外の変更がある場合は追加で更新
+      const { status, ...otherChanges } = newShiftData;
+      if (Object.keys(otherChanges).length > 0) {
+        await ServiceProvider.shifts.updateShift(
+          editingShift.id,
+          { ...otherChanges, updatedAt: new Date() },
+          actor
+        );
+      }
+      return;
+    }
+
+    // その他の変更は直接更新
+    await ServiceProvider.shifts.updateShift(
+      editingShift.id,
+      { ...newShiftData, updatedAt: new Date() },
+      actor
+    );
+  };
+
+  /** 新規シフトを作成する */
+  const createNewShift = async (
+    newShiftData: {
+      date: string;
+      startTime: string;
+      endTime: string;
+      userId: string;
+      nickname: string;
+      status: ShiftStatus;
+      classes: ClassTimeSlot[];
+    }
+  ) => {
+    const actor = buildActor();
+
+    if (newShiftData.status === "deleted") {
+      newShiftData.status = "deletion_requested";
+    }
+
+    await ServiceProvider.shifts.addShift(
+      {
+        ...newShiftData,
+        storeId: user?.storeId || "",
+        type: "user" as const,
+        isCompleted: false,
+        duration: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      actor
+    );
+  };
+
+  // シフト保存（追加・編集の振り分け）
   const saveShift = useCallback(
     async (
       editingShift: ShiftItem | null,
@@ -36,96 +130,20 @@ export function useGanttShiftActions({
         classes: ClassTimeSlot[];
       }
     ) => {
-      // 既に保存処理中の場合はスキップ
-      if (savingRef.current) {
-        return;
-      }
-      
+      if (savingRef.current) return;
       savingRef.current = true;
-      
+
       try {
-        const actor = user ? {
-          userId: user.uid,
-          nickname: user.nickname || "教室長",
-          role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
-        } : undefined;
-
         if (editingShift) {
-        if (editingShift?.status === "deletion_requested") {
-          newShiftData.status = "rejected"; // 削除申請中のシフトを却下状態に変更
-        }
-        // Master が直接却下にする場合の処理
-        if (newShiftData.status === "rejected") {
-          await ServiceProvider.shifts.updateShift(
-            editingShift.id,
-            { ...newShiftData, updatedAt: new Date() },
-            actor
-          );
-          return;
-        }
-
-        // 編集時にもユーザーカラー情報を更新する
-        const selectedUserId = newShiftData.userId;
-        let userColor;
-        try {
-          const selectedUser = users.find((u) => u.uid === selectedUserId);
-          if (selectedUser && selectedUser.color) {
-            userColor = selectedUser.color;
-          }
-        } catch (error) {
-        }
-
-        // ステータス変更の場合は通知機能を使用
-        if (editingShift.status !== newShiftData.status && newShiftData.status === "approved") {
-          await ServiceProvider.shifts.approveShiftChanges(editingShift.id, actor);
-
-          // ステータス以外の変更がある場合は追加で更新
-          const { status, ...otherChanges } = newShiftData;
-          if (Object.keys(otherChanges).length > 0) {
-            await ServiceProvider.shifts.updateShift(
-              editingShift.id,
-              { ...otherChanges, updatedAt: new Date() },
-              actor
-            );
-          }
+          await updateExistingShift(editingShift, newShiftData);
         } else {
-          // その他の変更は直接更新
-          await ServiceProvider.shifts.updateShift(
-            editingShift.id,
-            { ...newShiftData, updatedAt: new Date() },
-            actor
-          );
-        }
-      } else {
-        if (newShiftData.status === "deleted") {
-          newShiftData.status = "deletion_requested";
+          await createNewShift(newShiftData);
         }
 
-        const selectedUserId = newShiftData.userId;
-
-        await ServiceProvider.shifts.addShift(
-          {
-            ...newShiftData,
-            storeId: user?.storeId || "",
-            userId: selectedUserId,
-            nickname: newShiftData.nickname,
-            type: "user" as const,
-            isCompleted: false,
-            duration: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          actor
-        );
-        }
-
-        // 保存成功後にデータ再取得
-        await onShiftUpdate?.();
+        // リアルタイムリスナーが自動反映するため、onShiftUpdateはバックグラウンドで実行
+        onShiftUpdate?.();
       } finally {
-        // 処理完了後にフラグをリセット
-        setTimeout(() => {
-          savingRef.current = false;
-        }, 500); // 500msのデバウンス
+        savingRef.current = false;
       }
     },
     [user, users, onShiftUpdate]
@@ -134,29 +152,17 @@ export function useGanttShiftActions({
   // シフト削除（ステータスに関わらず完全削除）
   const deleteShift = useCallback(
     async (shift: { id: string; status: string }) => {
-      const actor = user ? {
-        userId: user.uid,
-        nickname: user.nickname || "教室長",
-        role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
-      } : undefined;
-
-      await ServiceProvider.shifts.markShiftAsDeleted(shift.id, actor);
-
-      // 削除成功後にデータ再取得
-      await onShiftUpdate?.();
+      await ServiceProvider.shifts.markShiftAsDeleted(shift.id, buildActor());
+      onShiftUpdate?.();
     },
     [user, onShiftUpdate]
   );
 
   const updateShiftStatus = useCallback(
     async (shiftId: string, status: ShiftStatus) => {
-      if (!user) throw new Error("ユーザーが未ログインです");
+      if (!user) throw new AuthError("ユーザーが未ログインです");
 
-      const actor = {
-        userId: user.uid,
-        nickname: user.nickname || "教室長",
-        role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
-      };
+      const actor = buildActor()!;
 
       if (status === "approved") {
         await ServiceProvider.shifts.approveShiftChanges(shiftId, actor);
@@ -164,8 +170,7 @@ export function useGanttShiftActions({
         await ServiceProvider.shifts.updateShift(shiftId, { status }, actor);
       }
 
-      // ステータス変更後にデータ再取得
-      await onShiftUpdate?.();
+      onShiftUpdate?.();
     },
     [user, onShiftUpdate]
   );

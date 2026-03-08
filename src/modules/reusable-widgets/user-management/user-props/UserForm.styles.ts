@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    padding: layout.padding.xlarge,
+    padding: layout.padding.medium,
   },
   containerTablet: {
     maxWidth: 600,
@@ -24,30 +24,29 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   formContent: {
-    gap: layout.padding.xlarge,
-    paddingBottom: layout.padding.xlarge,
-    paddingTop: layout.padding.medium,
+    gap: layout.padding.small,
+    paddingBottom: layout.padding.medium,
+    paddingTop: layout.padding.small,
   },
 
   // ボタンコンテナ（固定位置）
   buttonContainer: {
     flexDirection: "row",
-    gap: layout.padding.large,
-    padding: layout.padding.medium,
+    gap: layout.padding.medium,
+    padding: layout.padding.small,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    ...shadows.small,
   },
   buttonContainerTablet: {
-    paddingHorizontal: layout.padding.large,
-    paddingVertical: layout.padding.medium,
-    gap: layout.padding.large,
+    paddingHorizontal: layout.padding.medium,
+    paddingVertical: layout.padding.small,
+    gap: layout.padding.medium,
   },
   buttonContainerDesktop: {
-    paddingHorizontal: layout.padding.large,
-    paddingVertical: layout.padding.medium,
-    gap: layout.padding.large,
+    paddingHorizontal: layout.padding.medium,
+    paddingVertical: layout.padding.small,
+    gap: layout.padding.medium,
     justifyContent: "center",
   },
 
@@ -56,10 +55,9 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.error + "10",
     borderWidth: 1,
     borderColor: colors.error,
-    borderRadius: layout.borderRadius.medium,
-    padding: layout.padding.medium,
-    marginBottom: layout.padding.large,
-    ...shadows.small,
+    borderRadius: layout.borderRadius.small,
+    padding: layout.padding.small,
+    marginBottom: layout.padding.small,
   },
   warningText: {
     color: colors.error,
@@ -89,32 +87,29 @@ export const styles = StyleSheet.create({
 
   // カラーピッカーセクション
   colorSection: {
-    gap: layout.padding.medium,
+    gap: layout.padding.small,
   },
   colorLabel: {
-    fontSize: typography.fontSize.medium,
+    fontSize: typography.fontSize.small,
     fontWeight: "600",
     color: colors.text.primary,
-    marginBottom: layout.padding.medium,
   },
   colorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: layout.padding.large,
-    padding: layout.padding.large,
+    gap: layout.padding.medium,
+    padding: layout.padding.small,
     backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
+    borderRadius: layout.borderRadius.small,
     borderWidth: 1,
     borderColor: colors.border,
-    ...shadows.small,
   },
   colorPreview: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: colors.border,
-    ...shadows.small,
   },
   colorButton: {
     flex: 1,
@@ -122,23 +117,21 @@ export const styles = StyleSheet.create({
 
   // ロール選択
   roleSection: {
-    gap: layout.padding.medium,
+    gap: layout.padding.small,
   },
   roleLabel: {
-    fontSize: typography.fontSize.medium,
+    fontSize: typography.fontSize.small,
     fontWeight: "600",
     color: colors.text.primary,
-    marginBottom: layout.padding.medium,
   },
   roleContainer: {
     flexDirection: "row",
-    gap: layout.padding.large,
-    padding: layout.padding.large,
+    gap: layout.padding.medium,
+    padding: layout.padding.small,
     backgroundColor: colors.surface,
-    borderRadius: layout.borderRadius.medium,
+    borderRadius: layout.borderRadius.small,
     borderWidth: 1,
     borderColor: colors.border,
-    ...shadows.small,
   },
   roleButton: {
     flex: 1,
@@ -183,19 +176,19 @@ export const styles = StyleSheet.create({
 
   button: {
     flex: 1,
-    height: 44,
-    minWidth: 140,
+    height: 36,
+    minWidth: 120,
   },
   buttonTablet: {
-    height: 48,
-    minWidth: 160,
-    paddingHorizontal: layout.padding.large,
+    height: 40,
+    minWidth: 140,
+    paddingHorizontal: layout.padding.medium,
   },
   buttonDesktop: {
-    minWidth: 160,
-    maxWidth: 200,
+    minWidth: 140,
+    maxWidth: 180,
     flex: 0,
-    height: 44,
+    height: 36,
   },
 
   // 旧スタイル（後方互換性のため残す）

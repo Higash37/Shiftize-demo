@@ -1,9 +1,10 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
+import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
 
 /**
  * LayoutFooter MD3スタイルファクトリ
@@ -19,9 +20,10 @@ export const createFooterStyles = (theme: MD3Theme) =>
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
       justifyContent: "space-around",
-      alignItems: "center",
+      alignItems: "flex-end",
       paddingHorizontal: theme.spacing.md,
-      padding: theme.spacing.xs,
+      paddingBottom: 3,
+      paddingTop: 3,
       ...(Platform.OS === "web" &&
         ({
           position: "relative" as any,
@@ -34,10 +36,11 @@ export const createFooterStyles = (theme: MD3Theme) =>
     tab: {
       flex: 1,
       alignItems: "center",
-      paddingVertical: IS_SMALL_DEVICE ? 6 : 8,
+      paddingTop: 2,
+      paddingBottom: 3,
       minWidth: 0,
       maxWidth: "100%",
-      justifyContent: "center",
+      justifyContent: "flex-end",
     },
     createTab: {
       marginTop: IS_SMALL_DEVICE ? -15 : -20,
@@ -48,7 +51,7 @@ export const createFooterStyles = (theme: MD3Theme) =>
     label: {
       ...theme.typography.labelSmall,
       color: theme.colorScheme.onSurfaceVariant,
-      marginTop: IS_SMALL_DEVICE ? 2 : 4,
+      marginTop: 1,
     },
     activeLabel: {
       color: theme.colorScheme.primary,

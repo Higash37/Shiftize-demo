@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "@/common/common-models/model-user/UserModel";
+import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { ServiceProvider } from "@/services/ServiceProvider";
 
 export const useUser = (storeId?: string) => {
@@ -26,6 +26,16 @@ export const useUser = (storeId?: string) => {
       setLoading(false);
     }
   };
+
+  // loading状態を変えずにバックグラウンドでデータを同期
+  const silentRefresh = async () => {
+    try {
+      const userData = await ServiceProvider.users.getUsers(storeId);
+      setUsers(userData);
+    } catch {
+      // サイレントなので無視
+    }
+  };
   // For backward compatibility with old naming
   async function fetchUMembers() {
     await fetchUsers();
@@ -34,10 +44,11 @@ export const useUser = (storeId?: string) => {
     email: string,
     password: string,
     nickname: string,
-    role: "master" | "user",
+    role: UserRole,
     color?: string,
     storeId?: string,
     hourlyWage?: number,
+    furigana?: string,
   ) => {
     try {
       setLoading(true);
@@ -116,6 +127,7 @@ export const useUser = (storeId?: string) => {
         storeId,
         role,
         hourlyWage,
+        furigana,
       );
 
       // リストを更新
@@ -147,16 +159,15 @@ export const useUser = (storeId?: string) => {
     user: User,
     updates: {
       nickname?: string;
-      email?: string; // メールアドレス更新を追加
+      furigana?: string;
+      email?: string;
       password?: string;
-      role?: "master" | "user";
+      role?: UserRole;
       color?: string;
       storeId?: string;
     },
   ): Promise<User | undefined> => {
     try {
-      setLoading(true);
-
       const updatedUser = await ServiceProvider.auth.updateUser(user, updates);
 
       if (updatedUser) {
@@ -165,26 +176,22 @@ export const useUser = (storeId?: string) => {
         );
       }
 
-      await fetchUsers();
+      silentRefresh();
       return updatedUser;
     } catch (err) {
       setError("ユーザー情報の更新に失敗しました");
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const removeUser = async (uid: string) => {
     try {
-      setLoading(true);
+      setUsers((prev) => prev.filter((u) => u.uid !== uid));
       await ServiceProvider.users.deleteUser(uid);
-      await fetchUsers();
+      silentRefresh();
     } catch (err) {
       setError("ユーザーの削除に失敗しました");
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
   return {

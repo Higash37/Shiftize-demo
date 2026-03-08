@@ -6,7 +6,7 @@ export type TimeSlot = {
   end: string;
 };
 
-export interface TimeInputSectionProps extends BaseTimeProps {
+export interface TimeInputSectionProps extends BaseTimeProps<TimeSlot[]> {
   value: TimeSlot[];
   onChange: (newValue: TimeSlot[]) => void;
 }

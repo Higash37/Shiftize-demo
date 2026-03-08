@@ -13,6 +13,7 @@ import { SupabaseTeacherStatusAdapter } from "./supabase/SupabaseTeacherStatusAd
 import { SupabaseShiftSubmissionAdapter } from "./supabase/SupabaseShiftSubmissionAdapter";
 import { SupabaseMultiStoreAdapter } from "./supabase/SupabaseMultiStoreAdapter";
 import { GoogleCalendarSyncService } from "./google-calendar/GoogleCalendarSyncService";
+import { loadJapaneseHolidays } from "@/common/common-utils/util-settings/japaneseHolidays";
 
 let initialized = false;
 
@@ -31,6 +32,9 @@ export function initializeServices(): void {
   ServiceProvider.setShiftSubmissionService(new SupabaseShiftSubmissionAdapter());
   ServiceProvider.setMultiStoreService(new SupabaseMultiStoreAdapter());
   ServiceProvider.setGoogleCalendarService(new GoogleCalendarSyncService());
+
+  // 日本の祝日データをバックグラウンドで事前取得
+  loadJapaneseHolidays();
 
   initialized = true;
 }

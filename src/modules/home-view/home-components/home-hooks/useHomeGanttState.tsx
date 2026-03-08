@@ -4,6 +4,7 @@ import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRea
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { colors } from "@/common/common-constants/ThemeConstants";
+import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
 
 // 0:00～24:00の30分刻みの時間ラベル（ゼロパディング付き）
 const allTimes: string[] = [];
@@ -21,6 +22,7 @@ export function useHomeGanttState() {
     loading: _loading,
   } = useShiftsRealtime(user?.storeId);
   const { users } = useUsers();
+  const { typesMap } = useTimeSegmentTypesContext();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalUser, setModalUser] = useState<string | null>(null);
@@ -96,15 +98,20 @@ export function useHomeGanttState() {
           }
         }
         if (classSlot) {
+          const ct = classSlot.classTime;
+          const defaultType = Object.values(typesMap).find((t) => t.name === "授業");
+          const segType = ct?.typeId ? typesMap[ct.typeId] : defaultType;
+          const taskName = segType?.name || ct?.typeName || "授業";
+          const taskIcon = segType?.icon || "";
           slots.push({
             name,
             start,
             end,
-            task: "授業", // Textコンポーネントを文字列に変更
+            task: `${taskIcon ? taskIcon + " " : ""}${taskName}`,
             date: selectedDateStr,
-            color: "#888",
+            color: segType?.color || "#888",
             type: "class",
-            textColor: "black",
+            textColor: "white",
           });
         } else if (staff) {
           slots.push({
@@ -124,10 +131,13 @@ export function useHomeGanttState() {
   }
 
   const scheduleForSelectedDate = buildScheduleColumns(allNames).map(
-    (column) => ({
-      ...column,
-      status: "approved", // 仮のステータスを追加
-    })
+    (column) => {
+      const userShift = shiftsForDate.find((s) => s.nickname === column.position);
+      return {
+        ...column,
+        status: userShift?.status || "approved",
+      };
+    }
   );
 
   return {

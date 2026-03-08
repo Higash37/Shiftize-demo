@@ -2,7 +2,7 @@ import React, { type ComponentProps } from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { styles } from "./features-section.styles";
+import { styles } from "./FeaturesSection.styles";
 
 export const FeaturesSection: React.FC = () => {
   const router = useRouter();

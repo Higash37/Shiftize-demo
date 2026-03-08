@@ -1,8 +1,9 @@
-import type { IUserService } from "../interfaces/IUserService";
+import type { IUserService, UserEmailLookupResult, UserFullProfile } from "../interfaces/IUserService";
 import type { User, UserData } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { PersonalDataDeletion } from "@/common/common-utils/security/encryptionUtils";
 import { SecurityLogger } from "@/common/common-utils/security/securityUtils";
+import { ValidationError, NotFoundError, PermissionError } from "@/common/common-errors/AppErrors";
 
 export class SupabaseUserAdapter implements IUserService {
   async getUsers(
@@ -22,10 +23,13 @@ export class SupabaseUserAdapter implements IUserService {
       uid: row.uid,
       role: row.role || "user",
       nickname: row.nickname || "",
+      furigana: row.furigana ?? undefined,
       email: row.email,
       color: row.color,
       storeId: row.store_id || "",
       currentPassword: row.current_password,
+      hourlyWage: row.hourly_wage ?? undefined,
+      createdAt: row.created_at,
     }));
   }
 
@@ -100,11 +104,11 @@ export class SupabaseUserAdapter implements IUserService {
     if (error) throw error;
 
     if (data && data.length > 0) {
-      throw new Error("このメールアドレスは既に使用されています");
+      throw new ValidationError("このメールアドレスは既に使用されています");
     }
   }
 
-  async findUserByEmail(email: string): Promise<any | null> {
+  async findUserByEmail(email: string): Promise<UserEmailLookupResult | null> {
     const supabase = getSupabase();
 
     // 1. emailフィールドで検索
@@ -192,11 +196,11 @@ export class SupabaseUserAdapter implements IUserService {
       .maybeSingle();
 
     if (error || !userData) {
-      throw new Error("ユーザーが見つかりません");
+      throw new NotFoundError("ユーザーが見つかりません");
     }
 
     if (userData.real_email) {
-      throw new Error("実際のメールアドレスは既に設定されています");
+      throw new ValidationError("実際のメールアドレスは既に設定されています");
     }
 
     // 3-6 は Supabase Auth側の操作が必要 → SupabaseAuthAdapter.createSecondaryEmailAccount を呼ぶ
@@ -240,7 +244,7 @@ export class SupabaseUserAdapter implements IUserService {
     try {
       const adminUser = await this.getUserData(adminUserId);
       if (!adminUser || adminUser.role !== "master") {
-        throw new Error("管理者権限が必要です");
+        throw new PermissionError("管理者権限が必要です");
       }
 
       await PersonalDataDeletion.deleteUserDataByAdmin(
@@ -266,11 +270,7 @@ export class SupabaseUserAdapter implements IUserService {
     }
   }
 
-  async getUserFullProfile(userId: string): Promise<{
-    storeId?: string;
-    connectedStores?: string[];
-    [key: string]: any;
-  } | null> {
+  async getUserFullProfile(userId: string): Promise<UserFullProfile | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")

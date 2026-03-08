@@ -1,3 +1,5 @@
+import { SECURITY_TIMEOUTS } from "@/common/common-constants/BoundaryConstants";
+
 /**
  * セキュリティ関連ユーティリティ
  *
@@ -49,7 +51,7 @@ export const generateCSRFToken = (): string => {
 class CSRFTokenManager {
   private static readonly TOKEN_KEY = "csrf_token";
   private static readonly TOKEN_EXPIRY_KEY = "csrf_token_expiry";
-  private static readonly TOKEN_LIFETIME = 30 * 60 * 1000; // 30分
+  private static readonly TOKEN_LIFETIME = SECURITY_TIMEOUTS.CSRF_TOKEN_LIFETIME_MS;
 
   /**
    * CSRFトークンを取得
@@ -382,10 +384,8 @@ class RateLimiter {
    */
   static clearOldBuckets(): void {
     const now = Date.now();
-    const maxAge = 60 * 60 * 1000; // 1時間
-
     for (const [id, bucket] of this.buckets.entries()) {
-      if (now - bucket.lastRefill > maxAge) {
+      if (now - bucket.lastRefill > SECURITY_TIMEOUTS.RATE_LIMIT_BUCKET_MAX_AGE_MS) {
         this.buckets.delete(id);
       }
     }

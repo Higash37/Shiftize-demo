@@ -18,6 +18,7 @@ import { colors } from "@/common/common-constants/ThemeConstants";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
 import CalendarModal from "@/modules/reusable-widgets/calendar/modals/CalendarModal";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
+import { calculateDurationHours } from "@/common/common-utils/util-shift/wageCalculator";
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
 import type { ExtendedUser } from "@/modules/reusable-widgets/user-management/user-types/components";
@@ -67,7 +68,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     classes: classes ? JSON.parse(classes) : [],
   });
   const [showCalendar, setShowCalendar] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const fadeAnim = new Animated.Value(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -90,25 +91,27 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     return [];
   });
 
-  // ユーザーデータを取得
+  // AuthContextの情報から即座にuserData設定、追加データはバックグラウンドで取得
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const fetchedUserData = await ServiceProvider.users.getUserData(user.uid);
+    if (!user) return;
+
+    // AuthContextのデータで即座にuserData設定
+    setUserData({
+      uid: user.uid,
+      nickname: user.nickname || "",
+      email: user.email || "",
+      role: user.role || "",
+      storeId: user.storeId,
+    } as unknown as UserData);
+
+    // 追加プロフィールデータをバックグラウンドで取得
+    ServiceProvider.users.getUserData(user.uid)
+      .then((fetchedUserData) => {
         if (fetchedUserData) {
           setUserData(fetchedUserData as unknown as UserData);
         }
-      } catch (error) {
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
+      })
+      .catch(() => {});
   }, [user]);
 
   // 連携校舎のユーザーを取得
@@ -126,6 +129,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         );
         setConnectedStoreUsers(connectedUsers);
       } catch (error) {
+        console.warn("連携校舎ユーザーの取得に失敗しました:", error);
       }
     };
 
@@ -157,6 +161,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           });
         }
       } catch (error) {
+        console.warn("シフトデータの取得に失敗しました:", error);
       } finally {
         setIsLoading(false);
       }
@@ -212,12 +217,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       // シフトを各日付に登録（並列処理）
       {
         const createPromises = shiftData.dates.map(async (date) => {
-          // 時間の差を計算（duration）
-          const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-          const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-          const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-          const durationHours =
-            Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+          const durationHours = calculateDurationHours(shiftData.startTime, shiftData.endTime);
 
           const newShift = {
             userId: selectedUserId,
@@ -252,20 +252,20 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       setShowSuccess(true);
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 200,
         useNativeDriver: true,
       }).start();
 
-      // 1.5秒後に通知を消す
+      // 800ms後に通知を消す
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 300,
+          duration: 200,
           useNativeDriver: true,
         }).start(() => {
           setShowSuccess(false);
         });
-      }, 1500);
+      }, 800);
 
       // 入力内容をリセット
       setShiftData({
@@ -299,12 +299,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       setIsLoading(true);
       setErrorMessage("");
 
-      // 時間の差を計算（duration）
-      const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-      const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-      const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-      const durationHours =
-        Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+      const durationHours = calculateDurationHours(shiftData.startTime, shiftData.endTime);
 
       const updatedShift = {
         userId: selectedUserId || existingShift.userId,
@@ -376,12 +371,8 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
     }
   }, [selectedUserId, allUsers]);
 
-  if (isLoading || usersLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+  if (isLoading) {
+    return null;
   }
 
   const { width: screenWidth } = Dimensions.get("window");
@@ -499,7 +490,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
           {/* 授業時間セクション */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>授業時間</Text>
+            <Text style={styles.sectionTitle}>途中時間</Text>
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={() =>
@@ -507,7 +498,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
               }
             >
               <Text style={styles.toggleButtonText}>
-                {shiftData.hasClass ? "授業あり" : "授業なし"}
+                {shiftData.hasClass ? "途中時間あり" : "途中時間なし"}
               </Text>
             </TouchableOpacity>
             {shiftData.hasClass && (
@@ -564,7 +555,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
                   }
                 >
                   <AntDesign name="plus-circle" size={22} color="#fff" />
-                  <Text style={styles.addButtonText}>授業を追加</Text>
+                  <Text style={styles.addButtonText}>途中時間を追加</Text>
                 </TouchableOpacity>
               </View>
             )}

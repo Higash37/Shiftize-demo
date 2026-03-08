@@ -8,7 +8,7 @@ export const createSelectedDateListStyles = (theme: MD3Theme) =>
       backgroundColor: theme.colorScheme.surface,
       padding: theme.spacing.lg,
       borderRadius: theme.shape.large,
-      elevation: 2,
+      elevation: 0,
     },
     label: {
       ...theme.typography.titleMedium,

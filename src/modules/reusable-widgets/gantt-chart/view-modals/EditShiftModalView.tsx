@@ -6,32 +6,28 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import { TimeInput } from "@/common/common-ui/ui-input/TimeInput";
+import { ClassTimeEditor } from "./ClassTimeEditor";
+import type { NewShiftData } from "../gantt-chart-common/ShiftModalRenderer";
+import type { ShiftStatusConfig } from "@/common/common-models/ModelIndex";
 
 interface EditShiftModalViewProps {
   visible: boolean;
-  newShiftData: any;
+  newShiftData: NewShiftData;
   users: { uid: string; nickname: string }[];
   timeOptions: string[];
-  statusConfigs: any[];
+  statusConfigs: ShiftStatusConfig[];
   isLoading: boolean;
   styles: any;
   onChange: (field: string, value: any) => void;
   onClose: () => void;
   onSave: () => void;
-  onDelete: (shift: any) => void;
+  onDelete: (shift: NewShiftData) => void;
 }
 
-interface ClassTime {
-  startTime: string;
-  endTime: string;
-}
-
-// ステータスピッカーはroleがmasterのときのみ表示、それ以外は非表示
 export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo((
   props
 ) => {
@@ -52,43 +48,42 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
 
   const [isAddingClassTime, setIsAddingClassTime] = React.useState(false);
   const [isManualInput, setIsManualInput] = React.useState(false);
-  const [manualStartTime, setManualStartTime] = React.useState(newShiftData.startTime);
-  const [manualEndTime, setManualEndTime] = React.useState(newShiftData.endTime);
 
-  // 手動入力値をnewShiftDataに反映
-  React.useEffect(() => {
-    if (isManualInput) {
-      setManualStartTime(newShiftData.startTime);
-      setManualEndTime(newShiftData.endTime);
-    }
-  }, [isManualInput, newShiftData.startTime, newShiftData.endTime]);
-
-  // モーダルが閉じられたときに状態をリセット
   React.useEffect(() => {
     if (!visible) {
       setIsManualInput(false);
     }
   }, [visible]);
 
-  // 時間のバリデーション
-  const validateTime = (time: string) => {
-    const regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return regex.test(time);
-  };
-
-  const handleTimeChange = (value: string, isStart: boolean) => {
-    if (isStart) {
-      setManualStartTime(value);
-      if (validateTime(value)) {
-        onChange("startTime", value);
-      }
-    } else {
-      setManualEndTime(value);
-      if (validateTime(value)) {
-        onChange("endTime", value);
-      }
-    }
-  };
+  const renderTimeInput = (label: string, field: "startTime" | "endTime") => (
+    <View style={styles.timeInputGroup}>
+      <Text style={styles.timeInputLabel}>{label}</Text>
+      <View style={styles.pickerContainer}>
+        {isManualInput ? (
+          <TimeInput
+            style={[
+              styles.picker,
+              { paddingHorizontal: 10, textAlign: 'center' }
+            ]}
+            value={newShiftData[field]}
+            onChangeText={(value) => onChange(field, value)}
+            placeholder="00:00"
+            isError={false}
+          />
+        ) : (
+          <Picker
+            selectedValue={newShiftData[field]}
+            onValueChange={(itemValue) => onChange(field, itemValue)}
+            style={styles.picker}
+          >
+            {timeOptions.map((time) => (
+              <Picker.Item key={time} label={time} value={time} />
+            ))}
+          </Picker>
+        )}
+      </View>
+    </View>
+  );
 
   return (
     <Modal
@@ -115,86 +110,16 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
                     >
-              <Text style={styles.modalTitle}>授業時間を追加</Text>
+              <Text style={styles.modalTitle}>途中時間を追加</Text>
 
-              {(newShiftData.classes || []).map(
-                (classTime: ClassTime, idx: number) => (
-                  <View
-                    key={idx}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.timeInputLabel}>開始</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={classTime.startTime}
-                          onValueChange={(v) => {
-                            const updated = [...(newShiftData.classes || [])];
-                            updated[idx] = { ...updated[idx], startTime: v };
-                            onChange("classes", updated);
-                          }}
-                          style={styles.picker}
-                        >
-                          {timeOptions.map((time) => (
-                            <Picker.Item key={time} label={time} value={time} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                    <Text style={styles.timeInputSeparator}>～</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.timeInputLabel}>終了</Text>
-                      <View style={styles.pickerContainer}>
-                        <Picker
-                          selectedValue={classTime.endTime}
-                          onValueChange={(v) => {
-                            const updated = [...(newShiftData.classes || [])];
-                            updated[idx] = { ...updated[idx], endTime: v };
-                            onChange("classes", updated);
-                          }}
-                          style={styles.picker}
-                        >
-                          {timeOptions.map((time) => (
-                            <Picker.Item key={time} label={time} value={time} />
-                          ))}
-                        </Picker>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={{ marginLeft: 8 }}
-                      onPress={() => {
-                        const updated = [...(newShiftData.classes || [])];
-                        updated.splice(idx, 1);
-                        onChange("classes", updated);
-                      }}
-                    >
-                      <Text style={{ color: "#FF4444", fontWeight: "bold" }}>
-                        削除
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )
-              )}
-
-              <TouchableOpacity
-                style={{ marginTop: 10, alignSelf: "flex-start" }}
-                onPress={() => {
-                  const updated = [...(newShiftData.classes || [])];
-                  updated.push({
-                    startTime: newShiftData.startTime,
-                    endTime: newShiftData.endTime,
-                  });
-                  onChange("classes", updated);
-                }}
-              >
-                <Text style={{ color: "#4A90E2", fontWeight: "bold" }}>
-                  ＋授業時間を追加
-                </Text>
-              </TouchableOpacity>
+              <ClassTimeEditor
+                classes={newShiftData.classes || []}
+                timeOptions={timeOptions}
+                defaultStartTime={newShiftData.startTime}
+                defaultEndTime={newShiftData.endTime}
+                styles={styles}
+                onChange={onChange}
+              />
 
               <TouchableOpacity
                 style={{ marginTop: 20, alignSelf: "center" }}
@@ -241,67 +166,9 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               </View>
 
               <View style={styles.timeInputContainer}>
-                <View style={styles.timeInputGroup}>
-                  <Text style={styles.timeInputLabel}>開始時間</Text>
-                  <View style={styles.pickerContainer}>
-                    {isManualInput ? (
-                      <TimeInput
-                        style={[
-                          styles.picker,
-                          { paddingHorizontal: 10, textAlign: 'center' }
-                        ]}
-                        value={newShiftData.startTime}
-                        onChangeText={(value) => onChange("startTime", value)}
-                        placeholder="00:00"
-                        isError={false}
-                      />
-                    ) : (
-                      <Picker
-                        selectedValue={newShiftData.startTime}
-                        onValueChange={(itemValue) =>
-                          onChange("startTime", itemValue)
-                        }
-                        style={styles.picker}
-                      >
-                        {timeOptions.map((time) => (
-                          <Picker.Item key={time} label={time} value={time} />
-                        ))}
-                      </Picker>
-                    )}
-                  </View>
-                </View>
-
+                {renderTimeInput("開始時間", "startTime")}
                 <Text style={styles.timeInputSeparator}>～</Text>
-
-                <View style={styles.timeInputGroup}>
-                  <Text style={styles.timeInputLabel}>終了時間</Text>
-                  <View style={styles.pickerContainer}>
-                    {isManualInput ? (
-                      <TimeInput
-                        style={[
-                          styles.picker,
-                          { paddingHorizontal: 10, textAlign: 'center' }
-                        ]}
-                        value={newShiftData.endTime}
-                        onChangeText={(value) => onChange("endTime", value)}
-                        placeholder="00:00"
-                        isError={false}
-                      />
-                    ) : (
-                      <Picker
-                        selectedValue={newShiftData.endTime}
-                        onValueChange={(itemValue) =>
-                          onChange("endTime", itemValue)
-                        }
-                        style={styles.picker}
-                      >
-                        {timeOptions.map((time) => (
-                          <Picker.Item key={time} label={time} value={time} />
-                        ))}
-                      </Picker>
-                    )}
-                  </View>
-                </View>
+                {renderTimeInput("終了時間", "endTime")}
               </View>
 
               {/* 手動入力切り替えボタン */}
@@ -362,7 +229,7 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                 onPress={() => setIsAddingClassTime(true)}
               >
                 <Text style={{ color: "#4A90E2", fontWeight: "bold" }}>
-                  授業時間を追加
+                  途中時間を追加
                 </Text>
               </TouchableOpacity>
 

@@ -1,7 +1,8 @@
 import type { IAuthService } from "../interfaces/IAuthService";
-import type { User } from "@/common/common-models/model-user/UserModel";
+import type { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
+import { AuthError, NotFoundError, PermissionError, ValidationError } from "@/common/common-errors/AppErrors";
 
 export class SupabaseAuthAdapter implements IAuthService {
   /**
@@ -21,7 +22,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       await supabase.auth.signInWithPassword({ email: asciiEmail, password });
 
     if (authError || !authData.user) {
-      throw new Error("メールアドレスまたはパスワードが正しくありません");
+      throw new AuthError("メールアドレスまたはパスワードが正しくありません");
     }
 
     const supabaseUser = authData.user;
@@ -34,7 +35,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       .maybeSingle();
 
     if (error || !data) {
-      throw new Error("ユーザー情報が見つかりません");
+      throw new NotFoundError("ユーザー情報が見つかりません");
     }
 
     return {
@@ -58,7 +59,7 @@ export class SupabaseAuthAdapter implements IAuthService {
   /**
    * ユーザーロール取得
    */
-  async getUserRole(user: { uid: string }): Promise<"master" | "user"> {
+  async getUserRole(user: { uid: string }): Promise<UserRole> {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
@@ -88,15 +89,16 @@ export class SupabaseAuthAdapter implements IAuthService {
     nickname?: string,
     color?: string,
     storeId?: string,
-    role?: "master" | "user",
-    hourlyWage?: number
+    role?: UserRole,
+    hourlyWage?: number,
+    furigana?: string
   ): Promise<User> {
     const supabase = getSupabase();
 
     // 管理者セッションを保存
     const { data: { session: adminSession } } = await supabase.auth.getSession();
     if (!adminSession) {
-      throw new Error("管理者としてログインしている必要があります");
+      throw new PermissionError("管理者としてログインしている必要があります");
     }
 
     const asciiEmail = toAsciiEmail(email);
@@ -137,6 +139,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       const { error } = await supabase.from("users").insert({
         uid: newUserId,
         nickname: displayName,
+        furigana: furigana || null,
         role: userRole,
         hashed_password: hashedPassword,
         current_password: password,
@@ -151,8 +154,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       if (error) {
         // DB insert失敗時：孤児ユーザーを防ぐためAuth側ユーザーを削除
         try {
-          // service_roleが必要なため、admin APIで削除を試行
-          // クライアント側では制限があるため、ログで警告
           console.warn(`Auth user ${newUserId} created but DB insert failed. Manual cleanup may be needed.`);
         } catch (_) {}
         throw new Error(`ユーザー情報の保存に失敗しました: ${error.message}`);
@@ -190,9 +191,10 @@ export class SupabaseAuthAdapter implements IAuthService {
     user: User,
     updates: {
       nickname?: string;
+      furigana?: string;
       email?: string;
       password?: string;
-      role?: "master" | "user";
+      role?: UserRole;
       color?: string;
       storeId?: string;
     }
@@ -202,6 +204,9 @@ export class SupabaseAuthAdapter implements IAuthService {
 
     if (updates.nickname) {
       updateData['nickname'] = updates.nickname;
+    }
+    if (updates.furigana !== undefined) {
+      updateData['furigana'] = updates.furigana || null;
     }
     if (updates.email) {
       updateData['real_email'] = updates.email;
@@ -283,7 +288,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      throw new Error("ユーザーが認証されていません");
+      throw new AuthError("ユーザーが認証されていません");
     }
 
     // 現在のパスワードを検証（再ログインで確認）
@@ -293,7 +298,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     });
 
     if (verifyError) {
-      throw new Error("現在のパスワードが正しくありません");
+      throw new AuthError("現在のパスワードが正しくありません");
     }
 
     // パスワードを更新
@@ -458,7 +463,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     const supabase = getSupabase();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      throw new Error("ユーザー情報を取得できません");
+      throw new NotFoundError("ユーザー情報を取得できません");
     }
 
     const identity = user.identities?.find((id) => id.provider === provider);

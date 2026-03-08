@@ -4,18 +4,19 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAuth } from "@/services/auth/useAuth";
 import { ServiceProvider } from "@/services/ServiceProvider";
+import { createActor } from "@/services/shift-history/shiftHistoryLogger";
 import { ShiftSelectionContext } from "../gantt-chart-common/components";
+import type { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface BatchConfirmModalProps {
   visible: boolean;
   type: "approve" | "delete" | null;
-  shifts: any[];
+  shifts: ShiftItem[];
   isLoading: boolean;
   styles: any;
   setBatchModal: (modal: {
@@ -36,8 +37,6 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   setIsLoading,
   refreshPage,
 }) => {
-  const navigation = useNavigation();
-  const route = useRoute();
   const { user } = useAuth();
   const { selectedShiftIds, clearSelection } = useContext(ShiftSelectionContext);
 
@@ -48,83 +47,85 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
 
   const hasSelection = selectedShiftIds && selectedShiftIds.size > 0;
 
-  const description =
-    type === "approve"
-      ? (() => {
-          if (hasSelection) {
-            const selectedPending = shifts.filter(
-              (s) => s.status === "pending" && selectedShiftIds.has(s.id)
-            );
-            return `${selectedPending.length}件の選択シフトを承認します。本当によろしいですか？`;
-          }
-          const targets = shifts.filter((s) => s.status === "pending");
-          return `${targets.length}件の未承認シフトを一括で承認します。本当によろしいですか？`;
-        })()
-      : type === "delete"
-      ? (() => {
-          const targets = shifts.filter((s) => s.status === "deleted");
-          return `${targets.length}件の削除済みシフトを画面から消します。本当によろしいですか？`;
-        })()
-      : "";
+  const getDescription = (): string => {
+    if (type === "approve") {
+      if (hasSelection) {
+        const count = shifts.filter(
+          (s) => s.status === "pending" && selectedShiftIds.has(s.id)
+        ).length;
+        return `${count}件の選択シフトを承認します。本当によろしいですか？`;
+      }
+      const count = shifts.filter((s) => s.status === "pending").length;
+      return `${count}件の未承認シフトを一括で承認します。本当によろしいですか？`;
+    }
+    if (type === "delete") {
+      const count = shifts.filter((s) => s.status === "deleted").length;
+      return `${count}件の削除済みシフトを画面から消します。本当によろしいですか？`;
+    }
+    return "";
+  };
+
+  const description = getDescription();
+
+  const handleBatchApprove = async () => {
+    const targets = hasSelection
+      ? shifts.filter((s) => s.status === "pending" && selectedShiftIds.has(s.id))
+      : shifts.filter((s) => s.status === "pending");
+
+    const actor = createActor(user);
+
+    // 各シフトを承認
+    for (const shift of targets) {
+      await ServiceProvider.shifts.updateShift(
+        shift.id,
+        { status: "approved", updatedAt: new Date() },
+        actor
+      );
+    }
+
+    // 一括承認の監査ログ
+    const canLogApproval = actor && user?.storeId && targets.length > 0;
+    if (canLogApproval) {
+      const yearMonth = shifts[0]?.date
+        ? shifts[0].date.substring(0, 7)
+        : new Date().toISOString().substring(0, 7);
+
+      await ServiceProvider.audit.logBatchApprove(
+        actor,
+        user!.storeId!,
+        yearMonth,
+        targets.length
+      );
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    const targets = shifts.filter((s) => s.status === "deletion_requested");
+    for (const shift of targets) {
+      await ServiceProvider.shifts.updateShift(
+        shift.id,
+        { status: "deleted", updatedAt: new Date() }
+      );
+    }
+  };
 
   const handleConfirm = async () => {
     setIsLoading(true);
-    if (type === "approve") {
-      const targets = hasSelection
-        ? shifts.filter((s) => s.status === "pending" && selectedShiftIds.has(s.id))
-        : shifts.filter((s) => s.status === "pending");
-      try {
-        const actor = user ? {
-          userId: user.uid,
-          nickname: user.nickname || "教室長",
-          role: ((user.role as "master" | "teacher") || "master") as "master" | "teacher",
-        } : undefined;
-
-        for (const shift of targets) {
-          await ServiceProvider.shifts.updateShift(
-            shift.id,
-            { status: "approved", updatedAt: new Date() },
-            actor
-          );
-        }
-
-        // 一括承認のログを記録
-        if (actor && user?.storeId && targets.length > 0) {
-          const yearMonth = shifts[0]?.date ?
-            shifts[0].date.substring(0, 7) :
-            new Date().toISOString().substring(0, 7);
-
-          await ServiceProvider.audit.logBatchApprove(
-            actor,
-            user.storeId,
-            yearMonth,
-            targets.length
-          );
-        }
-      } catch (error) {
-        setIsLoading(false);
-        setBatchModal({ visible: false, type: null });
-        return;
+    try {
+      if (type === "approve") {
+        await handleBatchApprove();
+      } else if (type === "delete") {
+        await handleBatchDelete();
       }
-    } else if (type === "delete") {
-      const targets = shifts.filter((s) => s.status === "deletion_requested");
-      try {
-        for (const shift of targets) {
-          await ServiceProvider.shifts.updateShift(
-            shift.id,
-            { status: "deleted", updatedAt: new Date() }
-          );
-        }
-      } catch (error) {
-        setIsLoading(false);
-        setBatchModal({ visible: false, type: null });
-        return;
-      }
+    } catch (error) {
+      setIsLoading(false);
+      setBatchModal({ visible: false, type: null });
+      Alert.alert("エラー", "操作に失敗しました");
+      return;
     }
     setIsLoading(false);
     setBatchModal({ visible: false, type: null });
     clearSelection();
-    // リアルタイムリスナーで自動更新されるため、リフレッシュ不要
   };
 
   return (

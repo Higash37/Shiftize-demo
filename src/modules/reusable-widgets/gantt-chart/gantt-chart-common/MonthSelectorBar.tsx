@@ -38,6 +38,7 @@ interface MonthSelectorBarProps {
   onOpenHistory?: () => void; // 追加：履歴モーダル表示
   storeId?: string; // 追加：店舗ID（期間設定モーダル用）
   onQuickUrlPress?: () => void; // 追加：クイックURL発行ボタン
+  onAutoSchedule?: () => void; // 追加：自動配置ボタン
 }
 
 export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
@@ -71,14 +72,19 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
   const { selectedCount } = useContext(ShiftSelectionContext);
 
   // 金額・時間のコンパクト表示用フォーマット
-  const formattedHours = totalHours > 0
-    ? `${Math.floor(totalHours)}h${Math.round((totalHours % 1) * 60) > 0 ? `${Math.round((totalHours % 1) * 60)}m` : ""}`
-    : "0h";
+  const formattedHours = (() => {
+    if (totalHours <= 0) return "0h";
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours % 1) * 60);
+    return minutes > 0 ? `${hours}h${minutes}m` : `${hours}h`;
+  })();
 
   return (
     <View style={styles.monthSelector}>
       {/* 左ゾーン: 金額・時間表示 + 切替ボタン */}
-      {!isMobileView ? (
+      {isMobileView ? (
+        <View style={{ flex: 1 }} />
+      ) : (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 0, zIndex: 2 }}>
           <TouchableOpacity
             style={{
@@ -111,9 +117,14 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
               onToggle={onViewModeToggle}
             />
           )}
+          <TouchableOpacity
+            style={getButtonStyle("toolbar")}
+            onPress={() => setShowPeriodModal(true)}
+          >
+            <Ionicons name="calendar-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
+            <Text style={getButtonTextStyle("toolbar")}>期間設定</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <View style={{ flex: 1 }} />
       )}
 
       {/* 中央ゾーン: 年月ナビゲーション（画面中央に固定） */}
@@ -157,13 +168,6 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
           )}
           <TouchableOpacity
             style={getButtonStyle("toolbar")}
-            onPress={() => setShowPeriodModal(true)}
-          >
-            <Ionicons name="calendar-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
-            <Text style={getButtonTextStyle("toolbar")}>期間設定</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={getButtonStyle("toolbar")}
             onPress={onBatchApprove}
             disabled={isLoading}
           >
@@ -183,6 +187,15 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
             >
               <Ionicons name="time-outline" size={18} color="#2196F3" style={UnifiedButtonStyles.buttonIcon} />
               <Text style={getButtonTextStyle("toolbar")}>履歴</Text>
+            </TouchableOpacity>
+          )}
+          {props.onAutoSchedule && (
+            <TouchableOpacity
+              style={getButtonStyle("toolbar")}
+              onPress={props.onAutoSchedule}
+            >
+              <MaterialIcons name="auto-fix-high" size={18} color="#4CAF50" style={UnifiedButtonStyles.buttonIcon} />
+              <Text style={getButtonTextStyle("toolbar")}>自動配置</Text>
             </TouchableOpacity>
           )}
         </View>

@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import { timeStringToMinutes } from "@/common/common-utils/util-shift/wageCalculator";
 
 // ==========================================
 // 🎯 基本的なフォームフック
@@ -139,9 +140,7 @@ export function useShiftForm() {
     .refine(
       (data) => {
         // 開始時刻 < 終了時刻 のバリデーション
-        const start = new Date(`2000-01-01T${data.startTime}:00`);
-        const end = new Date(`2000-01-01T${data.endTime}:00`);
-        return start < end;
+        return timeStringToMinutes(data.startTime) < timeStringToMinutes(data.endTime);
       },
       {
         message: "終了時刻は開始時刻より後である必要があります",

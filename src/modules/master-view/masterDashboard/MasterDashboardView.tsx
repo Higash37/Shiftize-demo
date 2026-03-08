@@ -31,11 +31,7 @@ export const MasterDashboardView: React.FC<MasterDashboardViewProps> = ({
   );
 
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.colorScheme.primary} />
-      </View>
-    );
+    return null;
   }
 
   if (error) {

@@ -6,6 +6,7 @@ import type {
 import { getSupabase } from "./supabase-client";
 import { AESEncryption } from "@/common/common-utils/security/encryptionUtils";
 import { toAsciiEmail } from "./utils/asciiEmail";
+import { ValidationError, NetworkError } from "@/common/common-errors/AppErrors";
 
 // メール自動生成（ASCII変換付き）
 const buildGeneratedEmail = (storeId: string, nickname: string): string => {
@@ -41,7 +42,7 @@ export class SupabaseStoreAdapter implements IStoreService {
 
     if (error) {
       if (error.code === "PGRST116") return false; // not found
-      throw new Error("店舗ID確認に失敗しました");
+      throw new NetworkError("店舗ID確認に失敗しました");
     }
 
     return data !== null;
@@ -74,7 +75,7 @@ export class SupabaseStoreAdapter implements IStoreService {
       // 1. 店舗ID重複チェック
       const storeIdExists = await this.checkStoreIdExists(data.storeId);
       if (storeIdExists) {
-        throw new Error("この店舗IDは既に使用されています");
+        throw new ValidationError("この店舗IDは既に使用されています");
       }
 
       // 2. Supabase Authで管理者アカウント作成

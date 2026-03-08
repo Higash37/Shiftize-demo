@@ -1,10 +1,11 @@
 // ガントチャート共通ユーティリティ
 import { useMemo } from 'react';
+import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 
 // メモ化された時間選択リストを生成
 const TIME_OPTIONS_CACHE = (() => {
   const options: string[] = [];
-  for (let hour = 9; hour <= 22; hour++) {
+  for (let hour = SHIFT_HOURS.START_HOUR_INCLUSIVE; hour <= SHIFT_HOURS.END_HOUR_INCLUSIVE; hour++) {
     options.push(`${hour.toString().padStart(2, "0")}:00`);
     options.push(`${hour.toString().padStart(2, "0")}:15`);
     options.push(`${hour.toString().padStart(2, "0")}:30`);
@@ -93,14 +94,19 @@ function shiftsOverlap(shift1: ShiftItem, shift2: ShiftItem): boolean {
 // メモ化された時間変換キャッシュ
 const timeToMinutesCache = new Map<string, number>();
 
-// 時間文字列を分に変換（キャッシュ機能付き）
+/**
+ * 時間文字列("HH:MM")を分に変換する（キャッシュ機能付き）。
+ * 不正な形式の場合は 0 を返す。
+ */
 function timeToMinutes(time: string): number {
   if (timeToMinutesCache.has(time)) {
     return timeToMinutesCache.get(time)!;
   }
-  
-  const [hours, minutes] = time.split(':').map(Number);
-  const result = (hours ?? 0) * 60 + (minutes ?? 0);
+
+  const parts = time.split(':');
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+  const result = (Number.isNaN(hours) ? 0 : hours) * 60 + (Number.isNaN(minutes) ? 0 : minutes);
   timeToMinutesCache.set(time, result);
   return result;
 }
@@ -116,7 +122,7 @@ export function timeToPosition(time: string): number {
   
   const [hours, minutes] = time.split(":").map(Number);
   // 15分刻みでの位置を計算 (0-51の範囲)
-  const totalMinutesFromStart = ((hours ?? 0) - 9) * 60 + (minutes ?? 0);
+  const totalMinutesFromStart = ((hours ?? 0) - SHIFT_HOURS.START_HOUR_INCLUSIVE) * 60 + (minutes ?? 0);
   const result = totalMinutesFromStart / 15;
   timePositionCache.set(time, result);
   return result;
@@ -127,7 +133,7 @@ export function positionToTime(position: number, timeGrid?: string[]): string {
   if (!timeGrid) {
     // fallback: 15分刻みの従来ロジック
     const totalMinutesFromStart = Math.round(position) * 15;
-    const hours = Math.floor(totalMinutesFromStart / 60) + 9;
+    const hours = Math.floor(totalMinutesFromStart / 60) + SHIFT_HOURS.START_HOUR_INCLUSIVE;
     const minutes = totalMinutesFromStart % 60;
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
@@ -141,5 +147,7 @@ export function positionToTime(position: number, timeGrid?: string[]): string {
   }
 
   // インデックスが範囲外の場合は最初または最後の時間を返す
-  return index < 0 ? (timeGrid[0] ?? "09:00") : (timeGrid[timeGrid.length - 1] ?? "22:00");
+  const fallbackStart = `${String(SHIFT_HOURS.START_HOUR_INCLUSIVE).padStart(2, "0")}:00`;
+  const fallbackEnd = `${SHIFT_HOURS.END_HOUR_INCLUSIVE}:00`;
+  return index < 0 ? (timeGrid[0] ?? fallbackStart) : (timeGrid.at(-1) ?? fallbackEnd);
 }

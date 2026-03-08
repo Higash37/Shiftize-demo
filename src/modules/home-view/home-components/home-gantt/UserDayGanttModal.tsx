@@ -12,6 +12,11 @@ import { timeSlots } from "../../home-data/scheduleSample";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 
+const isSlotActiveAtTime = (time: string, slot: { start: string; end: string }): boolean => {
+  const isEndOfDay = time === slot.start && time === slot.end && time === "22:00";
+  return isEndOfDay || (time >= slot.start && time < slot.end);
+};
+
 interface UserDayGanttModalProps {
   visible: boolean;
   onClose: () => void;
@@ -38,8 +43,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
     // このスロットに該当するシフトを探す
     const slot = userSlots.find((s) => {
       if (!start || !s.start || !s.end) return false;
-      if (start === s.start && end === s.end && start === "22:00") return true;
-      return start >= s.start && start < s.end;
+      return isSlotActiveAtTime(start, s);
     });
     slotRows.push({
       start,
@@ -78,7 +82,7 @@ export const UserDayGanttModal: React.FC<UserDayGanttModalProps> = ({
                     fontSize: 25,
                   }}
                 >
-                  {userSlots[0]?.start || "unknown"} ～ {userSlots[userSlots.length - 1]?.end || "unknown"}
+                  {userSlots[0]?.start || "unknown"} ～ {userSlots.at(-1)?.end || "unknown"}
                 </Text>
               )}
               {/* 30分刻みで全スロット表示 */}

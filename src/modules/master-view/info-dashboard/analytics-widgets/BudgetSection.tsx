@@ -27,8 +27,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
 
   const handleBudgetChange = (value: string) => {
     setInputValue(value);
-    const numericValue = parseInt(value.replace(/,/g, ""), 10);
-    if (!isNaN(numericValue)) {
+    const numericValue = Number.parseInt(value.replace(/,/g, ""), 10);
+    if (!Number.isNaN(numericValue)) {
       onBudgetChange(numericValue);
     }
   };

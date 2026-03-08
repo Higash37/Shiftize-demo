@@ -35,8 +35,8 @@ export class SupabaseTeacherStatusAdapter implements ITeacherStatusService {
       if (!year || !month) throw new Error('Invalid targetMonth format');
 
       // TZ非依存: 文字列から直接 'YYYY-MM-DD' を生成（UTC変換を介さない）
-      const y = parseInt(year);
-      const m = parseInt(month);
+      const y = Number.parseInt(year, 10);
+      const m = Number.parseInt(month, 10);
       const startStr = `${y}-${String(m).padStart(2, '0')}-01`;
       // 月末日を計算（翌月0日 = 当月末日）
       const lastDay = new Date(y, m, 0).getDate();

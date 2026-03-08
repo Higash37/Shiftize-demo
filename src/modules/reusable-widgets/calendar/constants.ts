@@ -42,41 +42,30 @@ export const useResponsiveCalendarSize = () => {
   }, []);
 };
 
-// 日本の祝日（2024-2025年分）
-export const HOLIDAYS: { [key: string]: string } = {
-  "2024-01-01": "元日",
-  "2024-01-08": "成人の日",
-  "2024-02-11": "建国記念日",
-  "2024-02-23": "天皇誕生日",
-  "2024-03-20": "春分の日",
-  "2024-04-29": "昭和の日",
-  "2024-05-03": "憲法記念日",
-  "2024-05-04": "みどりの日",
-  "2024-05-05": "こどもの日",
-  "2024-07-15": "海の日",
-  "2024-08-11": "山の日",
-  "2024-09-16": "敬老の日",
-  "2024-09-22": "秋分の日",
-  "2024-10-14": "スポーツの日",
-  "2024-11-03": "文化の日",
-  "2024-11-23": "勤労感謝の日",
-  "2025-01-01": "元日",
-  "2025-01-13": "成人の日",
-  "2025-02-11": "建国記念日",
-  "2025-02-23": "天皇誕生日",
-  "2025-03-20": "春分の日",
-  "2025-04-29": "昭和の日",
-  "2025-05-03": "憲法記念日",
-  "2025-05-04": "みどりの日",
-  "2025-05-05": "こどもの日",
-  "2025-07-21": "海の日",
-  "2025-08-11": "山の日",
-  "2025-09-15": "敬老の日",
-  "2025-09-23": "秋分の日",
-  "2025-10-13": "スポーツの日",
-  "2025-11-03": "文化の日",
-  "2025-11-23": "勤労感謝の日",
-};
+// 日本の祝日（APIから自動取得、キャッシュ済みデータを同期的に参照）
+import { getHolidaysSync } from "@/common/common-utils/util-settings/japaneseHolidays";
+
+export const HOLIDAYS: { [key: string]: string } = new Proxy(
+  {} as Record<string, string>,
+  {
+    get(_target, prop: string) {
+      return getHolidaysSync()[prop];
+    },
+    has(_target, prop: string) {
+      return prop in getHolidaysSync();
+    },
+    ownKeys() {
+      return Object.keys(getHolidaysSync());
+    },
+    getOwnPropertyDescriptor(_target, prop: string) {
+      const holidays = getHolidaysSync();
+      if (prop in holidays) {
+        return { configurable: true, enumerable: true, value: holidays[prop] };
+      }
+      return undefined;
+    },
+  }
+);
 
 // 日本語の曜日を定義
 export const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];

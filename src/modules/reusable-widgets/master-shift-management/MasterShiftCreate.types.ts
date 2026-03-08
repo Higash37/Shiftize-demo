@@ -1,4 +1,5 @@
 import type { ShiftStatus } from "@/common/common-models/ModelIndex";
+import type { ShiftFormMode } from "@/modules/master-view/master-shift-create-view/MasterShiftCreateView.types";
 
 export interface ShiftData {
   startTime: string;
@@ -12,7 +13,7 @@ export interface ShiftData {
 }
 
 export interface MasterShiftCreateProps {
-  mode?: string;
+  mode?: ShiftFormMode;
   shiftId?: string;
   date?: string;
   startTime?: string;

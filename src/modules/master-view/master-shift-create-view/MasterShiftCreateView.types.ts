@@ -1,5 +1,7 @@
+export type ShiftFormMode = "create" | "edit";
+
 export interface MasterShiftCreateViewProps {
-  mode: string;
+  mode: ShiftFormMode;
   shiftId?: string;
   date?: string;
   startTime?: string;

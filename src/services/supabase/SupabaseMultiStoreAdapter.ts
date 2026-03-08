@@ -7,6 +7,8 @@ import type {
 } from "../interfaces/IMultiStoreService";
 import { getSupabase } from "./supabase-client";
 import * as Crypto from "expo-crypto";
+import { PermissionError, NotFoundError, ValidationError } from "@/common/common-errors/AppErrors";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 
 export class SupabaseMultiStoreAdapter implements IMultiStoreService {
   async getUserStoreAccess(userUid: string): Promise<UserStoreAccess | null> {
@@ -33,7 +35,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     inviterStoreId: string,
     userEmail: string,
     nickname: string,
-    role: "master" | "user" = "user"
+    role: UserRole = "user"
   ): Promise<void> {
     const supabase = getSupabase();
 
@@ -44,7 +46,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       !inviterAccess.storesAccess[inviterStoreId] ||
       inviterAccess.storesAccess[inviterStoreId].role !== "master"
     ) {
-      throw new Error("店舗への招待権限がありません");
+      throw new PermissionError("店舗への招待権限がありません");
     }
 
     // Find user by email
@@ -53,7 +55,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .select("uid")
       .eq("email", userEmail);
 
-    if (!users || users.length === 0 || !users[0]) throw new Error("ユーザーが見つかりません");
+    if (!users || users.length === 0 || !users[0]) throw new NotFoundError("ユーザーが見つかりません");
     const userUid = users[0].uid;
 
     // Get store info
@@ -63,7 +65,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("store_id", inviterStoreId)
       .single();
 
-    if (!store) throw new Error("店舗が見つかりません");
+    if (!store) throw new NotFoundError("店舗が見つかりません");
 
     const storeAccess: StoreAccess = {
       storeId: inviterStoreId,
@@ -104,7 +106,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     const userAccess = await this.getUserStoreAccess(userUid);
 
     if (!userAccess || !userAccess.storesAccess[storeId]) {
-      throw new Error("この店舗にアクセスする権限がありません");
+      throw new PermissionError("この店舗にアクセスする権限がありません");
     }
 
     const storeAccess = userAccess.storesAccess[storeId];
@@ -156,7 +158,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       !removerAccess.storesAccess[storeId] ||
       removerAccess.storesAccess[storeId].role !== "master"
     ) {
-      throw new Error("ユーザー削除の権限がありません");
+      throw new PermissionError("ユーザー削除の権限がありません");
     }
 
     const userAccess = await this.getUserStoreAccess(targetUserUid);
@@ -187,7 +189,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("uid", userUid)
       .single();
 
-    if (!user) throw new Error("ユーザーが見つかりません");
+    if (!user) throw new NotFoundError("ユーザーが見つかりません");
 
     const { data: store } = await supabase
       .from("stores")
@@ -195,7 +197,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("store_id", user.store_id)
       .single();
 
-    if (!store) throw new Error("店舗が見つかりません");
+    if (!store) throw new NotFoundError("店舗が見つかりません");
 
     const storeAccess: StoreAccess = {
       storeId: user.store_id,
@@ -253,11 +255,11 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("store_id", toStoreId)
       .single();
 
-    if (!toStore) throw new Error("連携先の店舗が見つかりません");
-    if (toStore.connection_password !== connectionPassword) throw new Error("連携パスワードが正しくありません");
+    if (!toStore) throw new NotFoundError("連携先の店舗が見つかりません");
+    if (toStore.connection_password !== connectionPassword) throw new ValidationError("連携パスワードが正しくありません");
 
     const expiry = toStore.connection_password_expiry ? new Date(toStore.connection_password_expiry) : null;
-    if (!expiry || expiry < new Date()) throw new Error("連携パスワードの有効期限が切れています");
+    if (!expiry || expiry < new Date()) throw new ValidationError("連携パスワードの有効期限が切れています");
 
     const { data: fromStore } = await supabase
       .from("stores")

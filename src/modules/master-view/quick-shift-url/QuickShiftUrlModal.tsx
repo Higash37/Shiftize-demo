@@ -59,12 +59,12 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
         maxUses?: number;
         requireLineAuth?: boolean;
       } = {
-        expiresInHours: parseInt(expiryHours) || 168,
+        expiresInHours: Number.parseInt(expiryHours, 10) || 168,
         requireLineAuth: true,
       };
 
       if (maxUses) {
-        options.maxUses = parseInt(maxUses);
+        options.maxUses = Number.parseInt(maxUses, 10);
       }
 
       const tokenId = await ServiceProvider.quickShiftTokens.createFreeAddToken(
@@ -105,6 +105,8 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
     );
   };
 
+  const showTypeSelection = !urlType && !generatedUrl;
+
   return (
     <Modal
       visible={visible}
@@ -130,7 +132,7 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
           </View>
 
           <ScrollView style={styles.modalContent}>
-            {!urlType && !generatedUrl && (
+            {showTypeSelection && (
               <>
                 <Text style={styles.sectionTitle}>URLタイプを選択</Text>
 

@@ -1,0 +1,139 @@
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
+
+interface ClassTime {
+  startTime: string;
+  endTime: string;
+  typeId?: string;
+  typeName?: string;
+}
+
+interface ClassTimeEditorProps {
+  classes: ClassTime[];
+  timeOptions: string[];
+  defaultStartTime: string;
+  defaultEndTime: string;
+  styles: any;
+  onChange: (field: string, value: any) => void;
+}
+
+export const ClassTimeEditor: React.FC<ClassTimeEditorProps> = ({
+  classes,
+  timeOptions,
+  defaultStartTime,
+  defaultEndTime,
+  styles,
+  onChange,
+}) => {
+  const { types } = useTimeSegmentTypesContext();
+
+  const updateClassField = (idx: number, field: "startTime" | "endTime" | "typeId", value: string) => {
+    const updated = [...classes];
+    if (field === "typeId") {
+      const matched = types.find((t) => t.id === value);
+      updated[idx] = { ...updated[idx]!, typeId: value, typeName: matched?.name || "" } as ClassTime;
+    } else {
+      updated[idx] = { ...updated[idx], [field]: value } as ClassTime;
+    }
+    onChange("classes", updated);
+  };
+
+  const removeClass = (idx: number) => {
+    const updated = [...classes];
+    updated.splice(idx, 1);
+    onChange("classes", updated);
+  };
+
+  const addClass = () => {
+    const defaultType = types[0];
+    onChange("classes", [
+      ...classes,
+      {
+        startTime: defaultStartTime,
+        endTime: defaultEndTime,
+        typeId: defaultType?.id || "",
+        typeName: defaultType?.name || "",
+      },
+    ]);
+  };
+
+  return (
+    <>
+      {classes.map((classTime, idx) => (
+        <View
+          key={idx}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 4,
+          }}
+        >
+          {types.length > 0 && (
+            <View style={{ flex: 1 }}>
+              <Text style={styles.timeInputLabel}>タイプ</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={classTime.typeId || types.find((t) => t.name === "授業")?.id || ""}
+                  onValueChange={(v) => updateClassField(idx, "typeId", v)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="未選択" value="" />
+                  {types.map((t) => (
+                    <Picker.Item key={t.id} label={`${t.icon} ${t.name}`} value={t.id} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.timeInputLabel}>開始</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={classTime.startTime}
+                onValueChange={(v) => updateClassField(idx, "startTime", v)}
+                style={styles.picker}
+              >
+                {timeOptions.map((time) => (
+                  <Picker.Item key={time} label={time} value={time} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+          <Text style={styles.timeInputSeparator}>~</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.timeInputLabel}>終了</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={classTime.endTime}
+                onValueChange={(v) => updateClassField(idx, "endTime", v)}
+                style={styles.picker}
+              >
+                {timeOptions.map((time) => (
+                  <Picker.Item key={time} label={time} value={time} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={{ marginLeft: 8 }}
+            onPress={() => removeClass(idx)}
+          >
+            <Text style={{ color: "#FF4444", fontWeight: "bold" }}>
+              削除
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity
+        style={{ marginTop: 4, alignSelf: "flex-start" }}
+        onPress={addClass}
+      >
+        <Text style={{ color: "#4A90E2", fontWeight: "bold" }}>
+          ＋途中時間を追加
+        </Text>
+      </TouchableOpacity>
+    </>
+  );
+};

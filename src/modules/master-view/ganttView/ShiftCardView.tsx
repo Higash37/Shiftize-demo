@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -15,9 +15,10 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 import type { GanttViewViewProps } from "./GanttViewView.types";
+import type { ShiftItem } from "@/common/common-models/ModelIndex";
 
 interface ShiftCardViewProps extends GanttViewViewProps {
-  onShiftPress: (shift: any) => void;
+  onShiftPress: (shift: ShiftItem) => void;
 }
 
 export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
@@ -32,24 +33,13 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
 
-  const getShiftsForDate = (date: string) => {
-    const dateShifts = shifts.filter((shift) => {
-      // 削除されていないシフトのみを表示
-      const isNotDeleted =
-        shift.status !== "deleted" && shift.status !== "purged";
-      const matchesDate = shift.date === date;
-      return isNotDeleted && matchesDate;
-    });
-    return dateShifts;
-  };
-
-  const getUserById = (userId: string) => {
-    return users.find((user) => user.uid === userId);
-  };
-
-  const formatTime = (time: string) => {
-    return time.substring(0, 5); // HH:MM形式に変換
-  };
+  const getShiftsForDate = (date: string) =>
+    shifts.filter(
+      (shift) =>
+        shift.status !== "deleted" &&
+        shift.status !== "purged" &&
+        shift.date === date
+    );
 
   const handlePrevMonth = () => {
     const prevDate = subMonths(
@@ -67,10 +57,8 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
     onMonthChange(nextDate.getFullYear(), nextDate.getMonth());
   };
 
-  const renderShiftCard = (shift: any) => {
-    const user = getUserById(shift.userId);
-    const startTime = formatTime(shift.startTime);
-    const endTime = formatTime(shift.endTime);
+  const renderShiftCard = (shift: ShiftItem) => {
+    const user = users.find((u) => u.uid === shift.userId);
 
     return (
       <TouchableOpacity
@@ -87,7 +75,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
         <View style={styles.shiftHeader}>
           <Text style={styles.shiftUser}>{user?.nickname || "不明"}</Text>
           <Text style={styles.shiftTime}>
-            {startTime} - {endTime}
+            {shift.startTime.substring(0, 5)} - {shift.endTime.substring(0, 5)}
           </Text>
         </View>
         {shift.subject ? (
@@ -99,9 +87,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
 
   const renderDayCard = (date: string) => {
     const dayShifts = getShiftsForDate(date);
-    const dayOfWeek = new Date(date).getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const day = new Date(date).getDate();
+    const isWeekend = [0, 6].includes(new Date(date).getDay());
 
     return (
       <Box
@@ -115,7 +101,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
       >
         <View style={styles.dayHeader}>
           <Text style={[styles.dayNumber, isWeekend && styles.weekendText]}>
-            {day}
+            {new Date(date).getDate()}
           </Text>
           <Text style={[styles.dayOfWeek, isWeekend && styles.weekendText]}>
             {format(new Date(date), "E", { locale: ja })}

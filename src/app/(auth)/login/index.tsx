@@ -70,7 +70,7 @@ export default function Login() {
         result = await signIn(email, password, storeId);
       }
 
-      // ログイン成功: 明示的にリダイレクト
+      // ログイン成功: 明示的にリダイレクト（loading=trueのまま遷移、フォーム再表示を防ぐ）
       const redirectParam = params["redirect"] as string | undefined;
       if (redirectParam) {
         router.replace(decodeURIComponent(redirectParam));
@@ -82,7 +82,6 @@ export default function Login() {
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
       );
-    } finally {
       setLoading(false);
     }
   };

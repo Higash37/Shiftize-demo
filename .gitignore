@@ -79,3 +79,6 @@ serviceAccountKey.json
 # Development screenshots
 screenshots/
 error.md
+
+# Local notes
+docs-local/

@@ -1,42 +1,40 @@
-import React from "react";
-import { useShiftsRealtime } from "@/common/common-utils/util-shift/useShiftsRealtime";
+import React, { useMemo } from "react";
+import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { useAuth } from "@/services/auth/useAuth";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
 import { Alert } from "react-native";
+import { calculateDurationHours } from "@/common/common-utils/util-shift/wageCalculator";
+
+const INITIAL_DATE = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
+const INITIAL_YEAR = INITIAL_DATE.getFullYear();
+const INITIAL_MONTH = INITIAL_DATE.getMonth();
 
 export default function GanttEditScreen() {
   const { user } = useAuth();
+  const [currentYearMonth, setCurrentYearMonth] = React.useState({
+    year: INITIAL_YEAR,
+    month: INITIAL_MONTH,
+  });
+
   const {
     shifts,
-    fetchShiftsByMonth,
+    changeMonth,
     refetch,
     loading: shiftsLoading,
     error: shiftsError,
-  } = useShiftsRealtime(user?.storeId);
+  } = useShiftsByMonth(user?.storeId, currentYearMonth.year, currentYearMonth.month);
   const {
     users,
     loading: usersLoading,
     error: usersError,
   } = useUsers(user?.storeId);
 
-  const [currentYearMonth, setCurrentYearMonth] = React.useState(() => {
-    const today = new Date();
-    // 1ヶ月先の月を表示
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const yearMonth = {
-      year: nextMonth.getFullYear(),
-      month: nextMonth.getMonth(),
-    };
-    return yearMonth;
-  });
-
   const handleMonthChange = async (year: number, month: number) => {
     setCurrentYearMonth({ year, month });
-    // リアルタイムリスナーで自動更新されるため、明示的なfetch不要
-    fetchShiftsByMonth(year, month);
+    changeMonth(year, month);
   };
 
   const handleShiftUpdate = async () => {
@@ -57,11 +55,7 @@ export default function GanttEditScreen() {
   ) => {
     try {
       // 新しい時間でdurationを計算
-      const startTimeDate = new Date(`2000-01-01T${newStartTime}`);
-      const endTimeDate = new Date(`2000-01-01T${newEndTime}`);
-      const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-      const durationHours =
-        Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
+      const durationHours = calculateDurationHours(newStartTime, newEndTime);
 
       // シフトを更新
       await ServiceProvider.shifts.updateShift(shiftId, {
@@ -86,11 +80,7 @@ export default function GanttEditScreen() {
     try {
       if (data.id) {
         // 時間の差を計算（duration）
-        const startTimeDate = new Date(`2000-01-01T${data.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${data.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+        const durationHours = calculateDurationHours(data.startTime, data.endTime);
 
         // 既存シフトの更新
         await ServiceProvider.shifts.updateShift(data.id, {
@@ -111,11 +101,7 @@ export default function GanttEditScreen() {
         const targetUser = users.find((u) => u.uid === data.userId);
 
         // 時間の差を計算（duration）
-        const startTimeDate = new Date(`2000-01-01T${data.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${data.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+        const durationHours = calculateDurationHours(data.startTime, data.endTime);
 
         // 新規シフトの作成
         await ServiceProvider.shifts.addShift({
@@ -151,23 +137,17 @@ export default function GanttEditScreen() {
     }
   };
 
-  const generateDaysForMonth = (year: number, month: number) => {
+  const days = useMemo(() => {
+    const { year, month } = currentYearMonth;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, i) => {
+    return Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month, i + 1);
-      // ローカルタイムゾーンでの日付文字列を生成（UTCではなく）
       const yyyy = date.getFullYear();
       const mm = String(date.getMonth() + 1).padStart(2, "0");
       const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
     });
-    return days;
-  };
-
-  const days = generateDaysForMonth(
-    currentYearMonth.year,
-    currentYearMonth.month
-  );
+  }, [currentYearMonth]);
 
   return (
     <GanttEditView

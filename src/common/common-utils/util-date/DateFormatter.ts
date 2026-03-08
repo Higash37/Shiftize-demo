@@ -30,10 +30,12 @@ export const formatTime = (date: Date): string => {
 /**
  * 日付文字列を Date オブジェクトに変換する
  * @param dateString "YYYY-MM-DD" 形式の日付文字列
- * @returns Date オブジェクト
+ * @returns Date オブジェクト。無効な文字列の場合は null を返す。
  */
-export const parseDate = (dateString: string): Date => {
-  return new Date(dateString);
+export const parseDate = (dateString: string): Date | null => {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
 };
 
 /**
@@ -49,9 +51,9 @@ export const addDays = (date: Date, days: number): Date => {
 };
 
 /**
- * 日付の範囲を配列として取得する
- * @param startDate 開始日
- * @param endDate 終了日
+ * 日付の範囲を配列として取得する（両端 inclusive）
+ * @param startDate 開始日（inclusive: この日を含む）
+ * @param endDate 終了日（inclusive: この日を含む）
  * @returns 日付オブジェクトの配列
  */
 export const getDateRange = (startDate: Date, endDate: Date): Date[] => {

@@ -9,12 +9,15 @@ import {
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import ErrorMessage from "@/common/common-ui/ui-feedback/FeedbackError";
+import type { UserRole } from "@/common/common-models/model-user/UserModel";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { styles } from "./UserForm.styles";
 import { UserFormProps } from "../user-types/components";
 import ColorPicker from "@/common/common-ui/ui-forms/FormColorPicker";
 import { PRESET_COLORS } from "@/common/common-ui/ui-forms/FormColorPicker.constants";
 import { useAuth } from "@/services/auth/useAuth";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
+import { MaterialIcons } from "@expo/vector-icons";
 
 /**
  * ユーザー情報入力フォームコンポーネント
@@ -29,11 +32,13 @@ export const UserForm: React.FC<UserFormProps> = ({
   mode = "add",
   currentPassword,
 }) => {
-  const { user: currentUser } = useAuth(); // 現在のユーザー情報を取得
+  const { user: currentUser } = useAuth();
+  const theme = useMD3Theme();
   const { width } = useWindowDimensions();
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(initialData?.nickname ?? "");
-  const [role, setRole] = useState<"master" | "user">(
+  const [furigana, setFurigana] = useState(initialData?.furigana ?? "");
+  const [role, setRole] = useState<UserRole>(
     initialData?.role || "user",
   );
   const [errorMessage, setError] = useState<string | null>(null);
@@ -54,7 +59,9 @@ export const UserForm: React.FC<UserFormProps> = ({
       try {
         const hasMasterUser = await ServiceProvider.users.checkMasterExists(currentUser?.storeId);
         setHasMaster(hasMasterUser);
-      } catch (err) {}
+      } catch (err) {
+        console.warn("マスターユーザーの存在チェックに失敗しました:", err);
+      }
     };
 
     if (mode === "add") {
@@ -65,6 +72,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   useEffect(() => {
     if (initialData) {
       setNickname(initialData.nickname ?? "");
+      setFurigana(initialData.furigana ?? "");
       setRole(initialData.role);
       setPassword("");
       if (initialData.color) {
@@ -86,6 +94,11 @@ export const UserForm: React.FC<UserFormProps> = ({
 
     if (!nickname) {
       setError("ニックネームを入力してください");
+      return;
+    }
+
+    if (furigana && !/^[\u3040-\u309F\s\u3000]*$/.test(furigana)) {
+      setError("ふりがなはひらがなのみで入力してください");
       return;
     }
 
@@ -113,6 +126,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         email: autoEmail,
         password: password || "defaultPassword123",
         nickname,
+        furigana: furigana.trim(),
         role: isMasterEdit ? "master" : role,
         storeId: currentUser.storeId || "",
         hourlyWage: 1000,
@@ -127,6 +141,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       if (mode === "add") {
         setPassword("");
         setNickname("");
+        setFurigana("");
         setRole("user");
         setColor(PRESET_COLORS[0] ?? "#4A90E2");
       }
@@ -157,77 +172,120 @@ export const UserForm: React.FC<UserFormProps> = ({
           </View>
         )}
 
-        <Input
-          label="ニックネーム"
-          value={nickname}
-          onChangeText={setNickname}
-          placeholder="山田 太郎"
-          error={!nickname ? "ニックネームを入力してください" : ""}
-        />
-
-        {/* 講師色選択セクション */}
-        <View style={styles.colorSection}>
-          <Text style={styles.colorLabel}>カラー</Text>
-          <View style={styles.colorContainer}>
-            <TouchableOpacity
-              style={[styles.colorPreview, { backgroundColor: color }]}
-              onPress={() => setColorPickerVisible(true)}
-            />
-            <Button
-              title="色を選択"
-              onPress={() => setColorPickerVisible(true)}
-              variant="outline"
-              size="small"
-              style={styles.colorButton}
-            />
-          </View>
-        </View>
-
-        <Input
-          label={
-            mode === "edit"
-              ? "新しいパスワード（変更する場合のみ）"
-              : "パスワード（6文字以上）"
-          }
-          value={password}
-          onChangeText={setPassword}
-          placeholder="新しいパスワードを入力"
-          secureTextEntry
-          error={
-            mode === "add" && (!password || password.length < 6)
-              ? "パスワードは6文字以上で入力してください"
-              : ""
-          }
-        />
-
-        {!isMasterEdit && (
-          <View style={styles.roleSection}>
+        <View style={styles.roleSection}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>
+            <MaterialIcons name="shield" size={14} color={theme.colorScheme.onSurfaceVariant} />
             <Text style={styles.roleLabel}>ユーザー権限</Text>
-            <View style={styles.roleContainer}>
-              <Button
-                title="一般ユーザー"
-                onPress={() => setRole("user")}
-                variant={role === "user" ? "primary" : "outline"}
-                style={styles.roleButton}
-              />
-              <Button
-                title="マスター"
-                onPress={() => setRole("master")}
-                variant={role === "master" ? "secondary" : "outline"}
-                style={[
-                  styles.roleButton,
-                  role === "master" && styles.masterRoleButton,
-                ]}
-                disabled={hasMaster && role !== "master"}
-              />
-            </View>
-            {hasMaster && role !== "master" && (
-              <Text style={styles.roleDisabledText}>
-                マスターユーザーは既に存在します
-              </Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+            <TouchableOpacity
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: color,
+                borderWidth: 2,
+                borderColor: theme.colorScheme.outlineVariant,
+              }}
+              onPress={() => setColorPickerVisible(true)}
+            />
+            {!isMasterEdit ? (
+              <View style={{
+                flex: 1,
+                flexDirection: "row",
+                borderRadius: theme.shape.small,
+                borderWidth: 1,
+                borderColor: theme.colorScheme.outlineVariant,
+                overflow: "hidden",
+              }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 6,
+                    alignItems: "center",
+                    backgroundColor: role === "user" ? theme.colorScheme.primaryContainer : "transparent",
+                  }}
+                  onPress={() => setRole("user")}
+                >
+                  <Text style={{
+                    ...theme.typography.labelMedium,
+                    color: role === "user" ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                  }}>一般ユーザー</Text>
+                </TouchableOpacity>
+                <View style={{ width: 1, backgroundColor: theme.colorScheme.outlineVariant }} />
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 6,
+                    alignItems: "center",
+                    backgroundColor: role === "master" ? theme.colorScheme.secondaryContainer : "transparent",
+                    opacity: hasMaster && role !== "master" ? 0.38 : 1,
+                  }}
+                  onPress={() => setRole("master")}
+                  disabled={hasMaster && role !== "master"}
+                >
+                  <Text style={{
+                    ...theme.typography.labelMedium,
+                    color: role === "master" ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurfaceVariant,
+                  }}>マスター</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text style={{ ...theme.typography.labelMedium, color: theme.colorScheme.onSurfaceVariant }}>マスター</Text>
             )}
           </View>
-        )}
+          {!isMasterEdit && hasMaster && role !== "master" && (
+            <Text style={styles.roleDisabledText}>
+              マスターユーザーは既に存在します
+            </Text>
+          )}
+        </View>
+
+        <View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>
+            <MaterialIcons name="person" size={14} color={theme.colorScheme.onSurfaceVariant} />
+            <Text style={{ ...theme.typography.bodySmall, color: theme.colorScheme.onSurfaceVariant }}>ニックネーム</Text>
+          </View>
+          <Input
+            value={nickname}
+            onChangeText={setNickname}
+            placeholder="山田 太郎"
+            error={!nickname ? "ニックネームを入力してください" : ""}
+          />
+        </View>
+
+        <View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: theme.colorScheme.onSurfaceVariant, width: 14, textAlign: "center" }}>あ</Text>
+            <Text style={{ ...theme.typography.bodySmall, color: theme.colorScheme.onSurfaceVariant }}>ふりがな</Text>
+          </View>
+          <Input
+            value={furigana}
+            onChangeText={setFurigana}
+            placeholder="やまだ たろう"
+            placeholderTextColor="#ccc"
+          />
+        </View>
+
+        <View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>
+            <MaterialIcons name="lock" size={14} color={theme.colorScheme.onSurfaceVariant} />
+            <Text style={{ ...theme.typography.bodySmall, color: theme.colorScheme.onSurfaceVariant }}>
+              {mode === "edit" ? "新しいパスワード（変更する場合のみ）" : "パスワード（6文字以上）"}
+            </Text>
+          </View>
+          <Input
+            value={password}
+            onChangeText={setPassword}
+            placeholder="新しいパスワードを入力"
+            secureTextEntry
+            error={
+              mode === "add" && (!password || password.length < 6)
+                ? "パスワードは6文字以上で入力してください"
+                : ""
+            }
+          />
+        </View>
 
         {errorMessage && <ErrorMessage message={errorMessage} />}
       </ScrollView>

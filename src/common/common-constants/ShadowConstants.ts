@@ -22,20 +22,20 @@ export type ShadowsType = {
   elevated: ViewStyle;
 };
 
-// Web用のboxShadowを生成するヘルパー関数
+// Web用のboxShadowを生成するヘルパー関数（影は全体的に無効化済み）
 const createWebShadow = (
-  color: string,
-  x: number,
-  y: number,
-  blur: number,
-  opacity: number
+  _color: string,
+  _x: number,
+  _y: number,
+  _blur: number,
+  _opacity: number
 ) => {
-  const rgba = `rgba(0, 0, 0, ${opacity})`;
-  return `${x}px ${y}px ${blur}px ${rgba}`;
+  return "none";
 };
 
 // 既存のshadowプロパティをWebの警告を回避する形式に変換するヘルパー関数
-export const convertShadowForWeb = (shadowStyle: {
+// 影は全体的に無効化済み
+export const convertShadowForWeb = (_shadowStyle: {
   shadowColor?: string;
   shadowOffset?: { width: number; height: number };
   shadowOpacity?: number;
@@ -43,40 +43,36 @@ export const convertShadowForWeb = (shadowStyle: {
   elevation?: number;
 }): ViewStyle => {
   if (Platform.OS === "web") {
-    const color = shadowStyle.shadowColor || "#000";
-    const x = shadowStyle.shadowOffset?.width || 0;
-    const y = shadowStyle.shadowOffset?.height || 0;
-    const blur = shadowStyle.shadowRadius || 0;
-    const opacity = shadowStyle.shadowOpacity || 0;
-
-    return {
-      boxShadow: createWebShadow(color, x, y, blur, opacity),
-    } as ViewStyle;
+    return { boxShadow: "none" } as ViewStyle;
   }
-
-  return shadowStyle as ViewStyle;
+  return {
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  };
 };
 
 // プラットフォーム共通のシャドウスタイルを生成するヘルパー関数
+// 影は全体的に無効化済み
 const createShadow = (
-  color: string,
-  x: number,
-  y: number,
-  blur: number,
-  opacity: number,
-  elevation: number
+  _color: string,
+  _x: number,
+  _y: number,
+  _blur: number,
+  _opacity: number,
+  _elevation: number
 ): ViewStyle => {
   if (Platform.OS === "web") {
-    return {
-      boxShadow: createWebShadow(color, x, y, blur, opacity),
-    } as ViewStyle;
+    return { boxShadow: "none" } as ViewStyle;
   }
   return {
-    shadowColor: color,
-    shadowOffset: { width: x, height: y },
-    shadowOpacity: opacity,
-    shadowRadius: blur,
-    elevation: elevation,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   };
 };
 

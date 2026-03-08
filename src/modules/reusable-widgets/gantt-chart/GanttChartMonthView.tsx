@@ -3,10 +3,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, laz
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Modal,
   TextInput,
   Alert,
@@ -50,6 +48,7 @@ import {
   positionToTime,
   timeToPosition,
 } from "./gantt-chart-common/utils";
+import { SHIFT_HOURS, BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
 import {
   DateCell,
   GanttChartGrid,
@@ -66,6 +65,9 @@ const BatchConfirmModal = lazy(() => import("./view-modals/BatchConfirmModal"));
 const ShiftHistoryModal = lazy(() =>
   import("./view-modals/ShiftHistoryModal").then(module => ({ default: module.ShiftHistoryModal }))
 );
+const AutoSchedulePreviewModal = lazy(() =>
+  import("./view-modals/AutoSchedulePreviewModal").then(module => ({ default: module.AutoSchedulePreviewModal }))
+);
 
 import { MonthSelectorBar } from "./gantt-chart-common/MonthSelectorBar";
 import { GanttHeader } from "./gantt-chart-common/GanttHeader";
@@ -76,6 +78,32 @@ import { MobileVerticalView } from "./gantt-chart-common/MobileVerticalView";
 import { GoogleCalendarView } from "./gantt-chart-common/GoogleCalendarView";
 import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLogger";
 import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
+import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext";
+import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
+import { computeAutoSchedule, ProposedAssignment } from "@/modules/master-view/auto-scheduling/autoScheduler";
+
+// 静的データをコンポーネント外に移動（毎レンダーで再生成を防止）
+const SIMPLIFIED_STATUS_CONFIGS: ShiftStatusConfig[] = [
+  { status: "approved", label: "承認済み", color: "#90caf9", canEdit: false, description: "承認されたシフト" },
+  { status: "pending", label: "申請中", color: "#FFD700", canEdit: true, description: "新規申請されたシフト" },
+  { status: "rejected", label: "却下", color: "#ffcdd2", canEdit: true, description: "却下されたシフト" },
+  { status: "deleted", label: "削除済み", color: "#9e9e9e", canEdit: false, description: "削除されたシフト" },
+  { status: "completed", label: "完了", color: "#4CAF50", canEdit: false, description: "完了したシフト" },
+];
+
+const HOUR_LABELS = Array.from(
+  { length: SHIFT_HOURS.END_HOUR_INCLUSIVE - SHIFT_HOURS.START_HOUR_INCLUSIVE + 1 },
+  (_, i) => `${SHIFT_HOURS.START_HOUR_INCLUSIVE + i}:00`
+);
+
+const HALF_HOUR_LINES = Array.from(
+  { length: (SHIFT_HOURS.END_HOUR_INCLUSIVE - SHIFT_HOURS.START_HOUR_INCLUSIVE) * 2 + 1 },
+  (_, i) => {
+    const hour = SHIFT_HOURS.START_HOUR_INCLUSIVE + Math.floor(i / 2);
+    const min = i % 2 === 0 ? "00" : "30";
+    return `${hour}:${min}`;
+  }
+);
 
 const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   shifts,
@@ -89,47 +117,9 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   refreshPage,
 }) => {
   const styles = useThemedStyles(createGanttChartMonthViewStyles);
-  // 簡略化されたステータス設定（承認済み、申請中、却下、削除済み、完了のみ）
-  const simplifiedStatusConfigs: ShiftStatusConfig[] = [
-    {
-      status: "approved",
-      label: "承認済み",
-      color: "#90caf9",
-      canEdit: false,
-      description: "承認されたシフト",
-    },
-    {
-      status: "pending",
-      label: "申請中",
-      color: "#FFD700",
-      canEdit: true,
-      description: "新規申請されたシフト",
-    },
-    {
-      status: "rejected",
-      label: "却下",
-      color: "#ffcdd2",
-      canEdit: true,
-      description: "却下されたシフト",
-    },
-    {
-      status: "deleted",
-      label: "削除済み",
-      color: "#9e9e9e",
-      canEdit: false,
-      description: "削除されたシフト",
-    },
-    {
-      status: "completed",
-      label: "完了",
-      color: "#4CAF50",
-      canEdit: false,
-      description: "完了したシフト",
-    },
-  ];
 
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
-    simplifiedStatusConfigs
+    SIMPLIFIED_STATUS_CONFIGS
   );
   const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
   const modalRef = useRef<ShiftModalRendererHandle>(null);
@@ -143,16 +133,31 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const [colorMode, setColorMode] = useState<"status" | "user">("status"); // デフォルトはステータス色
   const [showPayrollModal, setShowPayrollModal] = useState(false); // 給与詳細モーダル表示状態
   const [viewMode, setViewMode] = useState<"gantt" | "calendar" | "compact">("gantt"); // ビューモード（デフォルトはガントチャート）
-  const [deviceType, setDeviceType] = useState<"desktop" | "tablet" | "mobile">("desktop"); // デバイスタイプ
   const [useGoogleLayout, setUseGoogleLayout] = useState(false); // Googleカレンダーレイアウトを使用するか
   const [showHistoryModal, setShowHistoryModal] = useState(false); // 履歴モーダル表示状態
   const [showQuickUrlModal, setShowQuickUrlModal] = useState(false); // URL発行モーダル表示状態
+  const [showAutoScheduleModal, setShowAutoScheduleModal] = useState(false); // 自動配置モーダル
+  const [autoScheduleProposals, setAutoScheduleProposals] = useState<ProposedAssignment[]>([]);
+  const [isApplyingAutoSchedule, setIsApplyingAutoSchedule] = useState(false);
+
+  const { roles, tasks, roleAssignments, taskAssignments } = useStaffRolesContext();
+  const { assignments: existingAssignments, fetchForMonth, bulkSave } = useShiftTaskAssignmentsContext();
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
+  // デバイスタイプ判定（useWindowDimensionsからuseMemoで導出）
+  const deviceType = useMemo<"desktop" | "tablet" | "mobile">(() => {
+    if (windowWidth <= BREAKPOINTS.MOBILE_MAX_WIDTH_INCLUSIVE) return "mobile";
+    if (windowWidth < BREAKPOINTS.TABLET_MAX_WIDTH_EXCLUSIVE) return "tablet";
+    return "desktop";
+  }, [windowWidth]);
+
   // 画面サイズによる表示モード自動判定（画面分割時用）
   const shouldUseCompactView = useMemo(() => {
-    return windowWidth < 768 && windowWidth >= 500 && viewMode === "gantt"; // 500px〜768pxの狭い幅でガントチャートモードの場合は分割表示
+    const isCompactWidth =
+      windowWidth < BREAKPOINTS.TABLET_MIN_WIDTH_INCLUSIVE &&
+      windowWidth >= BREAKPOINTS.COMPACT_VIEW_MIN_WIDTH_INCLUSIVE;
+    return isCompactWidth && viewMode === "gantt";
   }, [windowWidth, viewMode]);
   const { user } = useAuth();
   const { saveShift, deleteShift, updateShiftStatus } = useGanttShiftActions({
@@ -162,35 +167,21 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     // refreshPageを使わずにstate更新のみで処理
   });
 
+  // 月の自動配置データを取得
+  useEffect(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    fetchForMonth(year, month);
+  }, [selectedDate, fetchForMonth]);
+
   // 時間選択オプションを生成
   const timeOptions = generateTimeOptions();
 
-  const screenWidth = Dimensions.get("window").width;
-  const scrollBarWidth = 21; // スクロールバーの幅（余白含む）
-  const dateColumnWidth = 31; // 日付列の幅
-  const infoColumnWidth = Math.max(screenWidth * 0.22, 180); // カレンダー列の幅を広げる
-  const ganttColumnWidth = screenWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth; // ガントチャート列
-  
-  // デバイスタイプの判定
-  useEffect(() => {
-    const checkDeviceType = () => {
-      const width = Dimensions.get("window").width;
-      if (width <= 600) {
-        setDeviceType("mobile");
-      } else if (width <= 1024) {
-        setDeviceType("tablet");
-      } else {
-        setDeviceType("desktop");
-      }
-    };
-    
-    checkDeviceType();
-    
-    // ウィンドウサイズ変更の監視
-    const subscription = Dimensions.addEventListener('change', checkDeviceType);
-    
-    return () => subscription?.remove();
-  }, []);
+  // レイアウト幅の計算（windowWidthから導出）
+  const scrollBarWidth = 21;
+  const dateColumnWidth = 31;
+  const infoColumnWidth = Math.max(windowWidth * 0.22, 180);
+  const ganttColumnWidth = windowWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth;
 
   useEffect(() => {
     // ステータス設定をリアルタイム取得
@@ -246,25 +237,11 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   }, [days, visibleShifts]);
   // 授業時間帯のセル判定
   function isClassTime(time: string) {
-    // Viewモードでは縦線を一切表示しない
     return false;
   }
 
-  // 1時間ごとのラベル
-  const hourLabels = Array.from({ length: 22 - 9 + 1 }, (_, i) => {
-    const hour = 9 + i;
-    return `${hour}:00`;
-  });
-
-  // 30分ごとの線
-  const halfHourLines = Array.from({ length: (22 - 9) * 2 + 1 }, (_, i) => {
-    const hour = 9 + Math.floor(i / 2);
-    const min = i % 2 === 0 ? "00" : "30";
-    return `${hour}:${min}`;
-  });
-
   // 時間セル計算
-  const cellWidth = ganttColumnWidth / (hourLabels.length - 1) / 2;
+  const cellWidth = ganttColumnWidth / (HOUR_LABELS.length - 1) / 2;
   // 前月に移動する関数
   const handlePrevMonth = useCallback(() => {
     const newDate = subMonths(selectedDate, 1);
@@ -340,12 +317,12 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const handleEmptyCellClick = useCallback(
     (date: string, position: number) => {
       const startTime = positionToTime(position);
-      const startHour = parseInt(startTime.split(":")[0] || "0");
-      const startMinute = parseInt(startTime.split(":")[1] || "0");
+      const startHour = Number.parseInt(startTime.split(":")[0] || "0", 10);
+      const startMinute = Number.parseInt(startTime.split(":")[1] || "0", 10);
       let endHour = startHour + 1;
       let endMinute = startMinute;
-      if (endHour > 22) {
-        endHour = 22;
+      if (endHour > SHIFT_HOURS.END_HOUR_INCLUSIVE) {
+        endHour = SHIFT_HOURS.END_HOUR_INCLUSIVE;
         endMinute = 0;
       }
       const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
@@ -416,80 +393,37 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     return map;
   }, [users]);
 
-  // 月の全シフトから金額と時間を計算（選択された月のシフトのみ）
-  const calculateMonthlyTotals = useCallback(() => {
+  // 月の合計金額・時間を計算（useMemoで直接導出、useEffect不要）
+  const totalWage = useMemo(() => {
+    if (!shifts || shifts.length === 0) return { totalAmount: 0, totalHours: 0 };
+
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth() + 1;
+
+    // ユーザーIDをキーにしたMapで高速検索
+    const userMap = new Map(users.map(u => [u.uid, u]));
+
     let totalMinutes = 0;
     let totalAmount = 0;
 
-    // シフトがない場合は0を返す
-    if (!shifts || shifts.length === 0) {
-      return {
-        totalHours: 0,
-        totalAmount: 0,
-      };
-    }
+    for (const shift of shifts) {
+      if (shift.status !== "approved" && shift.status !== "completed") continue;
+      // 日付文字列から年月を直接取得（new Date不要）
+      const shiftYear = Number(shift.date.slice(0, 4));
+      const shiftMonth = Number(shift.date.slice(5, 7));
+      if (shiftYear !== selectedYear || shiftMonth !== selectedMonth) continue;
 
-    // 選択中の年月を取得
-    const selectedYear = selectedDate.getFullYear();
-    const selectedMonth = selectedDate.getMonth() + 1; // JavaScriptは0から始まるため+1
-
-    // 選択された月に含まれる承認済みと承認待ちシフトを対象に計算
-    const targetShifts = shifts.filter((shift) => {
-      // シフトの日付から年月を抽出
-      const shiftDate = new Date(shift.date);
-      const shiftYear = shiftDate.getFullYear();
-      const shiftMonth = shiftDate.getMonth() + 1;
-
-      // 選択された月のシフトかつ承認済みまたは完了済みシフトをフィルタリング
-      return (
-        shiftYear === selectedYear &&
-        shiftMonth === selectedMonth &&
-        (shift.status === "approved" ||
-          shift.status === "completed")
+      const hourlyWage = userMap.get(shift.userId)?.hourlyWage || 1100;
+      const { totalMinutes: workMinutes, totalWage: workWage } = calculateTotalWage(
+        { startTime: shift.startTime, endTime: shift.endTime, classes: shift.classes || [] },
+        hourlyWage
       );
-    });
-
-    targetShifts.forEach((shift) => {
-      // ユーザーの時給を取得（未設定の場合は1,100円を自動適用）
-      const user = users.find((u) => u.uid === shift.userId);
-      // 時給が設定されていない場合は1,100円をデフォルト値として使用
-      const hourlyWage = user?.hourlyWage || 1100;
-
-      // 授業時間を除外したシフト時間の計算
-      const classes = shift.classes || [];
-      const { totalMinutes: workMinutes, totalWage: workWage } =
-        calculateTotalWage(
-          {
-            startTime: shift.startTime,
-            endTime: shift.endTime,
-            classes: classes,
-          },
-          hourlyWage
-        );
-
       totalMinutes += workMinutes;
       totalAmount += workWage;
-    });
-
-    return {
-      totalHours: totalMinutes / 60,
-      totalAmount: Math.round(totalAmount),
-    };
-  }, [shifts, users]); // 合計金額と時間を保持するstate
-  // 初期値は空のシフトセットだと金額を表示しないように
-  const [totalWage, setTotalWage] = useState({ totalAmount: 0, totalHours: 0 });
-
-  // シフトまたはユーザーが変更されたら再計算
-  useEffect(() => {
-    // シフトがない場合は何もしない
-    if (!shifts || shifts.length === 0) {
-      setTotalWage({ totalAmount: 0, totalHours: 0 });
-      return;
     }
 
-    const { totalAmount, totalHours } = calculateMonthlyTotals();
-    setTotalWage({ totalAmount, totalHours });
-  }, [shifts, users, calculateMonthlyTotals]);
+    return { totalHours: totalMinutes / 60, totalAmount: Math.round(totalAmount) };
+  }, [shifts, users, selectedDate]);
 
   // MobileVerticalView / GoogleCalendarView 共通コールバック
   const handleMobileEmptyCellClick = useCallback((date: string, time: string, userId: string) => {
@@ -512,6 +446,62 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const handleClassAdd = useCallback((shift: ShiftItem) => {
     modalRef.current?.openEdit(shift);
   }, []);
+
+  // 自動配置の実行
+  const handleAutoSchedule = useCallback(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const storeId = user?.storeId || "";
+
+    const userNamesMap: Record<string, string> = {};
+    users.forEach((u) => { userNamesMap[u.uid] = u.nickname; });
+
+    const proposals = computeAutoSchedule({
+      shifts: shifts.map((s) => ({
+        id: s.id,
+        userId: s.userId,
+        date: s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        status: s.status,
+      })),
+      roles,
+      tasks,
+      roleAssignments,
+      taskAssignments,
+      existingAssignments,
+      storeId,
+      year,
+      month,
+      userNames: userNamesMap,
+    });
+
+    setAutoScheduleProposals(proposals);
+    setShowAutoScheduleModal(true);
+  }, [selectedDate, user, users, shifts, roles, tasks, roleAssignments, taskAssignments, existingAssignments]);
+
+  // 自動配置の適用
+  const handleApplyAutoSchedule = useCallback(async (proposals: ProposedAssignment[]) => {
+    setIsApplyingAutoSchedule(true);
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+
+    const toSave = proposals.map((p) => ({
+      shiftId: p.shiftId,
+      taskId: p.taskId,
+      roleId: p.roleId,
+      storeId: p.storeId,
+      userId: p.userId,
+      scheduledDate: p.scheduledDate,
+      scheduledStartTime: p.scheduledStartTime,
+      scheduledEndTime: p.scheduledEndTime,
+      source: p.source as "auto" | "manual",
+    }));
+
+    await bulkSave(toSave, year, month);
+    setIsApplyingAutoSchedule(false);
+    setShowAutoScheduleModal(false);
+  }, [selectedDate, bulkSave]);
 
   // --- 本体 ---
   return (
@@ -550,6 +540,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           onOpenHistory={() => setShowHistoryModal(true)}
           onQuickUrlPress={() => setShowQuickUrlModal(true)}
           storeId={user?.storeId || ""}
+          onAutoSchedule={handleAutoSchedule}
         />
       )}
       {/* 年月ピッカーモーダル - タブレット表示時は非表示 */}
@@ -636,7 +627,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
         /* 横スクロールなしで1画面に収める */
         <View style={{ flex: 1 }}>
           <GanttHeader
-            hourLabels={hourLabels}
+            hourLabels={HOUR_LABELS}
             dateColumnWidth={dateColumnWidth}
             ganttColumnWidth={ganttColumnWidth}
             infoColumnWidth={infoColumnWidth}
@@ -648,7 +639,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
             ganttColumnWidth={ganttColumnWidth}
             infoColumnWidth={infoColumnWidth}
             cellWidth={cellWidth}
-            halfHourLines={halfHourLines}
+            halfHourLines={HALF_HOUR_LINES}
             isClassTime={isClassTime}
             getStatusConfig={getStatusConfig}
             handleShiftPress={handleShiftPress}
@@ -725,6 +716,19 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
           userId={user.uid}
           onClose={() => setShowQuickUrlModal(false)}
         />
+      )}
+
+      {/* 自動配置プレビューモーダル */}
+      {showAutoScheduleModal && (
+        <Suspense fallback={null}>
+          <AutoSchedulePreviewModal
+            visible={showAutoScheduleModal}
+            onClose={() => setShowAutoScheduleModal(false)}
+            proposals={autoScheduleProposals}
+            onApply={handleApplyAutoSchedule}
+            isApplying={isApplyingAutoSchedule}
+          />
+        </Suspense>
       )}
 
     </View>

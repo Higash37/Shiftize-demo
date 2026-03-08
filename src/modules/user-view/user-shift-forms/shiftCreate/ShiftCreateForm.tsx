@@ -1,3 +1,4 @@
+import { MAX_CLASSES_PER_SHIFT_INCLUSIVE } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -6,7 +7,6 @@ import {
   useWindowDimensions,
   Modal,
 } from "react-native";
-import { flushSync } from "react-dom";
 import { useRouter } from "expo-router";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
@@ -17,9 +17,11 @@ import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";
 import type { Shift, ClassTimeSlot } from "@/common/common-models/ModelIndex";
+import { calculateDurationHours, timeStringToMinutes } from "@/common/common-utils/util-shift/wageCalculator";
 import type { FlexAlignType } from "react-native";
 import ChangePassword from "@/modules/reusable-widgets/user-management/user-props/ChangePassword";
 import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
+import type { StoreProfile } from "@/services/interfaces/IStoreService";
 
 // 型定義
 interface UserData {
@@ -45,7 +47,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const isEditMode = initialMode === "edit";
   const { user } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [currentStore, setCurrentStore] = useState<any>(null); // 現在の店舗ドキュメント
+  const [currentStore, setCurrentStore] = useState<StoreProfile | null>(null);
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
   const [shiftData, setShiftData] = useState<ShiftData>({
     startTime: initialStartTime || "",
@@ -55,13 +57,13 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     classes: initialClasses ? JSON.parse(initialClasses) : [],
   });
   const [showCalendar, setShowCalendar] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const fadeAnim = new Animated.Value(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [connectedStores, setConnectedStores] = useState<StoreInfo[]>([]);
-  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(user?.storeId || "");
 
   const [selectedDate, setSelectedDate] = useState(initialDate || "");
   const [selectedStartTime, setSelectedStartTime] = useState(
@@ -92,50 +94,50 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // ユーザーデータを取得
+  // AuthContextの情報から即座にuserDataを初期化
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const fetchedUserData = await ServiceProvider.users.getUserFullProfile(user.uid);
-        if (fetchedUserData) {
-          const ud: UserData = {
-            uid: fetchedUserData['uid'] as string || user.uid,
-            nickname: fetchedUserData['nickname'] as string || "",
-            email: fetchedUserData['email'] as string || "",
-            role: fetchedUserData['role'] as string || "",
-          };
-          const sid = (fetchedUserData['storeId'] || fetchedUserData['store_id']) as string | undefined;
-          if (sid) ud.storeId = sid;
-          const cs = (fetchedUserData['connectedStores'] || fetchedUserData['connected_stores']) as string[] | undefined;
-          if (cs) ud.connectedStores = cs;
-          const userData = ud;
-          setUserData(userData);
+    if (!user) return;
 
-          // ユーザーの店舗ドキュメントを取得
-          if (userData.storeId) {
-            const storeData = await ServiceProvider.stores.getStore(userData.storeId);
-            if (storeData) {
-              setCurrentStore(storeData);
-            }
+    // AuthContextのデータで即座にuserData設定（API不要）
+    const initialUserData: UserData = {
+      uid: user.uid,
+      nickname: user.nickname || "",
+      email: user.email || "",
+      role: user.role || "",
+    };
+    if (user.storeId) initialUserData.storeId = user.storeId;
+    setUserData(initialUserData);
+
+    // 店舗データ取得とプロフィール補完をバックグラウンドで並列実行
+    const fetchAdditionalData = async () => {
+      try {
+        const [profileData, storeData, shiftData] = await Promise.all([
+          ServiceProvider.users.getUserFullProfile(user.uid).catch(() => null),
+          user.storeId ? ServiceProvider.stores.getStore(user.storeId).catch(() => null) : null,
+          isEditMode && initialShiftId ? ServiceProvider.shifts.getShift(initialShiftId).catch(() => null) : null,
+        ]);
+
+        // プロフィールからconnectedStoresを補完
+        if (profileData) {
+          const connectedStores = profileData['connectedStores'] as string[] | undefined;
+          if (connectedStores) {
+            setUserData(prev => prev ? { ...prev, connectedStores } : prev);
           }
         }
-        if (isEditMode && initialShiftId) {
-          const shiftData = await ServiceProvider.shifts.getShift(initialShiftId);
-          if (shiftData) {
-            setExistingShift(shiftData);
-          }
+
+        if (storeData) {
+          setCurrentStore(storeData);
         }
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
+
+        if (shiftData) {
+          setExistingShift(shiftData);
+        }
+      } catch {
+        // バックグラウンドエラーは無視
       }
     };
 
-    fetchUserData();
+    fetchAdditionalData();
   }, [user, isEditMode, initialShiftId]);
 
   // 連携店舗を取得
@@ -156,7 +158,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           allStores.push({
             storeId: userData.storeId,
             storeName:
-              currentStore.storeName || currentStore.name || "現在の店舗",
+              currentStore.storeName || "現在の店舗",
             adminUid: userData.uid,
             adminNickname: userData.nickname || "",
             isActive: true,
@@ -175,7 +177,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
                 adminUid: storeData.adminUid || "",
                 adminNickname: storeData.adminNickname || "",
                 isActive: true,
-                createdAt: storeData['createdAt'] || new Date(),
+                createdAt: new Date(),
               });
             }
           } catch (error) {
@@ -276,10 +278,8 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setShowCalendar(false);
   };
 
-  const MAX_CLASSES = 7;
-
   const addClass = () => {
-    if (shiftData.classes.length >= MAX_CLASSES) {
+    if (shiftData.classes.length > MAX_CLASSES_PER_SHIFT_INCLUSIVE) {
       setErrorMessage("13:00~17:00のようにまとめてください");
       return;
     }
@@ -324,33 +324,30 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
 
     // 開始時間と終了時間の比較
-    const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-    const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-    if (startTimeDate >= endTimeDate) {
+    if (timeStringToMinutes(shiftData.startTime) >= timeStringToMinutes(shiftData.endTime)) {
       setErrorMessage("終了時間は開始時間より後である必要があります");
       return false;
     }
 
     // 授業時間の検証
+    const shiftStartMin = timeStringToMinutes(shiftData.startTime);
+    const shiftEndMin = timeStringToMinutes(shiftData.endTime);
+
     for (let i = 0; i < shiftData.classes.length; i++) {
       const classItem = shiftData.classes[i];
       if (!classItem) continue;
-      const classStartTime = new Date(
-        `2000-01-01T${classItem.startTime ?? "00:00"}`
-      );
-      const classEndTime = new Date(
-        `2000-01-01T${classItem.endTime ?? "00:00"}`
-      );
+      const classStartMin = timeStringToMinutes(classItem.startTime ?? "00:00");
+      const classEndMin = timeStringToMinutes(classItem.endTime ?? "00:00");
 
-      if (classStartTime >= classEndTime) {
+      if (classStartMin >= classEndMin) {
         setErrorMessage(
-          `授業${i + 1}の終了時間は開始時間より後である必要があります`
+          `途中時間${i + 1}の終了時間は開始時間より後である必要があります`
         );
         return false;
       }
 
-      if (classStartTime < startTimeDate || classEndTime > endTimeDate) {
-        setErrorMessage(`授業${i + 1}の時間はシフト時間内である必要があります`);
+      if (classStartMin < shiftStartMin || classEndMin > shiftEndMin) {
+        setErrorMessage(`途中時間${i + 1}の時間はシフト時間内である必要があります`);
         return false;
       }
     }
@@ -362,72 +359,47 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const handleCreateOrUpdateShift = async () => {
     if (!validateShift() || !user) return;
 
-    // UIの更新を即座に反映
-    flushSync(() => {
-      setIsLoading(true);
-    });
+    setIsLoading(true);
 
-    // 次のフレームで処理を実行（UIのブロッキングを防ぐ）
-    setTimeout(async () => {
-      try {
-        for (const date of shiftData.dates) {
-          // 時間の差を計算（duration）
-          const startTimeDate = new Date(`2000-01-01T${shiftData.startTime}`);
-          const endTimeDate = new Date(`2000-01-01T${shiftData.endTime}`);
-          const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-          const durationHours =
-            Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10; // 小数点第1位まで
+    try {
+      for (const date of shiftData.dates) {
+        const durationHours = calculateDurationHours(shiftData.startTime, shiftData.endTime);
 
-          const shiftObject = {
-            userId: user.uid,
-            storeId: selectedStoreId || "", // 選択された店舗IDを使用
-            nickname: user.nickname || "Unknown",
-            date,
-            startTime: shiftData.startTime,
-            endTime: shiftData.endTime,
-            type: "user" as const,
-            subject: "", // 授業科目（初期値は空文字）
-            isCompleted: false,
-            status: isEditMode
-              ? existingShift?.status || "pending"
-              : ("pending" as const),
-            duration: durationHours, // number型として時間数を設定
-            classes: shiftData.classes,
-            createdAt: new Date(),
+        const shiftObject = {
+          userId: user.uid,
+          storeId: selectedStoreId || "",
+          nickname: user.nickname || "Unknown",
+          date,
+          startTime: shiftData.startTime,
+          endTime: shiftData.endTime,
+          type: "user" as const,
+          subject: "",
+          isCompleted: false,
+          status: isEditMode
+            ? existingShift?.status || "pending"
+            : ("pending" as const),
+          duration: durationHours,
+          classes: shiftData.classes,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        if (isEditMode && initialShiftId) {
+          await ServiceProvider.shifts.updateShift(initialShiftId, {
+            ...shiftObject,
             updatedAt: new Date(),
-          };
-
-          if (isEditMode && initialShiftId) {
-            // 編集モードの場合はServiceProviderで更新
-            await ServiceProvider.shifts.updateShift(initialShiftId, {
-              ...shiftObject,
-              updatedAt: new Date(),
-            } as any);
-          } else {
-            // 新規作成の場合はuseShiftのcreateShiftメソッドを使用
-            await createShift(shiftObject);
-          }
+          } as any);
+        } else {
+          await createShift(shiftObject);
         }
-
-        setShowSuccess(true);
-
-        // 成功アニメーションを表示
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-
-        // 1.5秒後にローディング解除と画面遷移を同時実行
-        setTimeout(() => {
-          setIsLoading(false);
-          router.push("/(main)/user/shifts");
-        }, 1500);
-      } catch (error) {
-        setIsLoading(false);
-        setErrorMessage("シフトの保存中にエラーが発生しました");
       }
-    }, 10); // 10ms後に実行（UIレンダリングを先に完了させる）
+
+      // 保存成功 → 即座に遷移
+      router.push("/(main)/user/shifts");
+    } catch (error) {
+      setIsLoading(false);
+      setErrorMessage("シフトの保存中にエラーが発生しました");
+    }
   };
 
   const handleDeleteShift = async () => {
@@ -470,9 +442,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           onBack={() => router.back()}
           onPressSettings={() => setShowPasswordModal(true)}
         />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <View style={styles.loadingContainer} />
         <Modal
           visible={showPasswordModal}
           animationType="slide"

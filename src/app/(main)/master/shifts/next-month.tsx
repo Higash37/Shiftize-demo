@@ -7,6 +7,7 @@ import { useAuth } from "@/services/auth/useAuth";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { GanttEditView } from "@/modules/master-view/ganttEdit/GanttEditView";
 import { ShiftData } from "@/modules/master-view/ganttView/gantt-modals/ShiftModal";
+import { calculateDurationHours } from "@/common/common-utils/util-shift/wageCalculator";
 
 const NEXT_MONTH = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
 const INITIAL_YEAR = NEXT_MONTH.getFullYear();
@@ -54,11 +55,7 @@ export default function MasterNextMonthShiftScreen() {
     newEndTime: string
   ) => {
     try {
-      const startTimeDate = new Date(`2000-01-01T${newStartTime}`);
-      const endTimeDate = new Date(`2000-01-01T${newEndTime}`);
-      const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-      const durationHours =
-        Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
+      const durationHours = calculateDurationHours(newStartTime, newEndTime);
 
       await ServiceProvider.shifts.updateShift(shiftId, {
         startTime: newStartTime,
@@ -78,11 +75,7 @@ export default function MasterNextMonthShiftScreen() {
   const handleShiftSave = async (data: ShiftData) => {
     try {
       if (data.id) {
-        const startTimeDate = new Date(`2000-01-01T${data.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${data.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
+        const durationHours = calculateDurationHours(data.startTime, data.endTime);
 
         await ServiceProvider.shifts.updateShift(data.id, {
           userId: data.userId,
@@ -99,11 +92,7 @@ export default function MasterNextMonthShiftScreen() {
         });
       } else {
         const targetUser = users.find((u) => u.uid === data.userId);
-        const startTimeDate = new Date(`2000-01-01T${data.startTime}`);
-        const endTimeDate = new Date(`2000-01-01T${data.endTime}`);
-        const durationMs = endTimeDate.getTime() - startTimeDate.getTime();
-        const durationHours =
-          Math.round((durationMs / (1000 * 60 * 60)) * 10) / 10;
+        const durationHours = calculateDurationHours(data.startTime, data.endTime);
 
         await ServiceProvider.shifts.addShift({
           userId: data.userId,
