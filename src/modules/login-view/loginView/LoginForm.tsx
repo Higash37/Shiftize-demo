@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import type { LoginFormProps } from "./LoginForm.types";
@@ -117,63 +118,133 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </View>
           )}
 
-          {/* 入力フィールド */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelContainer}>
-              <MaterialIcons
-                name="store"
-                size={20}
-                color={colorScheme.primary}
-                style={styles.labelIcon}
-              />
-              <Text style={styles.label}>店舗ID + ニックネーム</Text>
-            </View>
-            <TextInput
-              style={styles.input}
-              value={storeIdAndUsername}
-              onChangeText={setStoreIdAndUsername}
-              placeholder="例: 1234山田太郎"
-              placeholderTextColor={colorScheme.onSurfaceVariant}
-              autoCapitalize="none"
-            />
-          </View>
+          {Platform.OS === "web" ? (
+            <form
+              onSubmit={(e: any) => {
+                e.preventDefault();
+                handleLogin();
+              }}
+              style={{ display: "flex", flexDirection: "column" }}
+            >
+              {/* 入力フィールド */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <MaterialIcons
+                    name="store"
+                    size={20}
+                    color={colorScheme.primary}
+                    style={styles.labelIcon}
+                  />
+                  <Text style={styles.label}>店舗ID + ニックネーム</Text>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={storeIdAndUsername}
+                  onChangeText={setStoreIdAndUsername}
+                  placeholder="例: 1234山田太郎"
+                  placeholderTextColor={colorScheme.onSurfaceVariant}
+                  autoCapitalize="none"
+                />
+              </View>
 
-          {/* パスワード入力 */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelContainer}>
-              <MaterialIcons
-                name="lock"
-                size={20}
-                color={colorScheme.primary}
-                style={styles.labelIcon}
-              />
-              <Text style={styles.label}>パスワード</Text>
-            </View>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="パスワードを入力"
-              placeholderTextColor={colorScheme.onSurfaceVariant}
-              secureTextEntry
-              returnKeyType="go"
-              onSubmitEditing={handleLogin}
-            />
-          </View>
+              {/* パスワード入力 */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <MaterialIcons
+                    name="lock"
+                    size={20}
+                    color={colorScheme.primary}
+                    style={styles.labelIcon}
+                  />
+                  <Text style={styles.label}>パスワード</Text>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="パスワードを入力"
+                  placeholderTextColor={colorScheme.onSurfaceVariant}
+                  secureTextEntry
+                  returnKeyType="go"
+                  onSubmitEditing={handleLogin}
+                />
+              </View>
 
-          {/* ログインボタン */}
-          <TouchableOpacity
-            style={[
-              styles.loginButton,
-              loading && styles.loginButtonDisabled,
-            ]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.loginButtonText}>
-              {loading ? "ログイン中..." : "ログイン"}
-            </Text>
-          </TouchableOpacity>
+              {/* ログインボタン */}
+              <TouchableOpacity
+                style={[
+                  styles.loginButton,
+                  loading && styles.loginButtonDisabled,
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {loading ? "ログイン中..." : "ログイン"}
+                </Text>
+              </TouchableOpacity>
+            </form>
+          ) : (
+            <>
+              {/* 入力フィールド */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <MaterialIcons
+                    name="store"
+                    size={20}
+                    color={colorScheme.primary}
+                    style={styles.labelIcon}
+                  />
+                  <Text style={styles.label}>店舗ID + ニックネーム</Text>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={storeIdAndUsername}
+                  onChangeText={setStoreIdAndUsername}
+                  placeholder="例: 1234山田太郎"
+                  placeholderTextColor={colorScheme.onSurfaceVariant}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* パスワード入力 */}
+              <View style={styles.inputGroup}>
+                <View style={styles.labelContainer}>
+                  <MaterialIcons
+                    name="lock"
+                    size={20}
+                    color={colorScheme.primary}
+                    style={styles.labelIcon}
+                  />
+                  <Text style={styles.label}>パスワード</Text>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="パスワードを入力"
+                  placeholderTextColor={colorScheme.onSurfaceVariant}
+                  secureTextEntry
+                  returnKeyType="go"
+                  onSubmitEditing={handleLogin}
+                />
+              </View>
+
+              {/* ログインボタン */}
+              <TouchableOpacity
+                style={[
+                  styles.loginButton,
+                  loading && styles.loginButtonDisabled,
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {loading ? "ログイン中..." : "ログイン"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </Box>
 
         {/* デモリンク - ボックス外 */}

@@ -5,6 +5,7 @@ import { SettingsProvider } from "@/common/common-utils/util-settings";
 import { TimeSegmentTypesProvider } from "@/common/common-context/TimeSegmentTypesContext";
 import { StaffRolesProvider } from "@/common/common-context/StaffRolesContext";
 import { ShiftTaskAssignmentsProvider } from "@/common/common-context/ShiftTaskAssignmentsContext";
+import { TodoBadgeProvider } from "@/common/common-context/TodoBadgeContext";
 
 /**
  * メインレイアウト
@@ -37,7 +38,9 @@ export default function MainLayout() {
       <TimeSegmentTypesProvider storeId={user?.storeId || ""}>
         <StaffRolesProvider storeId={user?.storeId || ""}>
           <ShiftTaskAssignmentsProvider storeId={user?.storeId || ""}>
-            <Slot />
+            <TodoBadgeProvider storeId={user?.storeId || ""} userId={user?.uid}>
+              <Slot />
+            </TodoBadgeProvider>
           </ShiftTaskAssignmentsProvider>
         </StaffRolesProvider>
       </TimeSegmentTypesProvider>

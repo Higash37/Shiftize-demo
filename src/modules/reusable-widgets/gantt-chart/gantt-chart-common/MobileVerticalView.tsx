@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import type { MarkedDates } from "react-native-calendars/src/types";
+import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 /** 時刻文字列を分に変換 */
 function timeToMinutesLocal(time: string): number {
@@ -308,6 +309,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                 onDayPress={handleDayPress}
                 onMonthChange={handleCalendarMonthChange}
                 markedDates={markedDates}
+                hideMonthNav
               />
             </View>
           </View>
@@ -327,7 +329,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
               backgroundColor: colors.surfaceElevated,
               borderBottomWidth: 1,
               borderBottomColor: colors.border,
-              paddingVertical: 8,
+              height: SUB_HEADER_HEIGHT,
               paddingHorizontal: 8,
               flexDirection: "row",
               alignItems: "center",
@@ -337,57 +339,20 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
             {/* 左側：日付ナビゲーション */}
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
                 flex: 1,
-                justifyContent: "center",
+                alignItems: "center",
                 marginRight: -60,
               }}
             >
-              <TouchableOpacity
-                style={{
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                }}
-                onPress={handlePrevDay}
-              >
-                <Text
-                  style={{ fontSize: 16, color: colors.primary, fontWeight: "bold" }}
-                >
-                  {"<"}
-                </Text>
-              </TouchableOpacity>
-
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "bold",
-                  color: colors.text.primary,
-                  marginHorizontal: 8,
-                }}
-              >
-                {displayDate
-                  ? format(new Date(displayDate), "M月d日(E)", { locale: ja })
-                  : "日付を選択"}
-              </Text>
-
-              <TouchableOpacity
-                style={{
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                }}
-                onPress={handleNextDay}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: colors.primary,
-                    fontWeight: "bold",
-                  }}
-                >
-                  {">"}
-                </Text>
-              </TouchableOpacity>
+              <DateNavigator
+                label={
+                  displayDate
+                    ? format(new Date(displayDate), "M月d日(E)", { locale: ja })
+                    : "日付を選択"
+                }
+                onPrev={handlePrevDay}
+                onNext={handleNextDay}
+              />
             </View>
 
             {/* 右側：時間範囲切り替えボタン */}

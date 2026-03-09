@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
+import { SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 export const createHomeViewStyles = (theme: MD3Theme) =>
   StyleSheet.create({
@@ -88,10 +89,10 @@ export const createHomeViewStyles = (theme: MD3Theme) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.sm,
-      minHeight: 48,
+      height: SUB_HEADER_HEIGHT,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colorScheme.outlineVariant,
+      backgroundColor: theme.colorScheme.surface,
     },
     dateNavBtn: {
       ...theme.typography.titleLarge,

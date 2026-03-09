@@ -56,7 +56,7 @@ async function verifyFirebaseToken(
 
 serve(async (req: Request) => {
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://shift-scheduler-app-vu6i.onrender.com",
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type",
   };

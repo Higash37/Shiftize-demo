@@ -163,14 +163,6 @@ export const UserForm: React.FC<UserFormProps> = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.formContent}
       >
-        {/* 警告メッセージ（新規追加時のみ表示） */}
-        {mode === "add" && (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>
-              追加後ログイン画面に戻ります。申し訳ございません。
-            </Text>
-          </View>
-        )}
 
         <View style={styles.roleSection}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 2 }}>

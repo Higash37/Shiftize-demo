@@ -5,9 +5,9 @@ import {
   Text,
   Dimensions,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter, usePathname } from "expo-router";
-import Toast from "react-native-toast-message";
 import {
   MaterialIcons,
   AntDesign,
@@ -27,6 +27,7 @@ import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 
 import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
+import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -110,6 +111,7 @@ export function Footer(_props: Readonly<FooterProps>) {
   const styles = useThemedStyles(createFooterStyles);
   const { colorScheme } = useMD3Theme();
   const userTabs = useMemo(() => createUserTabs(colorScheme), [colorScheme]);
+  const { todayUnreadCount } = useTodoBadge();
 
   // FontAwesome5フォントを遅延読み込み
   useExtendedFonts();
@@ -145,12 +147,7 @@ export function Footer(_props: Readonly<FooterProps>) {
 
   const handleTabPress = (tab: TabItem) => {
     if (tab.isUnderDevelopment) {
-      Toast.show({
-        type: "info",
-        text1: "開発中です！",
-        text2: "この機能は現在開発中です。",
-        position: "bottom",
-      });
+      Alert.alert("開発中です！", "この機能は現在開発中です。");
       return;
     }
 
@@ -160,15 +157,10 @@ export function Footer(_props: Readonly<FooterProps>) {
       const daysLeft = getDaysUntilDeadline();
 
       if (!canSubmit) {
-        Toast.show({
-          type: "error",
-          text1: "募集期間外です",
-          text2:
-            daysLeft < 0
-              ? "募集期間が終了しています"
-              : "まだ募集期間ではありません",
-          position: "bottom",
-        });
+        Alert.alert(
+          "募集期間外です",
+          daysLeft < 0 ? "募集期間が終了しています" : "まだ募集期間ではありません",
+        );
         return;
       }
     }
@@ -191,7 +183,21 @@ export function Footer(_props: Readonly<FooterProps>) {
               onPress={() => handleTabPress(tab)}
               disabled={tab.isUnderDevelopment}
             >
-              {tab.icon(active)}
+              <View style={{ position: "relative" }}>
+                {tab.icon(active)}
+                {tab.name === "today" && todayUnreadCount > 0 && (
+                  <View style={{
+                    position: "absolute", top: -4, right: -8,
+                    minWidth: 16, height: 16, borderRadius: 8,
+                    backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
+                    paddingHorizontal: 3,
+                  }}>
+                    <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
+                      {todayUnreadCount > 99 ? "99+" : todayUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text
                 style={[
                   styles.label,

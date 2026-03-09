@@ -52,12 +52,6 @@ export const WelcomeScreen: React.FC = () => {
                 color={colorScheme.onPrimary}
               />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.push("/(landing)")}
-            >
-              <AntDesign name="home" size={24} color={colorScheme.onPrimary} />
-            </TouchableOpacity>
           </View>
         </View>
       </Box>

@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
+import { SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 export const createGanttChartMonthViewStyles = (theme: MD3Theme) =>
   StyleSheet.create({
@@ -180,8 +181,7 @@ export const createGanttChartMonthViewStyles = (theme: MD3Theme) =>
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: 8,
-      paddingVertical: 4,
-      minHeight: 48,
+      height: SUB_HEADER_HEIGHT,
       backgroundColor: theme.colorScheme.surface,
       borderBottomWidth: 1,
       borderBottomColor: theme.colorScheme.outlineVariant,

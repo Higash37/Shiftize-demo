@@ -19,6 +19,7 @@ import { ClockWidget } from "../home-components/home-widgets/ClockWidget";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getShiftStatus, groupConsecutiveSlots } from "../home-utils/shiftStatusUtils";
+import { SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 interface Props {
   namesFirst: string[];
@@ -122,11 +123,15 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
     <View style={styles.container}>
       {/* 左列：時計 + カレンダー */}
       <View style={styles.leftColumn}>
+        {/* ヘッダー */}
+        <View style={styles.columnHeaderBar}>
+          <Text style={styles.columnTitle}>
+            {format(selectedDate, "M月d日(E)", { locale: ja })}
+          </Text>
+        </View>
+
         {/* 時計 */}
         <View style={styles.clockSection}>
-          <Text style={styles.clockTitle}>
-            {format(selectedDate, "M月d日", { locale: ja })}
-          </Text>
           <ClockWidget
             staffSchedules={staffWorkingHours}
             size={200}
@@ -159,9 +164,11 @@ export const HomeGanttTabletScreen: React.FC<Props> = ({
 
       {/* 右列：シフトカード一覧 */}
       <View style={styles.rightColumn}>
-        <Text style={styles.columnTitle}>
-          {format(selectedDate, "M月d日", { locale: ja })}のシフト
-        </Text>
+        <View style={styles.columnHeaderBar}>
+          <Text style={styles.columnTitle}>
+            {format(selectedDate, "M月d日", { locale: ja })}のシフト
+          </Text>
+        </View>
 
         <ScrollView
           style={styles.shiftsScrollView}
@@ -255,6 +262,14 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: colors.border,
   },
+  columnHeaderBar: {
+    height: SUB_HEADER_HEIGHT,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   clockSection: {
     flex: 1,
     alignItems: "center",
@@ -266,22 +281,15 @@ const styles = StyleSheet.create({
   calendarSection: {
     flex: 1,
   },
-  clockTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.text.primary,
-    marginBottom: layout.padding.small,
-  },
   rightColumn: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: layout.padding.medium,
+    paddingHorizontal: layout.padding.medium,
   },
   columnTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "bold",
     color: colors.text.primary,
-    marginBottom: layout.padding.medium,
   },
   shiftsScrollView: {
     flex: 1,

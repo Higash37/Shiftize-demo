@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# Build output
+dist/
+
 # Expo
 .expo/
 web-build/

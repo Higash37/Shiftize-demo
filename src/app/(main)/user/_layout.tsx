@@ -5,7 +5,6 @@ import { useRouter, useSegments } from "expo-router";
 import { View, Dimensions, StyleSheet } from "react-native";
 import { Routes } from "@/common/common-constants/RouteConstants";
 import { Footer } from "@/common/common-ui/ui-layout";
-import Toast from "react-native-toast-message";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -86,7 +85,6 @@ export default function userLayout() {
       
       {/* フッター - 固定サイズ */}
       <Footer />
-      <Toast />
     </View>
   );
 }

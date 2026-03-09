@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -21,6 +21,7 @@ import { ShiftListItem } from "./ShiftListItem";
 import { ShiftDetailsView } from "../shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "../../user-shift-utils/shift-time.utils";
 import { createShiftListViewStyles } from "./styles";
+import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 import type { ShiftSubmissionPeriod } from "@/services/interfaces/IShiftSubmissionService";
 import ShiftModal from "../ListModal/ShiftModal";
 import ShiftReportModal from "../ListModal/ShiftReportModal";
@@ -291,6 +292,25 @@ export const UserShiftList = () => {
     ? styles.tabletContainer
     : styles.defaultContainer;
 
+  // サブヘッダー用の月ナビゲーション
+  const subHeaderLabel = useMemo(() => {
+    const d = new Date(currentMonth + "-01");
+    const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
+    return `${validDate.getFullYear()}年${validDate.getMonth() + 1}月`;
+  }, [currentMonth]);
+
+  const handlePrevMonth = useCallback(() => {
+    const d = new Date(currentMonth + "-01");
+    d.setMonth(d.getMonth() - 1);
+    handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+  }, [currentMonth]);
+
+  const handleNextMonth = useCallback(() => {
+    const d = new Date(currentMonth + "-01");
+    d.setMonth(d.getMonth() + 1);
+    handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+  }, [currentMonth]);
+
   return (
     <>
       <View style={containerStyle}>
@@ -298,6 +318,21 @@ export const UserShiftList = () => {
           title="シフト一覧"
           onPressSettings={() => setShowPasswordModal(true)}
         />
+        {/* サブヘッダー：年月ピッカー */}
+        <View style={{
+          height: SUB_HEADER_HEIGHT,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: theme.colorScheme.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colorScheme.outlineVariant,
+        }}>
+          <DateNavigator
+            label={subHeaderLabel}
+            onPrev={handlePrevMonth}
+            onNext={handleNextMonth}
+          />
+        </View>
         <View
           style={[styles.calendarContainer, styles.calendarContainerCompact]}
         >
@@ -310,6 +345,7 @@ export const UserShiftList = () => {
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
             onMount={handleCalendarMount}
+            hideMonthNav
             responsiveSize={{
               container: {
                 width: "98%",

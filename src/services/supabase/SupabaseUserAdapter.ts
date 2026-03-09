@@ -27,7 +27,6 @@ export class SupabaseUserAdapter implements IUserService {
       email: row.email,
       color: row.color,
       storeId: row.store_id || "",
-      currentPassword: row.current_password,
       hourlyWage: row.hourly_wage ?? undefined,
       createdAt: row.created_at,
     }));
@@ -53,7 +52,6 @@ export class SupabaseUserAdapter implements IUserService {
       nickname: data.nickname,
       role: data.role,
       email: data.email,
-      currentPassword: data.current_password,
       createdAt: new Date(data.created_at),
       hourlyWage: data.hourly_wage,
     };

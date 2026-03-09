@@ -12,6 +12,7 @@ import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./Unifi
 import { PeriodSettingModal } from "../modals/PeriodSettingModal";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { ShiftSelectionContext } from "./components";
+import { DateNavigator } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 interface MonthSelectorBarProps {
   selectedDate: Date;
@@ -80,11 +81,9 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
   })();
 
   return (
-    <View style={styles.monthSelector}>
-      {/* 左ゾーン: 金額・時間表示 + 切替ボタン */}
-      {isMobileView ? (
-        <View style={{ flex: 1 }} />
-      ) : (
+    <View style={[styles.monthSelector, isMobileView && { paddingHorizontal: 0, justifyContent: "center" }]}>
+      {/* 左ゾーン: 金額・時間表示 + 切替ボタン（PC のみ） */}
+      {isMobileView ? null : (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 0, zIndex: 2 }}>
           <TouchableOpacity
             style={{
@@ -127,33 +126,34 @@ export const MonthSelectorBar: React.FC<MonthSelectorBarProps> = (props) => {
         </View>
       )}
 
-      {/* 中央ゾーン: 年月ナビゲーション（画面中央に固定） */}
+      {/* 中央ゾーン: 年月ナビゲーション */}
       {deviceType !== "tablet" && (
-        <View style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          alignItems: "center",
-          pointerEvents: "box-none",
-          zIndex: 1,
-        }}>
-          <View style={[styles.monthNavigator, { pointerEvents: "auto" }]}>
-            <TouchableOpacity style={styles.monthNavButton} onPress={onPrevMonth}>
-              <Text style={styles.monthNavButtonText}>＜</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.monthButton}
-              onPress={onShowYearMonthPicker}
-            >
-              <Text style={styles.monthText}>
-                {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.monthNavButton} onPress={onNextMonth}>
-              <Text style={styles.monthNavButtonText}>＞</Text>
-            </TouchableOpacity>
+        isMobileView ? (
+          <DateNavigator
+            label={`${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月`}
+            onPrev={onPrevMonth}
+            onNext={onNextMonth}
+            onLabelPress={onShowYearMonthPicker}
+          />
+        ) : (
+          <View style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            alignItems: "center",
+            pointerEvents: "box-none",
+            zIndex: 1,
+          }}>
+            <View style={{ pointerEvents: "auto" }}>
+              <DateNavigator
+                label={`${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月`}
+                onPrev={onPrevMonth}
+                onNext={onNextMonth}
+                onLabelPress={onShowYearMonthPicker}
+              />
+            </View>
           </View>
-        </View>
+        )
       )}
 
       {/* 右ゾーン: アクションボタン群 */}

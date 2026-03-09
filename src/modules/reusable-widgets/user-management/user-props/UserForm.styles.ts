@@ -50,22 +50,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // 警告メッセージ
-  warningContainer: {
-    backgroundColor: colors.error + "10",
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: layout.borderRadius.small,
-    padding: layout.padding.small,
-    marginBottom: layout.padding.small,
-  },
-  warningText: {
-    color: colors.error,
-    fontSize: typography.fontSize.small,
-    textAlign: "center",
-    fontWeight: "500",
-    lineHeight: 20,
-  },
 
   // 情報メッセージ
   infoContainer: {

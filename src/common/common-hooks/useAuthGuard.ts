@@ -17,13 +17,10 @@ export const useAuthGuard = () => {
       return;
     }
 
-    const { inLandingGroup, atRoot } = {
-      inLandingGroup: RouteGroups.isLandingGroup(segments),
-      atRoot: RouteGroups.isAtRoot(segments),
-    };
+    const atRoot = RouteGroups.isAtRoot(segments);
 
-    // ルートページまたはランディングページは認証に関係なく常にアクセス可能
-    if (inLandingGroup || atRoot) {
+    // ルートページは認証に関係なく常にアクセス可能
+    if (atRoot) {
       return;
     }
 
