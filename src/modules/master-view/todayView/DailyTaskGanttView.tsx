@@ -51,6 +51,11 @@ import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ShiftTaskAssignment } from "@/modules/master-view/info-dashboard/useShiftTaskAssignments";
 import type { RoleTask, StaffRole } from "@/modules/master-view/info-dashboard/useStaffTasks";
+import { ServiceProvider } from "@/services/ServiceProvider";
+import type { ClassTimeSlot } from "@/common/common-models/model-shift/shiftTypes";
+import { DailyTodoView } from "./DailyTodoView";
+import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
+import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
 
 const AUTO_ASSIGN_KEY = "daily_gantt_auto_assign";
 
@@ -122,6 +127,7 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
   const { colorScheme: cs } = useMD3Theme();
   const { width: screenWidth } = useWindowDimensions();
   const isMobile = screenWidth < 768;
+  const { todayUnreadCount } = useTodoBadge();
 
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [hideEarlyHours, setHideEarlyHours] = useState(false);
@@ -139,6 +145,18 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
   const [userModalEndTime, setUserModalEndTime] = useState("");
   const [autoAssignOn, setAutoAssignOn] = useState(false);
   const [autoAssignRan, setAutoAssignRan] = useState("");
+  const [activeTab, setActiveTab] = useState<"schedule" | "todo">("schedule");
+
+  // タスク追加モーダル（FAB / カードタップ用）
+  const [userAddModal, setUserAddModal] = useState<{ visible: boolean; startTime: string; endTime: string; userId?: string }>({ visible: false, startTime: "", endTime: "" });
+  const [addModalTab, setAddModalTab] = useState<0 | 1>(0);
+  // 確認モーダル
+  const [confirmItem, setConfirmItem] = useState<{
+    item: StaffRole | RoleTask | { id: string; name: string; icon: string; color: string };
+    itemType: "role" | "task" | "type";
+    startTime: string;
+    endTime: string;
+  } | null>(null);
 
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const year = selectedDate.getFullYear();
@@ -149,7 +167,7 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
 
   const { roles, tasks, rolesMap, tasksMap, roleAssignments, taskAssignments } =
     useStaffRolesContext();
-  const { typesMap: segmentTypesMap } = useTimeSegmentTypesContext();
+  const { types: segmentTypes, typesMap: segmentTypesMap } = useTimeSegmentTypesContext();
   const { assignments, fetchForMonth, upsertAssignment, deleteAssignment } =
     useShiftTaskAssignmentsContext();
 
@@ -182,6 +200,12 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
   const dayShifts = useMemo(
     () => dayShiftsAll.filter((s) => s.status === "approved" || s.status === "completed"),
     [dayShiftsAll]
+  );
+
+  // ユーザー自身のシフト（readOnlyモード用）
+  const myShift = useMemo(
+    () => readOnly ? (dayShifts.find(s => s.userId === user?.uid) ?? dayShiftsAll.find(s => s.userId === user?.uid) ?? null) : null,
+    [readOnly, dayShifts, dayShiftsAll, user?.uid]
   );
 
   // 当日の割り当て
@@ -695,26 +719,77 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
     setAssignModal({ visible: false });
   }, [assignModal.slot, user?.storeId, dayShifts, dateStr, upsertAssignment, assignStartTime, assignEndTime]);
 
+  // --- 確認モーダルを開く ---
+  const openConfirm = useCallback((item: StaffRole | RoleTask | { id: string; name: string; icon: string; color: string }, itemType: "role" | "task" | "type") => {
+    setConfirmItem({ item, itemType, startTime: userAddModal.startTime, endTime: userAddModal.endTime });
+  }, [userAddModal.startTime, userAddModal.endTime]);
+
+  // --- 確認 → 保存 ---
+  const handleConfirmSave = useCallback(async () => {
+    if (!confirmItem || !user?.storeId) return;
+    const targetUserId = userAddModal.userId || user.uid;
+    if (!targetUserId) return;
+
+    if (confirmItem.itemType === "type") {
+      // タイプ追加 → shift.classes に追加
+      const targetShift = dayShiftsAll.find(s => s.userId === targetUserId);
+      if (!targetShift) return;
+      const existingClasses: ClassTimeSlot[] = (targetShift as any).classes || [];
+      await ServiceProvider.shifts.updateShift(targetShift.id, {
+        classes: [...existingClasses, {
+          startTime: confirmItem.startTime,
+          endTime: confirmItem.endTime,
+          typeId: confirmItem.item.id,
+          typeName: confirmItem.item.name,
+        }],
+      });
+    } else {
+      // 業務・タスク追加 → shift_task_assignments
+      const targetShift = dayShifts.find(s => s.userId === targetUserId) ?? dayShiftsAll.find(s => s.userId === targetUserId);
+      if (!targetShift) return;
+      const item = confirmItem.item as StaffRole | RoleTask;
+      await upsertAssignment({
+        shiftId: targetShift.id,
+        taskId: confirmItem.itemType === "task" ? item.id : null,
+        roleId: confirmItem.itemType === "role" ? item.id : (item as RoleTask).role_id || null,
+        storeId: user.storeId,
+        userId: targetUserId,
+        scheduledDate: dateStr,
+        scheduledStartTime: confirmItem.startTime,
+        scheduledEndTime: confirmItem.endTime,
+        source: "manual",
+      });
+    }
+    setConfirmItem(null);
+    setUserAddModal({ visible: false, startTime: "", endTime: "" });
+  }, [confirmItem, user, dayShifts, dayShiftsAll, dateStr, upsertAssignment, userAddModal.userId]);
+
+  // モーダル内の選択ユーザーのカードデータ
+  const modalCardData = useMemo(() => {
+    if (!userAddModal.userId) return null;
+    return mobileCardData.find(c => c.uid === userAddModal.userId) ?? null;
+  }, [userAddModal.userId, mobileCardData]);
+
   // --- レンダリング ---
   return (
     <View style={{ flex: 1, backgroundColor: cs.surface }}>
       {readOnly ? <Header title="当日スケジュール" /> : <MasterHeader title="当日スケジュール" />}
 
-      {/* サブヘッダー（MonthSelectorBarと同じ3ゾーン構成） */}
+      {/* サブヘッダー */}
       <View
         style={{
           flexDirection: "row",
           justifyContent: isMobile ? "center" : "space-between",
           alignItems: "center",
           paddingHorizontal: isMobile ? 0 : 8,
-          paddingVertical: 4,
-          minHeight: isMobile ? 40 : 48,
+          height: SUB_HEADER_HEIGHT,
           backgroundColor: cs.surface,
           borderBottomWidth: 1,
           borderBottomColor: cs.outlineVariant,
+          position: "relative",
         }}
       >
-        {/* 左ゾーン: 金額/時間 + 色切替 + 時間範囲 */}
+        {/* 左ゾーン: 金額/時間 + 色切替 + 時間範囲（PC のみ） */}
         {!isMobile && !readOnly ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 0, zIndex: 2 }}>
             <TouchableOpacity
@@ -761,56 +836,64 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
         ) : null}
 
         {/* 中央ゾーン: 日付ナビゲーション */}
-        <View
-          style={isMobile ? { alignItems: "center", width: "100%" } : {
-            position: "absolute",
-            left: 0,
-            right: 0,
-            alignItems: "center",
-            pointerEvents: "box-none",
-            zIndex: 1,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", pointerEvents: "auto" }}>
-            <View style={{ flex: 1 }} />
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TouchableOpacity
-                style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-                onPress={handlePrevDay}
-              >
-                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#2196F3" }}>＜</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleToday}>
-                <Text style={{ fontSize: isMobile ? 13 : 14, fontWeight: "bold", color: cs.onSurface }}>
-                  {format(selectedDate, "yyyy年M月d日(E)", { locale: ja })}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-                onPress={handleNextDay}
-              >
-                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#2196F3" }}>＞</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ flex: 1, alignItems: "flex-start", paddingLeft: 8 }}>
-              {!isToday && (
+        {isMobile ? (
+          <DateNavigator
+            label={format(selectedDate, "yyyy年M月d日(E)", { locale: ja })}
+            onPrev={handlePrevDay}
+            onNext={handleNextDay}
+            onLabelPress={handleToday}
+            {...(!isToday ? { trailing: (
                 <TouchableOpacity
                   onPress={handleToday}
                   style={{
                     paddingHorizontal: 8,
                     paddingVertical: 4,
-                    backgroundColor: "#2196F3",
+                    backgroundColor: cs.primary,
                     borderRadius: 4,
+                    marginLeft: 4,
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: "bold", color: "#fff" }}>今日</Text>
+                  <Text style={{ fontSize: 11, fontWeight: "bold", color: cs.onPrimary }}>今日</Text>
                 </TouchableOpacity>
-              )}
+            ) } : {})}
+          />
+        ) : (
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              alignItems: "center",
+              pointerEvents: "box-none",
+              zIndex: 1,
+            }}
+          >
+            <View style={{ pointerEvents: "auto" }}>
+              <DateNavigator
+                label={format(selectedDate, "yyyy年M月d日(E)", { locale: ja })}
+                onPrev={handlePrevDay}
+                onNext={handleNextDay}
+                onLabelPress={handleToday}
+                {...(!isToday ? { trailing: (
+                    <TouchableOpacity
+                      onPress={handleToday}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        backgroundColor: cs.primary,
+                        borderRadius: 4,
+                        marginLeft: 4,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: "bold", color: cs.onPrimary }}>今日</Text>
+                    </TouchableOpacity>
+                ) } : {})}
+              />
             </View>
           </View>
-        </View>
+        )}
 
-        {/* 右ゾーン: アクションボタン群 */}
+        {/* 右ゾーン: アクションボタン群（PC のみ） */}
         {!isMobile && !readOnly && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, zIndex: 2 }}>
             {Platform.OS === "web" && (
@@ -870,6 +953,70 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
           </View>
         )}
       </View>
+
+      {/* スケジュール / Todo タブ */}
+      <View
+        style={{
+          flexDirection: "row",
+          backgroundColor: cs.surfaceContainer,
+          borderBottomWidth: 1,
+          borderBottomColor: cs.outlineVariant,
+        }}
+      >
+        {([
+          { key: "schedule" as const, label: "スケジュール", icon: "calendar-outline" as const },
+          { key: "todo" as const, label: "Todo", icon: "checkbox-outline" as const },
+        ]).map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              onPress={() => setActiveTab(tab.key)}
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                paddingVertical: 10,
+                borderBottomWidth: 3,
+                borderBottomColor: isActive ? cs.primary : "transparent",
+              }}
+            >
+              <Ionicons
+                name={tab.icon}
+                size={16}
+                color={isActive ? cs.primary : cs.onSurfaceVariant}
+              />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: isActive ? "700" : "500",
+                  color: isActive ? cs.primary : cs.onSurfaceVariant,
+                }}
+              >
+                {tab.label}
+              </Text>
+              {tab.key === "todo" && todayUnreadCount > 0 && (
+                <View style={{
+                  minWidth: 18, height: 18, borderRadius: 9,
+                  backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
+                  paddingHorizontal: 4, marginLeft: 2,
+                }}>
+                  <Text style={{ fontSize: 10, fontWeight: "700", color: "#fff" }}>
+                    {todayUnreadCount > 99 ? "99+" : todayUnreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {activeTab === "todo" ? (
+        <DailyTodoView selectedDate={selectedDate} />
+      ) : (
+      <>
 
       {/* モバイル用ツールバー */}
       {isMobile && !readOnly && (
@@ -1001,29 +1148,40 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
                 </View>
 
                 {/* タイムスロット一覧 */}
-                {card.merged.map((row, idx) => (
-                  <View
-                    key={idx}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "stretch",
-                      backgroundColor: cs.surface,
-                      borderBottomWidth: idx < card.merged.length - 1 ? 0.5 : 0,
-                      borderBottomColor: cs.outlineVariant + "60",
-                      minHeight: 32,
-                    }}
-                  >
-                    <View style={{ width: 4, backgroundColor: row.bgColor }} />
-                    <View style={{ flex: 1, flexDirection: "row", alignItems: "center", paddingVertical: 6, paddingHorizontal: 12 }}>
-                      <Text style={{ fontSize: 12, fontWeight: "bold", color: cs.onSurfaceVariant, minWidth: 90 }}>
-                        {row.startTime}~{row.endTime}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: cs.onSurface, flex: 1, marginLeft: 8, fontWeight: "600" }} numberOfLines={1}>
-                        {row.label || "シフト"}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
+                {card.merged.map((row, idx) => {
+                  const canTap = !readOnly || card.uid === user?.uid;
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      activeOpacity={canTap ? 0.6 : 1}
+                      disabled={!canTap}
+                      onPress={() => {
+                        if (canTap) setUserAddModal({ visible: true, startTime: row.startTime, endTime: row.endTime, userId: card.uid });
+                      }}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "stretch",
+                        backgroundColor: cs.surface,
+                        borderBottomWidth: idx < card.merged.length - 1 ? 0.5 : 0,
+                        borderBottomColor: cs.outlineVariant + "60",
+                        minHeight: 32,
+                      }}
+                    >
+                      <View style={{ width: 4, backgroundColor: row.bgColor }} />
+                      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", paddingVertical: 6, paddingHorizontal: 12 }}>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", color: cs.onSurfaceVariant, minWidth: 90 }}>
+                          {row.startTime}~{row.endTime}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: cs.onSurface, flex: 1, marginLeft: 8, fontWeight: "600" }} numberOfLines={1}>
+                          {row.label || "シフト"}
+                        </Text>
+                        {canTap && (
+                          <Ionicons name="add-circle-outline" size={18} color={cs.primary} style={{ marginLeft: 4 }} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
           ))}
         </ScrollView>
@@ -1183,8 +1341,8 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
                             borderWidth: 1,
                             borderColor: barColor + "80",
                             overflow: "hidden",
+                            pointerEvents: "none",
                           }}
-                          pointerEvents="none"
                         >
                           {/* 左上: アイコン + シフト */}
                           <View
@@ -1328,7 +1486,7 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
                           )}
                         </TouchableOpacity>
                         {isShort && (
-                          <View style={{ position: "absolute", top: 0, left: `${leftPct + Math.max(widthPct, minWidthPct)}%` as any, height: TASK_ROW_HEIGHT, justifyContent: "center", paddingLeft: 4, zIndex: 11 }} pointerEvents="none">
+                          <View style={{ position: "absolute", top: 0, left: `${leftPct + Math.max(widthPct, minWidthPct)}%` as any, height: TASK_ROW_HEIGHT, justifyContent: "center", paddingLeft: 4, zIndex: 11 , pointerEvents: "none" }}>
                             <Text style={{ fontSize: isMobile ? 10 : 11, fontWeight: "bold", color: cs.onSurface }} numberOfLines={1}>{name} {a.scheduledStartTime}~{a.scheduledEndTime}</Text>
                           </View>
                         )}
@@ -1390,7 +1548,7 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
                           )}
                         </TouchableOpacity>
                         {isShort && (
-                          <View style={{ position: "absolute", top: 0, left: `${leftPct + Math.max(widthPct, minWidthPct)}%` as any, height: TASK_ROW_HEIGHT, justifyContent: "center", paddingLeft: 4, zIndex: 11 }} pointerEvents="none">
+                          <View style={{ position: "absolute", top: 0, left: `${leftPct + Math.max(widthPct, minWidthPct)}%` as any, height: TASK_ROW_HEIGHT, justifyContent: "center", paddingLeft: 4, zIndex: 11 , pointerEvents: "none" }}>
                             <Text style={{ fontSize: isMobile ? 10 : 11, fontWeight: "bold", color: cs.onSurface }} numberOfLines={1}>{name} {a.scheduledStartTime}~{a.scheduledEndTime}</Text>
                           </View>
                         )}
@@ -1403,6 +1561,479 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
           })}
         </ScrollView>
       )}
+
+      {/* タスク追加FAB (+) */}
+      {(readOnly ? !!myShift : usersWithShifts.length > 0) && (
+        <TouchableOpacity
+          onPress={() => {
+            if (readOnly && myShift) {
+              setUserAddModal({ visible: true, startTime: myShift.startTime, endTime: myShift.endTime, userId: user!.uid });
+            } else {
+              setUserAddModal({ visible: true, startTime: "", endTime: "" });
+            }
+          }}
+          style={{
+            position: "absolute",
+            right: 20,
+            bottom: 20,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: cs.primary,
+            justifyContent: "center",
+            alignItems: "center",
+            // @ts-ignore
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            zIndex: 100,
+          }}
+        >
+          <Ionicons name="add" size={28} color={cs.onPrimary} />
+        </TouchableOpacity>
+      )}
+
+      {/* タスク追加モーダル */}
+      <Modal
+        visible={userAddModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setUserAddModal({ visible: false, startTime: "", endTime: "" })}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center" }}
+          activeOpacity={1}
+          onPress={() => setUserAddModal({ visible: false, startTime: "", endTime: "" })}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{
+              backgroundColor: cs.surface,
+              borderRadius: 16,
+              padding: 16,
+              width: isMobile ? "95%" : (userAddModal.userId ? 640 : 400),
+              maxHeight: "85%",
+              // @ts-ignore
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            }}
+            onPress={() => {}}
+          >
+            {!userAddModal.userId ? (
+              /* ===== ステップ1: スタッフ選択（マスターFABから） ===== */
+              <>
+                <Text style={{ fontSize: 18, fontWeight: "bold", color: cs.onSurface, marginBottom: 16 }}>
+                  スタッフを選択
+                </Text>
+                <ScrollView style={{ maxHeight: 400 }}>
+                  {usersWithShifts.map((u) => {
+                    const shift = dayShiftsAll.find(s => s.userId === u.uid);
+                    if (!shift) return null;
+                    return (
+                      <TouchableOpacity
+                        key={u.uid}
+                        onPress={() => { setUserAddModal(prev => ({ ...prev, userId: u.uid, startTime: shift.startTime, endTime: shift.endTime })); setAddModalTab(0); }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 12,
+                          paddingVertical: 10,
+                          paddingHorizontal: 8,
+                          borderBottomWidth: 1,
+                          borderBottomColor: cs.outlineVariant + "40",
+                        }}
+                      >
+                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: u.color || cs.primary, justifyContent: "center", alignItems: "center" }}>
+                          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#fff" }}>{(u.nickname || "?").slice(0, 1)}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 15, fontWeight: "600", color: cs.onSurface }}>{u.nickname}</Text>
+                          <Text style={{ fontSize: 12, color: cs.onSurfaceVariant }}>{shift.startTime}~{shift.endTime}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={cs.onSurfaceVariant} />
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {usersWithShifts.length === 0 && (
+                    <Text style={{ fontSize: 14, color: cs.onSurfaceVariant, textAlign: "center", paddingVertical: 20 }}>
+                      この日にシフトがあるスタッフがいません
+                    </Text>
+                  )}
+                </ScrollView>
+                <TouchableOpacity
+                  onPress={() => setUserAddModal({ visible: false, startTime: "", endTime: "" })}
+                  style={{ marginTop: 16, alignSelf: "center", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}
+                >
+                  <Text style={{ fontSize: 14, color: cs.onSurfaceVariant }}>閉じる</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              /* ===== ステップ2: 3:7分割レイアウト ===== */
+              <>
+                {/* ヘッダー */}
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+                  {!readOnly && (
+                    <TouchableOpacity
+                      onPress={() => setUserAddModal({ visible: true, startTime: "", endTime: "" })}
+                      style={{ marginRight: 8 }}
+                    >
+                      <Ionicons name="arrow-back" size={20} color={cs.onSurfaceVariant} />
+                    </TouchableOpacity>
+                  )}
+                  {(() => {
+                    const targetUser = users.find(u => u.uid === userAddModal.userId);
+                    return targetUser ? (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+                        <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: targetUser.color || cs.primary, justifyContent: "center", alignItems: "center" }}>
+                          <Text style={{ fontSize: 10, fontWeight: "bold", color: "#fff" }}>{(targetUser.nickname || "?").slice(0, 1)}</Text>
+                        </View>
+                        <Text style={{ fontSize: 15, fontWeight: "bold", color: cs.onSurface }}>{targetUser.nickname}</Text>
+                      </View>
+                    ) : null;
+                  })()}
+                  <TouchableOpacity onPress={() => setUserAddModal({ visible: false, startTime: "", endTime: "" })}>
+                    <Ionicons name="close" size={20} color={cs.onSurfaceVariant} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* 3:7 分割 */}
+                <View style={{ flexDirection: "row", flex: 1, minHeight: 300 }}>
+                  {/* ===== 左 50%: スケジュール常時表示 ===== */}
+                  <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: cs.outlineVariant, paddingRight: 10, marginRight: 10 }}>
+                    <Text style={{ fontSize: 11, fontWeight: "600", color: cs.onSurfaceVariant, marginBottom: 6 }}>スケジュール</Text>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                      {modalCardData ? (
+                        <View style={{ borderRadius: 8, borderWidth: 1, borderColor: cs.outlineVariant, overflow: "hidden" }}>
+                          {/* カードヘッダー */}
+                          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 6, paddingVertical: 4, backgroundColor: modalCardData.barColor + "20", borderBottomWidth: 1, borderBottomColor: cs.outlineVariant }}>
+                            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: modalCardData.barColor, marginRight: 4 }} />
+                            <Text style={{ fontSize: 10, fontWeight: "bold", color: cs.onSurface, flex: 1 }} numberOfLines={1}>{modalCardData.nickname}</Text>
+                            <Text style={{ fontSize: 9, color: cs.onSurfaceVariant }}>{modalCardData.startTime}~{modalCardData.endTime}</Text>
+                          </View>
+                          {/* タイムスロット */}
+                          {modalCardData.merged.map((row, idx) => (
+                            <View
+                              key={idx}
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "stretch",
+                                backgroundColor: cs.surface,
+                                borderBottomWidth: idx < modalCardData.merged.length - 1 ? 0.5 : 0,
+                                borderBottomColor: cs.outlineVariant + "60",
+                                minHeight: 26,
+                              }}
+                            >
+                              <View style={{ width: 3, backgroundColor: row.bgColor }} />
+                              <View style={{ flex: 1, paddingVertical: 4, paddingHorizontal: 6 }}>
+                                <Text style={{ fontSize: 10, fontWeight: "bold", color: cs.onSurfaceVariant }}>
+                                  {row.startTime}~{row.endTime}
+                                </Text>
+                                <Text style={{ fontSize: 10, color: cs.onSurface, fontWeight: "600" }} numberOfLines={1}>
+                                  {row.label || "シフト"}
+                                </Text>
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={{ fontSize: 11, color: cs.onSurfaceVariant, textAlign: "center", paddingVertical: 16 }}>
+                          データなし
+                        </Text>
+                      )}
+                    </ScrollView>
+                  </View>
+
+                  {/* ===== 右 50%: 業務・タスク / タイプ ===== */}
+                  <View style={{ flex: 1 }}>
+                    {/* タブバー */}
+                    <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: cs.outlineVariant, marginBottom: 10 }}>
+                      {([
+                        { idx: 0 as const, label: "業務・タスク", icon: "briefcase-outline" as const },
+                        { idx: 1 as const, label: "タイプ", icon: "time-outline" as const },
+                      ]).map((tab) => (
+                        <TouchableOpacity
+                          key={tab.idx}
+                          onPress={() => setAddModalTab(tab.idx)}
+                          style={{
+                            flex: 1,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4,
+                            paddingVertical: 6,
+                            borderBottomWidth: 2,
+                            borderBottomColor: addModalTab === tab.idx ? cs.primary : "transparent",
+                          }}
+                        >
+                          <Ionicons name={tab.icon} size={14} color={addModalTab === tab.idx ? cs.primary : cs.onSurfaceVariant} />
+                          <Text style={{ fontSize: 11, fontWeight: "600", color: addModalTab === tab.idx ? cs.primary : cs.onSurfaceVariant }}>
+                            {tab.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* 時間設定（共通） */}
+                    <View style={{ flexDirection: "row", gap: 6, marginBottom: 10 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 10, color: cs.onSurfaceVariant, marginBottom: 2 }}>開始</Text>
+                        <TextInput
+                          value={userAddModal.startTime}
+                          onChangeText={(t) => setUserAddModal(prev => ({ ...prev, startTime: t }))}
+                          style={{ borderWidth: 1, borderColor: cs.outline, borderRadius: 6, padding: 8, fontSize: 13, color: cs.onSurface }}
+                          placeholder="09:00"
+                          placeholderTextColor={cs.onSurfaceVariant}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 10, color: cs.onSurfaceVariant, marginBottom: 2 }}>終了</Text>
+                        <TextInput
+                          value={userAddModal.endTime}
+                          onChangeText={(t) => setUserAddModal(prev => ({ ...prev, endTime: t }))}
+                          style={{ borderWidth: 1, borderColor: cs.outline, borderRadius: 6, padding: 8, fontSize: 13, color: cs.onSurface }}
+                          placeholder="10:00"
+                          placeholderTextColor={cs.onSurfaceVariant}
+                        />
+                      </View>
+                    </View>
+
+                    {/* タブ0: 業務・タスク */}
+                    {addModalTab === 0 && (
+                      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                        {roles.length > 0 && (
+                          <>
+                            <Text style={{ fontSize: 11, fontWeight: "600", color: cs.primary, marginBottom: 4 }}>業務</Text>
+                            {roles.map((role) => (
+                              <TouchableOpacity
+                                key={role.id}
+                                onPress={() => openConfirm(role, "role")}
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  paddingVertical: 8,
+                                  paddingHorizontal: 6,
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: cs.outlineVariant + "40",
+                                }}
+                              >
+                                <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: role.color + "30", justifyContent: "center", alignItems: "center" }}>
+                                  <Text style={{ fontSize: 14 }}>{role.icon}</Text>
+                                </View>
+                                <Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: cs.onSurface }}>{role.name}</Text>
+                                <Ionicons name="add-circle-outline" size={20} color={cs.primary} />
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        )}
+                        {tasks.length > 0 && (
+                          <>
+                            <Text style={{ fontSize: 11, fontWeight: "600", color: cs.tertiary, marginTop: 10, marginBottom: 4 }}>タスク</Text>
+                            {tasks.map((task) => (
+                              <TouchableOpacity
+                                key={task.id}
+                                onPress={() => openConfirm(task, "task")}
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  paddingVertical: 8,
+                                  paddingHorizontal: 6,
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: cs.outlineVariant + "40",
+                                }}
+                              >
+                                <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: task.color + "30", justifyContent: "center", alignItems: "center" }}>
+                                  <Text style={{ fontSize: 14 }}>{task.icon}</Text>
+                                </View>
+                                <Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: cs.onSurface }}>{task.name}</Text>
+                                <Ionicons name="add-circle-outline" size={20} color={cs.tertiary} />
+                              </TouchableOpacity>
+                            ))}
+                          </>
+                        )}
+                        {roles.length === 0 && tasks.length === 0 && (
+                          <Text style={{ fontSize: 13, color: cs.onSurfaceVariant, textAlign: "center", paddingVertical: 20 }}>
+                            登録されている業務・タスクがありません
+                          </Text>
+                        )}
+                      </ScrollView>
+                    )}
+
+                    {/* タブ1: タイプ（途中時間） */}
+                    {addModalTab === 1 && (
+                      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                        {segmentTypes.length > 0 ? (
+                          segmentTypes.map((st) => (
+                            <TouchableOpacity
+                              key={st.id}
+                              onPress={() => openConfirm({ id: st.id, name: st.name, icon: st.icon, color: st.color }, "type")}
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 8,
+                                paddingVertical: 8,
+                                paddingHorizontal: 6,
+                                borderBottomWidth: 1,
+                                borderBottomColor: cs.outlineVariant + "40",
+                              }}
+                            >
+                              <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: st.color + "30", justifyContent: "center", alignItems: "center" }}>
+                                <Text style={{ fontSize: 14 }}>{st.icon}</Text>
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 14, fontWeight: "600", color: cs.onSurface }}>{st.name}</Text>
+                                <Text style={{ fontSize: 10, color: cs.onSurfaceVariant }}>
+                                  {st.allowTaskOverlap ? "タスク重複可" : "タスク重複不可"}
+                                </Text>
+                              </View>
+                              <Ionicons name="add-circle-outline" size={20} color={st.color} />
+                            </TouchableOpacity>
+                          ))
+                        ) : (
+                          <Text style={{ fontSize: 13, color: cs.onSurfaceVariant, textAlign: "center", paddingVertical: 20 }}>
+                            登録されているタイプがありません
+                          </Text>
+                        )}
+                      </ScrollView>
+                    )}
+                  </View>
+                </View>
+              </>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* 追加確認モーダル */}
+      <Modal
+        visible={!!confirmItem}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmItem(null)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}
+          activeOpacity={1}
+          onPress={() => setConfirmItem(null)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{
+              backgroundColor: cs.surface,
+              borderRadius: 16,
+              padding: 20,
+              width: isMobile ? "95%" : 600,
+              // @ts-ignore
+              boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+            }}
+            onPress={() => {}}
+          >
+            {confirmItem && (() => {
+              const typeLabel = confirmItem.itemType === "role" ? "業務" : confirmItem.itemType === "task" ? "タスク" : "タイプ";
+              const itemColor = (confirmItem.item as any).color || cs.primary;
+              return (
+                <>
+                  <Text style={{ fontSize: 16, fontWeight: "bold", color: cs.onSurface, marginBottom: 12 }}>
+                    {typeLabel}を追加
+                  </Text>
+
+                  <View style={{ flexDirection: "row", minHeight: 200 }}>
+                    {/* 左: スケジュール */}
+                    <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: cs.outlineVariant, paddingRight: 10, marginRight: 10 }}>
+                      <Text style={{ fontSize: 11, fontWeight: "600", color: cs.onSurfaceVariant, marginBottom: 6 }}>スケジュール</Text>
+                      <ScrollView showsVerticalScrollIndicator={false}>
+                        {modalCardData ? (
+                          <View style={{ borderRadius: 8, borderWidth: 1, borderColor: cs.outlineVariant, overflow: "hidden" }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 6, paddingVertical: 4, backgroundColor: modalCardData.barColor + "20", borderBottomWidth: 1, borderBottomColor: cs.outlineVariant }}>
+                              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: modalCardData.barColor, marginRight: 4 }} />
+                              <Text style={{ fontSize: 10, fontWeight: "bold", color: cs.onSurface, flex: 1 }} numberOfLines={1}>{modalCardData.nickname}</Text>
+                              <Text style={{ fontSize: 9, color: cs.onSurfaceVariant }}>{modalCardData.startTime}~{modalCardData.endTime}</Text>
+                            </View>
+                            {modalCardData.merged.map((row, idx) => (
+                              <View
+                                key={idx}
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "stretch",
+                                  backgroundColor: cs.surface,
+                                  borderBottomWidth: idx < modalCardData.merged.length - 1 ? 0.5 : 0,
+                                  borderBottomColor: cs.outlineVariant + "60",
+                                  minHeight: 26,
+                                }}
+                              >
+                                <View style={{ width: 3, backgroundColor: row.bgColor }} />
+                                <View style={{ flex: 1, paddingVertical: 4, paddingHorizontal: 6 }}>
+                                  <Text style={{ fontSize: 10, fontWeight: "bold", color: cs.onSurfaceVariant }}>
+                                    {row.startTime}~{row.endTime}
+                                  </Text>
+                                  <Text style={{ fontSize: 10, color: cs.onSurface, fontWeight: "600" }} numberOfLines={1}>
+                                    {row.label || "シフト"}
+                                  </Text>
+                                </View>
+                              </View>
+                            ))}
+                          </View>
+                        ) : (
+                          <Text style={{ fontSize: 11, color: cs.onSurfaceVariant, textAlign: "center", paddingVertical: 16 }}>データなし</Text>
+                        )}
+                      </ScrollView>
+                    </View>
+
+                    {/* 右: 確認内容 */}
+                    <View style={{ flex: 1 }}>
+                      {/* 選択アイテム情報 */}
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 10, backgroundColor: itemColor + "15", borderRadius: 10, borderWidth: 1, borderColor: itemColor + "40", marginBottom: 14 }}>
+                        <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: itemColor + "30", justifyContent: "center", alignItems: "center" }}>
+                          <Text style={{ fontSize: 16 }}>{(confirmItem.item as any).icon || "📋"}</Text>
+                        </View>
+                        <Text style={{ flex: 1, fontSize: 15, fontWeight: "bold", color: cs.onSurface }}>{confirmItem.item.name}</Text>
+                      </View>
+
+                      {/* 時間設定 */}
+                      <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 11, color: cs.onSurfaceVariant, marginBottom: 3 }}>開始時間</Text>
+                          <TextInput
+                            value={confirmItem.startTime}
+                            onChangeText={(t) => setConfirmItem(prev => prev ? { ...prev, startTime: t } : null)}
+                            style={{ borderWidth: 1, borderColor: cs.outline, borderRadius: 8, padding: 10, fontSize: 15, color: cs.onSurface, fontWeight: "600" }}
+                            placeholder="09:00"
+                            placeholderTextColor={cs.onSurfaceVariant}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 11, color: cs.onSurfaceVariant, marginBottom: 3 }}>終了時間</Text>
+                          <TextInput
+                            value={confirmItem.endTime}
+                            onChangeText={(t) => setConfirmItem(prev => prev ? { ...prev, endTime: t } : null)}
+                            style={{ borderWidth: 1, borderColor: cs.outline, borderRadius: 8, padding: 10, fontSize: 15, color: cs.onSurface, fontWeight: "600" }}
+                            placeholder="10:00"
+                            placeholderTextColor={cs.onSurfaceVariant}
+                          />
+                        </View>
+                      </View>
+
+                      {/* ボタン */}
+                      <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 8 }}>
+                        <TouchableOpacity
+                          onPress={() => setConfirmItem(null)}
+                          style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8 }}
+                        >
+                          <Text style={{ fontSize: 14, color: cs.onSurfaceVariant }}>キャンセル</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={handleConfirmSave}
+                          style={{ paddingHorizontal: 20, paddingVertical: 10, backgroundColor: cs.primary, borderRadius: 8 }}
+                        >
+                          <Text style={{ fontSize: 14, fontWeight: "600", color: cs.onPrimary }}>追加</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              );
+            })()}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* 編集モーダル群（readOnlyでは非表示） */}
       {!readOnly && <>
@@ -1962,6 +2593,8 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
         </TouchableOpacity>
       </Modal>
       </>}
+      </>
+      )}
     </View>
   );
 };

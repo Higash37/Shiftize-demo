@@ -24,6 +24,7 @@ import { useTimeSegmentTypes } from "./useTimeSegmentTypes";
 import { getSupabase } from "@/services/supabase/supabase-client";
 import { Picker } from "@react-native-picker/picker";
 import Button from "@/common/common-ui/ui-forms/FormButton";
+import { TodoSettingsView } from "@/modules/master-view/todayView/TodoSettingsView";
 import type { WageMode } from "@/common/common-models/model-shift/shiftTypes";
 
 interface StaffData {
@@ -114,7 +115,7 @@ const ICON_OPTIONS = [
   "▶️", "⏩", "⏪", "🔄", "🔁", "↗️", "↘️", "↩️", "🔀",
 ];
 
-type DashboardTab = "staff" | "roles" | "breaks";
+type DashboardTab = "staff" | "roles" | "breaks" | "todoSettings";
 type StaffDetailTab = "info" | "skills";
 type StaffSortKey = "name" | "wage" | "shifts" | "joined";
 
@@ -129,6 +130,7 @@ const TAB_CONFIG: { key: DashboardTab; label: string; icon: string }[] = [
   { key: "staff", label: "スタッフ", icon: "people" },
   { key: "roles", label: "業務作成", icon: "work" },
   { key: "breaks", label: "途中時間", icon: "timer" },
+  { key: "todoSettings", label: "Todo設定", icon: "checklist" },
 ];
 
 // スケジュール設定用の時間選択肢（30分刻み、6:00~23:00）
@@ -723,6 +725,9 @@ const InfoDashboardContent: React.FC<{ storeId: string }> = ({ storeId }) => {
           })}
         </View>
 
+        {activeTab === "todoSettings" ? (
+          <TodoSettingsView />
+        ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -915,6 +920,7 @@ const InfoDashboardContent: React.FC<{ storeId: string }> = ({ storeId }) => {
           )}
 
         </ScrollView>
+        )}
 
         {/* ===== Staff Detail Modal ===== */}
         <Modal

@@ -146,7 +146,6 @@ export class SupabaseStoreAdapter implements IStoreService {
         email: adminEmail,
         role: "master",
         hashed_password: hashedPassword,
-        current_password: data.adminPassword,
         store_id: data.storeId,
         is_active: true,
       });
@@ -195,7 +194,6 @@ export class SupabaseStoreAdapter implements IStoreService {
               email: memberEmail,
               role: member.role,
               hashed_password: memberHashedPassword,
-              current_password: member.password,
               color: member.color,
               hourly_wage: member.hourlyWage || null,
               store_id: data.storeId,

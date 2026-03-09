@@ -14,6 +14,7 @@ export interface ShiftCalendarProps {
   onMonthChange?: (month: { dateString: string }) => void;
   markedDates?: Record<string, any>;
   onMount?: () => void;
+  hideMonthNav?: boolean; // 月ナビゲーション非表示（小型カレンダーウィジェット用）
   responsiveSize?: {
     calendar?: ViewStyle;
     container?: ViewStyle;

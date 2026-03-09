@@ -142,7 +142,6 @@ export class SupabaseAuthAdapter implements IAuthService {
         furigana: furigana || null,
         role: userRole,
         hashed_password: hashedPassword,
-        current_password: password,
         email: asciiEmail,
         color: color || "#4A90E2",
         store_id: storeId || "",
@@ -211,19 +210,11 @@ export class SupabaseAuthAdapter implements IAuthService {
     if (updates.email) {
       updateData['real_email'] = updates.email;
       // 実メールアカウントをSupabase Authに作成
-      const { data: currentData } = await supabase
-        .from("users")
-        .select("current_password")
-        .eq("uid", user.uid)
-        .single();
-      const passwordToUse =
-        updates.password || currentData?.current_password;
-      if (passwordToUse) {
-        await this.createSecondaryEmailAccount(user, updates.email, passwordToUse);
+      if (updates.password) {
+        await this.createSecondaryEmailAccount(user, updates.email, updates.password);
       }
     }
     if (updates.role) updateData['role'] = updates.role;
-    if (updates.password) updateData['current_password'] = updates.password;
     if (updates.color) updateData['color'] = updates.color;
     if (updates.storeId) updateData['store_id'] = updates.storeId;
 
@@ -320,7 +311,6 @@ export class SupabaseAuthAdapter implements IAuthService {
       .from("users")
       .update({
         hashed_password: hashedPassword,
-        current_password: null,
       })
       .eq("uid", user.id);
   }
@@ -418,13 +408,10 @@ export class SupabaseAuthAdapter implements IAuthService {
 
   /**
    * 初期マスターユーザー作成
+   * @deprecated このメソッドは使用されていません。グループ作成フローでマスターユーザーが作成されます。
    */
   async createInitialMasterUser(): Promise<void> {
-    try {
-      await this.createUser("master@example.com", "123456");
-    } catch (_) {
-      // 既に存在する場合は無視
-    }
+    // no-op: セキュリティリスクのためハードコードされたデフォルト認証情報を削除
   }
 
   /**

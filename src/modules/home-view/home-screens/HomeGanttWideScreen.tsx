@@ -15,6 +15,7 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
+import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 import { ClockWidget } from "../home-components/home-widgets/ClockWidget";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -147,34 +148,20 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
       {/* 中央列：年月日ピッカー + 時計 */}
       <View style={styles.centerColumn}>
         {/* 年月日ピッカー */}
-        <View style={styles.datePickerSection}>
-          <TouchableOpacity
-            style={styles.datePickerButton}
-            onPress={() => {
+        <View style={styles.columnHeaderBar}>
+          <DateNavigator
+            label={format(selectedDate, "yyyy年M月d日 (E)", { locale: ja })}
+            onPrev={() => {
               const prevDay = new Date(selectedDate);
               prevDay.setDate(prevDay.getDate() - 1);
               onDateSelect(prevDay);
             }}
-          >
-            <MaterialIcons name="chevron-left" size={24} color={colors.primary} />
-          </TouchableOpacity>
-
-          <View style={styles.dateLabelContainer}>
-            <Text style={styles.dateLabel}>
-              {format(selectedDate, "yyyy年M月d日 (E)", { locale: ja })}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.datePickerButton}
-            onPress={() => {
+            onNext={() => {
               const nextDay = new Date(selectedDate);
               nextDay.setDate(nextDay.getDate() + 1);
               onDateSelect(nextDay);
             }}
-          >
-            <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          />
         </View>
 
         {/* 時計ウィジェット */}
@@ -190,9 +177,11 @@ export const HomeGanttWideScreen: React.FC<Props> = ({
 
       {/* 右列：シフトカード一覧 */}
       <View style={styles.rightColumn}>
-        <Text style={styles.columnTitle}>
-          {format(selectedDate, "M月d日", { locale: ja })}のシフト
-        </Text>
+        <View style={styles.columnHeaderBar}>
+          <Text style={styles.columnTitle}>
+            {format(selectedDate, "M月d日", { locale: ja })}のシフト
+          </Text>
+        </View>
 
         <ScrollView
           style={styles.shiftsScrollView}
@@ -291,34 +280,19 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: colors.border,
     backgroundColor: colors.surface,
-    paddingVertical: layout.padding.medium,
   },
   rightColumn: {
     flex: 3,
     backgroundColor: colors.background,
-    padding: layout.padding.medium,
+    paddingHorizontal: layout.padding.medium,
   },
-  datePickerSection: {
+  columnHeaderBar: {
+    height: SUB_HEADER_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.padding.medium,
-    paddingVertical: layout.padding.small,
-    marginBottom: layout.padding.medium,
-  },
-  datePickerButton: {
-    padding: layout.padding.small,
-    borderRadius: layout.borderRadius.medium,
-    backgroundColor: colors.primary + "15",
-  },
-  dateLabelContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dateLabel: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.text.primary,
+    justifyContent: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   clockSection: {
     alignItems: "center",
@@ -326,10 +300,9 @@ const styles = StyleSheet.create({
     paddingVertical: layout.padding.large,
   },
   columnTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "bold",
     color: colors.text.primary,
-    marginBottom: layout.padding.medium,
   },
   shiftsScrollView: {
     flex: 1,

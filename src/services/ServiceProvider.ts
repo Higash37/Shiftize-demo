@@ -10,6 +10,7 @@ import type { ITeacherStatusService } from "./interfaces/ITeacherStatusService";
 import type { IShiftSubmissionService } from "./interfaces/IShiftSubmissionService";
 import type { IMultiStoreService } from "./interfaces/IMultiStoreService";
 import type { IGoogleCalendarService } from "./interfaces/IGoogleCalendarService";
+import type { ITodoService } from "./interfaces/ITodoService";
 import { ServiceNotInitializedError } from "@/common/common-errors/AppErrors";
 
 function requireService<T>(service: T | null, name: string): T {
@@ -30,6 +31,7 @@ class ServiceProviderImpl {
   private _shiftSubmissions: IShiftSubmissionService | null = null;
   private _multiStore: IMultiStoreService | null = null;
   private _googleCalendar: IGoogleCalendarService | null = null;
+  private _todos: ITodoService | null = null;
 
   get auth(): IAuthService { return requireService(this._auth, "AuthService"); }
   setAuthService(service: IAuthService): void { this._auth = service; }
@@ -66,6 +68,9 @@ class ServiceProviderImpl {
 
   get googleCalendar(): IGoogleCalendarService { return requireService(this._googleCalendar, "GoogleCalendarService"); }
   setGoogleCalendarService(service: IGoogleCalendarService): void { this._googleCalendar = service; }
+
+  get todos(): ITodoService { return requireService(this._todos, "TodoService"); }
+  setTodoService(service: ITodoService): void { this._todos = service; }
 }
 
 export const ServiceProvider = new ServiceProviderImpl();

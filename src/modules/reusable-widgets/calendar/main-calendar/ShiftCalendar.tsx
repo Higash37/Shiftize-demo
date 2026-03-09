@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import type { MarkedDates } from "react-native-calendars/src/types";
 import { View, ViewStyle } from "react-native";
@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { DayComponentProps } from "../calendar-types/common.types";
 import { DayComponent } from "../day-view/DayComponent";
+import { DateNavigator } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 LocaleConfig.locales.ja = {
   monthNames: [
@@ -51,7 +52,6 @@ LocaleConfig.locales.ja = {
 
 LocaleConfig.defaultLocale = "ja";
 
-import { CalendarHeader } from "../CalendarHeader";
 import { DatePickerModal } from "../modals/DatePickerModal";
 import { useResponsiveCalendarSize } from "../constants";
 import { createShiftCalendarStyles } from "./ShiftCalendar.styles";
@@ -67,6 +67,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onMonthChange,
   markedDates: propMarkedDates,
   onMount,
+  hideMonthNav,
   responsiveSize,
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -186,6 +187,29 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     }
   };
 
+  // カレンダーの前月・次月ナビゲーション（外部DateNavigator用）
+  const handlePrevMonth = useCallback(() => {
+    const d = new Date(currentMonth);
+    d.setMonth(d.getMonth() - 1);
+    if (onMonthChange) {
+      onMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+    }
+  }, [currentMonth, onMonthChange]);
+
+  const handleNextMonth = useCallback(() => {
+    const d = new Date(currentMonth);
+    d.setMonth(d.getMonth() + 1);
+    if (onMonthChange) {
+      onMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+    }
+  }, [currentMonth, onMonthChange]);
+
+  const calendarMonthLabel = useMemo(() => {
+    const d = new Date(currentMonth);
+    const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
+    return `${validDate.getFullYear()}年${validDate.getMonth() + 1}月`;
+  }, [currentMonth]);
+
   return (
     <View
       style={[
@@ -194,30 +218,34 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         responsiveStyles.container,
       ]}
     >
+      {/* DateNavigator を Calendar 外に配置（scale の影響を受けない） */}
+      {!hideMonthNav && (
+        <DateNavigator
+          label={calendarMonthLabel}
+          onPrev={handlePrevMonth}
+          onNext={handleNextMonth}
+          onLabelPress={() => {
+            const d = new Date(currentMonth);
+            setTempDate(Number.isNaN(d.getTime()) ? new Date() : d);
+            setShowDatePicker(true);
+          }}
+        />
+      )}
+
       <Calendar
         current={currentMonth}
         onDayPress={onDayPress}
         {...(onMonthChange && { onMonthChange })}
         markedDates={finalMarkedDates}
-        markingType={"multi-dot"} // multi-dot機能を有効化
+        markingType={"multi-dot"}
         enableSwipeMonths={true}
+        hideArrows={true}
+        renderHeader={() => <View style={{ height: 0 }} />}
         style={[
           styles.calendar,
           styles.calendarShadow,
           responsiveStyles.calendar,
         ]}
-        renderHeader={() => (
-          <CalendarHeader
-            date={new Date(currentMonth)} // ←常にcurrentMonthを反映
-            onYearMonthSelect={() => {
-              // 現在のカレンダーの月を正確に反映させる
-              const currentCalendarDate = new Date(currentMonth);
-              setTempDate(currentCalendarDate);
-              setShowDatePicker(true);
-            }}
-            responsiveStyle={responsiveSize?.header}
-          />
-        )}
         theme={{
           backgroundColor: "transparent",
           calendarBackground: "transparent",

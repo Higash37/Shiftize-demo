@@ -30,10 +30,6 @@ export const Routes = {
     },
   },
 
-  // ランディング
-  landing: {
-    root: "/(landing)",
-  },
 } as const;
 
 /**
@@ -56,7 +52,6 @@ export const getDefaultHomeRoute = (role: UserRole | null): string => {
  */
 export const RouteGroups = {
   isAuthGroup: (segments: string[]): boolean => segments[0] === "(auth)",
-  isLandingGroup: (segments: string[]): boolean => segments[0] === "(landing)",
   isMainGroup: (segments: string[]): boolean => {
     return (
       segments[0] === "(main)" ||

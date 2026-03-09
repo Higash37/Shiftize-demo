@@ -1,5 +1,5 @@
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -22,6 +22,8 @@ import { splitShiftIntoTimeSlots } from "@/modules/user-view/user-shift-utils/sh
 import type { ShiftItem, ShiftStatus, ClassTimeSlot } from "@/common/common-models/model-shift/shiftTypes";
 import { StyleSheet } from "react-native";
 import { layout } from "@/common/common-constants/LayoutConstants";
+import { DateNavigator, SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
+import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { EditShiftModalView } from "@/modules/reusable-widgets/gantt-chart/view-modals/EditShiftModalView";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
 import { ServiceProvider } from "@/services/ServiceProvider";
@@ -291,6 +293,26 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   };
 
   const title = targetMonth === "next" ? "来月のシフト" : "今月のシフト";
+  const cs = useMD3Theme();
+
+  // サブヘッダー用の月ナビゲーション
+  const subHeaderLabel = useMemo(() => {
+    const d = new Date(currentMonth + "-01");
+    const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
+    return `${validDate.getFullYear()}年${validDate.getMonth() + 1}月`;
+  }, [currentMonth]);
+
+  const handlePrevMonth = useCallback(() => {
+    const d = new Date(currentMonth + "-01");
+    d.setMonth(d.getMonth() - 1);
+    handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+  }, [currentMonth]);
+
+  const handleNextMonth = useCallback(() => {
+    const d = new Date(currentMonth + "-01");
+    d.setMonth(d.getMonth() + 1);
+    handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
+  }, [currentMonth]);
 
   if (shiftsLoading) {
     return null;
@@ -299,6 +321,21 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   return (
     <View style={styles.container}>
       <MasterHeader title={title} />
+      {/* サブヘッダー：年月ピッカー */}
+      <View style={{
+        height: SUB_HEADER_HEIGHT,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: cs.colorScheme.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: cs.colorScheme.outlineVariant,
+      }}>
+        <DateNavigator
+          label={subHeaderLabel}
+          onPrev={handlePrevMonth}
+          onNext={handleNextMonth}
+        />
+      </View>
       <View style={styles.calendarContainer}>
         <ShiftCalendar
           key={`calendar-${currentMonth}`}
@@ -309,6 +346,7 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
           onDayPress={handleDayPress}
           onMonthChange={handleMonthChange}
           onMount={handleCalendarMount}
+          hideMonthNav
           responsiveSize={{
             container: {
               width: "98%",
@@ -418,7 +456,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.padding.medium,
     paddingTop: 0,
     paddingBottom: layout.padding.small,
-    marginTop: -30,
   },
   listContainer: {
     flex: 1,

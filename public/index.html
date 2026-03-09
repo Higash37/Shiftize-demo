@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Shiftize" />
     <meta name="format-detection" content="telephone=no" />
@@ -200,25 +200,12 @@
         document.body.style.touchAction = 'pan-x pan-y pinch-zoom';
         document.documentElement.style.touchAction = 'pan-x pan-y pinch-zoom';
         
-        // すべての子要素にもtouch-actionを適用
-        const applyTouchAction = () => {
-          const allElements = document.querySelectorAll('*');
-          allElements.forEach(element => {
-            element.style.touchAction = 'pan-x pan-y pinch-zoom';
-          });
-        };
-        
-        applyTouchAction();
-        
-        // 定期的にtouch-actionを再適用（動的に追加される要素に対応）
-        setInterval(applyTouchAction, 1000);
+        // touch-actionをCSS一括適用（パフォーマンス最適化）
+        const styleEl = document.createElement('style');
+        styleEl.textContent = '* { touch-action: pan-x pan-y pinch-zoom !important; }';
+        document.head.appendChild(styleEl);
       });
       
-      // 既存のズーム防止イベントリスナーを削除
-      window.addEventListener('load', function() {
-        // 既存のイベントリスナーを削除するため、新しいdocumentを作成
-        document.removeEventListener = function() {};
-      });
     </script>
   </body>
 </html>

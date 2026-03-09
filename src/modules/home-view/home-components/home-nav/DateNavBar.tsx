@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { createHomeViewStyles } from "../../home-styles/home-view-styles";
 import { FontAwesome } from "@expo/vector-icons";
+import { DateNavigator } from "@/common/common-ui/ui-navigation/DateNavigator";
 
 interface DateNavBarProps {
   isMobile: boolean;
@@ -13,13 +14,10 @@ interface DateNavBarProps {
   onNextDay: () => void;
   dateLabel: string;
   onOpenDatePicker: () => void;
-  onPressSettings?: () => void; // パスワード変更ボタン
+  onPressSettings?: () => void;
 }
 
 export const DateNavBar: React.FC<DateNavBarProps> = ({
-  isMobile,
-  showFirst,
-  onToggleHalf,
   onPrevDay,
   onNextDay,
   dateLabel,
@@ -41,26 +39,14 @@ export const DateNavBar: React.FC<DateNavBarProps> = ({
         },
       ]}
     >
-      {/* 中央：年月ピッカー＋日付ナビ（常に中央配置） */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Pressable onPress={onPrevDay}>
-          <Text style={styles.dateNavBtn}>{"<"}</Text>
-        </Pressable>
-        <Pressable onPress={onOpenDatePicker}>
-          <Text style={styles.dateLabel}>{dateLabel}</Text>
-        </Pressable>
-        <Pressable onPress={onNextDay}>
-          <Text style={styles.dateNavBtn}>{">"}</Text>
-        </Pressable>
-      </View>
+      <DateNavigator
+        label={dateLabel}
+        onPrev={onPrevDay}
+        onNext={onNextDay}
+        onLabelPress={onOpenDatePicker}
+      />
 
-      {/* 右端：パスワード変更ボタン（もしあれば） */}
+      {/* 右端：パスワード変更ボタン */}
       {onPressSettings && (
         <View
           style={{

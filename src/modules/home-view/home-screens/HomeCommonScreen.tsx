@@ -226,7 +226,7 @@ export default function HomeCommonScreen() {
           onToggleHalf={() => {}}
           onPrevDay={handlePrevDay}
           onNextDay={handleNextDay}
-          dateLabel={format(gantt.selectedDate, "yyyy年M月d日", { locale: ja })}
+          dateLabel={format(gantt.selectedDate, "yyyy年M月d日(E)", { locale: ja })}
           onOpenDatePicker={openDatePicker}
           onPressSettings={() => setShowPasswordModal(true)}
         />

@@ -5,7 +5,6 @@ import { useRouter } from "expo-router";
 import { View, Dimensions, StyleSheet } from "react-native";
 import { Routes } from "@/common/common-constants/RouteConstants";
 import { MasterFooter } from "@/common/common-ui/ui-layout";
-import Toast from "react-native-toast-message";
 
 type NavigatorWithStandalone = Navigator & { standalone?: boolean };
 
@@ -131,7 +130,6 @@ export default function MasterLayout() {
       <View style={[styles.footerArea, isPWA && styles.footerPWA]}>
         <MasterFooter />
       </View>
-      <Toast />
     </View>
   );
 }

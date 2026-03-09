@@ -465,11 +465,11 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                 .map(
                   (shift) => `
               <div class="shift-item">
-                <span class="shift-date">${shift.date} ${shift.dayOfWeek}</span>
-                <span class="shift-time">${shift.startTime.substring(
+                <span class="shift-date">${escapeHtml(shift.date)} ${escapeHtml(shift.dayOfWeek)}</span>
+                <span class="shift-time">${escapeHtml(shift.startTime.substring(
                   0,
                   5
-                )} - ${shift.endTime.substring(0, 5)}</span>
+                ))} - ${escapeHtml(shift.endTime.substring(0, 5))}</span>
               </div>
             `
                 )
@@ -1287,11 +1287,11 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
                 .map(
                   (shift) => `
               <div class="shift-item">
-                <span class="shift-date">${shift.date} ${shift.dayOfWeek}</span>
-                <span class="shift-time">${shift.startTime.substring(
+                <span class="shift-date">${escapeHtml(shift.date)} ${escapeHtml(shift.dayOfWeek)}</span>
+                <span class="shift-time">${escapeHtml(shift.startTime.substring(
                   0,
                   5
-                )} - ${shift.endTime.substring(0, 5)}</span>
+                ))} - ${escapeHtml(shift.endTime.substring(0, 5))}</span>
               </div>
             `
                 )

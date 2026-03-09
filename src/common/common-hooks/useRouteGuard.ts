@@ -19,13 +19,10 @@ export const useRouteGuard = () => {
       return;
     }
 
-    const { inLandingGroup, atRoot } = {
-      inLandingGroup: RouteGroups.isLandingGroup(segments),
-      atRoot: RouteGroups.isAtRoot(segments),
-    };
+    const atRoot = RouteGroups.isAtRoot(segments);
 
-    // ルートページまたはランディングページは認証に関係なく常にアクセス可能
-    if (inLandingGroup || atRoot) {
+    // ルートページは認証に関係なく常にアクセス可能
+    if (atRoot) {
       return;
     }
 
@@ -43,12 +40,7 @@ export const useRouteGuard = () => {
     let timeoutId: ReturnType<typeof setTimeout>;
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active" && !loading) {
-        // ランディングページにいる場合は認証チェックをスキップ
-        const inLandingGroup = RouteGroups.isLandingGroup(segments);
         const inAuthGroup = RouteGroups.isAuthGroup(segments);
-        if (inLandingGroup) {
-          return;
-        }
 
         // 認証状態を再確認する前に少し待つ
         timeoutId = setTimeout(() => {
