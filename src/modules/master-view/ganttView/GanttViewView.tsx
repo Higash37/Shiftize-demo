@@ -1,3 +1,12 @@
+/**
+ * @file GanttViewView.tsx
+ * @description シフト閲覧画面のラッパーコンポーネント。GanttChartMonthView を
+ *   閲覧モードで表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > ganttView 配下の画面コンポーネント。
+ *   マスターユーザーの「シフト閲覧」タブで描画される。
+ */
 import React from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";

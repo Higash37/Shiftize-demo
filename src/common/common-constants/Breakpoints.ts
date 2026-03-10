@@ -1,9 +1,10 @@
+/**
+ * @file Breakpoints.ts
+ * @description MD3準拠のブレークポイント定義とレスポンシブ判定フック
+ */
 import { useWindowDimensions } from "react-native";
 
-/**
- * MD3準拠のブレークポイント定義
- * アプリ全体で統一されたレスポンシブ判定に使用
- */
+/** 画面幅の閾値（px） */
 export const breakpoints = {
   /** モバイル: 0-599 */
   mobile: 0,
@@ -13,15 +14,10 @@ export const breakpoints = {
   desktop: 1024,
 } as const;
 
+/** ブレークポイント名 */
 export type Breakpoint = "mobile" | "tablet" | "desktop";
 
-/**
- * 現在のブレークポイントを返すフック
- *
- * @example
- * const { isMobile, isTablet, isDesktop, breakpoint } = useBreakpoint();
- * if (isDesktop) { ... }
- */
+/** 現在の画面幅からブレークポイントを判定して返すフック */
 export const useBreakpoint = () => {
   const { width } = useWindowDimensions();
 

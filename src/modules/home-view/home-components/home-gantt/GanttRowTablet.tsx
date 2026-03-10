@@ -1,3 +1,12 @@
+/**
+ * @file GanttRowTablet.tsx
+ * @description タブレット版ガントチャートの1行分。サンプルデータ用のセルを描画する。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下の UIパーツ。
+ *   HomeGanttTabletScreen で使われる。
+ *   モバイル版 GanttRowMobile と同様の構造だが、タブレット向けにレイアウトを調整。
+ */
 import React from "react";
 import { View, Text } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";

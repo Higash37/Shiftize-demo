@@ -1,3 +1,25 @@
+/** @file GanttChartMonthView.tsx
+ *  @description ガントチャートの最上位コンポーネント。月間のシフトをガントチャート・カレンダー・
+ *    モバイル縦型ビューなど複数のレイアウトで表示し、シフトの追加・編集・削除を管理する。
+ *    デバイスサイズに応じて自動的に表示モードを切り替える。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: 多数の子コンポーネント + サービス + ユーティリティ
+// - importされる先: master-view/ganttView, home-view など上位の画面コンポーネント
+// - 関係図:
+//   GanttChartMonthView（このファイル）
+//     ├→ MonthSelectorBar: 月選択バー + ツールバーボタン群
+//     ├→ GanttHeader: 時間軸ヘッダー（9:00, 10:00, ...）
+//     ├→ GanttChartBody: ガントチャート本体（FlatListで行を描画）
+//     │    └→ GanttChartRow: 1行分の描画（日付セル + グリッド + 情報セル）
+//     │         └→ GanttChartGrid: シフトバーの描画
+//     ├→ MobileVerticalView: タブレット/モバイル用のカレンダー+1日ビュー
+//     ├→ GoogleCalendarView: Googleカレンダー風の週間ビュー
+//     ├→ CalendarView: カレンダー形式のビュー
+//     ├→ ShiftModalRenderer: シフト追加・編集モーダルの管理
+//     └→ 各種モーダル（PayrollDetail, BatchConfirm, ShiftHistory, AutoSchedulePreview）
+
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import {
@@ -57,7 +79,11 @@ import {
   ShiftSelectionProvider,
 } from "./gantt-chart-common/components";
 import { ShiftModalRenderer, ShiftModalRendererHandle } from "./gantt-chart-common/ShiftModalRenderer";
-// モーダルコンポーネントを遅延読み込み
+// --- 遅延読み込み（コード分割） ---
+// lazy() を使うと、このコンポーネントのコードは「実際に表示される時」まで読み込まれない。
+// これにより初期表示のバンドルサイズが小さくなり、ページ読み込みが速くなる。
+// .then(module => ({ default: module.名前 })) は、named export を default export に変換する書き方。
+// Suspense コンポーネントと組み合わせて使う（読み込み中は fallback の内容を表示）。
 const PayrollDetailModal = lazy(() =>
   import("./view-modals/PayrollDetailModal").then(module => ({ default: module.PayrollDetailModal }))
 );
@@ -82,7 +108,9 @@ import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext"
 import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
 import { computeAutoSchedule, ProposedAssignment } from "@/modules/master-view/auto-scheduling/autoScheduler";
 
-// 静的データをコンポーネント外に移動（毎レンダーで再生成を防止）
+// --- 静的データ（コンポーネント外に定義することで毎レンダーの再生成を防止） ---
+// Reactコンポーネントの関数内に定義すると、レンダーのたびに新しいオブジェクトが作られる。
+// コンポーネント外に定義すれば、アプリ全体で1回だけ作成される。
 const SIMPLIFIED_STATUS_CONFIGS: ShiftStatusConfig[] = [
   { status: "approved", label: "承認済み", color: "#90caf9", canEdit: false, description: "承認されたシフト" },
   { status: "pending", label: "申請中", color: "#FFD700", canEdit: true, description: "新規申請されたシフト" },
@@ -105,6 +133,11 @@ const HALF_HOUR_LINES = Array.from(
   }
 );
 
+// --- メインコンポーネント ---
+// React.FC<GanttChartMonthViewProps> は「GanttChartMonthViewProps型のpropsを受け取るReact関数コンポーネント」。
+// FC = FunctionComponent の略。
+// 分割代入 { shifts, days, ... } でpropsの各プロパティを直接変数として使える。
+// classTimes = [] はデフォルト引数。propsにclassTimesが渡されなかった場合、空配列になる。
 const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   shifts,
   days,
@@ -116,27 +149,36 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   classTimes = [],
   refreshPage,
 }) => {
+  // useThemedStyles: テーマに応じたスタイルを生成するカスタムフック
   const styles = useThemedStyles(createGanttChartMonthViewStyles);
 
+  // --- State（コンポーネントの状態管理） ---
+  // useState は「値」と「値を更新する関数」のペアを返す。
+  // useState<型>(初期値) でジェネリクス<型>を指定すると、型安全になる。
+
+  // ステータス設定（承認・却下などの色やラベル）
   const [statusConfigs, setStatusConfigs] = useState<ShiftStatusConfig[]>(
     SIMPLIFIED_STATUS_CONFIGS
   );
-  const [showYearMonthPicker, setShowYearMonthPicker] = useState(false);
+  const [showYearMonthPicker, setShowYearMonthPicker] = useState(false); // 年月ピッカーの表示/非表示
+  // useRef: 再レンダリングを起こさない値を保持する。ここではモーダルの操作ハンドルを保持。
+  // <ShiftModalRendererHandle>(null) → 初期値はnull、型はShiftModalRendererHandle。
   const modalRef = useRef<ShiftModalRendererHandle>(null);
-  const [isLoading, setIsLoading] = useState(false); // モーダルのローディング状態用（オーバーレイなし）
-  const [refreshKey, setRefreshKey] = useState(0); // 強制再レンダリング用
-  const [scrollPosition, setScrollPosition] = useState(0); // スクロール位置保存用
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  // batchModal: 一括操作モーダルの状態。型をインラインで定義している（{ visible, type }）。
   const [batchModal, setBatchModal] = useState<{
     visible: boolean;
-    type: "approve" | "delete" | null;
+    type: "approve" | "delete" | null; // ユニオン型: この3つのどれかしか入らない
   }>({ visible: false, type: null });
-  const [colorMode, setColorMode] = useState<"status" | "user">("status"); // デフォルトはステータス色
-  const [showPayrollModal, setShowPayrollModal] = useState(false); // 給与詳細モーダル表示状態
-  const [viewMode, setViewMode] = useState<"gantt" | "calendar" | "compact">("gantt"); // ビューモード（デフォルトはガントチャート）
-  const [useGoogleLayout, setUseGoogleLayout] = useState(false); // Googleカレンダーレイアウトを使用するか
-  const [showHistoryModal, setShowHistoryModal] = useState(false); // 履歴モーダル表示状態
-  const [showQuickUrlModal, setShowQuickUrlModal] = useState(false); // URL発行モーダル表示状態
-  const [showAutoScheduleModal, setShowAutoScheduleModal] = useState(false); // 自動配置モーダル
+  const [colorMode, setColorMode] = useState<"status" | "user">("status");
+  const [showPayrollModal, setShowPayrollModal] = useState(false);
+  const [viewMode, setViewMode] = useState<"gantt" | "calendar" | "compact">("gantt");
+  const [useGoogleLayout, setUseGoogleLayout] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showQuickUrlModal, setShowQuickUrlModal] = useState(false);
+  const [showAutoScheduleModal, setShowAutoScheduleModal] = useState(false);
   const [autoScheduleProposals, setAutoScheduleProposals] = useState<ProposedAssignment[]>([]);
   const [isApplyingAutoSchedule, setIsApplyingAutoSchedule] = useState(false);
 
@@ -145,7 +187,12 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  // デバイスタイプ判定（useWindowDimensionsからuseMemoで導出）
+  // --- 派生値（useMemoで計算結果をキャッシュ） ---
+  // useMemo は「依存配列が変わらない限り、前回の計算結果を再利用する」フック。
+  // 重い計算やオブジェクト生成を毎レンダーで繰り返すのを防ぐ。
+  // useMemo<戻り値の型>(() => 計算処理, [依存する値の配列])
+
+  // デバイスタイプ判定: 画面幅からPC/タブレット/モバイルを判定
   const deviceType = useMemo<"desktop" | "tablet" | "mobile">(() => {
     if (windowWidth <= BREAKPOINTS.MOBILE_MAX_WIDTH_INCLUSIVE) return "mobile";
     if (windowWidth < BREAKPOINTS.TABLET_MAX_WIDTH_EXCLUSIVE) return "tablet";
@@ -174,14 +221,16 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     fetchForMonth(year, month);
   }, [selectedDate, fetchForMonth]);
 
-  // 時間選択オプションを生成
+  // 時間選択オプションを生成（プルダウン用の "09:00", "09:15", ... のリスト）
   const timeOptions = generateTimeOptions();
 
-  // レイアウト幅の計算（windowWidthから導出）
-  const scrollBarWidth = 21;
-  const dateColumnWidth = 31;
-  const infoColumnWidth = Math.max(windowWidth * 0.22, 180);
-  const ganttColumnWidth = windowWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth;
+  // --- レイアウト幅の計算（windowWidthから導出） ---
+  // ガントチャートの横幅を3つのカラムに分割する。
+  // 画面幅(windowWidth) = 日付列 + ガントチャート列 + 情報列 + スクロールバー
+  const scrollBarWidth = 21;                                          // スクロールバーの幅（固定値）
+  const dateColumnWidth = 31;                                         // 日付列の幅（"1日(月)" などを表示する列）
+  const infoColumnWidth = Math.max(windowWidth * 0.22, 180);         // 情報列: 画面幅の22%、ただし最小180px
+  const ganttColumnWidth = windowWidth - dateColumnWidth - infoColumnWidth - scrollBarWidth; // 残りがガントチャート本体
 
   useEffect(() => {
     // ステータス設定をリアルタイム取得
@@ -240,8 +289,14 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     return false;
   }
 
-  // 時間セル計算
+  // 時間セル計算: ガントチャート列の幅を時間ラベル数で割り、さらに2で割る（30分=1セル）
+  // 例: ganttColumnWidth=780, HOUR_LABELS=14個 → 780/(14-1)/2 = 30px/セル
   const cellWidth = ganttColumnWidth / (HOUR_LABELS.length - 1) / 2;
+
+  // --- Handlers（イベントハンドラー） ---
+  // useCallback は「依存配列が変わらない限り、同じ関数オブジェクトを返す」フック。
+  // 子コンポーネントに渡す関数を安定化し、不要な再レンダリングを防ぐ。
+
   // 前月に移動する関数
   const handlePrevMonth = useCallback(() => {
     const newDate = subMonths(selectedDate, 1);
@@ -736,5 +791,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   );
 };
 
-// React.memoでラップしてメモ化
+// React.memo でラップしてメモ化
+// React.memo は「propsが変わらない限り再レンダリングしない」高階コンポーネント（HOC）。
+// 親コンポーネントが再レンダリングしても、このコンポーネントのpropsが同じなら描画をスキップできる。
 export const GanttChartMonthView = React.memo(GanttChartMonthViewComponent);

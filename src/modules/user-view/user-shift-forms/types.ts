@@ -1,4 +1,13 @@
 /**
+ * @file types.ts (user-shift-forms)
+ * @description シフトフォーム関連の型定義ファイル。TimeSlot、ShiftFormData、
+ *   各コンポーネントのProps型とスタイル型を定義する。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下の型定義。
+ *   MultiDatePicker、SelectedDateList などのコンポーネントが参照する。
+ */
+/**
  * User shift forms types
  */
 import { StyleSheet, ViewStyle, TextStyle } from "react-native";

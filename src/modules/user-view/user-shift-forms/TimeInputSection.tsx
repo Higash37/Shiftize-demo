@@ -1,3 +1,20 @@
+/**
+ * @file TimeInputSection.tsx
+ * @description 時間帯入力コンポーネント。開始・終了時間をネイティブPickerで選択する。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   シフト作成フォームの時間入力で使われる。
+ *
+ * 主な内部ロジック:
+ *   - generateTimeOptions() で30分刻みの時間選択肢を生成
+ *   - handleTimeChange(): 開始/終了時間の変更を value 配列に反映
+ *   - renderPicker(): Picker コンポーネントを条件付きで描画
+ *
+ * 主要Props:
+ *   - value: TimeSlot[] 配列（[{ start, end }]）
+ *   - onChange: 時間変更コールバック
+ */
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";

@@ -1,7 +1,9 @@
+/** @file LayoutFooter.types.ts @description Footer/MasterFooterコンポーネントの型定義 */
+
+/** 講師用フッターのProps */
 export interface FooterProps {
-  // 必要に応じてプロパティを追加
 }
 
+/** 管理者用フッターのProps */
 export interface MasterFooterProps {
-  // 管理者フッター用のプロパティがあれば追加
 }

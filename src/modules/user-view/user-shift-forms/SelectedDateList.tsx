@@ -1,3 +1,18 @@
+/**
+ * @file SelectedDateList.tsx
+ * @description 選択済み日付のリスト表示。各日付に「選択を解除」ボタンが付く。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   MultiDatePicker の下に表示し、選択状態を確認・解除するために使う。
+ *
+ * 主な内部ロジック:
+ *   - formatDateWithWeekday(): "YYYY-MM-DD" → "○月○日（曜日）" 形式に変換
+ *
+ * 主要Props:
+ *   - selectedDates: 選択済み日付の配列
+ *   - onRemoveDate / onRemove: 日付削除コールバック
+ */
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { createSelectedDateListStyles } from "./SelectedDateList.styles";

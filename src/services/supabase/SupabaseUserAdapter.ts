@@ -1,3 +1,5 @@
+/** @file SupabaseUserAdapter.ts @description ユーザー情報の取得・削除・メール管理のSupabase実装 */
+
 import type { IUserService, UserEmailLookupResult, UserFullProfile } from "../interfaces/IUserService";
 import type { User, UserData } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
@@ -5,7 +7,9 @@ import { PersonalDataDeletion } from "@/common/common-utils/security/encryptionU
 import { SecurityLogger } from "@/common/common-utils/security/securityUtils";
 import { ValidationError, NotFoundError, PermissionError } from "@/common/common-errors/AppErrors";
 
+/** ユーザーサービスのSupabase実装 */
 export class SupabaseUserAdapter implements IUserService {
+  /** 店舗のユーザー一覧を取得する */
   async getUsers(
     storeId?: string
   ): Promise<(User & { currentPassword?: string })[]> {
@@ -32,12 +36,14 @@ export class SupabaseUserAdapter implements IUserService {
     }));
   }
 
+  /** ユーザーをDBから削除する */
   async deleteUser(id: string): Promise<void> {
     const supabase = getSupabase();
     const { error } = await supabase.from("users").delete().eq("uid", id);
     if (error) throw error;
   }
 
+  /** ユーザーの基本データを取得する */
   async getUserData(userId: string): Promise<UserData | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -57,6 +63,7 @@ export class SupabaseUserAdapter implements IUserService {
     };
   }
 
+  /** 店舗にマスターユーザーが存在するか確認する */
   async checkMasterExists(storeId?: string): Promise<boolean> {
     const supabase = getSupabase();
     let query = supabase
@@ -78,6 +85,7 @@ export class SupabaseUserAdapter implements IUserService {
     return (data || []).length > 0;
   }
 
+  /** メールアドレスが既に使用されているか確認する */
   async checkEmailExists(email: string, storeId?: string): Promise<boolean> {
     const supabase = getSupabase();
     let query = supabase.from("users").select("uid").eq("email", email);
@@ -92,6 +100,7 @@ export class SupabaseUserAdapter implements IUserService {
     return (data || []).length > 0;
   }
 
+  /** メールアドレスの重複チェック（重複時はエラーをスロー） */
   async checkEmailDuplicate(email: string): Promise<void> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -106,6 +115,7 @@ export class SupabaseUserAdapter implements IUserService {
     }
   }
 
+  /** メールアドレスでユーザーを検索する（email/real_email両方対応） */
   async findUserByEmail(email: string): Promise<UserEmailLookupResult | null> {
     const supabase = getSupabase();
 
@@ -180,6 +190,7 @@ export class SupabaseUserAdapter implements IUserService {
     return null;
   }
 
+  /** 実メールアドレスをユーザーに紐づける */
   async addSecondaryEmail(userId: string, realEmail: string): Promise<void> {
     const supabase = getSupabase();
 
@@ -213,6 +224,7 @@ export class SupabaseUserAdapter implements IUserService {
       .eq("uid", userId);
   }
 
+  /** ユーザーデータをGDPR準拠で安全に削除する */
   async secureDeleteUser(userId: string, storeId: string): Promise<void> {
     try {
       await PersonalDataDeletion.deleteUserData(userId, storeId);
@@ -234,6 +246,7 @@ export class SupabaseUserAdapter implements IUserService {
     }
   }
 
+  /** 管理者によるユーザーデータの安全な削除 */
   async secureDeleteUserByAdmin(
     targetUserId: string,
     storeId: string,
@@ -268,6 +281,7 @@ export class SupabaseUserAdapter implements IUserService {
     }
   }
 
+  /** ユーザーの完全なプロフィール情報を取得する */
   async getUserFullProfile(userId: string): Promise<UserFullProfile | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase

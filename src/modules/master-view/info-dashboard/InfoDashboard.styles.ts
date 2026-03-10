@@ -1,3 +1,16 @@
+/** @file InfoDashboard.styles.ts
+ *  @description 情報ダッシュボード画面のスタイル定義。
+ *    サマリーカード、予算カード、スタッフグリッド、コスト内訳、
+ *    効率指標、タスク管理、配置マトリクス、モーダル、タブバーなど
+ *    ダッシュボード全体のレイアウトを一括管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme（テーマトークン）
+ *  - 利用先: InfoDashboard コンポーネント
+ *  - テーマファクトリ関数パターン:
+ *    createInfoDashboardStyles(theme, breakpoint) を呼ぶと
+ *    ブレークポイントに応じたスタイルシートが返る
+ */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

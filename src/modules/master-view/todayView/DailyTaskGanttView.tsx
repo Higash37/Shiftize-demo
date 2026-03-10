@@ -1,3 +1,19 @@
+/**
+ * @file DailyTaskGanttView.tsx
+ * @description 当日の業務・タスクをガントチャート形式で表示する画面。
+ *   スタッフごとのタイムライン上にタスクを配置し、ドラッグ＆ドロップや
+ *   自動配置（autoScheduler）にも対応する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > todayView 配下の画面コンポーネント。
+ *   マスターの「当日スケジュール」タブで描画される。
+ *
+ * 主な内部ロジック:
+ *   - 時間軸（30分刻み）を横軸、スタッフを縦軸にしたグリッド描画
+ *   - ShiftTaskAssignment をセル上にマッピング
+ *   - 「自動配置」ボタンで autoScheduler を呼び出し
+ *   - Supabase リアルタイムリスナーでデータ同期
+ */
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,

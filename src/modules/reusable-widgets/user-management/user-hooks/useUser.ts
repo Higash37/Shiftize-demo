@@ -1,3 +1,20 @@
+/**
+ * @file useUser.ts
+ * @description ユーザーCRUD操作を提供するカスタムフック。
+ *   ユーザーの取得・追加・編集・削除をServiceProvider経由で実行する。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > user-hooks 配下のフック。
+ *   UserManagement / InfoDashboard などから利用される。
+ *
+ * 返り値:
+ *   - users: ユーザー配列
+ *   - loading / error: ローディング・エラー状態
+ *   - addUser(): 新規ユーザー作成（バリデーション + メール重複チェック + Auth登録）
+ *   - editUser(): ユーザー情報更新
+ *   - removeUser(): ユーザー削除
+ *   - refreshUsers(): 手動リフレッシュ
+ */
 import { useState, useEffect } from "react";
 import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { ServiceProvider } from "@/services/ServiceProvider";

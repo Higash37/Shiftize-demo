@@ -1,3 +1,14 @@
+/** @file AutoSchedulePreviewModal.tsx
+ *  @description 自動配置（オートスケジュール）のプレビューモーダル。
+ *    自動配置エンジンが提案したタスク割り当て（ProposedAssignment）を日付別に一覧表示し、
+ *    不要な提案を個別に除外してから一括適用できる。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: autoScheduler（自動配置エンジンの型定義）
+// - importされる先: GanttChartMonthView（onAutoSchedule 時に表示）
+// - 役割: 自動配置の結果をユーザーに確認してもらい、承認or修正してもらうUI。
+
 import React, { useState, useMemo } from "react";
 import {
   Modal,

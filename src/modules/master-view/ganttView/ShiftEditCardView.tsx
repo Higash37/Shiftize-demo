@@ -1,3 +1,18 @@
+/**
+ * @file ShiftEditCardView.tsx
+ * @description 日別のシフト一覧を編集・削除可能なカード形式で表示するコンポーネント。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > ganttView 配下の UIパーツ。
+ *   ShiftCardView の編集版。ガントチャートの編集モードで使われる。
+ *
+ * 主要Props:
+ *   - date: 表示対象の日付
+ *   - shifts: その日のシフト配列
+ *   - users: スタッフ情報配列
+ *   - onEdit: シフト編集コールバック
+ *   - onDelete: シフト削除コールバック
+ */
 import React, { useState } from "react";
 import {
   View,

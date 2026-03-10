@@ -1,25 +1,25 @@
-/**
- * 最適化されたImageコンポーネント
- *
- * - 遅延読み込み（lazy loading）
- * - 非同期デコード（decoding="async"）
- * - エラーハンドリング
- * - プレースホルダー表示
- */
-
+/** @file OptimizedImage.tsx @description 遅延読み込み・エラーハンドリング付きの最適化画像コンポーネント */
 import React, { useState, useEffect, useRef } from "react";
 import { Image, ImageProps, View, StyleSheet, Platform } from "react-native";
 import "./OptimizedImage.css";
 
+/** OptimizedImageのProps */
 interface OptimizedImageProps extends Omit<ImageProps, "source" | "src"> {
+  /** 画像のURL */
   src: string | { uri: string };
+  /** alt属性（Web用） */
   alt?: string;
+  /** 読み込み中に表示するプレースホルダー */
   placeholder?: React.ReactNode;
+  /** エラー時に表示するフォールバック */
   fallback?: React.ReactNode;
-  lazy?: boolean; // 遅延読み込みを有効にするか（デフォルト: true）
-  threshold?: number; // ビューポートから何px手前で読み込み開始するか（デフォルト: 200）
+  /** 遅延読み込みを有効にするか（デフォルト: true） */
+  lazy?: boolean;
+  /** ビューポートから何px手前で読み込み開始するか（デフォルト: 200） */
+  threshold?: number;
 }
 
+/** 遅延読み込み・エラーハンドリング付きImage。Web/RN両対応 */
 export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
@@ -30,12 +30,13 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   style,
   ...props
 }) => {
+  // --- State ---
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(!lazy);
   const imageRef = useRef<View>(null);
 
-  // 遅延読み込みの実装（Intersection Observer相当）
+  // --- Effects ---
   useEffect(() => {
     if (!lazy || shouldLoad) return;
 
@@ -66,6 +67,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     return () => clearTimeout(timer);
   }, [lazy, shouldLoad]);
 
+  // --- Handlers ---
   const handleLoad = () => {
     setIsLoading(false);
   };
@@ -75,9 +77,9 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setHasError(true);
   };
 
+  // --- Render ---
   const source = typeof src === "string" ? { uri: src } : src;
 
-  // エラー時のフォールバック表示
   if (hasError && fallback) {
     return <>{fallback}</>;
   }

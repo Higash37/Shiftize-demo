@@ -1,15 +1,28 @@
+/** @file ClassTimeEditor.tsx
+ *  @description シフト内の「途中時間」（授業・休憩等）を追加・編集・削除するサブコンポーネント。
+ *    AddShiftModalView と EditShiftModalView の両方から使われる。
+ *    TimeSegmentTypesContext から途中時間タイプ（授業、清掃等）を取得し、プルダウンで選択可能。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: useTimeSegmentTypesContext（途中時間タイプのコンテキスト）
+// - importされる先: AddShiftModalView, EditShiftModalView
+// - 役割: 途中時間リストの CRUD UI。配列操作（追加・更新・削除）を onChange で親に通知する。
+
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
 
+// ClassTime: 1つの途中時間エントリの型
 interface ClassTime {
-  startTime: string;
-  endTime: string;
-  typeId?: string;
-  typeName?: string;
+  startTime: string;   // 開始時間
+  endTime: string;     // 終了時間
+  typeId?: string;     // 途中時間タイプのID（任意）
+  typeName?: string;   // 途中時間タイプの名前（任意）
 }
 
+// ClassTimeEditorProps: このコンポーネントが受け取る props
 interface ClassTimeEditorProps {
   classes: ClassTime[];
   timeOptions: string[];

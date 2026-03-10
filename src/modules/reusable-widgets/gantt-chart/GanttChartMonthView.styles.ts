@@ -1,7 +1,29 @@
+/** @file GanttChartMonthView.styles.ts
+ *  @description ガントチャート月間ビューのスタイル定義。
+ *    MD3（Material Design 3）テーマを受け取り、テーマカラーに応じたスタイルを動的に生成する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: MD3Theme.types（テーマの型定義）, DateNavigator（サブヘッダー高さ定数）
+// - importされる先: GanttChartMonthView, GanttHeader, MonthSelectorBar など
+// - 役割: StyleSheet.create() でスタイルオブジェクトを生成する「ファクトリ関数」。
+//   テーマが変わると色が変わるように、theme引数を受け取って動的にスタイルを返す。
+
+// 【CSS/スタイルの基礎知識】
+// - position: "absolute" → 親要素の中で自由な位置に配置（left/top で指定）
+// - position: "relative" → 通常の位置を基準にして、子のabsoluteの基準点になる
+// - flex: 1 → 利用可能な空間をすべて占める
+// - flexDirection: "row" → 子要素を横並びにする（デフォルトは "column" = 縦並び）
+// - elevation → Android用の影の深さ（0=影なし）
+// - borderRadius → 角丸の半径
+
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";
 
+// createGanttChartMonthViewStyles はテーマオブジェクトを受け取り、
+// StyleSheet（スタイル定義の辞書）を返す関数。
+// 使う側: const styles = useThemedStyles(createGanttChartMonthViewStyles);
 export const createGanttChartMonthViewStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     container: {

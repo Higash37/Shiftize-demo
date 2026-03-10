@@ -1,3 +1,14 @@
+/** @file CalendarView.tsx
+ *  @description カレンダー表示モード。3カラムレイアウトで、
+ *    左に給与リスト（PayrollList）、中央にカレンダー、右に月のシフトリストを表示する。
+ *    ガントチャートの代替ビューとして切り替えて使う。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ShiftCalendar, PayrollList
+// - importされる先: GanttChartMonthView（viewMode === "calendar" 時）
+// - 役割: ガントチャートではなくカレンダーベースでシフトを俯瞰するビュー。
+
 import React, { useState, useMemo, useRef } from "react";
 import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";

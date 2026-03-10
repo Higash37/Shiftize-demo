@@ -1,3 +1,4 @@
+/** @file MasterHeader.tsx @description 管理者用ヘッダー。店舗切り替え、サービス紹介、サインアウトを提供 */
 import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
@@ -20,22 +21,21 @@ import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { useAuth } from "@/services/auth/useAuth";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
 
-/**
- * MasterHeader - マスター用ヘッダーコンポーネント
- *
- * 管理者画面用のヘッダーコンポーネントで、タイトル、店舗切り替え、ナビゲーション機能を提供します。
- */
+/** 管理者用ヘッダー。店舗選択モーダル・店舗連携機能を含む。Props: MasterHeaderProps */
 export function MasterHeader({
   title,
   showBackButton = false,
   onBack,
 }: Readonly<MasterHeaderProps>) {
+  // --- Hooks ---
   const styles = useThemedStyles(createHeaderStyles);
   const { colorScheme } = useMD3Theme();
   const router = useRouter();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const isCompactLayout = width < 900;
+
+  // --- State ---
   const [userStoreAccess, setUserStoreAccess] =
     useState<UserStoreAccess | null>(null);
   const [showStoreSelector, setShowStoreSelector] = useState(false);
@@ -43,6 +43,7 @@ export function MasterHeader({
   const [currentStoreInfo, setCurrentStoreInfo] = useState<string>(""); // デフォルト値
   const [showServiceIntro, setShowServiceIntro] = useState(false);
 
+  // --- Memo ---
   const storeButtonStyles = useMemo(
     () => [
       styles.storeButton,
@@ -72,7 +73,7 @@ export function MasterHeader({
     return `教室${shortId}`;
   }, [currentStoreInfo, isCompactLayout]);
 
-  // ユーザーの店舗アクセス権限を取得
+  // --- Effects ---
   useEffect(() => {
     const fetchUserStoreAccess = async () => {
       if (!user?.uid) {
@@ -108,6 +109,7 @@ export function MasterHeader({
     fetchUserStoreAccess();
   }, [user]);
 
+  // --- Handlers ---
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -153,6 +155,7 @@ export function MasterHeader({
     }
   };
 
+  // --- Render ---
   const renderStoreItem = ({
     item,
   }: {

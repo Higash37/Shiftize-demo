@@ -1,3 +1,23 @@
+/**
+ * @file UserList.tsx
+ * @description ユーザー一覧表示コンポーネント。検索・ソート・編集・削除を提供。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > user-props 配下のリスト。
+ *   UserManagement コンポーネントのデフォルト表示。
+ *
+ * 主な内部ロジック:
+ *   - 検索: ニックネームまたはUIDで絞り込み
+ *   - ソート: 名前順 / 権限順 / 登録順
+ *   - FlatList のレスポンシブ numColumns（モバイル1列、タブレット3列、デスクトップ5列）
+ *   - 削除確認モーダル付き
+ *
+ * 主要Props:
+ *   - userList: ユーザー配列
+ *   - onEdit: 編集コールバック
+ *   - onDelete: 削除コールバック
+ *   - onAdd: 追加ボタンコールバック
+ */
 import React, { useState, useMemo } from "react";
 import {
   View,

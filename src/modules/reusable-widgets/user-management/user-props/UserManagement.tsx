@@ -1,3 +1,17 @@
+/**
+ * @file UserManagement.tsx
+ * @description ユーザー管理の統合コンポーネント。一覧表示・追加・編集・削除を管理する。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > user-props 配下の統合コンポーネント。
+ *   InfoDashboard の「スタッフ一覧」タブで使われる。
+ *
+ * 主な内部ロジック:
+ *   - showForm フラグで UserList と UserForm を切り替え
+ *   - fetchUsers() で Supabase からユーザー一覧を取得
+ *   - handleSubmitUser() でユーザーの追加/更新
+ *   - handleDeleteUser() でユーザー削除
+ */
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { User, UserRole } from "@/common/common-models/model-user/UserModel";

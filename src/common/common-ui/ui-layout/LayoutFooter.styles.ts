@@ -1,3 +1,4 @@
+/** @file LayoutFooter.styles.ts @description Footer/MasterFooterのテーマ連動スタイル定義 */
 import { StyleSheet, Platform, Dimensions } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
@@ -6,9 +7,6 @@ import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
 
-/**
- * LayoutFooter MD3スタイルファクトリ
- */
 export const createFooterStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     footer: {

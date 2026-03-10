@@ -1,9 +1,8 @@
+/** @file FeedbackError.types.ts @description ErrorMessageコンポーネントの型定義 */
 import { StyleProp, TextStyle } from "react-native";
 import { BaseComponentProps } from "../componentTypes";
 
-/**
- * ErrorMessageコンポーネントのプロパティ
- */
+/** ErrorMessageコンポーネントのProps */
 export interface ErrorMessageProps extends BaseComponentProps {
   /**
    * 表示するエラーメッセージ

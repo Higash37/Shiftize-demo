@@ -1,3 +1,4 @@
+/** @file index.ts @description ui-layoutモジュールのバレルエクスポート */
 // Header コンポーネント
 export { default as Header } from "./LayoutHeader";
 export { default as MasterHeader } from "./MasterHeader";

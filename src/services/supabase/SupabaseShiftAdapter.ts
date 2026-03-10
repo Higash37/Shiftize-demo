@@ -1,3 +1,5 @@
+/** @file SupabaseShiftAdapter.ts @description シフトCRUD・リアルタイム購読・監査ログ連携のSupabase実装 */
+
 import type { IShiftService } from "../interfaces/IShiftService";
 import type { Shift, ShiftItem, ShiftType, ShiftStatus, ClassTimeSlot, ShiftRequestedChanges } from "@/common/common-models/ModelIndex";
 import type { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLogger";
@@ -195,6 +197,7 @@ const removeFromCalendar = (shiftId: string, eventId: string) => {
     .catch((err) => console.warn("Google Calendarイベント削除に失敗しました:", err));
 };
 
+/** シフトサービスのSupabase実装 */
 export class SupabaseShiftAdapter implements IShiftService {
   private async fetchShiftById(id: string): Promise<Shift | null> {
     const supabase = getSupabase();
@@ -202,6 +205,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return data ? toShiftFromRow(data) : null;
   }
 
+  /** IDでシフトを1件取得する */
   async getShift(id: string): Promise<Shift | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -214,6 +218,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return toShiftFromRow(data);
   }
 
+  /** 店舗のシフト一覧を取得する */
   async getShifts(storeId?: string): Promise<Shift[]> {
     const supabase = getSupabase();
     let query = supabase.from("shifts").select("*");
@@ -230,6 +235,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftFromRow);
   }
 
+  /** シフトを追加して監査ログを記録する */
   async addShift(
     shift: Omit<Shift, "id">,
     actor?: ShiftHistoryActor
@@ -262,6 +268,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return shiftId;
   }
 
+  /** シフトを更新して監査ログ・Calendar同期を行う */
   async updateShift(
     id: string,
     shift: Partial<Shift>,
@@ -291,6 +298,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
   }
 
+  /** シフトを削除してCalendarからも除去する */
   async markShiftAsDeleted(
     id: string,
     deletedBy?: ShiftHistoryActor,
@@ -313,6 +321,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     }
   }
 
+  /** シフトの変更リクエストを承認して適用する */
   async approveShiftChanges(
     id: string,
     approver?: ShiftHistoryActor
@@ -418,6 +427,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return updates;
   }
 
+  /** シフトを完了状態にする */
   async markShiftAsCompleted(id: string): Promise<void> {
     const supabase = getSupabase();
     const { error } = await supabase
@@ -427,6 +437,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
   }
 
+  /** シフトの業務報告を保存する */
   async addShiftReport(
     shiftId: string,
     reportData: {
@@ -443,9 +454,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     if (error) throw error;
   }
 
-  /**
-   * 複数店舗のシフト一覧を取得（Firestoreの10件制限なし）
-   */
+  /** 複数店舗のシフト一覧を取得する */
   async getShiftsFromMultipleStores(storeIds: string[]): Promise<Shift[]> {
     if (storeIds.length === 0) return [];
 
@@ -461,6 +470,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftFromRow);
   }
 
+  /** ユーザーがアクセス可能な全店舗のシフトを取得する */
   async getUserAccessibleShifts(userData: {
     storeId?: string;
     connectedStores?: string[];
@@ -482,6 +492,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return this.getShiftsFromMultipleStores(accessibleStoreIds);
   }
 
+  /** 店舗のシフトをShiftItem形式で取得する */
   async getShiftItems(storeId: string): Promise<ShiftItem[]> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -495,6 +506,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftItemFromRow);
   }
 
+  /** シフト変更をリアルタイム購読する（デバウンス付き） */
   onShiftsChanged(
     storeId: string,
     callback: (shifts: ShiftItem[]) => void,
@@ -557,6 +569,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     };
   }
 
+  /** 指定月のシフトを取得する */
   async getShiftsByMonth(
     storeId: string,
     year: number,
@@ -579,6 +592,7 @@ export class SupabaseShiftAdapter implements IShiftService {
     return (data || []).map(toShiftItemFromRow);
   }
 
+  /** 指定月のシフト変更をリアルタイム購読する */
   onShiftsByMonth(
     storeId: string,
     year: number,

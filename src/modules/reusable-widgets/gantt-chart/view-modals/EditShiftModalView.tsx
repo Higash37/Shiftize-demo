@@ -1,3 +1,16 @@
+/** @file EditShiftModalView.tsx
+ *  @description シフト編集用のモーダルフォーム。
+ *    既存シフトのユーザー、時間、ステータスの変更と削除が可能。
+ *    途中時間（授業等）の追加・編集サブ画面を内包する。
+ *    マスターロールのみステータス変更プルダウンが表示される。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ClassTimeEditor, TimeInput, useAuth（ロール判定）
+// - importされる先: ShiftModalRenderer（showEditModal === true 時に表示）
+// - 役割: 既存シフトの編集フォーム。isAddingClassTime フラグで
+//   メイン編集画面と途中時間追加画面を切り替える。
+
 import React from "react";
 import {
   Modal,

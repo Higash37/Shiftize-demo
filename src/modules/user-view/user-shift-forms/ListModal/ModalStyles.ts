@@ -1,3 +1,12 @@
+/** @file ModalStyles.ts
+ *  @description シフト一覧で使うモーダル群の共通スタイル定義。
+ *    オーバーレイ、モーダルコンテンツ、タスク行、カウント操作、
+ *    時間コントロールなどのスタイルを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / 共通定数（ShadowConstants, ThemeConstants）
+ *  - 利用先: ShiftModal / ShiftReportModal などモーダル系コンポーネント
+ */
 import { StyleSheet, ViewStyle, Platform } from "react-native";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { colors } from "@/common/common-constants/ThemeConstants";

@@ -1,3 +1,11 @@
+/**
+ * @file BudgetSection.tsx
+ * @description 予算セクションウィジェット。月間の人件費予算と実績を表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > info-dashboard > analytics-widgets 配下のウィジェット。
+ *   InfoDashboard の「予算」タブで使われる。
+ */
 import React, { useState } from "react";
 import {
   View,

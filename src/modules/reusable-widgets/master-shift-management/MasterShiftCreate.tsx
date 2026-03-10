@@ -1,3 +1,18 @@
+/**
+ * @file MasterShiftCreate.tsx
+ * @description マスターユーザー用のシフト作成フォーム。スタッフ・日付・時間帯を選んで
+ *   シフトを一括作成できる。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > master-shift-management 配下のフォームコンポーネント。
+ *   MasterShiftCreateView から呼ばれる。
+ *
+ * 主な内部ロジック:
+ *   - スタッフ選択（複数選択可）
+ *   - 日付選択（MultiDatePicker でカレンダーから複数日選択）
+ *   - 開始時間・終了時間の設定
+ *   - バリデーション後に ServiceProvider.shifts で Supabase に保存
+ */
 import React, { useState, useEffect } from "react";
 import {
   View,

@@ -1,3 +1,16 @@
+/**
+ * @file MasterShiftListView.tsx
+ * @description 月間シフト一覧画面。カレンダー + 編集モーダルの構成。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > master-shift-list 配下の画面コンポーネント。
+ *   マスターの「シフト一覧」タブで描画される。
+ *
+ * 主な内部ロジック:
+ *   - ShiftCalendar で月間カレンダーを表示
+ *   - 日付タップで ShiftModal を開く
+ *   - シフトの作成・編集・削除をモーダル経由で実行
+ */
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {

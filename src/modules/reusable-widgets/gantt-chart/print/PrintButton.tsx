@@ -1,3 +1,13 @@
+/** @file PrintButton.tsx
+ *  @description 印刷ボタンとシフト印刷モーダルの表示制御。
+ *    ボタンをタップすると ShiftPrintModal を表示する。Web版のみ表示。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: UnifiedButtonStyles, ShiftPrintModal
+// - importされる先: MonthSelectorBar（ツールバーの右ゾーン）
+// - 役割: 「印刷」ボタン + モーダルの表示/非表示を useState で管理する。
+
 import React, { useState } from "react";
 import { TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

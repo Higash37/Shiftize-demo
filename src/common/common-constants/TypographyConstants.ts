@@ -1,5 +1,10 @@
+/**
+ * @file TypographyConstants.ts
+ * @description フォントサイズ・ウェイト・letterSpacing等のタイポグラフィ定数
+ */
 import { APP_FONT_FAMILY } from "./FontConstants";
 
+/** タイポグラフィ定数の型 */
 export type TypographyType = {
   fontSize: {
     small: number;

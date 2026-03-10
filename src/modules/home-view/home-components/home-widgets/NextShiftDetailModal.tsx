@@ -1,3 +1,16 @@
+/**
+ * @file NextShiftDetailModal.tsx
+ * @description 今後のシフト一覧を表示するモーダル。未来のシフトをリスト形式で見られる。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-widgets 配下のモーダル。
+ *   NextShiftWidget をタップした時に開く。
+ *
+ * 主要Props:
+ *   - visible: モーダル表示フラグ
+ *   - shifts: 今後のシフト配列
+ *   - onClose: 閉じるコールバック
+ */
 import React from "react";
 import {
   View,

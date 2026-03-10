@@ -1,6 +1,16 @@
-/**
- * クイックシフトURL発行モーダル
- * マスター画面から募集シフトURLやフリー追加URLを発行
+/** @file QuickShiftUrlModal.tsx
+ *  @description クイックシフトURL発行モーダルコンポーネント。
+ *    マスター画面から「募集シフト型URL」「フリー追加型URL」を発行し、
+ *    クリップボードへのコピーや LINE 共有ができる。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / ServiceProvider（QuickShiftTokens サービス）/
+ *          MaterialIcons / 共通定数（ThemeConstants, LayoutConstants）
+ *  - 利用先: マスター画面のURL発行メニューから呼び出される
+ *
+ *  【コンポーネント概要】
+ *  - 表示内容: URLタイプ選択 → 設定入力 → URL発行 → コピー/共有
+ *  - 主要Props: visible（表示制御）, storeId, userId, onClose
  */
 
 import React, { useState } from "react";
@@ -21,6 +31,7 @@ import { layout } from "@/common/common-constants/LayoutConstants";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { MaterialIcons } from "@expo/vector-icons";
 
+/** このモーダルに渡す Props */
 interface QuickShiftUrlModalProps {
   visible: boolean;
   storeId: string;
@@ -34,14 +45,22 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
   userId,
   onClose,
 }) => {
+  // --- State ---
+  /** 選択中のURLタイプ（"recruitment" or "free_add"）。null は未選択 */
   const [urlType, setUrlType] = useState<"recruitment" | "free_add" | null>(null);
+  /** URL生成中フラグ */
   const [generating, setGenerating] = useState(false);
+  /** 生成されたURL文字列 */
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
 
   // フリー追加型の設定
-  const [expiryHours, setExpiryHours] = useState<string>("168"); // デフォルト7日間
-  const [maxUses, setMaxUses] = useState<string>(""); // 空文字 = 無制限
+  /** URL有効期限（時間単位）。デフォルト168（= 7日間） */
+  const [expiryHours, setExpiryHours] = useState<string>("168");
+  /** 最大使用回数。空文字 = 無制限 */
+  const [maxUses, setMaxUses] = useState<string>("");
 
+  // --- Handlers ---
+  /** モーダルを閉じて全 state をリセットする */
   const handleClose = () => {
     setUrlType(null);
     setGeneratedUrl(null);
@@ -50,6 +69,10 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
     onClose();
   };
 
+  /**
+   * フリー追加型URLを発行する。
+   * ServiceProvider 経由でトークンを生成し、URLに変換して state に保存する。
+   */
   const handleGenerateFreeAddUrl = async () => {
     try {
       setGenerating(true);
@@ -88,6 +111,7 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
     }
   };
 
+  /** 生成されたURLをクリップボードにコピーする */
   const handleCopyUrl = () => {
     if (generatedUrl) {
       Clipboard.setString(generatedUrl);
@@ -95,6 +119,7 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
     }
   };
 
+  /** LINE共有用のダイアログを表示する（実際にはコピー→手動貼り付けのフロー） */
   const handleShareLine = () => {
     // NOTE: LINEへの共有はクリップボードコピー → 手動貼り付けのフローを使用
     // LIFFは使用せず、シンプルなWeb URLで対応
@@ -105,8 +130,10 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
     );
   };
 
+  /** タイプ選択画面を表示するかどうかの判定フラグ */
   const showTypeSelection = !urlType && !generatedUrl;
 
+  // --- Render ---
   return (
     <Modal
       visible={visible}

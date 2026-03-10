@@ -1,3 +1,20 @@
+/**
+ * @file HomeCommonScreen.tsx
+ * @description ホーム画面の共通ラッパー。画面幅に応じて Wide / Tablet / Mobile の
+ *   レイアウトを自動で切り替える。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-screens 配下の画面コンポーネント。
+ *   アプリの「ホーム」タブで最初に描画されるルートコンポーネント。
+ *   内部で HomeGanttWideScreen / HomeGanttTabletScreen / HomeGanttMobileScreen を
+ *   ブレークポイントに応じて出し分ける。
+ *
+ * 主な内部ロジック:
+ *   - useBreakpoint() で画面幅を判定
+ *   - Wide(PC): 3カラムレイアウト
+ *   - Tablet: 2カラムレイアウト
+ *   - Mobile: 1カラム + モーダルで切り替え
+ */
 // 共通ホーム画面（リファクタリング後）
 // 旧: app/(main)/HomeCommonScreen.tsx
 // スタイル分割済み（home-view-styles.ts）

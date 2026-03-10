@@ -1,3 +1,14 @@
+/** @file PayrollList.tsx
+ *  @description ユーザー別の月間給与サマリーを一覧表示するコンポーネント。
+ *    承認済みシフトの時間・金額を集計し、未承認分も別途表示する。
+ *    ユーザーをタップすると、そのユーザーのシフトだけをフィルタリングできる。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: calculateTotalWage（給与計算ユーティリティ）
+// - importされる先: CalendarView（左カラムの給与リスト）
+// - 役割: 「誰が何時間働いて、いくらになるか」を月単位で集計・表示する。
+
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
@@ -5,6 +16,7 @@ import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 import { colors } from "@/common/common-theme/ThemeColors";
 
+// UserPayrollData: 1ユーザー分の集計結果の型
 interface UserPayrollData {
   uid: string;
   nickname: string;

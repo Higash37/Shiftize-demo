@@ -1,3 +1,15 @@
+/** @file PayrollDetailModal.tsx
+ *  @description 月間給与詳細モーダル。
+ *    選択月の承認済み/完了シフトからユーザー別の時間・金額を集計し、
+ *    ランキング形式で一覧表示する。途中時間（給与除外分）は自動除外される。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: calculateTotalWage（給与計算ユーティリティ）
+// - importされる先: GanttChartMonthView（onPayrollPress 時に表示）
+// - 役割: ツールバーの金額表示をタップした際に開く詳細ポップアップ。
+//   PayrollList と似た集計ロジックだが、モーダル形式で大きく表示する。
+
 import React from "react";
 import {
   Modal,
@@ -11,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { calculateTotalWage } from "@/common/common-utils/util-shift/wageCalculator";
 
+// UserPayrollData: 1ユーザー分の月間集計結果
 interface UserPayrollData {
   uid: string;
   nickname: string;

@@ -1,3 +1,22 @@
+/**
+ * @file GanttRowMobile.tsx
+ * @description モバイル版ガントチャートの1行分。スタッフごとの時間帯セルを描画する。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下の UIパーツ。
+ *   HomeGanttMobileScreen で使われる。
+ *
+ * 主要な内部関数:
+ *   - isSlotActiveAtTime(): ある時刻にシフトが存在するか判定
+ *   - renderShiftCell(): シフトデータがある場合のセル描画
+ *   - renderSampleCell(): サンプルデータ時のセル描画
+ *
+ * 主要Props:
+ *   - staffName: スタッフ名
+ *   - shifts: そのスタッフのシフト配列
+ *   - timeSlots: 表示する時間帯の配列（"09:00","09:30",...）
+ *   - onCellPress: セルタップ時のコールバック
+ */
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";

@@ -1,3 +1,19 @@
+/** @file ShiftListItem.tsx
+ *  @description シフト一覧の1行を表示するコンポーネント。
+ *    日付、ニックネーム（マスター用）、ステータスバッジ、時間、
+ *    詳細展開ボタンを横並びで表示する。
+ *    React.memo でラップしてメモ化されている。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / AntDesign / date-fns /
+ *          useMD3Theme / useBreakpoint / types / styles
+ *  - 利用先: ShiftListView（UserShiftList）内でシフト一覧の各行として表示
+ *
+ *  【コンポーネント概要】
+ *  - 表示内容: [日付] [ニックネーム?] [ステータス] [時間] [詳細ボタン]
+ *  - 主要Props: shift, isSelected, selectedDate, onPress, onDetailsPress,
+ *               children（展開時の詳細ビュー）, showNickname
+ */
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
@@ -19,11 +35,13 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
 }) => {
   const theme = useMD3Theme();
   const bp = useBreakpoint();
+  // useMemo でテーマ・ブレークポイントが変わった時だけスタイルを再生成
   const styles = useMemo(
     () => createShiftListItemStyles(theme, bp),
     [theme, bp]
   );
 
+  // --- Render ---
   return (
     <View style={{ width: "100%" }}>
       <View
@@ -109,5 +127,8 @@ const ShiftListItemComponent: React.FC<ShiftListItemProps> = ({
   );
 };
 
-// React.memoでラップしてメモ化
+/**
+ * React.memo でメモ化。
+ * Props が変わらなければ再レンダリングをスキップし、パフォーマンスを向上させる。
+ */
 export const ShiftListItem = React.memo(ShiftListItemComponent);

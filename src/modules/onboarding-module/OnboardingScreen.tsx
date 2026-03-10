@@ -1,3 +1,16 @@
+/**
+ * @file OnboardingScreen.tsx
+ * @description 3ページ構成のオンボーディング画面。アプリ初回利用時にスワイプで説明を見せる。
+ *
+ * 【このファイルの位置づけ】
+ *   onboarding-module 配下の画面コンポーネント。
+ *   初回起動時にルーティングでこの画面に誘導される。
+ *
+ * 主な内部ロジック:
+ *   - FlatList の horizontal + pagingEnabled でスワイプ切り替え
+ *   - 各ページにタイトル・説明文・アイコンを表示
+ *   - 最後のページで「始める」ボタン → ログイン画面へ遷移
+ */
 import React, { useState } from "react";
 import {
   View,

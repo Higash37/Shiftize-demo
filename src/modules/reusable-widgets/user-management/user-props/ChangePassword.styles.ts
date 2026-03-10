@@ -1,3 +1,12 @@
+/** @file ChangePassword.styles.ts
+ *  @description パスワード変更モーダルのスタイル定義。
+ *    モーダルオーバーレイ、入力欄、成功/エラーメッセージ、ボタンを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme
+ *  - 利用先: ChangePassword コンポーネント
+ *  - テーマを引数に取るファクトリ関数パターン
+ */
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

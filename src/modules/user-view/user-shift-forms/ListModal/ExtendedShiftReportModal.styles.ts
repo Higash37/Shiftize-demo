@@ -1,3 +1,13 @@
+/** @file ExtendedShiftReportModal.styles.ts
+ *  @description 拡張シフト報告モーダルのスタイル定義。
+ *    ヘッダー、シフト情報バー、タスク一覧、実績入力、コメント入力欄など
+ *    報告フォーム全体のレイアウトを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme
+ *  - 利用先: ExtendedShiftReportModal コンポーネント
+ *  - テーマを引数に取るファクトリ関数パターン
+ */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

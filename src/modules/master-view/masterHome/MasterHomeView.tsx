@@ -1,3 +1,10 @@
+/**
+ * @file MasterHomeView.tsx
+ * @description マスターのホーム（ウェルカム）画面。ログイン直後に表示される簡易ページ。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > masterHome 配下の画面コンポーネント。
+ */
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { MasterHeader } from "@/common/common-ui/ui-layout";

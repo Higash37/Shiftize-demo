@@ -1,3 +1,17 @@
+/**
+ * @file DailyTodoView.tsx
+ * @description 当日のTodo（業務チェックリスト）を表示する画面。
+ *   テンプレートから生成されたTodoを一覧し、完了チェックができる。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > todayView 配下の画面コンポーネント。
+ *   マスターの「当日Todo」タブで描画される。
+ *
+ * 主な内部ロジック:
+ *   - TodoTemplate からその日の Todo を生成
+ *   - 各 Todo の完了/未完了をトグル
+ *   - フローステップの進行管理
+ */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   View,

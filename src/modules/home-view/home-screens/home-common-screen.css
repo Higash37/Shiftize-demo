@@ -1,3 +1,7 @@
+/*
+ * @file home-common-screen.css
+ * @description Web版ホーム画面用のグローバルCSS。スクロールバー制御等。
+ */
 body {
   cursor: default;
   -webkit-user-select: none;

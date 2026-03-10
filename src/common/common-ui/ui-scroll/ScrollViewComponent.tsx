@@ -1,10 +1,8 @@
+/** @file ScrollViewComponent.tsx @description スクロールバー非表示のカスタムScrollView */
 import React from "react";
 import { ScrollView, ScrollViewProps } from "react-native";
 
-/**
- * スクロールバーを非表示にするカスタムScrollViewコンポーネント
- * アプリ全体で統一的に使用することでスクロールバーを非表示にできます
- */
+/** スクロールバーをデフォルト非表示にしたScrollViewラッパー */
 export const CustomScrollView: React.FC<ScrollViewProps> = (props) => {
   const { children, showsVerticalScrollIndicator = false, showsHorizontalScrollIndicator = false, ...rest } = props;
 

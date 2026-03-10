@@ -1,3 +1,12 @@
+/**
+ * @file ui-interfaces.ts
+ * @description ユーザー向けUI共通の基底インターフェース定義。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-utils 配下の型定義。
+ *   BaseUIProps / BaseInputProps / BaseTimeProps / BaseCalendarProps など、
+ *   フォーム系・カレンダー系コンポーネントの共通Propsを定義する。
+ */
 import { ViewStyle, TextStyle } from "react-native";
 
 /**

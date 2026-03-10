@@ -1,3 +1,17 @@
+/**
+ * @file HomeGanttMobileScreen.tsx
+ * @description モバイル版ホーム画面。時計ウィジェット + シフト一覧モーダルの構成。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-screens 配下の画面コンポーネント。
+ *   HomeCommonScreen がモバイル幅の時に描画する。
+ *
+ * 主な内部ロジック:
+ *   - ClockWidget でアナログ時計を表示
+ *   - 下部にシフト情報カードとスタッフ数カードを表示
+ *   - カードタップでモーダルを開く
+ *   - GanttHalfSwitch で前半/後半の時間帯を切り替え
+ */
 import React, { useState } from "react";
 import {
   View,

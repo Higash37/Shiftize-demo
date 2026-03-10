@@ -1,3 +1,16 @@
+/**
+ * @file ShiftCardView.tsx
+ * @description 日別のシフト一覧をカード形式で表示する読み取り専用コンポーネント。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > ganttView 配下の UIパーツ。
+ *   ガントチャートの日付セルタップで開くモーダル内で使われる。
+ *
+ * 主要Props:
+ *   - date: 表示対象の日付
+ *   - shifts: その日のシフト配列
+ *   - users: スタッフ情報配列
+ */
 import React from "react";
 import {
   View,

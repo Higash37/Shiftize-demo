@@ -1,3 +1,25 @@
+/**
+ * @file UserForm.tsx
+ * @description ユーザー情報入力フォーム。新規追加と既存ユーザー編集の両方に対応。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > user-props 配下のフォーム。
+ *   UserManagement コンポーネントから「追加」「編集」時に表示される。
+ *
+ * 主な内部ロジック:
+ *   - ロール選択 (一般ユーザー / マスター) のトグルボタン
+ *   - カラーピッカーでユーザーカラーを選択
+ *   - ニックネーム・ふりがな・パスワードの入力
+ *   - ふりがなのひらがなバリデーション
+ *   - マスターユーザーの重複チェック
+ *   - メールアドレスは storeId + nickname から自動生成
+ *
+ * 主要Props:
+ *   - onSubmit: フォーム送信コールバック
+ *   - onCancel: キャンセルコールバック
+ *   - initialData?: 編集時の初期データ
+ *   - mode: "add" / "edit"
+ */
 import React, { useState, useEffect } from "react";
 import {
   View,

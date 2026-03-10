@@ -1,7 +1,10 @@
+/** @file SupabaseQuickShiftTokenAdapter.ts @description クイックシフトトークン（URL共有型シフト登録）のSupabase実装 */
+
 import type { IQuickShiftTokenService, QuickShiftToken } from "../interfaces/IQuickShiftTokenService";
 import { getSupabase } from "./supabase-client";
 import * as Crypto from "expo-crypto";
 
+/** クイックシフトトークンサービスのSupabase実装 */
 export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
   private async generateTokenId(): Promise<string> {
     const randomBytes = await Crypto.getRandomBytesAsync(16);
@@ -10,6 +13,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
       .join("");
   }
 
+  /** 募集シフト用トークンを作成する */
   async createRecruitmentToken(
     storeId: string,
     createdBy: string,
@@ -45,6 +49,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     return tokenId;
   }
 
+  /** 自由追加用トークンを作成する */
   async createFreeAddToken(
     storeId: string,
     createdBy: string,
@@ -78,6 +83,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     return tokenId;
   }
 
+  /** トークンの有効性を検証する */
   async validateToken(
     tokenId: string,
     userId?: string
@@ -107,6 +113,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     }
   }
 
+  /** トークンの使用を記録する（RPC経由で原子的更新） */
   async recordTokenUsage(tokenId: string, userId: string, shiftId: string): Promise<void> {
     try {
       const supabase = getSupabase();
@@ -128,6 +135,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     }
   }
 
+  /** トークンを無効化する */
   async deactivateToken(tokenId: string): Promise<void> {
     const supabase = getSupabase();
     await supabase.from("quick_shift_tokens").update({
@@ -136,11 +144,13 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     }).eq("id", tokenId);
   }
 
+  /** トークンを削除する */
   async deleteToken(tokenId: string): Promise<void> {
     const supabase = getSupabase();
     await supabase.from("quick_shift_tokens").delete().eq("id", tokenId);
   }
 
+  /** 店舗のトークン一覧を取得する */
   async getStoreTokens(storeId: string): Promise<QuickShiftToken[]> {
     try {
       const supabase = getSupabase();
@@ -155,6 +165,7 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
     }
   }
 
+  /** トークンIDからクイックシフトURLを生成する */
   generateQuickShiftUrl(tokenId: string, tokenType: "recruitment" | "free_add"): string {
     const baseUrl = "https://shiftschedulerapp-71104.web.app";
     const path = tokenType === "recruitment" ? "quick-recruit" : "quick-add";

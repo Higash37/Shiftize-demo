@@ -1,3 +1,17 @@
+/**
+ * @file CreateGroupScreen.tsx
+ * @description グループ（教室・店舗）作成画面。教室情報を入力して新しい教室を登録する。
+ *
+ * 【このファイルの位置づけ】
+ *   create-group-module 配下の画面コンポーネント。
+ *   初回ログイン時や「教室を作成」ボタンから遷移する。
+ *
+ * 主な内部ロジック:
+ *   - 教室名・パスワード・地域などの入力フォーム
+ *   - バリデーション（必須項目チェック、パスワード長チェック等）
+ *   - ServiceProvider.store 経由で Supabase に教室を作成
+ *   - 作成成功後に CreateGroupSuccessScreen に遷移
+ */
 import React, { useState } from "react";
 import {
   View,

@@ -1,3 +1,14 @@
+/** @file BatchConfirmModal.tsx
+ *  @description 一括承認・一括削除の確認モーダル。
+ *    ShiftSelectionContext から選択中のシフトIDを取得し、
+ *    選択されたシフトのみ or 全未承認シフトを対象に一括操作を実行する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ShiftSelectionContext（選択状態）, ServiceProvider（DB操作）
+// - importされる先: GanttChartMonthView（batchModal.visible 時に表示）
+// - 役割: 「本当に○件を承認/削除しますか？」の確認UIと実行ロジック。
+
 import React, { useContext } from "react";
 import {
   Modal,

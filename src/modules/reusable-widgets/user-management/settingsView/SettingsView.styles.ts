@@ -1,3 +1,12 @@
+/** @file SettingsView.styles.ts
+ *  @description 設定画面のスタイル定義。
+ *    メニュー項目、デバッグ情報など設定画面のレイアウトを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet
+ *  - 利用先: SettingsView コンポーネント
+ *  - 静的スタイルのため、テーマ引数を取らないシンプルな構成
+ */
 import { StyleSheet } from "react-native";
 
 export const settingsViewStyles = StyleSheet.create({

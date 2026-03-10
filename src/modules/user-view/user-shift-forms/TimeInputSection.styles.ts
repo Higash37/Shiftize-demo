@@ -1,3 +1,7 @@
+/**
+ * @file TimeInputSection.styles.ts
+ * @description TimeInputSection のスタイル定義。
+ */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { TimeInputSectionStyles } from "./TimeInputSection.types";

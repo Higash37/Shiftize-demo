@@ -1,3 +1,14 @@
+/** @file PeriodSettingModal.tsx
+ *  @description シフト募集期間の設定モーダル。2つのタブを持つ:
+ *    1. 期間設定タブ: 募集開始日・終了日・対象月を設定し、期間を作成/削除する。
+ *    2. 提出確認タブ: 各講師のシフト提出状況（確定済み/未確定）と統計を確認する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ServiceProvider（期間CRUD、確定状況取得）, UnifiedButtonStyles, DatePickerModal
+// - importされる先: MonthSelectorBar（「期間設定」ボタンから表示）
+// - 役割: マスターがシフト募集期間を管理し、講師の提出状況を確認するUI。
+
 import React, { useState, useEffect } from "react";
 import {
   View,

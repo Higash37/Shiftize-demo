@@ -1,5 +1,15 @@
 /**
- * 型チェック関連ユーティリティのエクスポート
+ * @file index.ts (utility-interfaces)
+ * @description 型チェックユーティリティのバレルファイル（再エクスポート用）。
+ *
+ * 【このファイルの位置づけ】
+ * - common/common-utils/utility-interfaces/ のエントリーポイント
+ * - TypeChecker.ts の全エクスポートを再公開する
+ * - 関連ファイル: TypeChecker.ts（型チェック関数の実体）
+ *
+ * 【`export * from` の意味】
+ * 指定したモジュールの全てのexportを、このファイルからも再エクスポートする。
+ * これにより、利用側は `from "utility-interfaces"` だけでインポートできる。
  */
 export * from "./TypeChecker";
 

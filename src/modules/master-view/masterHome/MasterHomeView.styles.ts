@@ -1,3 +1,12 @@
+/** @file MasterHomeView.styles.ts
+ *  @description マスターホーム画面のスタイル定義。
+ *    中央カードのレイアウト、タイトル、サブタイトルを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme
+ *  - 利用先: MasterHomeView コンポーネント
+ *  - テーマとブレークポイントを引数に取るファクトリ関数パターン
+ */
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

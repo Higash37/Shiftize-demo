@@ -1,6 +1,6 @@
-/**
- * カラーピッカーコンポーネントの型定義
- */
+/** @file FormColorPicker.types.ts @description カラーピッカーコンポーネントの型定義 */
+
+/** カラーピッカーのProps */
 export interface ColorPickerProps {
   /**
    * モーダルの表示状態

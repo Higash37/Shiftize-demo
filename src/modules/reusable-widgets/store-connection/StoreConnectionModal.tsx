@@ -1,3 +1,25 @@
+/**
+ * @file StoreConnectionModal.tsx
+ * @description 教室連携モーダル。他の教室とパスワードで連携・解除を行う。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > store-connection 配下のモーダル。
+ *   InfoDashboard の「連携」タブから開く。
+ *
+ * 主な内部ロジック:
+ *   - 3つのモード: "generate"(パスワード生成) / "connect"(連携) / "disconnect"(解除)
+ *   - generate: 24時間有効な連携パスワードを生成し、クリップボードにコピー
+ *   - connect: 相手の教室IDと連携パスワードを入力して連携実行
+ *   - disconnect: 連携済み教室を一覧し、タップで解除
+ *   - ServiceProvider.multiStore 経由で Supabase に保存
+ *
+ * 主要Props:
+ *   - visible: モーダル表示フラグ
+ *   - currentStoreId: 自分の教室ID
+ *   - connectedStores: 連携済み教室IDの配列
+ *   - onConnectionSuccess: 連携成功時のコールバック
+ *   - onClose: 閉じるコールバック
+ */
 import React, { useState } from "react";
 import {
   View,

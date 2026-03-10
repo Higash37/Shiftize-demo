@@ -1,3 +1,22 @@
+/**
+ * @file ChangePassword.tsx
+ * @description パスワード変更モーダル。現在のパスワードと新しいパスワードを入力して
+ *   パスワードを更新する。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > user-props 配下のモーダル。
+ *   SettingsView のヘッダーボタンから開く。
+ *
+ * 主な内部ロジック:
+ *   - 現在のパスワード + 新しいパスワード + 確認用パスワードの3フィールド
+ *   - バリデーション: 6文字以上、確認用と一致チェック
+ *   - ServiceProvider.auth.changePassword() でパスワード更新
+ *   - 成功時は1.5秒後に自動でモーダルを閉じる
+ *
+ * 主要Props:
+ *   - userId?: 対象ユーザーのUID（省略時は自分自身）
+ *   - onComplete: 完了時コールバック
+ */
 import React, { useState } from "react";
 import { View, Text, Modal, TouchableOpacity, Dimensions } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";

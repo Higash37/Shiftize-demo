@@ -1,3 +1,13 @@
+/** @file MasterDashboardView.styles.ts
+ *  @description マスター（管理者）ダッシュボード画面のスタイル定義。
+ *    統計カード、リンクボタン、エラー表示などのレイアウトを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme（テーマトークン）
+ *  - 利用先: MasterDashboardView コンポーネント
+ *  - createMasterDashboardViewStyles(theme, breakpoint) を呼ぶと
+ *    デバイス幅に応じたレスポンシブスタイルが返る
+ */
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

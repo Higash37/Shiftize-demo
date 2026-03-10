@@ -1,3 +1,22 @@
+/**
+ * @file UnifiedTimePicker.tsx
+ * @description 統一された時間選択コンポーネント。iOS / Android / Web で
+ *   それぞれ最適なUIを自動で出し分ける。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   プラットフォームに依存しない時間選択が必要な場面で使われる。
+ *
+ * 主な内部ロジック:
+ *   - Android: DateTimePicker を直接表示
+ *   - iOS: Modal + DateTimePicker (spinner)
+ *   - Web: Modal + HTML <input type="time">
+ *   - handleTimeChange() で Date オブジェクトを親コンポーネントに返す
+ *
+ * 主要Props:
+ *   - value: Date オブジェクト（現在の選択時刻）
+ *   - onChange: 時刻変更コールバック (Date) => void
+ */
 import React, { useState } from "react";
 import { View, Platform, TouchableOpacity, Text, Modal, NativeSyntheticEvent } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";

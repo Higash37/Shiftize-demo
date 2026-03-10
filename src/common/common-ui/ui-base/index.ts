@@ -1,5 +1,3 @@
-/**
- * 基本コンポーネントのエクスポート
- */
+/** @file index.ts @description ui-baseモジュールのバレルエクスポート */
 export { default as Box } from "./BoxComponent";
 // 今後、追加の基本コンポーネントがここに追加されます

@@ -1,3 +1,4 @@
+/** @file LayoutHeader.tsx @description 講師用ヘッダー。タイトル、サービス紹介、設定、サインアウトを提供 */
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
@@ -10,26 +11,23 @@ import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { ServiceIntroModal } from "@/modules/reusable-widgets/service-intro/ServiceIntroModal";
 import { useExtendedFonts } from "@/common/common-utils/performance/fontLoader";
 
-/**
- * Header - 標準のヘッダーコンポーネント
- *
- * アプリケーションの上部に表示され、タイトルとナビゲーション機能を提供します。
- */
+/** 講師用ヘッダー。Props: title, showBackButton, onBack, onPressSettings */
 export function Header({
   title,
   showBackButton = false,
   onBack,
   onPressSettings,
 }: Readonly<HeaderProps>) {
+  // --- Hooks ---
   const styles = useThemedStyles(createHeaderStyles);
   const { colorScheme } = useMD3Theme();
   const { signOut, user } = useAuth();
-
-  // FontAwesomeフォントを遅延読み込み
   useExtendedFonts();
 
+  // --- State ---
   const [showServiceIntro, setShowServiceIntro] = useState(false);
 
+  // --- Handlers ---
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -47,6 +45,7 @@ export function Header({
     }
   };
 
+  // --- Render ---
   return (
     <View style={styles.header}>
       <View style={styles.leftContainer}>

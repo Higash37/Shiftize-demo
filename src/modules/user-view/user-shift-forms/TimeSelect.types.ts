@@ -1,3 +1,7 @@
+/**
+ * @file TimeSelect.types.ts
+ * @description TimeSelect のProps型定義。
+ */
 import { BaseTimeProps, BaseStyles } from "../user-shift-utils/ui-interfaces";
 import { ViewStyle, TextStyle } from "react-native";
 

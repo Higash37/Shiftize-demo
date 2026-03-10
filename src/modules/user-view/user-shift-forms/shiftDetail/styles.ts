@@ -1,3 +1,13 @@
+/** @file styles.ts (shiftDetail)
+ *  @description シフト詳細表示・タイムスロット表示のスタイル定義。
+ *    詳細コンテナとタイムスロット（種別ラベル＋時間）のレイアウトを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / MD3Theme
+ *  - 利用先: ShiftDetailsView / ShiftTimeSlot コンポーネント
+ *  - 2つのファクトリ関数（createShiftDetailsViewStyles / createShiftTimeSlotStyles）
+ *    をエクスポートする
+ */
 import { StyleSheet } from "react-native";
 import type { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 

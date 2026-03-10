@@ -1,3 +1,15 @@
+/**
+ * @file TodayStaffWidget.tsx
+ * @description 今日の出勤スタッフ数をカード形式で表示するウィジェット。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-widgets 配下のウィジェット。
+ *   HomeGanttMobileScreen / HomeGanttTabletScreen / HomeGanttWideScreen で使われる。
+ *
+ * 主要Props:
+ *   - count: 出勤スタッフ数
+ *   - onPress: カードタップ時のコールバック（詳細モーダルを開く）
+ */
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";

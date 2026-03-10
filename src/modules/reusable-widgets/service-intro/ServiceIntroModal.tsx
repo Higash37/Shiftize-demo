@@ -1,3 +1,16 @@
+/**
+ * @file ServiceIntroModal.tsx
+ * @description サービス紹介モーダル。アプリの機能や使い方をスライド形式で案内する。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > service-intro 配下のモーダル。
+ *   ヘッダーの「?」アイコンや設定画面から開く。
+ *
+ * 主な内部ロジック:
+ *   - 複数ページのスライドを FlatList で表示
+ *   - ドットインジケーターで現在ページを表示
+ *   - 各スライドにアイコン・タイトル・説明文
+ */
 import React from "react";
 import {
   View,
