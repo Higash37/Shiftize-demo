@@ -5,7 +5,7 @@
  */
 
 // 【このファイルの位置づけ】
-// - import元: ServiceProvider（Firebaseアクセス）, shiftHistoryLogger（型定義）
+// - import元: ServiceProvider（Supabaseアクセス）, shiftHistoryLogger（型定義）
 // - importされる先: ShiftHistoryModal
 // - 役割: 「データ取得」をUIから分離するカスタムフック。
 //   useEffect 内でリアルタイムリスナーを登録し、クリーンアップ関数で解除する。

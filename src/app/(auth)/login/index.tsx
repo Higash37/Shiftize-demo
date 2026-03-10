@@ -184,17 +184,6 @@ export default function Login() {
                 color={colorScheme.onPrimary}
               />
             </TouchableOpacity>
-            {/* ウェルカム画面に戻るボタン */}
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.push("/(auth)/auth-welcome")}
-            >
-              <AntDesign
-                name="home"
-                size={24}
-                color={colorScheme.onPrimary}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </Box>

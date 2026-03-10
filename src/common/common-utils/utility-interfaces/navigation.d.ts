@@ -33,8 +33,6 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 declare global {
   namespace ReactNavigation {
     interface RootParamList {
-      /** オンボーディング（初回起動）画面 - パラメータなし */
-      OnboardingScreen: undefined;
       /** ログイン画面 - パラメータなし */
       LoginScreen: undefined;
       /** ガントチャート月表示画面 - パラメータなし */

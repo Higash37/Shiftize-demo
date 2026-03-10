@@ -164,11 +164,9 @@ export const createShiftListViewStyles = (
       margin: 0,
     },
     calendarContainerCompact: {
-      marginTop: -40,
-      marginBottom: 0,
+      marginVertical: -45,
     },
     listContainer: {
-      flex: bp.isTablet ? 1 : undefined,
       width: "98%",
       minWidth: bp.isTablet ? 400 : undefined,
       maxWidth: 600,
@@ -176,7 +174,7 @@ export const createShiftListViewStyles = (
       paddingLeft: 0,
       marginLeft: 0,
       marginRight: 0,
-      marginTop: 0,
+      marginTop: -20,
       alignSelf: "center",
     },
     listContentContainer: {
