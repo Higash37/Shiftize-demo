@@ -33,11 +33,8 @@
  * ============================================================
  *
  *   src/app/(auth)/_layout.tsx        → ★このファイル（認証グループのレイアウト）
- *   src/app/(auth)/index.tsx          → 認証グループのインデックス
+ *   src/app/(auth)/index.tsx          → 認証グループのインデックス（ログインへリダイレクト）
  *   src/app/(auth)/login/index.tsx    → ログインページ
- *   src/app/(auth)/auth-welcome/      → ウェルカムページ
- *   src/app/(auth)/auth-onboarding/   → オンボーディングページ
- *   src/app/(auth)/auth-create-group/ → グループ作成ページ
  *
  * 【Slot の役割】
  * <Slot /> は「子ルートをここに表示する」というプレースホルダー。

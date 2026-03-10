@@ -41,8 +41,6 @@ export const Routes = {
   // 認証関連
   auth: {
     login: "/(auth)/login",
-    welcome: "/(auth)/auth-welcome",
-    createGroup: "/(auth)/auth-create-group",
   },
 
   // メイン - マスター

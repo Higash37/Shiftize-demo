@@ -4,7 +4,7 @@
  */
 
 // 【このファイルの位置づけ】
-// - import元: ServiceProvider（Firebaseアクセス）, shiftHistoryLogger（監査ログ）
+// - import元: ServiceProvider（Supabaseアクセス）, shiftHistoryLogger（監査ログ）
 // - importされる先: GanttChartMonthView（saveShift, deleteShift, updateShiftStatus を使う）
 // - 役割: シフトの「追加」「編集」「削除」「ステータス変更」をビジネスロジックとしてまとめる。
 //   コンポーネントから DB 操作を切り離して再利用しやすくする「カスタムフック」パターン。

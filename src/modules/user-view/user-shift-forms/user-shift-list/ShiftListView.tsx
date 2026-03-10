@@ -378,11 +378,11 @@ export const UserShiftList = () => {
   // --- Render ---
   return (
     <>
+      <Header
+        title="シフト一覧"
+        onPressSettings={() => setShowPasswordModal(true)}
+      />
       <View style={containerStyle}>
-        <Header
-          title="シフト一覧"
-          onPressSettings={() => setShowPasswordModal(true)}
-        />
         {/* サブヘッダー：年月ピッカー */}
         <View style={{
           height: SUB_HEADER_HEIGHT,
@@ -398,37 +398,39 @@ export const UserShiftList = () => {
             onNext={handleNextMonth}
           />
         </View>
-        <View
-          style={[styles.calendarContainer, styles.calendarContainerCompact]}
+        <ScrollView
+          ref={scrollViewRef}
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
         >
-          <ShiftCalendar
-            key={`calendar-${currentMonth}`}
-            shifts={monthlyShifts}
-            selectedDate={selectedDate}
-            currentMonth={currentMonth + "-01"}
-            currentUserStoreId={currentUserStoreId ?? ""}
-            onDayPress={handleDayPress}
-            onMonthChange={handleMonthChange}
-            onMount={handleCalendarMount}
-            hideMonthNav
-            responsiveSize={{
-              container: {
-                width: "98%",
-                maxWidth: 600,
-                paddingVertical: 0,
-              },
-              day: { fontSize: 32, fontWeight: "700" },
-              scale: 0.8,
-            }}
-          />
-        </View>
-        {isCalendarMounted && displayMonth && (
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.listContainer}
-            contentContainerStyle={styles.listContentContainer}
-            showsVerticalScrollIndicator={false}
+          <View
+            style={[styles.calendarContainer, styles.calendarContainerCompact]}
           >
+            <ShiftCalendar
+              key={`calendar-${currentMonth}`}
+              shifts={monthlyShifts}
+              selectedDate={selectedDate}
+              currentMonth={currentMonth + "-01"}
+              currentUserStoreId={currentUserStoreId ?? ""}
+              onDayPress={handleDayPress}
+              onMonthChange={handleMonthChange}
+              onMount={handleCalendarMount}
+              hideMonthNav
+              responsiveSize={{
+                container: {
+                  width: "98%",
+                  maxWidth: 600,
+                  paddingVertical: 0,
+                },
+                day: { fontSize: 32, fontWeight: "700" },
+                scale: 0.8,
+              }}
+            />
+          </View>
+          {isCalendarMounted && displayMonth && (
+            <View
+              style={styles.listContainer}
+            >
             {/* シフト確定ボタン */}
             {period && (
               <View style={styles.confirmButtonWrapper}>
@@ -488,8 +490,9 @@ export const UserShiftList = () => {
                 </Text>
               </View>
             )}
-          </ScrollView>
-        )}
+            </View>
+          )}
+        </ScrollView>
       </View>
       <ShiftModal
         isModalVisible={isModalVisible}

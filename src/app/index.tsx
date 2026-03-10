@@ -32,7 +32,7 @@
  * ■ このファイルの役割:
  *   src/app/index.tsx は "/" に対応する。
  *   ユーザーが最初にアプリを開いたとき（URLが "/" のとき）このファイルが表示される。
- *   実際にはウェルカム画面にリダイレクトするだけの役割。
+ *   デモ版ではログイン画面に直接リダイレクトする。
  */
 
 import React from "react";
@@ -41,10 +41,9 @@ import { Redirect } from "expo-router";
 
 /**
  * Index: ルートページコンポーネント。
- * "/" にアクセスされたらウェルカムページ /(auth)/auth-welcome にリダイレクトする。
+ * "/" にアクセスされたらログイン画面 /(auth)/login にリダイレクトする。
  */
 export default function Index() {
   // Redirect: レンダリングされると即座に href に遷移する
-  // /(auth)/auth-welcome はグループ (auth) 内の auth-welcome ディレクトリ
-  return <Redirect href="/(auth)/auth-welcome" />;
+  return <Redirect href="/(auth)/login" />;
 }

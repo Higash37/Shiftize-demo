@@ -3,7 +3,7 @@
     "name": "Shiftize",
     "slug": "shiftize",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -33,7 +33,7 @@
       "backgroundColor": "#ffffff",
       "display": "standalone",
       "startUrl": "/",
-      "orientation": "portrait",
+      "orientation": "any",
       "appleTouchIcon": "./public/PWAIcon180x180.png"
     },
     "scheme": "shiftize",

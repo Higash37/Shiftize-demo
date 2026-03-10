@@ -1,12 +1,10 @@
 /**
  * @file (auth)/index.tsx
- * @description 認証グループのインデックスページ。ウェルカム画面にリダイレクトする。
+ * @description 認証グループのインデックスページ。ログイン画面にリダイレクトする。
  *
  * 【Expo Router のインデックスルート】
  * ディレクトリ内の index.tsx はそのディレクトリのデフォルトページ。
  * /(auth)/ にアクセスすると、この index.tsx が表示される。
- *
- * ここではオンボーディング判定をスキップし、常にウェルカム画面へリダイレクトする。
  */
 
 import React from "react";
@@ -15,8 +13,8 @@ import { Redirect } from "expo-router";
 
 /**
  * AuthIndex: 認証グループのインデックス。
- * /(auth)/ にアクセスされたらウェルカム画面にリダイレクトする。
+ * /(auth)/ にアクセスされたらログイン画面にリダイレクトする。
  */
 export default function AuthIndex() {
-  return <Redirect href="/(auth)/auth-welcome" />;
+  return <Redirect href="/(auth)/login" />;
 }
