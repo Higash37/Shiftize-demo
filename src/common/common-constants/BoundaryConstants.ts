@@ -1,8 +1,6 @@
 /**
- * 境界値の一元管理
- *
- * すべての境界値は名前に Inclusive / Exclusive を付与し、
- * 比較演算子との対応を明確にする。
+ * @file BoundaryConstants.ts
+ * @description 境界値の一元管理。名前にInclusive/Exclusiveを付与し比較演算子との対応を明確にする
  */
 
 /**

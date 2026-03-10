@@ -1,3 +1,13 @@
+/** @file UserList.styles.ts
+ *  @description ユーザー一覧画面のスタイル定義。
+ *    検索バー、ユーザーカード、パスワード表示、削除確認モーダルなどの
+ *    レイアウトを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / 共通定数（ColorConstants, LayoutConstants,
+ *          ShadowConstants, TypographyConstants）
+ *  - 利用先: UserList コンポーネント
+ */
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";

@@ -1,3 +1,4 @@
+/** @file FormButton.types.ts @description Buttonコンポーネントの型定義 */
 import { Size, BaseComponentProps } from "../componentTypes";
 
 /**

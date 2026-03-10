@@ -1,10 +1,8 @@
+/** @file FeedbackError.styles.ts @description ErrorMessageコンポーネントのスタイル定義 */
 import { StyleSheet } from "react-native";
 import { theme } from "../../common-theme/ThemeDefinition";
 import { layout } from "../../common-constants/LayoutConstants";
 
-/**
- * ErrorMessageコンポーネントのスタイル定義
- */
 export const styles = StyleSheet.create({
   error: {
     color: theme.colors.error,

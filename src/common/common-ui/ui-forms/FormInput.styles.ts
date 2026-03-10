@@ -1,9 +1,7 @@
+/** @file FormInput.styles.ts @description Inputコンポーネントのテーマ連動スタイル定義 */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "../../common-theme/md3/MD3Theme.types";
 
-/**
- * MD3 Outlined TextField スタイルファクトリ
- */
 export const createInputStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     container: {

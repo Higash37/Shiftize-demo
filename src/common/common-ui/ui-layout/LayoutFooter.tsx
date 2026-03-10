@@ -1,3 +1,4 @@
+/** @file LayoutFooter.tsx @description 講師用フッターナビゲーション。ホーム/当日/シフト追加/シフト一覧のタブを提供 */
 import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
@@ -99,12 +100,9 @@ function isStandalonePWA() {
   return false;
 }
 
-/**
- * Footer - 講師用フッターナビゲーションコンポーネント
- *
- * アプリケーションの下部に表示され、主要な画面間のナビゲーションを提供します。
- */
+/** 講師用フッターナビゲーション。募集期間のツールチップ表示にも対応 */
 export function Footer(_props: Readonly<FooterProps>) {
+  // --- Hooks ---
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
@@ -112,12 +110,12 @@ export function Footer(_props: Readonly<FooterProps>) {
   const { colorScheme } = useMD3Theme();
   const userTabs = useMemo(() => createUserTabs(colorScheme), [colorScheme]);
   const { todayUnreadCount } = useTodoBadge();
-
-  // FontAwesome5フォントを遅延読み込み
   useExtendedFonts();
 
+  // --- State ---
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 
+  // --- Effects ---
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
@@ -145,6 +143,7 @@ export function Footer(_props: Readonly<FooterProps>) {
     return ServiceProvider.shiftSubmissions.isWithinPeriod(period);
   };
 
+  // --- Handlers ---
   const handleTabPress = (tab: TabItem) => {
     if (tab.isUnderDevelopment) {
       Alert.alert("開発中です！", "この機能は現在開発中です。");
@@ -168,6 +167,7 @@ export function Footer(_props: Readonly<FooterProps>) {
     router.replace(tab.path);
   };
 
+  // --- Render ---
   return (
     <>
       <View style={styles.footer}>

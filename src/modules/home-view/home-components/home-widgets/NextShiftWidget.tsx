@@ -1,3 +1,15 @@
+/**
+ * @file NextShiftWidget.tsx
+ * @description 次のシフト情報をカード形式で表示するウィジェット。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-widgets 配下のウィジェット。
+ *   HomeGanttMobileScreen / HomeGanttTabletScreen / HomeGanttWideScreen で使われる。
+ *
+ * 主要Props:
+ *   - shift: 次のシフト情報（日付・開始時間・終了時間など）
+ *   - onPress: カードタップ時のコールバック（詳細モーダルを開く）
+ */
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";

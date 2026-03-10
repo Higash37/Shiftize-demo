@@ -1,3 +1,23 @@
+/**
+ * @file TimeSelect.tsx
+ * @description 時間選択コンポーネント。単一時間選択と開始・終了時間の両モードに対応。
+ *   モーダルで時間オプションをスクロール表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   シフト作成・編集フォームの時間入力で使われる。
+ *
+ * 主な内部ロジック:
+ *   - startTime/endTime が渡されたら「開始・終了」2つの選択ボタンを表示
+ *   - value/onChange が渡されたら単一の選択ボタンを表示
+ *   - Modal で時間リストをスクロール表示し、タップで選択
+ *
+ * 主要Props:
+ *   - label?: ラベル（単一モード時）
+ *   - value / onChange: 単一時間選択モード
+ *   - startTime / endTime / onStartTimeChange / onEndTimeChange: 開始・終了モード
+ *   - zIndex: z-indexの指定（重なり制御）
+ */
 import React, { useState, useMemo } from "react";
 import {
   View,

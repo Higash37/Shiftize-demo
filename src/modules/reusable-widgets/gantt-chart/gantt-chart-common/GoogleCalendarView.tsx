@@ -1,3 +1,14 @@
+/** @file GoogleCalendarView.tsx
+ *  @description Googleカレンダー風の週表示ビュー。
+ *    左サイドバーにミニカレンダーとフィルター、メインエリアに日/週/月表示の
+ *    タイムスロットグリッドを配置する。FAB（Floating Action Button）でシフト追加。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ShiftCalendar（サイドバーのミニカレンダー）
+// - importされる先: GanttChartMonthView（useGoogleLayout === true 時）
+// - 役割: Google カレンダーのUIを模したビュー。日/週/月表示を切り替え可能。
+
 import React, { useState, useMemo, useCallback } from "react";
 import { View, ScrollView, Text, TouchableOpacity, Dimensions, StyleSheet } from "react-native";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";

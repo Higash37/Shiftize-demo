@@ -1,3 +1,19 @@
+/**
+ * @file ShiftModal.tsx
+ * @description シフトの作成・編集・削除を行うモーダル。日付・スタッフ・時間帯を
+ *   入力してシフトを登録する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > ganttView > gantt-modals 配下のモーダル。
+ *   GanttChartMonthView や ShiftEditCardView から開かれる。
+ *
+ * 主な内部ロジック:
+ *   - mode: "create" / "edit" / "delete" で表示を切り替え
+ *   - スタッフ選択 Picker
+ *   - 開始・終了時間の選択
+ *   - バリデーション（時間の前後関係チェック等）
+ *   - ServiceProvider.shifts 経由で Supabase に保存
+ */
 import React, { useState, useEffect } from "react";
 import {
   View,

@@ -1,3 +1,11 @@
+/**
+ * @file SettingsView.tsx
+ * @description マスター版の設定画面プレースホルダー。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > settingsView 配下の画面コンポーネント。
+ *   マスターの「設定」タブで描画される。現時点では最低限の実装。
+ */
 import React from "react";
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

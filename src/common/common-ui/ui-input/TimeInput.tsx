@@ -1,14 +1,21 @@
+/** @file TimeInput.tsx @description HH:MM形式の時刻入力コンポーネント。自動フォーマット・補完機能付き */
 import React, { useState, useEffect } from "react";
 import { TextInput, TextInputProps } from "react-native";
 
+/** TimeInputのProps */
 interface TimeInputProps
   extends Omit<TextInputProps, "value" | "onChangeText"> {
+  /** 現在の時刻文字列（HH:MM形式） */
   value: string;
+  /** 時刻変更時のコールバック */
   onChangeText: (value: string) => void;
+  /** プレースホルダー（デフォルト: "00:00"） */
   placeholder?: string;
+  /** エラー状態の表示 */
   isError?: boolean;
 }
 
+/** HH:MM形式の時刻入力。数字入力時に自動でコロン挿入・時分のバリデーションを行う */
 export const TimeInput: React.FC<TimeInputProps> = ({
   value,
   onChangeText,
@@ -17,8 +24,10 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   style,
   ...props
 }) => {
+  // --- State ---
   const [displayValue, setDisplayValue] = useState(value);
 
+  // --- Effects ---
   useEffect(() => {
     // 外部から値が変更された場合のみ更新（内部での変更は無視）
     if (value !== displayValue) {
@@ -26,6 +35,8 @@ export const TimeInput: React.FC<TimeInputProps> = ({
     }
   }, [value]);
 
+  // --- Handlers ---
+  /** 入力文字列をHH:MM形式にフォーマットする */
   const formatTime = (input: string): string => {
     // 数字のみを抽出（正規表現のため replace を使用）
     // eslint-disable-next-line unicorn/prefer-string-replace-all
@@ -206,6 +217,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
     }
   };
 
+  // --- Render ---
   return (
     <TextInput
       {...props}

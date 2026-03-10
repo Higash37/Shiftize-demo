@@ -1,3 +1,17 @@
+/**
+ * @file shift-time.utils.ts
+ * @description シフト時間を授業時間とスタッフ時間に分割するユーティリティ。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-utils 配下のユーティリティ関数。
+ *   シフト詳細画面やガントチャートで、シフトの内訳を可視化するために使われる。
+ *
+ * 主要関数:
+ *   - splitShiftIntoTimeSlots(shift):
+ *     シフト全体の時間帯を、授業時間(class)とそれ以外(user)に分割して
+ *     TimeSlot[] として返す。授業は時間順にソートされ、間の空き時間は
+ *     "user" タイプとして生成される。
+ */
 import type { ClassTimeSlot } from "@/common/common-models/ModelIndex";
 
 interface TimeSlot {

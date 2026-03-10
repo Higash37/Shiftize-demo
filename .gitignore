@@ -88,3 +88,13 @@ docs-local/
 
 # Playwright MCP logs
 .playwright-mcp/
+
+# Firebase cache
+.firebase/
+
+# Supabase CLI cache
+supabase/.temp/
+
+# Temporary files
+config.json
+temp_package.json

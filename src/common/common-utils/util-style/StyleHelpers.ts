@@ -1,220 +1,100 @@
-import { ViewStyle } from "react-native";
-import { layout } from "../../common-constants/LayoutConstants";
+/**
+ * @file StyleHelpers.ts
+ * @description UI関連のスタイルユーティリティ関数。
+ *              影の生成、色調整といった汎用的なスタイル操作を提供する。
+ *
+ * 【このファイルの位置づけ】
+ * - ShadowConstants.ts からシャドウ定数を取得して、elevated UI を作成する
+ * - 各コンポーネントのスタイル定義で使用される
+ * - 関連ファイル: ShadowConstants.ts（影の定義）
+ */
 import { shadows } from "../../common-constants/ShadowConstants";
-import { colors } from "../../common-constants/ColorConstants";
 
 /**
- * スタイルユーティリティ関数
+ * getPlatformShadow - プラットフォーム固有のシャドウスタイルを生成する
  *
- * 動的にスタイルを生成するためのヘルパー関数群。
- * React NativeのViewStyleを生成・拡張するためのユーティリティです。
- */
-
-/**
- * 角丸を適用する関数
+ * elevation（高さ）の値に応じて、適切な強さの影を返す。
+ * Material Design のエレベーション概念に基づく。
  *
- * @param baseStyle - ベースとなるスタイル
- * @param radius - 角丸のサイズ（layout.borderRadiusのキー）
- * @returns 角丸が適用されたスタイル
- */
-export const withBorderRadius = (
-  baseStyle: ViewStyle,
-  radius: keyof typeof layout.borderRadius = "medium"
-): ViewStyle => ({
-  ...baseStyle,
-  borderRadius: layout.borderRadius[radius],
-});
-
-/**
- * シャドウを適用する関数
+ * 【elevation の目安】
+ * - 1-2:  カードやリスト項目（軽い浮き上がり）
+ * - 3-6:  ダイアログやFAB（中程度の浮き上がり）
+ * - 7-10: モーダルやドロワー（強い浮き上がり）
+ * - 11+:  最も高いエレベーション
  *
- * @param baseStyle - ベースとなるスタイル
- * @param shadowType - シャドウのタイプ（shadowsのキー）
- * @returns シャドウが適用されたスタイル
+ * @param elevation - 影の強さ（数値。大きいほど強い影）
+ * @returns プラットフォームに適したシャドウスタイルオブジェクト
  */
-export const withShadow = (
-  baseStyle: ViewStyle,
-  shadowType: keyof typeof shadows = "medium"
-): ViewStyle => ({
-  ...baseStyle,
-  ...shadows[shadowType],
-});
-
-/**
- * パディングを適用する関数
- *
- * @param baseStyle - ベースとなるスタイル
- * @param paddingSize - パディングのサイズ（layout.paddingのキー）
- * @returns パディングが適用されたスタイル
- */
-export const withPadding = (
-  baseStyle: ViewStyle,
-  paddingSize: keyof typeof layout.padding = "medium"
-): ViewStyle => ({
-  ...baseStyle,
-  padding: layout.padding[paddingSize],
-});
-
-/**
- * カードスタイルを生成する関数
- *
- * @param borderRadius - 角丸のサイズ（layout.borderRadiusのキー）
- * @param shadowType - シャドウのタイプ（shadowsのキー）
- * @param backgroundColor - 背景色（デフォルト: colors.background）
- * @returns カード用のスタイル
- */
-export const createCardStyle = (
-  borderRadius: keyof typeof layout.borderRadius = "medium",
-  shadowType: keyof typeof shadows = "card",
-  backgroundColor: string = colors.background
-): ViewStyle => ({
-  borderRadius: layout.borderRadius[borderRadius],
-  backgroundColor,
-  ...shadows[shadowType],
-  padding: layout.padding.medium,
-});
-
-/**
- * ボタンスタイルを生成する関数
- *
- * @param variant - ボタンのバリアント（primary, secondary, outline）
- * @param size - ボタンのサイズ（small, medium, large）
- * @returns ボタン用のスタイル
- */
-export const createButtonStyle = (
-  variant: "primary" | "secondary" | "outline" = "primary",
-  size: "small" | "medium" | "large" = "medium"
-): ViewStyle => {
-  const sizeMap = {
-    small: {
-      paddingVertical: layout.padding.small,
-      paddingHorizontal: layout.padding.medium,
-    },
-    medium: {
-      paddingVertical: layout.padding.medium,
-      paddingHorizontal: layout.padding.large,
-    },
-    large: {
-      paddingVertical: layout.padding.large,
-      paddingHorizontal: layout.padding.xlarge,
-    },
-  };
-
-  const variantMap = {
-    primary: {
-      backgroundColor: colors.primary,
-      ...shadows.button,
-    },
-    secondary: {
-      backgroundColor: colors.secondary,
-      ...shadows.button,
-    },
-    outline: {
-      backgroundColor: "transparent",
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-  };
-
-  return {
-    borderRadius: layout.components.button,
-    alignItems: "center",
-    justifyContent: "center",
-    ...sizeMap[size],
-    ...variantMap[variant],
-  };
+export const getPlatformShadow = (elevation: number = 2) => {
+  if (elevation <= 2) return shadows.small;
+  if (elevation <= 6) return shadows.medium;
+  if (elevation <= 10) return shadows.large;
+  return shadows.xlarge;
 };
 
 /**
- * ヘッダー用スタイルを生成する関数
+ * adjustColor - HEX色コードの明度を調整する
  *
- * @param backgroundColor - 背景色（デフォルト: colors.primary）
- * @param withTopRadius - 上部の角丸を適用するかどうか
- * @returns ヘッダー用のスタイル
+ * 【処理の詳細ステップ】
+ * 1. "#" プレフィックスがあれば除去
+ * 2. 16進数文字列を整数に変換
+ * 3. ビットシフトでR, G, B各チャネルを分離
+ * 4. amount × 255 を加算して明度を調整
+ * 5. 0-255の範囲にクランプ（制限）
+ * 6. R, G, Bを結合して16進数文字列に戻す
+ *
+ * 【ビットシフト演算の解説】
+ * HEX色 "#FF8040" は内部的に 16744512 という整数。
+ * - `num >> 16` → 上位8ビット（R）を取得。FF8040 >> 16 = FF = 255
+ * - `(num >> 8) & 0x00FF` → 中間8ビット（G）を取得。FF8040 >> 8 = FF80 & 00FF = 80 = 128
+ * - `num & 0x0000FF` → 下位8ビット（B）を取得。FF8040 & 0000FF = 40 = 64
+ *
+ * 【& (AND演算) の意味】
+ * ビット単位のAND。特定のビットだけを残す（マスク処理）。
+ * 0x00FF は下位8ビットだけを残すマスク。
+ *
+ * 【<< (左シフト) の意味】
+ * ビットを左に移動する。
+ * - `r << 16` → Rの値を上位8ビットの位置に移動
+ * - `g << 8` → Gの値を中間8ビットの位置に移動
+ * - `| (OR)` → 3つの値を結合して1つの整数にする
+ *
+ * @param color - HEX形式の色コード（"#FF0000" または "FF0000"）
+ * @param amount - 調整量（-1.0～1.0）。正で明るく、負で暗く
+ * @returns 調整後のHEX色コード
+ * @throws TypeError 無効な色コードの場合
  */
-export const createHeaderStyle = (
-  backgroundColor: string = colors.primary,
-  withTopRadius: boolean = false
-): ViewStyle => ({
-  backgroundColor,
-  borderTopLeftRadius: withTopRadius
-    ? layout.headerFooter.borderRadius.header
-    : 0,
-  borderTopRightRadius: withTopRadius
-    ? layout.headerFooter.borderRadius.header
-    : 0,
-  borderBottomLeftRadius: layout.headerFooter.borderRadius.header,
-  borderBottomRightRadius: layout.headerFooter.borderRadius.header,
-  ...shadows.header,
-  padding: layout.padding.large,
-});
+export const adjustColor = (color: string, amount: number): string => {
+  let usePound = false;
 
-/**
- * フッター用スタイルを生成する関数
- *
- * @param backgroundColor - 背景色（デフォルト: colors.background）
- * @param withBottomRadius - 下部の角丸を適用するかどうか
- * @returns フッター用のスタイル
- */
-export const createFooterStyle = (
-  backgroundColor: string = colors.background,
-  withBottomRadius: boolean = false
-): ViewStyle => ({
-  backgroundColor,
-  borderTopLeftRadius: layout.headerFooter.borderRadius.footer,
-  borderTopRightRadius: layout.headerFooter.borderRadius.footer,
-  borderBottomLeftRadius: withBottomRadius
-    ? layout.headerFooter.borderRadius.footer
-    : 0,
-  borderBottomRightRadius: withBottomRadius
-    ? layout.headerFooter.borderRadius.footer
-    : 0,
-  ...shadows.footer,
-  padding: layout.padding.medium,
-});
-
-/**
- * インプット用スタイルを生成する関数
- *
- * ⚠️ 注意: ボーダーカラーの優先順位は「エラー > フォーカス > デフォルト」です。
- * エラー状態とフォーカス状態が同時に存在する場合、エラー状態が優先されます。
- *
- * @param focused - フォーカス状態かどうか
- * @param error - エラー状態かどうか
- * @returns インプット用のスタイル
- */
-export const createInputStyle = (
-  focused: boolean = false,
-  error: boolean = false
-): ViewStyle => {
-  // ボーダーカラーを決定（エラー > フォーカス > デフォルトの優先順位）
-  let borderColor = colors.border;
-  if (error) {
-    borderColor = colors.error;
-  } else if (focused) {
-    borderColor = colors.primary;
+  // "#" プレフィックスの処理
+  if (color.startsWith("#")) {
+    color = color.slice(1); // "#" を除去
+    usePound = true;
   }
 
-  return {
-    borderRadius: layout.components.input,
-    borderWidth: focused ? 2 : 1,
-    borderColor,
-    backgroundColor: colors.background,
-    paddingVertical: layout.padding.medium,
-    paddingHorizontal: layout.padding.medium,
-    ...shadows.small,
-  };
-};
+  // 16進数文字列を整数に変換
+  // Number.parseInt(color, 16) → "FF8040" → 16744512
+  const num = Number.parseInt(color, 16);
+  if (Number.isNaN(num)) {
+    throw new TypeError("Invalid color format. Expected HEX color code.");
+  }
 
-/**
- * モーダル用スタイルを生成する関数
- *
- * @param fullScreen - フルスクリーンモーダルかどうか
- * @returns モーダル用のスタイル
- */
-export const createModalStyle = (fullScreen: boolean = false): ViewStyle => ({
-  borderRadius: fullScreen ? 0 : layout.components.modal,
-  backgroundColor: colors.background,
-  ...shadows.modal,
-  margin: fullScreen ? 0 : layout.padding.large,
-});
+  // R, G, B 各チャネルを分離して明度を調整
+  let r = (num >> 16) + amount * 255;         // 赤チャネル
+  let g = ((num >> 8) & 0x00ff) + amount * 255; // 緑チャネル
+  let b = (num & 0x0000ff) + amount * 255;    // 青チャネル
+
+  // 0-255の範囲にクランプ（値を範囲内に収める）
+  // Math.min(255, Math.max(0, x)) → x が0未満なら0、255超なら255
+  r = Math.min(255, Math.max(0, Math.round(r)));
+  g = Math.min(255, Math.max(0, Math.round(g)));
+  b = Math.min(255, Math.max(0, Math.round(b)));
+
+  // R, G, B をビットシフトで結合して16進数文字列に変換
+  // padStart(6, "0") → "FF40" → "00FF40"（6桁になるよう先頭に0を追加）
+  const newColor = ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+
+  // 元の色に "#" があった場合は "#" を付けて返す
+  return (usePound ? "#" : "") + newColor;
+};

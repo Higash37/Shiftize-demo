@@ -1,3 +1,23 @@
+/**
+ * @file master/users/index.tsx
+ * @description マスター用ユーザー管理画面。ユーザーの追加・編集・削除を行う。
+ *
+ * 【このファイルの構成】
+ * - UserList: ユーザー一覧表示（左側 or メインコンテンツ）
+ * - UserForm: ユーザー追加/編集フォーム（Modal で表示）
+ *
+ * 【Modal の使い方】
+ * React Native の Modal コンポーネントでオーバーレイ表示を実現する。
+ * - visible: true で表示
+ * - transparent: true で背景を透過（半透明のオーバーレイ）
+ * - animationType: 表示/非表示のアニメーション方式
+ * - onRequestClose: Android の「戻る」ボタン押下時のハンドラー
+ *
+ * 【TouchableOpacity のイベント伝播制御】
+ * モーダルの背景タップで閉じる（handleCancel）が、
+ * フォーム内のタップは閉じない（e.stopPropagation()）ようにしている。
+ */
+
 import React, { useState } from "react";
 import {
   View,
@@ -6,8 +26,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import type { UserRole } from "@/common/common-models/model-user/UserModel";
+// useUser: ユーザーCRUD操作を提供するフック
 import { useUser } from "@/modules/reusable-widgets/user-management/user-hooks/useUser";
+// UserForm: ユーザー追加/編集フォーム
 import { UserForm } from "@/modules/reusable-widgets/user-management/user-props/UserForm";
+// UserList: ユーザー一覧表示
 import { UserList } from "@/modules/reusable-widgets/user-management/user-props/UserList";
 
 import { User } from "@/common/common-models/model-user/UserModel";
@@ -18,7 +41,7 @@ import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { ServiceProvider } from "@/services/ServiceProvider";
 import { useAuth } from "@/services/auth/useAuth";
 
-
+/** ユーザーフォームの入力データ型 */
 interface UserFormData {
   email: string;
   password?: string;
@@ -30,25 +53,31 @@ interface UserFormData {
   hourlyWage?: number;
 }
 
+/** User型にパスワード情報を追加した拡張型 */
 interface UserWithPassword extends User {
   currentPassword?: string;
 }
 
+/**
+ * UsersScreen: ユーザー管理画面。
+ */
 export default function UsersScreen() {
+  // 現在のログインユーザー（店舗ID取得用）
   const { user: currentUser } = useAuth();
+  // useUser: ユーザーCRUD操作（addUser, editUser, removeUser）を提供
   const { users, loading, error, addUser, editUser, removeUser } = useUser(
     currentUser?.storeId
   );
-  const [isAddingUser, setIsAddingUser] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(
-    null
-  );
-  const [userPasswords, setUserPasswords] = useState<Record<string, string>>(
-    {}
-  );
-  
-  const handleAddUser = async (data: UserFormData) => {
+  // UI状態管理
+  const [isAddingUser, setIsAddingUser] = useState(false);           // 追加モード
+  const [selectedUser, setSelectedUser] = useState<UserWithPassword | null>(null);  // 編集中のユーザー
+  // パスワード情報のローカルキャッシュ（DBには保存されない一時的な情報）
+  const [userPasswords, setUserPasswords] = useState<Record<string, string>>({});
 
+  /**
+   * handleAddUser: 新しいユーザーを追加するハンドラー。
+   */
+  const handleAddUser = async (data: UserFormData) => {
     if (!data.password) {
       console.error('❌ [UsersScreen.handleAddUser] No password provided');
       return;
@@ -67,25 +96,29 @@ export default function UsersScreen() {
       );
 
       if (newUser) {
-        // パスワード情報をローカルに保存（必要に応じて）
+        // パスワード情報をローカルに保存
         setUserPasswords((prev) => ({
           ...prev,
           [newUser.uid]: data.password!,
         }));
-        
-        // 成功時：フォームを閉じて一覧表示に戻る
+        // 成功時: フォームを閉じる
         setIsAddingUser(false);
       }
     } catch (err) {
       console.error('❌ [UsersScreen.handleAddUser] Error occurred:', err);
-      // エラーの場合はフォームを開いたままにして、ユーザーが再試行できるようにする
+      // エラー時: フォームを開いたまま（ユーザーが再試行できるように）
     }
   };
+
+  /**
+   * handleEditUser: 既存ユーザーを編集するハンドラー。
+   */
   const handleEditUser = async (data: UserFormData) => {
     if (!selectedUser) return;
 
     try {
-      
+      // 更新データの構築: 変更されたフィールドだけ含める
+      // スプレッド構文 ...() で条件付きプロパティ追加
       const updateData = {
         nickname: data.nickname,
         ...(data.furigana !== undefined ? { furigana: data.furigana } : {}),
@@ -94,68 +127,74 @@ export default function UsersScreen() {
         ...(data.color ? { color: data.color } : {}),
         ...(data.storeId ? { storeId: data.storeId } : {}),
       };
-      
-      
+
       const updatedUser = await editUser(selectedUser, updateData);
 
       if (updatedUser) {
-        // パスワードが更新された場合、新しいパスワードを保存
+        // パスワードが更新された場合、ローカルキャッシュを更新
         if (data.password) {
           const newPasswords = { ...userPasswords };
           delete newPasswords[selectedUser.uid];
           newPasswords[updatedUser.uid] = data.password;
           setUserPasswords(newPasswords);
         }
-
-        // 成功時：フォームを閉じて一覧表示に戻る
+        // 成功時: フォームを閉じる
         setSelectedUser(null);
       }
     } catch (err) {
-      // エラーの場合はフォームを開いたままにして、ユーザーが再試行できるようにする
+      // エラー時: フォームを開いたまま
     }
   };
+
+  /**
+   * handleDeleteUser: ユーザーを削除するハンドラー（論理削除）。
+   */
   const handleDeleteUser = async (userId: string) => {
     try {
-      // ServiceProvider経由で削除フラグを設定
+      // ServiceProvider 経由で削除フラグを設定
       await ServiceProvider.users.deleteUser(userId);
-
-      // ユーザー一覧を更新してUIから削除
+      // UIからも削除
       removeUser(userId);
-
       // パスワード情報も削除
       const newPasswords = { ...userPasswords };
       delete newPasswords[userId];
       setUserPasswords(newPasswords);
     } catch (err) {
-      // Error deleting user
+      // エラー処理
     }
   };
 
+  /** ユーザーを選択して編集モードに入る */
   const handleSelectUser = (user: User) => {
     const currentPassword = userPasswords[user.uid];
     setSelectedUser({
       ...user,
+      // パスワードキャッシュがあれば付与
       ...(currentPassword ? { currentPassword } : {}),
     });
     setIsAddingUser(false);
   };
 
+  /** 追加モードを開始 */
   const handleStartAddUser = () => {
     setIsAddingUser(true);
     setSelectedUser(null);
   };
 
+  /** フォームを閉じる */
   const handleCancel = () => {
     setIsAddingUser(false);
     setSelectedUser(null);
   };
 
+  // フォームを表示するかどうか
   const showForm = selectedUser !== null || isAddingUser;
 
   return (
     <View style={styles.root}>
       <MasterHeader title="ユーザー管理" />
       <View style={styles.container}>
+        {/* ユーザー一覧 */}
         <UserList
           userList={users}
           loading={loading}
@@ -166,23 +205,26 @@ export default function UsersScreen() {
         />
       </View>
 
-      {/* ユーザー追加/編集モーダル（中央オーバーレイ） */}
+      {/* ── ユーザー追加/編集モーダル（中央オーバーレイ） ── */}
       <Modal
         visible={showForm}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCancel}
+        transparent={true}             // 背景を透過にする
+        animationType="fade"           // フェードイン/アウトアニメーション
+        onRequestClose={handleCancel}  // Androidの「戻る」ボタン
       >
+        {/* 背景のオーバーレイ: タップで閉じる */}
         <TouchableOpacity
-          activeOpacity={1}
+          activeOpacity={1}           // タップ時の透明度変化を無効化
           style={styles.modalOverlay}
           onPress={handleCancel}
         >
+          {/* フォームのコンテナ: タップしても閉じない */}
           <TouchableOpacity
             activeOpacity={1}
             style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
+            onPress={(e) => e.stopPropagation()}  // イベント伝播を停止
           >
+            {/* UserForm: mode="add" で追加、mode="edit" で編集 */}
             <UserForm
               onSubmit={selectedUser ? handleEditUser : handleAddUser}
               onCancel={handleCancel}
@@ -211,7 +253,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",  // 半透明の黒背景
     justifyContent: "center",
     alignItems: "center",
   },
@@ -219,9 +261,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 12,
     width: "90%",
-    maxWidth: 500,
-    maxHeight: "85%",
-    overflow: "hidden",
-    ...shadows.large,
+    maxWidth: 500,          // 最大幅を制限（大画面でも広がりすぎない）
+    maxHeight: "85%",       // 最大高さを制限
+    overflow: "hidden",     // 角丸の外側をクリップ
+    ...shadows.large,       // 大きなシャドウを適用
   },
 });

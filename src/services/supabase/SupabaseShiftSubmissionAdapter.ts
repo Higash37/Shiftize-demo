@@ -1,3 +1,5 @@
+/** @file SupabaseShiftSubmissionAdapter.ts @description シフト希望提出の管理（募集期間・提出・購読）のSupabase実装 */
+
 import type {
   IShiftSubmissionService,
   ShiftSubmissionPeriod,
@@ -39,7 +41,9 @@ function mapRowToSubmission(row: any): ShiftSubmission {
   };
 }
 
+/** シフト希望提出サービスのSupabase実装 */
 export class SupabaseShiftSubmissionAdapter implements IShiftSubmissionService {
+  /** 有効な募集期間一覧を取得する */
   async getActivePeriods(storeId: string): Promise<ShiftSubmissionPeriod[]> {
     const supabase = getSupabase();
     const { data } = await supabase
@@ -52,6 +56,7 @@ export class SupabaseShiftSubmissionAdapter implements IShiftSubmissionService {
     return (data || []).map(mapRowToPeriod);
   }
 
+  /** 全募集期間を取得する */
   async getAllPeriods(storeId: string): Promise<ShiftSubmissionPeriod[]> {
     const supabase = getSupabase();
     const { data } = await supabase
@@ -63,6 +68,7 @@ export class SupabaseShiftSubmissionAdapter implements IShiftSubmissionService {
     return (data || []).map(mapRowToPeriod);
   }
 
+  /** 募集期間をIDで取得する */
   async getPeriod(periodId: string): Promise<ShiftSubmissionPeriod | null> {
     const supabase = getSupabase();
     const { data } = await supabase
@@ -74,6 +80,7 @@ export class SupabaseShiftSubmissionAdapter implements IShiftSubmissionService {
     return data ? mapRowToPeriod(data) : null;
   }
 
+  /** ユーザーのシフト希望提出を取得する */
   async getUserSubmission(periodId: string, userId: string): Promise<ShiftSubmission | null> {
     const supabase = getSupabase();
     const { data } = await supabase

@@ -1,3 +1,16 @@
+/** @file MobileShiftModal.tsx
+ *  @description モバイル端末向けのシフト追加/編集モーダル。
+ *    ボトムシート風のUIで、ユーザー選択・時間選択・ステータス選択を
+ *    それぞれ別のサブモーダルとして表示する。
+ *    React.memo でラップしてパフォーマンスを最適化。
+ */
+
+// 【このファイルの位置づけ】
+// - importされる先: GanttChartMonthView（モバイルビュー時のシフト操作）
+// - 役割: モバイルに最適化されたシフトフォーム。
+//   PC版の EditShiftModalView/AddShiftModalView とは別のUIだが、同じデータを扱う。
+//   animationType="slide" でボトムシート風に表示される。
+
 import React, { useState } from "react";
 import {
   Modal,

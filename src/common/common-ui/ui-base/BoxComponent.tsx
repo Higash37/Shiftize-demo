@@ -1,3 +1,43 @@
+/**
+ * @file BoxComponent.tsx
+ * @description 汎用コンテナコンポーネント。variant/padding/shadow等でスタイルを制御する
+ *
+ * ============================================================
+ * 【なぜ "Component" という名前が付くのか — React コンポーネントの概念】
+ * ============================================================
+ *
+ * ■ Component = UI の部品
+ *   React のコンポーネントは「レゴブロック」のようなもの。
+ *   小さな部品（ボタン、テキスト入力、カード）を組み合わせて、
+ *   大きな画面（ダッシュボード、シフト管理画面）を構築する。
+ *   各コンポーネントは独立しており、他の場所でも再利用できる。
+ *
+ * ■ React の基本思想: UI = f(state)
+ *   React では UI は「状態（state）の関数」と考える。
+ *   状態（variant, padding, shadow 等）が変わると、React が自動的に
+ *   UI を再描画する。開発者は「この状態の時にどう見えるべきか」を宣言するだけで、
+ *   DOM の差分更新は React が効率的に処理する。
+ *
+ * ■ なぜ Box という汎用コンポーネントを作るのか
+ *   HTML の <div> に相当するが、以下の理由で独自の Box を作る:
+ *
+ *   1. テーマ対応: アプリのテーマ（ダークモード等）に自動で対応する。
+ *      素の <div> はテーマを知らないが、Box は useMD3Theme() 経由で
+ *      現在のテーマカラーや影のスタイルを取得し、自動適用する。
+ *
+ *   2. 一貫したスタイル: variant="card", padding="medium" のように
+ *      プロパティで指定するだけで、アプリ全体で統一されたスタイルが適用される。
+ *      各開発者が独自のスタイルを書く必要がなくなる。
+ *
+ *   3. React Native 対応: React Native には HTML の <div> が存在しない。
+ *      代わりに <View> を使うが、Box がその差異を吸収している。
+ *      将来 Web 版と Native 版を切り替える場合も、Box の内部だけ変更すればよい。
+ *
+ *   4. 「BoxComponent」と「Component」を名前に含める理由:
+ *      同じフォルダに BoxTypes.ts, BoxStyles.ts があるため、
+ *      ファイル名で「これはコンポーネント本体である」ことを明示している。
+ * ============================================================
+ */
 import React from "react";
 import { View } from "react-native";
 import { BoxProps, BoxStyleName } from "./BoxTypes";
@@ -97,9 +137,11 @@ const Box: React.FC<BoxProps> = ({
   gap,
   ...props
 }) => {
+  // --- Hooks ---
   const styles = useThemedStyles(createBoxStyles);
   const { elevation } = useMD3Theme();
 
+  // --- Render ---
   const shadowStyle =
     shadow !== "none"
       ? elevation[shadowMap[shadow as keyof typeof shadowMap] ?? "level0"]

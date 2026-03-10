@@ -1,3 +1,15 @@
+/**
+ * @file CreateGroupSuccessScreen.tsx
+ * @description グループ（教室）作成完了画面。教室IDやパスワードを表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   create-group-module 配下の画面コンポーネント。
+ *   CreateGroupScreen で教室作成が成功した後に遷移する。
+ *
+ * 主な内部ロジック:
+ *   - 作成された教室IDをクリップボードにコピー
+ *   - 「ホームへ」ボタンでメイン画面に遷移
+ */
 import React, { useState } from "react";
 import {
   View,

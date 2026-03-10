@@ -1,3 +1,16 @@
+/**
+ * @file HomeGanttTabletScreen.tsx
+ * @description タブレット版ホーム画面。左に時計+ウィジェット、右にガントチャートの2カラム構成。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-screens 配下の画面コンポーネント。
+ *   HomeCommonScreen がタブレット幅の時に描画する。
+ *
+ * 主な内部ロジック:
+ *   - 左カラム: ClockWidget + NextShiftWidget + TodayStaffWidget
+ *   - 右カラム: ガントチャート（GanttHeaderRowTablet + GanttRowTablet）
+ *   - DateNavigator で日付ナビゲーション
+ */
 import React, { useState } from "react";
 import {
   View,

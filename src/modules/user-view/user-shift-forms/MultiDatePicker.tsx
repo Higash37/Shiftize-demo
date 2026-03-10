@@ -1,3 +1,21 @@
+/**
+ * @file MultiDatePicker.tsx
+ * @description 複数日付選択カレンダー。react-native-calendars を使い、
+ *   タップした日付を選択/解除できる。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   MasterShiftCreate のシフト日付選択で使われる。
+ *
+ * 主な内部ロジック:
+ *   - toggleDate(): タップした日付を selectedDates に追加/削除
+ *   - markedDates: 選択中の日付にマーカーを付けて Calendar に渡す
+ *
+ * 主要Props:
+ *   - selectedDates: 選択済み日付の配列 ("YYYY-MM-DD")
+ *   - onDatesChange: 日付変更コールバック
+ *   - setSelectedDates?: 外部の state setter
+ */
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { Calendar } from "react-native-calendars";

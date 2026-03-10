@@ -1,15 +1,48 @@
+/**
+ * @file SupabaseAuthAdapter.ts
+ * @description 認証系サービスのSupabase実装（サインイン・ユーザー作成・OAuth連携）
+ *
+ * ============================================================
+ * 【なぜ "Adapter" パターンなのか — デザインパターンの歴史】
+ * ============================================================
+ *
+ * ■ Adapter パターンとは
+ *   「変換プラグ」のようなもの。
+ *   海外旅行で日本のコンセント（2ピン）を海外の壁コンセント（3ピン）に
+ *   つなぐための変換アダプターと同じ発想。
+ *   この場合: Supabase の API（supabase.auth.signInWithPassword など）を
+ *   IAuthService のインターフェース（signIn, signOut など）に変換する役割。
+ *
+ * ■ Gang of Four（GoF）デザインパターン
+ *   1994年に出版された書籍『Design Patterns』で定義された23個のパターンの1つ。
+ *   著者4人が「Gang of Four（4人組）」と呼ばれたことからGoFパターンと呼ぶ。
+ *   Adapter はその中の「構造パターン」に分類される。
+ *   30年以上経った今でもソフトウェア設計の基礎として広く使われている。
+ *
+ * ■ このファイルの役割
+ *   Supabase の具体的な API 呼び出し → IAuthService の抽象的なメソッドに変換。
+ *   例: supabase.auth.signInWithPassword() → IAuthService.signIn()
+ *   アプリの他の部分は Supabase の存在を知らず、IAuthService だけを見る。
+ *
+ * ■ ケースバイケース
+ *   - 外部 API との接続層 → Adapter パターンが適切（このファイルのように）
+ *   - 内部ロジック（計算、バリデーション等） → 直接実装でOK、Adapter は不要
+ *   - 複数の外部 API を統合する場合 → Facade パターンの方が適切なこともある
+ * ============================================================
+ */
+
 import type { IAuthService } from "../interfaces/IAuthService";
 import type { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
 import { AuthError, NotFoundError, PermissionError, ValidationError } from "@/common/common-errors/AppErrors";
 
+/** 認証サービスのSupabase実装（IAuthService の Supabase 版アダプター） */
 export class SupabaseAuthAdapter implements IAuthService {
   /**
-   * サインイン: Supabase Auth ネイティブ + Supabase DBからユーザー取得
-   */
-  /**
-   * 注意: このメソッドはAuthContext.signInからは使用しない。
+   * メールとパスワードでサインインする
+   *
+   * 注意: AuthContext.signInからは使用しない。
    * signInWithPassword直後のDBクエリがSupabase JS v2のnavigator.locksで
    * デッドロックするため、AuthContextでは認証とDB取得を分離している。
    */
@@ -48,17 +81,13 @@ export class SupabaseAuthAdapter implements IAuthService {
     };
   }
 
-  /**
-   * サインアウト: Supabase Auth のみ
-   */
+  /** サインアウトする */
   async signOut(): Promise<void> {
     const supabase = getSupabase();
     await supabase.auth.signOut();
   }
 
-  /**
-   * ユーザーロール取得
-   */
+  /** ユーザーのロールを取得する */
   async getUserRole(user: { uid: string }): Promise<UserRole> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -79,10 +108,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     return role;
   }
 
-  /**
-   * 新しいユーザーを作成
-   * 管理者のセッションを保存 → signUp → 管理者セッション復元
-   */
+  /** 新規ユーザーをAuth+DBに作成する（管理者セッション保存→signUp→復元） */
   async createUser(
     email: string,
     password: string,
@@ -183,9 +209,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /**
-   * 既存ユーザーを更新
-   */
+  /** 既存ユーザーの情報を更新する */
   async updateUser(
     user: User,
     updates: {
@@ -267,10 +291,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     return undefined;
   }
 
-  /**
-   * パスワード変更
-   * Supabase Authは認証済みセッションがあれば再認証不要
-   */
+  /** 現在のパスワードを検証して新しいパスワードに変更する */
   async changePassword(
     currentPassword: string,
     newPassword: string
@@ -315,9 +336,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       .eq("uid", user.id);
   }
 
-  /**
-   * 実メールアドレス用のSupabase Authアカウントを作成
-   */
+  /** 実メールアドレス用のSupabase Authアカウントを作成する */
   async createSecondaryEmailAccount(
     originalUser: {
       uid: string;
@@ -406,17 +425,12 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /**
-   * 初期マスターユーザー作成
-   * @deprecated このメソッドは使用されていません。グループ作成フローでマスターユーザーが作成されます。
-   */
+  /** @deprecated 未使用。グループ作成フローでマスターユーザーが作成される */
   async createInitialMasterUser(): Promise<void> {
     // no-op: セキュリティリスクのためハードコードされたデフォルト認証情報を削除
   }
 
-  /**
-   * OAuth連携: プロバイダーにリンク（ブラウザリダイレクト型）
-   */
+  /** OAuthプロバイダーをアカウントにリンクする */
   async linkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
     const supabase = getSupabase();
     const options: { redirectTo?: string } =
@@ -427,9 +441,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /**
-   * OAuth連携: 連携済みプロバイダー一覧を取得
-   */
+  /** 連携済みOAuthプロバイダー一覧を取得する */
   async getLinkedIdentities(): Promise<Array<{ provider: string; email?: string }>> {
     const supabase = getSupabase();
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -443,9 +455,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     });
   }
 
-  /**
-   * OAuth連携: プロバイダーのリンク解除 + real_email クリア
-   */
+  /** OAuthプロバイダーのリンクを解除してreal_emailをクリアする */
   async unlinkOAuthIdentity(provider: "google" | "apple"): Promise<void> {
     const supabase = getSupabase();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -475,11 +485,9 @@ export class SupabaseAuthAdapter implements IAuthService {
   }
 
   /**
-   * Google OAuth再認証（Calendarスコープ付き）
-   * 既にGoogle連携済みのユーザーに対して、Calendarスコープで再認証。
-   * signInWithOAuth を使用（linkIdentity はセッション破壊の問題あり）。
-   * access_type=offline で refresh_token を確実に取得。
-   * prompt=consent で再同意を強制（スコープ追加時に必要）。
+   * Calendarスコープ付きでGoogle OAuth再認証する
+   * signInWithOAuthを使用（linkIdentityはセッション破壊の問題あり）。
+   * access_type=offlineでrefresh_tokenを確実に取得。
    */
   async linkGoogleWithCalendarScope(): Promise<void> {
     const supabase = getSupabase();
@@ -506,9 +514,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     }
   }
 
-  /**
-   * 現在のSupabaseユーザーを取得（非推奨: useAuth()を使用してください）
-   */
+  /** @deprecated useAuth()を使用すること */
   getCurrentUser(): {
     uid: string;
     email: string | null;
@@ -519,9 +525,7 @@ export class SupabaseAuthAdapter implements IAuthService {
     return null;
   }
 
-  /**
-   * 認証状態の変更を監視
-   */
+  /** 認証状態の変更を監視する */
   onAuthStateChanged(
     callback: (
       user: {

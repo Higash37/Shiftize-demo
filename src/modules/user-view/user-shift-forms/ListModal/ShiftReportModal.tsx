@@ -1,3 +1,19 @@
+/** @file ShiftReportModal.tsx
+ *  @description シフト報告モーダルコンポーネント。
+ *    承認済みシフトの実績時間（開始・終了）を修正してコメントと共に報告する。
+ *    TimePicker サブコンポーネントで時間を±1分単位で調整、
+ *    またはリスト選択で時間を設定できる。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / ServiceProvider（shifts サービス）/
+ *          useAuth / useMD3Theme / generateTimeOptions ユーティリティ
+ *  - 利用先: ShiftListView（UserShiftList）内の「シフト報告」操作から表示される
+ *
+ *  【ファイル構成】
+ *  - parseTime / formatTime: 時間文字列のパース・フォーマットユーティリティ
+ *  - TimePicker: ±ボタン+リスト選択の時間入力コンポーネント
+ *  - ShiftReportModal: メインの報告モーダルコンポーネント
+ */
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -18,7 +34,9 @@ import { generateTimeOptions } from "../../user-shift-utils/ui-utils";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 /**
- * 時間文字列("HH:MM")を時・分に分解
+ * 時間文字列("HH:MM")を時・分に分解する。
+ * @param time "HH:MM" 形式の文字列
+ * @returns { h: 時, m: 分 }
  */
 const parseTime = (time: string): { h: number; m: number } => {
   const [h, m] = (time || "00:00").split(":").map(Number);
@@ -26,15 +44,23 @@ const parseTime = (time: string): { h: number; m: number } => {
 };
 
 /**
- * 時・分を"HH:MM"形式にフォーマット
+ * 時・分を"HH:MM"形式にフォーマットする。
+ * String.padStart(2, "0") で1桁の場合にゼロ埋めする。
  */
 const formatTime = (h: number, m: number): string =>
   `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 
+/** 30分刻みの時間選択肢リスト（"00:00"〜"23:30"等） */
 const timeOptions = generateTimeOptions();
 
 /**
- * 分単位の増減ボタン付き時間ピッカー（時間タップでリスト選択も可能）
+ * 分単位の増減ボタン付き時間ピッカーコンポーネント。
+ * 時間表示をタップするとリスト選択モーダルが開く。
+ *
+ * @param label  ラベル文字列（「開始」「終了」等）
+ * @param value  現在の時間文字列（"HH:MM"形式）
+ * @param onChange 時間変更時のコールバック
+ * @param colors  テーマカラースキーム
  */
 const TimePicker = ({
   label,
@@ -47,9 +73,15 @@ const TimePicker = ({
   onChange: (v: string) => void;
   colors: any;
 }) => {
+  /** リスト選択モーダルの表示フラグ */
   const [showList, setShowList] = useState(false);
+  /** 現在の時間を時・分に分解 */
   const { h, m } = parseTime(value);
 
+  /**
+   * 指定した分数だけ時間を調整する。
+   * 0未満や24時間以上にならないようクランプする。
+   */
   const adjust = (deltaMinutes: number) => {
     let total = h * 60 + m + deltaMinutes;
     if (total < 0) total = 0;
@@ -169,6 +201,17 @@ const pickerStyles = StyleSheet.create({
   },
 });
 
+/**
+ * シフト報告モーダル本体。
+ * 実績時間（開始・終了）の調整とコメント入力ができる。
+ *
+ * @param reportModalVisible モーダル表示フラグ
+ * @param setReportModalVisible 表示切替セッター
+ * @param comments コメント文字列（親で管理）
+ * @param setComments コメント変更セッター
+ * @param modalShift 報告対象のシフトデータ（null なら何もしない）
+ * @param fetchShifts 報告完了後にシフト一覧を再取得するコールバック
+ */
 const ShiftReportModal = ({
   reportModalVisible,
   setReportModalVisible,
@@ -187,11 +230,15 @@ const ShiftReportModal = ({
   const { user } = useAuth();
   const { colorScheme } = useMD3Theme();
 
+  // --- State ---
+  /** 実績の開始時間 */
   const [startTime, setStartTime] = useState(modalShift?.startTime || "");
+  /** 実績の終了時間 */
   const [endTime, setEndTime] = useState(modalShift?.endTime || "");
+  /** 送信中フラグ */
   const [loading, setLoading] = useState(false);
 
-  // モーダルが開かれるたびにシフトの時間をセット
+  // モーダルが開かれるたびにシフトの予定時間で初期化する
   useEffect(() => {
     if (reportModalVisible && modalShift) {
       setStartTime(modalShift.startTime);
@@ -199,6 +246,12 @@ const ShiftReportModal = ({
     }
   }, [reportModalVisible, modalShift]);
 
+  // --- Handlers ---
+  /**
+   * 報告を送信する。
+   * 開始時間 >= 終了時間の場合はバリデーションエラーを表示する。
+   * 成功時はシフトのステータスを "completed" に更新する。
+   */
   const handleReportSubmit = async () => {
     if (!modalShift) return;
 
@@ -228,6 +281,7 @@ const ShiftReportModal = ({
     }
   };
 
+  // --- Render ---
   return (
     <Modal
       visible={reportModalVisible}

@@ -1,3 +1,16 @@
+/** @file ShiftPrintModal.tsx
+ *  @description シフト表の印刷・PDF出力モーダル。
+ *    ユーザー選択、印刷形式（リスト/カレンダー/統一カレンダー/全形式）の選択、
+ *    プレビュー表示、ブラウザ印刷・PDF保存機能を提供する。
+ *    Web版（Platform.OS === "web"）専用。html2canvas + jsPDF でPDF生成。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: jsPDF（PDF生成）, html2canvas（HTMLをCanvas画像に変換）, escapeHtml（XSS対策）
+// - importされる先: PrintButton
+// - 役割: シフト表を印刷用HTMLとして組み立て、ブラウザの window.print() または
+//   jsPDF で PDF ファイルを生成する。
+
 import React, { useState } from "react";
 import {
   Modal,

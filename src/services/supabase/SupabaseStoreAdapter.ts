@@ -1,3 +1,5 @@
+/** @file SupabaseStoreAdapter.ts @description 店舗（グループ）の作成・取得・存在確認のSupabase実装 */
+
 import type {
   IStoreService,
   CreateGroupData,
@@ -13,7 +15,9 @@ const buildGeneratedEmail = (storeId: string, nickname: string): string => {
   return toAsciiEmail(`${storeId}${nickname}@example.com`);
 };
 
+/** 店舗サービスのSupabase実装 */
 export class SupabaseStoreAdapter implements IStoreService {
+  /** 店舗IDで店舗情報を取得する */
   async getStore(storeId: string): Promise<{ storeId: string; storeName: string; adminUid?: string; adminNickname?: string; [key: string]: any } | null> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -32,6 +36,7 @@ export class SupabaseStoreAdapter implements IStoreService {
     };
   }
 
+  /** 店舗IDが既に存在するか確認する */
   async checkStoreIdExists(storeId: string): Promise<boolean> {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -48,6 +53,7 @@ export class SupabaseStoreAdapter implements IStoreService {
     return data !== null;
   }
 
+  /** 重複しない4桁の店舗IDを生成する */
   async generateUniqueStoreId(): Promise<string> {
     let attempts = 0;
     const maxAttempts = 10;
@@ -65,8 +71,10 @@ export class SupabaseStoreAdapter implements IStoreService {
     throw new Error("ユニークな店舗IDの生成に失敗しました");
   }
 
-  // TODO: createGroupはAuth作成→DB挿入の複数ステップで孤児ユーザーリスクがある。
-  // 将来的にSupabase Edge Functionに移行し、service_roleでトランザクション的に処理すべき。
+  /**
+   * グループ（店舗+管理者+初期メンバー）を一括作成する
+   * TODO: Auth作成→DB挿入の孤児リスクあり。将来的にEdge Functionに移行すべき。
+   */
   async createGroup(data: CreateGroupData): Promise<GroupCreationResult> {
     let createdAdminUid: string | null = null;
     try {
@@ -250,6 +258,7 @@ export class SupabaseStoreAdapter implements IStoreService {
     }
   }
 
+  /** グループが存在するか確認する */
   async checkGroupExists(
     storeId: string
   ): Promise<{ exists: boolean; groupName?: string }> {

@@ -1,3 +1,4 @@
+/** @file FormColorPicker.tsx @description プリセットカラーから選択するモーダル型カラーピッカー */
 import React, { useState } from "react";
 import {
   View,
@@ -14,20 +15,21 @@ import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 
-/**
- * カラーピッカーコンポーネント
- * プリセットされた色から選択するためのモーダルUIを提供します
- */
+/** グリッドパレットから色を選択するモーダル。Props: visible, onClose, onSelectColor, initialColor */
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   visible,
   onClose,
   onSelectColor,
   initialColor = PRESET_COLORS[0] ?? "#000000",
 }) => {
+  // --- State ---
   const [selectedColor, setSelectedColor] = useState(initialColor);
+
+  // --- Hooks ---
   const styles = useThemedStyles(createColorPickerStyles);
   const { colorScheme } = useMD3Theme();
 
+  // --- Handlers ---
   const handleSelectColor = (color: string) => {
     setSelectedColor(color);
     onSelectColor(color);
@@ -38,6 +40,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     onClose();
   };
 
+  // --- Render ---
   return (
     <Modal
       visible={visible}

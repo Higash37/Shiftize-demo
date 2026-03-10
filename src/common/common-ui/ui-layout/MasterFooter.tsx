@@ -1,3 +1,4 @@
+/** @file MasterFooter.tsx @description 管理者用フッターナビゲーション。ホーム/業務/当日/追加/今月/来月/ユーザー/設定のタブを提供 */
 import React, { useState, useEffect, useMemo } from "react";
 import { View, TouchableOpacity, Text, Dimensions, Alert } from "react-native";
 import { useRouter, usePathname } from "expo-router";
@@ -140,25 +141,22 @@ function isStandalonePWA() {
   return false;
 }
 
-/**
- * MasterFooter - 管理者用フッターナビゲーションコンポーネント
- *
- * 管理者画面の下部に表示され、主要な画面間のナビゲーションを提供します。
- */
+/** 管理者用フッターナビゲーション。募集期間のツールチップ表示にも対応 */
 export function MasterFooter(_props: Readonly<MasterFooterProps>) {
+  // --- Hooks ---
   const router = useRouter();
   const styles = useThemedStyles(createFooterStyles);
   const { colorScheme } = useMD3Theme();
   const masterTabs = useMemo(() => createMasterTabs(colorScheme), [colorScheme]);
   const { todayUnreadCount } = useTodoBadge();
-
-  // FontAwesome5フォントを遅延読み込み
   useExtendedFonts();
   const pathname = usePathname();
   const { user } = useAuth();
 
+  // --- State ---
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
 
+  // --- Effects ---
   useEffect(() => {
     if (user?.storeId) {
       loadActivePeriod();
@@ -176,6 +174,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
     }
   };
 
+  // --- Handlers ---
   const getDaysUntilDeadline = (): number => {
     if (!period) return 0;
     return ServiceProvider.shiftSubmissions.getDaysUntilDeadline(period);
@@ -209,6 +208,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
     router.replace(tab.path);
   };
 
+  // --- Render ---
   const isPWA = isStandalonePWA();
 
   return (

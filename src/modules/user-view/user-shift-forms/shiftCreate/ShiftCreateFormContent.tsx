@@ -1,3 +1,18 @@
+/** @file ShiftCreateFormContent.tsx
+ *  @description シフト作成フォームの表示担当（プレゼンテーション）コンポーネント。
+ *    ShiftCreateForm からデータとハンドラを受け取り、UI を組み立てる。
+ *    店舗選択、日付選択、時間選択、途中時間設定、送信/削除ボタンを表示する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / AntDesign（アイコン）/ TimeSelect /
+ *          CalendarModal / date-fns / 共通スタイル・定数
+ *  - 利用先: ShiftCreateForm から呼び出される
+ *  - ロジックは親（ShiftCreateForm）が持ち、このコンポーネントは表示のみ担当
+ *
+ *  【コンポーネント概要】
+ *  - 表示内容: 店舗選択 → 日付選択 → 時間選択 → 途中時間 → 送信/削除ボタン
+ *  - 主要Props: 各種入力値とハンドラ（下記 interface 参照）
+ */
 import React from "react";
 import {
   View,
@@ -19,6 +34,7 @@ import { shiftCreateFormStyles as styles } from "./styles";
 import type { ShiftData } from "./types";
 import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 
+/** ShiftCreateFormContent に渡す全 Props */
 interface ShiftCreateFormContentProps {
   containerStyle: ViewStyle;
   selectedDate: string;
@@ -68,6 +84,7 @@ const ShiftCreateFormContent: React.FC<ShiftCreateFormContentProps> = ({
   isLoading,
   isDeleting,
 }) => {
+  // --- Render ---
   return (
     <>
       <View style={{ width: "100%" }}></View>

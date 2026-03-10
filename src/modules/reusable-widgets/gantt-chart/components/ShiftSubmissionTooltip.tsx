@@ -1,3 +1,15 @@
+/** @file ShiftSubmissionTooltip.tsx
+ *  @description シフト提出期限のツールチップ（ポップアップ）。
+ *    画面上の特定位置に表示され、現在の募集期間と締切までの残り日数を表示する。
+ *    募集期間内であれば「シフト追加」ボタンも表示する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ServiceProvider（募集期間の取得）
+// - importされる先: GanttChartMonthView 等（特定の操作時にツールチップとして表示）
+// - 役割: position: absolute で指定座標に表示されるツールチップUI。
+//   締切が近い場合は色を変えて緊急度を視覚的に伝える（3日以内=赤、7日以内=オレンジ）。
+
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

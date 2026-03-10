@@ -1,16 +1,45 @@
 /**
- * 🔐 Zodスキーマ定義
- * 型安全性とランタイムバリデーションを提供
+ * @file index.ts
+ * @description Zodスキーマ定義。型安全性とランタイムバリデーションを提供する
+ *
+ * ============================================================
+ * 【なぜ "Schema" を使うのか — バリデーションスキーマの概念】
+ * ============================================================
+ *
+ * ■ Schema とは
+ *   データの「設計図」。
+ *   型チェック（コンパイル時）とバリデーション（実行時）の両方を1箇所で定義する。
+ *   例: UserBaseSchema は「uid は必須の文字列で、nickname は50文字以内」
+ *   というルールをコードとして書いている。
+ *
+ * ■ なぜ TypeScript の型だけでは不十分なのか
+ *   TypeScript の型（type, interface）はコンパイル時にしか存在しない。
+ *   ビルドすると JavaScript に変換され、型情報は完全に消える。
+ *   つまり、実行時（ユーザーがフォームに入力したとき、APIからデータが来たとき）には
+ *   型チェックが一切行われない。
+ *   → 実行時のバリデーションには Zod などのライブラリが必要。
+ *
+ * ■ Zod の z.infer の仕組み
+ *   下記の `z.infer<typeof UserBaseSchema>` は、
+ *   Zod スキーマから TypeScript の型を自動生成する機能。
+ *   スキーマと型を二重に書く必要がなくなる（Single Source of Truth）。
+ *
+ * ■ ケースバイケース（Schema が必要 / 不要な場面）
+ *   ✅ Schema 必須: ユーザー入力（フォーム）、外部 API からのレスポンス
+ *     → 何が来るか分からないので、実行時にチェックしないと危険
+ *   ❌ 型定義だけでOK: 内部で生成するデータ、コンポーネント間の Props
+ *     → 自分のコードが作るデータなので、コンパイル時の型チェックで十分
+ * ============================================================
  */
 
 import { z } from "zod";
 
-// ==========================================
-// 🧑‍💼 ユーザー関連スキーマ
-// ==========================================
+// --- ユーザー関連スキーマ ---
 
+/** ユーザーロールのスキーマ */
 export const UserRoleSchema = z.enum(["master", "user"]);
 
+/** ユーザー基本情報のスキーマ */
 export const UserBaseSchema = z.object({
   uid: z.string().min(1, "UIDは必須です"),
   nickname: z
@@ -32,17 +61,18 @@ export const UserBaseSchema = z.object({
   updatedAt: z.date().optional(),
 });
 
+/** パスワード付きユーザースキーマ */
 export const UserWithPasswordSchema = UserBaseSchema.extend({
   password: z.string().min(6, "パスワードは6文字以上です").optional(),
   currentPassword: z.string().optional(),
 });
 
-// ==========================================
-// 📅 シフト関連スキーマ
-// ==========================================
+// --- シフト関連スキーマ ---
 
+/** シフトステータスのスキーマ */
 export const ShiftStatusSchema = z.enum(["applied", "confirmed", "cancelled"]);
 
+/** シフト基本情報のスキーマ */
 export const ShiftBaseSchema = z.object({
   id: z.string().min(1, "シフトIDは必須です"),
   userId: z.string().min(1, "ユーザーIDは必須です"),
@@ -62,10 +92,9 @@ export const ShiftBaseSchema = z.object({
   updatedAt: z.date().optional(),
 });
 
-// ==========================================
-// 🏪 店舗関連スキーマ
-// ==========================================
+// --- 店舗関連スキーマ ---
 
+/** 店舗設定のスキーマ */
 export const StoreConfigSchema = z.object({
   name: z
     .string()
@@ -83,10 +112,9 @@ export const StoreConfigSchema = z.object({
   holidays: z.array(z.string()).default([]),
 });
 
-// ==========================================
-// 📧 通知関連スキーマ
-// ==========================================
+// --- 通知関連スキーマ ---
 
+/** 通知データのスキーマ */
 export const NotificationDataSchema = z.object({
   shiftDate: z.string(),
   startTime: z.string(),
@@ -96,6 +124,7 @@ export const NotificationDataSchema = z.object({
   reason: z.string(),
 });
 
+/** メールメッセージのスキーマ */
 export const EmailMessageSchema = z.object({
   to: z.array(
     z.string().refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
@@ -107,9 +136,7 @@ export const EmailMessageSchema = z.object({
   text: z.string(),
 });
 
-// ==========================================
-// 🔍 型推論の実行
-// ==========================================
+// --- 型推論 ---
 
 export type User = z.infer<typeof UserBaseSchema>;
 export type UserWithPassword = z.infer<typeof UserWithPasswordSchema>;
@@ -120,25 +147,21 @@ export type StoreConfig = z.infer<typeof StoreConfigSchema>;
 export type NotificationData = z.infer<typeof NotificationDataSchema>;
 export type EmailMessage = z.infer<typeof EmailMessageSchema>;
 
-// ==========================================
-// 🛠️ ヘルパー関数
-// ==========================================
+// --- ヘルパー関数 ---
 
-/**
- * 安全な解析（パースエラーを返す）
- */
+/** ユーザーデータを安全にパースする（エラーを投げずにResultを返す） */
 export function safeParseUser(data: unknown) {
   return UserBaseSchema.safeParse(data);
 }
 
+/** シフトデータを安全にパースする */
 export function safeParseShift(data: unknown) {
   return ShiftBaseSchema.safeParse(data);
 }
 
-/**
- * 部分的な更新用スキーマ
- */
+/** ユーザー部分更新用スキーマ（全フィールドoptional） */
 export const UserUpdateSchema = UserBaseSchema.partial();
+/** シフト部分更新用スキーマ（全フィールドoptional） */
 export const ShiftUpdateSchema = ShiftBaseSchema.partial();
 
 export type UserUpdate = z.infer<typeof UserUpdateSchema>;

@@ -1,3 +1,4 @@
+/** @file FormInput.tsx @description MD3 Outlined TextFieldスタイルのテキスト入力コンポーネント */
 import React from "react";
 import { View, TextInput, Text, StyleProp, TextStyle } from "react-native";
 import { createInputStyles } from "./FormInput.styles";
@@ -5,20 +6,7 @@ import { InputProps } from "./FormInput.types";
 import { useThemedStyles } from "../../common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "../../common-theme/md3/MD3ThemeContext";
 
-/**
- * Input - MD3 Outlined TextField スタイルの入力コンポーネント
- *
- * @example
- * ```tsx
- * <Input
- *   label="名前"
- *   placeholder="山田 太郎"
- *   value={name}
- *   onChangeText={setName}
- *   error={errors.name}
- * />
- * ```
- */
+/** テキスト入力。label, error, helperの表示に対応。Props: InputProps */
 const Input: React.FC<InputProps> = ({
   label,
   error,
@@ -29,9 +17,11 @@ const Input: React.FC<InputProps> = ({
   testID,
   ...props
 }) => {
+  // --- Hooks ---
   const styles = useThemedStyles(createInputStyles);
   const { colorScheme } = useMD3Theme();
 
+  // --- Render ---
   return (
     <View style={styles.container} testID={testID}>
       {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}

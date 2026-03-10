@@ -1,7 +1,4 @@
-/**
- * カラーピッカーで使用する定数
- * Googleスプレッドシート風グリッドパレット（10列×7行）
- */
+/** @file FormColorPicker.constants.ts @description カラーピッカーで使用するプリセットカラーパレット定義 */
 
 /** グリッドの列数 */
 export const COLOR_COLUMNS = 10;

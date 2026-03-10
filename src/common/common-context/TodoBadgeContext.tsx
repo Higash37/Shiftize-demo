@@ -1,7 +1,12 @@
+/**
+ * @file TodoBadgeContext.tsx
+ * @description TODO未完了数のバッジ表示用Context。60秒ごとに自動更新する
+ */
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { format } from "date-fns";
 import { ServiceProvider } from "@/services/ServiceProvider";
 
+/** Contextで配信する値の型 */
 interface TodoBadgeContextValue {
   /** 今日の未完了TODO数 */
   todayUnreadCount: number;
@@ -14,6 +19,7 @@ const TodoBadgeContext = createContext<TodoBadgeContextValue>({
   refresh: () => {},
 });
 
+/** TODO未完了数を60秒間隔で取得し、子コンポーネントに配信するProvider */
 export function TodoBadgeProvider({ storeId, userId, children }: { storeId: string; userId: string | undefined; children: React.ReactNode }) {
   const [count, setCount] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -48,6 +54,7 @@ export function TodoBadgeProvider({ storeId, userId, children }: { storeId: stri
   );
 }
 
+/** TODO未完了数をContextから取得するフック */
 export function useTodoBadge() {
   return useContext(TodoBadgeContext);
 }

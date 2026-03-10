@@ -1,3 +1,12 @@
+/** @file components.ts (user-types)
+ *  @description ユーザー管理関連コンポーネント群の Props 型定義をまとめたファイル。
+ *    UserList / UserForm / ChangePassword / UserManagement の Props と、
+ *    フック内部で使う ExtendedUser 型を定義する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: User / UserRole モデル（common-models）
+ *  - 利用先: user-props 配下の各コンポーネント・フック
+ */
 import { User, UserRole } from "@/common/common-models/model-user/UserModel";
 
 /**
@@ -5,7 +14,8 @@ import { User, UserRole } from "@/common/common-models/model-user/UserModel";
  */
 
 /**
- * ベースとなるユーザープロパティ
+ * ベースとなるユーザープロパティ。
+ * loading を共通で持ち、各コンポーネント Props が extends する。
  */
 export interface BaseUserProps {
   loading?: boolean;

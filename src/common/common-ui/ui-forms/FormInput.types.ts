@@ -1,9 +1,8 @@
+/** @file FormInput.types.ts @description Inputコンポーネントの型定義 */
 import { TextInputProps, StyleProp, TextStyle } from "react-native";
 import { BaseComponentProps } from "../componentTypes";
 
-/**
- * Inputコンポーネントのスタイル名
- */
+/** Inputのスタイル名 */
 export type InputStyleName =
   | "container"
   | "label"
@@ -12,10 +11,7 @@ export type InputStyleName =
   | "helperText"
   | "errorText";
 
-/**
- * Inputコンポーネントのプロパティ
- * TextInputPropsのstyleプロパティを除外してからBaseComponentPropsを拡張
- */
+/** InputコンポーネントのProps。label, error, helperを受け取る */
 export interface InputProps
   extends Omit<TextInputProps, "style">,
     BaseComponentProps {

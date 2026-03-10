@@ -1,3 +1,16 @@
+/**
+ * @file ShiftListView.tsx
+ * @description テーマ対応版のシフト一覧表示コンポーネント。
+ *              ShiftList.tsx の簡易版と異なり、MD3テーマのスタイルを使用する。
+ *              シフトのステータスに応じた色分け、変更申請内容の表示に対応する。
+ */
+
+// --- 【このファイルの位置づけ】 ---
+// インポート元: react, react-native, @expo/vector-icons, date-fns,
+//              ShiftList.styles（テーマ対応スタイル）, ShiftList.types, ModelIndex（型）,
+//              テーマ関連フック
+// インポート先: カレンダー関連画面から使用される可能性がある
+
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
@@ -11,15 +24,32 @@ import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 /**
- * ShiftList - シフト一覧表示コンポーネント
+ * ShiftList コンポーネント（テーマ対応版）
  *
- * シフト情報のリストを表示し、各シフトの詳細情報を開閉式で確認できるコンポーネント。
- * シフトの状態（下書き、承認待ち、承認済み、完了、削除済み）に応じて視覚的に区別されます。
+ * シフト情報のリストを表示し、各シフトのステータスに応じた色分けを行う。
+ * 変更申請（requestedChanges）がある場合はその内容も表示する。
+ *
+ * Props:
+ *   - shifts: 表示するシフトの配列
+ *   ※ selectedDate は ShiftListProps に含まれるが、このコンポーネントでは未使用
  */
 export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
+  // --- Hooks ---
+
+  // useMD3Theme: 現在のMD3テーマ全体を取得
   const theme = useMD3Theme();
+  // useThemedStyles: テーマに応じたスタイルを生成
   const styles = useThemedStyles(createShiftListStyles);
-  // シフトタイプに応じたテキストを取得する関数
+
+  // --- Helper Functions ---
+
+  /**
+   * getShiftTypeText - シフトタイプの内部値を日本語に変換する
+   *
+   * ShiftTypeMap 型のパラメータを受け取る（"user" | "class" | "deleted"）。
+   * `as ShiftTypeMap` は型アサーション。shift.type が string 型のため、
+   * ShiftTypeMap に変換してこの関数に渡す必要がある。
+   */
   const getShiftTypeText = (type: ShiftTypeMap) => {
     switch (type) {
       case "user":
@@ -33,7 +63,12 @@ export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
     }
   };
 
-  // シフトステータスに応じたテキストを取得する関数
+  /**
+   * getStatusText - ステータスの内部値を日本語に変換する
+   *
+   * ※ calendar.utils.ts にも同名の関数があるが、テキストが微妙に異なる
+   *    （例: "draft" → ここでは "未実施"、utils では "下書き"）
+   */
   const getStatusText = (status: ShiftStatus) => {
     switch (status) {
       case "draft":
@@ -50,27 +85,36 @@ export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
     }
   };
 
+  // --- Render ---
+
   return (
     <View style={styles.container}>
+      {/* shifts.map(): 配列の各要素をJSXに変換して表示 */}
       {shifts.map((shift) => (
         <View
           key={shift.id}
           style={[
             styles.shiftItem,
+            // ステータス色でボーダーカラーを設定
             { borderColor: getStatusColor(theme, shift.status) },
           ]}
         >
+          {/* シフト情報（左側） */}
           <View style={styles.shiftInfo}>
             <Text style={styles.dateTime}>
+              {/* format() で "3月10日(火) 09:00 ~ 18:00" のような形式に */}
               {format(new Date(shift.date), "M月d日(E)", { locale: ja })}{" "}
               {format(new Date(shift.startTime), "HH:mm")}
               {" ~ "}
               {format(new Date(shift.endTime), "HH:mm")}
             </Text>
             <Text style={styles.shiftType}>
+              {/* shift.type を ShiftTypeMap 型にキャスト（as）して関数に渡す */}
               {getShiftTypeText(shift.type as ShiftTypeMap)}
             </Text>
           </View>
+
+          {/* ステータス情報（右側） */}
           <View style={styles.rightContainer}>
             <Text
               style={[
@@ -80,14 +124,19 @@ export const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
             >
               {getStatusText(shift.status)}
             </Text>
+            {/* 詳細ボタン */}
             <TouchableOpacity style={styles.detailsButton}>
               <Text style={styles.detailsButtonText}>詳細</Text>
               <AntDesign name="down" size={16} color={colors.primary} />
             </TouchableOpacity>
           </View>
+
+          {/* 変更申請内容の表示（requestedChanges が存在する場合のみ） */}
+          {/* && の短絡評価を2重に使用: requestedChanges が存在 && 最初の要素が存在 */}
           {shift.requestedChanges && shift.requestedChanges[0] && (
             <View style={styles.changesContainer}>
               <Text style={styles.changesTitle}>変更申請内容:</Text>
+              {/* 各フィールドが存在する場合のみ表示 */}
               {shift.requestedChanges[0].startTime && (
                 <Text style={styles.changesText}>
                   開始時間: {shift.requestedChanges[0].startTime}

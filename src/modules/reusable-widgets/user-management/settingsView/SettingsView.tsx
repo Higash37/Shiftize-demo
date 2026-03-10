@@ -1,3 +1,18 @@
+/**
+ * @file SettingsView.tsx
+ * @description ユーザー向け設定画面。UID・ロール・ニックネームの表示と、
+ *   ユーザー管理（マスターのみ）・ログアウト・パスワード変更の操作を提供する。
+ *
+ * 【このファイルの位置づけ】
+ *   reusable-widgets > user-management > settingsView 配下の画面コンポーネント。
+ *   ユーザーの「設定」タブで描画される。
+ *
+ * 主要Props:
+ *   - user: ログイン中ユーザー情報
+ *   - role: ユーザーのロール ("master" / "user")
+ *   - onLogout: ログアウトコールバック
+ *   - onUserManage: ユーザー管理画面への遷移コールバック（マスターのみ）
+ */
 import React from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
 import { Header } from "@/common/common-ui/ui-layout";

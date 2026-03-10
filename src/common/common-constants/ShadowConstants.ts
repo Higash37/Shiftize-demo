@@ -1,5 +1,10 @@
+/**
+ * @file ShadowConstants.ts
+ * @description シャドウスタイルの定義（現在は全体的に無効化済み）
+ */
 import { ViewStyle, Platform } from "react-native";
 
+/** シャドウスタイルの型。用途別にViewStyleを持つ */
 export type ShadowsType = {
   none: ViewStyle;
   small: ViewStyle;
@@ -22,7 +27,7 @@ export type ShadowsType = {
   elevated: ViewStyle;
 };
 
-// Web用のboxShadowを生成するヘルパー関数（影は全体的に無効化済み）
+/** Web用のboxShadow生成（現在は無効化のため常に"none"を返す） */
 const createWebShadow = (
   _color: string,
   _x: number,
@@ -33,8 +38,7 @@ const createWebShadow = (
   return "none";
 };
 
-// 既存のshadowプロパティをWebの警告を回避する形式に変換するヘルパー関数
-// 影は全体的に無効化済み
+/** 既存のshadowプロパティをWeb警告回避形式に変換する（現在は無効化済み） */
 export const convertShadowForWeb = (_shadowStyle: {
   shadowColor?: string;
   shadowOffset?: { width: number; height: number };
@@ -54,8 +58,7 @@ export const convertShadowForWeb = (_shadowStyle: {
   };
 };
 
-// プラットフォーム共通のシャドウスタイルを生成するヘルパー関数
-// 影は全体的に無効化済み
+/** プラットフォーム共通のシャドウスタイル生成（現在は無効化済み） */
 const createShadow = (
   _color: string,
   _x: number,

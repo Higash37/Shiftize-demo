@@ -1,3 +1,20 @@
+/** @file ShiftCreateForm.tsx
+ *  @description シフト作成・編集フォームのメインコンポーネント。
+ *    日付選択、時間設定、授業（途中時間）追加、店舗選択、
+ *    バリデーション、保存/削除の一連の操作を管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / expo-router / ServiceProvider /
+ *          useShift / useAuth / ShiftCreateFormContent（表示担当）
+ *  - 利用先: ユーザー画面のシフト作成/編集ルートから直接使われる
+ *
+ *  【コンポーネント概要】
+ *  - 表示内容: ヘッダー + ShiftCreateFormContent（フォーム本体）
+ *  - 主要Props: initialMode, initialShiftId, initialDate, initialStartTime,
+ *               initialEndTime, initialClasses
+ *  - ロジック: ユーザーデータ取得 → 連携店舗取得 → 既存シフト取得（編集時）
+ *              → バリデーション → 保存/削除
+ */
 import { MAX_CLASSES_PER_SHIFT_INCLUSIVE } from "@/common/common-constants/BoundaryConstants";
 import React, { useState, useEffect } from "react";
 import {
@@ -23,7 +40,7 @@ import ChangePassword from "@/modules/reusable-widgets/user-management/user-prop
 import type { StoreInfo } from "@/services/interfaces/IMultiStoreService";
 import type { StoreProfile } from "@/services/interfaces/IStoreService";
 
-// 型定義
+/** コンポーネント内で使うユーザーデータの型 */
 interface UserData {
   uid: string;
   nickname: string;
@@ -44,11 +61,18 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 }) => {
   const router = useRouter();
   const { markShiftAsDeleted, createShift } = useShift();
+  /** 編集モードかどうか（initialMode === "edit" で判定） */
   const isEditMode = initialMode === "edit";
   const { user } = useAuth();
+
+  // --- State ---
+  /** 現在のユーザー情報（API から補完される） */
   const [userData, setUserData] = useState<UserData | null>(null);
+  /** 現在の店舗プロフィール */
   const [currentStore, setCurrentStore] = useState<StoreProfile | null>(null);
+  /** 編集モード時の既存シフトデータ */
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
+  /** フォームのシフトデータ（日付、時間、授業など） */
   const [shiftData, setShiftData] = useState<ShiftData>({
     startTime: initialStartTime || "",
     endTime: initialEndTime || "",
@@ -56,13 +80,21 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     hasClass: initialClasses ? JSON.parse(initialClasses).length > 0 : false,
     classes: initialClasses ? JSON.parse(initialClasses) : [],
   });
+  /** カレンダーモーダルの表示フラグ */
   const [showCalendar, setShowCalendar] = useState(false);
+  /** 保存処理中フラグ */
   const [isLoading, setIsLoading] = useState(false);
+  /** 削除処理中フラグ */
   const [isDeleting, setIsDeleting] = useState(false);
+  /** 成功アニメーション表示フラグ */
   const [showSuccess, setShowSuccess] = useState(false);
+  /** 成功アニメーション用のフェード値 */
   const fadeAnim = new Animated.Value(0);
+  /** バリデーションエラーメッセージ */
   const [errorMessage, setErrorMessage] = useState("");
+  /** 連携店舗一覧 */
   const [connectedStores, setConnectedStores] = useState<StoreInfo[]>([]);
+  /** 選択中の店舗ID */
   const [selectedStoreId, setSelectedStoreId] = useState<string>(user?.storeId || "");
 
   const [selectedDate, setSelectedDate] = useState(initialDate || "");
@@ -94,7 +126,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // AuthContextの情報から即座にuserDataを初期化
+  // --- Effects ---
+  /**
+   * AuthContext のユーザー情報で即座に userData を設定し、
+   * バックグラウンドで店舗データ・プロフィール・既存シフトを並列取得する。
+   */
   useEffect(() => {
     if (!user) return;
 
@@ -225,6 +261,12 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   }, [existingShift]);
 
+  // --- Handlers ---
+  /**
+   * 時間変更ハンドラ。
+   * type で「シフト開始/終了」か「授業開始/終了」かを区別する。
+   * 授業の場合は index で何番目の授業かを指定する。
+   */
   const handleTimeChange = (
     type: "start" | "end" | "classStart" | "classEnd",
     value: string,
@@ -269,6 +311,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   };
 
+  /** カレンダーで日付が選択された時のハンドラ */
   const handleDateSelect = (dates: string[]) => {
     setShiftData((prev) => ({
       ...prev,
@@ -278,6 +321,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setShowCalendar(false);
   };
 
+  /** 授業（途中時間）を追加する。上限を超えるとエラーメッセージを表示 */
   const addClass = () => {
     if (shiftData.classes.length > MAX_CLASSES_PER_SHIFT_INCLUSIVE) {
       setErrorMessage("13:00~17:00のようにまとめてください");
@@ -298,6 +342,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setSelectedClasses((prev) => [...prev, newClass]);
   };
 
+  /** 指定インデックスの授業を削除する */
   const removeClass = (index: number) => {
     const updatedClasses = [...shiftData.classes];
     updatedClasses.splice(index, 1);
@@ -309,6 +354,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     setSelectedClasses(updatedClasses);
   };
 
+  /**
+   * シフトデータのバリデーション。
+   * 日付未選択、時間未設定、開始>=終了、授業時間のシフト範囲外を検証する。
+   * @returns バリデーション成功なら true
+   */
   const validateShift = () => {
     if (!selectedDate) {
       setErrorMessage("日付を選択してください");
@@ -356,6 +406,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     return true;
   };
 
+  /**
+   * シフトの新規作成または更新を実行する。
+   * バリデーション → 各日付に対してシフトオブジェクト生成 → API 呼び出し。
+   * 成功後はシフト一覧画面に遷移する。
+   */
   const handleCreateOrUpdateShift = async () => {
     if (!validateShift() || !user) return;
 
@@ -402,6 +457,11 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
     }
   };
 
+  /**
+   * シフトを削除する。
+   * pending（承認待ち）の場合は即時削除（status="deleted"）、
+   * それ以外は削除申請（status="deletion_requested"）にする。
+   */
   const handleDeleteShift = async () => {
     if (!isEditMode || !initialShiftId) return;
 
@@ -433,6 +493,8 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
       setErrorMessage("シフトの削除中にエラーが発生しました: " + errorMessage);
     }
   };
+  // --- Render ---
+  // ローディング中はヘッダーのみ表示
   if (isLoading) {
     return (
       <View style={styles.container}>

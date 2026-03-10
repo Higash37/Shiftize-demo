@@ -1,3 +1,16 @@
+/**
+ * @file GanttHeaderRow.tsx
+ * @description PC版ガントチャートのヘッダー行。スタッフ名を横一列に表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下の UIパーツ。
+ *   HomeGanttWideScreen（PC版）で使われる。
+ *
+ * 主要Props:
+ *   - staffList: 表示するスタッフ配列
+ *   - cellWidth: 1セルの幅(px)
+ *   - onStaffPress: スタッフ名タップ時のコールバック
+ */
 import React from "react";
 import { View, Text } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";

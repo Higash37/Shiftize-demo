@@ -1,3 +1,12 @@
+/** @file GanttMiniCalendar.tsx
+ *  @description ガントチャート内に埋め込む小型カレンダーウィジェット。
+ *    シフトがある日にドットマーカーを表示し、日付タップで日付選択をコールバックする。
+ */
+
+// 【このファイルの位置づけ】
+// - importされる先: GanttChartMonthView 等（インラインカレンダーとして使用）
+// - 役割: 小さなスペースに収まるミニカレンダー。月ナビ付き。
+
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getDay } from "date-fns";

@@ -1,3 +1,20 @@
+/**
+ * @file InfoDashboard.tsx
+ * @description マスターユーザー向けの情報ダッシュボード。タブ切り替えで
+ *   スタッフ管理・ロール管理・休憩設定・Todoテンプレートなどを表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > info-dashboard 配下の画面コンポーネント。
+ *   マスターの「情報」タブで描画される、大きな管理画面。
+ *
+ * 主なタブ:
+ *   - スタッフ一覧: UserManagement を内包
+ *   - ロール管理: StaffRole の CRUD
+ *   - 休憩設定: TimeSegmentType の CRUD
+ *   - Todoテンプレート: TodoSettingsView を内包
+ *   - 予算: BudgetSection を内包
+ *   - 連携: StoreConnectionModal を内包
+ */
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,

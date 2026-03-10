@@ -1,3 +1,12 @@
+/**
+ * @file GanttHeaderRowTablet.tsx
+ * @description タブレット版ガントチャートのヘッダー行。スタッフ名を表示する。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下の UIパーツ。
+ *   HomeGanttTabletScreen で使われる。
+ *   PC版 GanttHeaderRow と似ているが、タブレット向けにレイアウトを調整している。
+ */
 import React from "react";
 import { View, Text } from "react-native";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";

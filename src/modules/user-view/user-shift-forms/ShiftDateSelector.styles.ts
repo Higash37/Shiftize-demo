@@ -1,3 +1,7 @@
+/**
+ * @file ShiftDateSelector.styles.ts
+ * @description ShiftDateSelector のスタイル定義 + カレンダーテーマ生成関数。
+ */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { ShiftDateSelectorStyles } from "./types";

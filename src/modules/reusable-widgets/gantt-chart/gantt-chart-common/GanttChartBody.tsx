@@ -1,3 +1,15 @@
+/** @file GanttChartBody.tsx
+ *  @description ガントチャートの本体部分。FlatListで各日の行を効率的にスクロール描画する。
+ *    左側にガントチャート行一覧、右側にカレンダー（情報列）を配置する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: GanttChartRow（各行の描画）, components（GanttChartInfo = 右側カレンダー）
+// - importされる先: GanttChartMonthView（親）
+// - 関係: GanttChartMonthView → GanttChartBody → GanttChartRow → GanttChartGrid
+// - 役割: 日付ごとの行データを FlatList でスクロール可能なリストとして描画する。
+//   FlatList は「画面に見えている行だけ描画する」仮想化リストで、大量データでも高速。
+
 import React, { useMemo, useRef, useEffect, useCallback } from "react";
 import { FlatList, ListRenderItemInfo, View, NativeScrollEvent, NativeSyntheticEvent, StyleSheet } from "react-native";
 import { GanttChartRow } from "./GanttChartRow";
@@ -9,9 +21,10 @@ import {
 } from "@/common/common-models/ModelIndex";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
 
+// GanttChartBodyProps: このコンポーネントが受け取るpropsの型定義
 interface GanttChartBodyProps {
-  days: string[];
-  rows: [string, ShiftItem[]][];
+  days: string[];                     // 表示する全日付の配列 ["2025-01-01", "2025-01-02", ...]
+  rows: [string, ShiftItem[]][];     // [日付, その日のシフト配列] のタプル配列
   dateColumnWidth: number;
   ganttColumnWidth: number;
   infoColumnWidth: number;
@@ -38,11 +51,13 @@ interface GanttChartBodyProps {
   onMonthChange?: (month: { year: number; month: number }) => void;
 }
 
+// RowData: FlatListの各行に渡すデータの型
 interface RowData {
-  date: string;
-  group: ShiftItem[];
+  date: string;           // 日付文字列 ("2025-01-15")
+  group: ShiftItem[];     // その行に表示するシフトの配列
 }
 
+// GanttChartBodyInner: React.memo でラップする前の内部コンポーネント
 const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
   days,
   rows,

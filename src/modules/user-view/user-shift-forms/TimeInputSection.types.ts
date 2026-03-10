@@ -1,3 +1,7 @@
+/**
+ * @file TimeInputSection.types.ts
+ * @description TimeInputSection のProps型・TimeSlot型の定義。
+ */
 import { ViewStyle, TextStyle } from "react-native";
 import { BaseTimeProps, BaseStyles } from "../user-shift-utils/ui-interfaces";
 

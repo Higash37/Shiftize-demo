@@ -1,3 +1,14 @@
+/** @file UserForm.styles.ts
+ *  @description ユーザー追加・編集フォームのスタイル定義。
+ *    フォームレイアウト、カラーピッカー、ロール選択、パスワードカード、
+ *    入力欄、ボタンなどのスタイルを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet / 共通定数（ColorConstants, LayoutConstants,
+ *          ShadowConstants, TypographyConstants）
+ *  - 利用先: UserForm コンポーネント
+ *  - 共通定数を使った静的スタイル
+ */
 import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";

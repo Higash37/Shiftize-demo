@@ -1,3 +1,15 @@
+/** @file MobileVerticalView.tsx
+ *  @description タブレット・モバイル向けの分割レイアウトビュー。
+ *    左側にカレンダー、右側に選択した日の1日ガントチャートを縦型で表示する。
+ *    行=時間（30分刻み）、列=ユーザー の構成で、時間範囲切り替え機能付き。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ShiftCalendar（カレンダー）, DateNavigator（日付ナビ）
+// - importされる先: GanttChartMonthView（deviceType が tablet/mobile の場合にこのビューを表示）
+// - 役割: PC版のガントチャートとは異なる、モバイル向けレイアウト。
+//   カレンダーで日付を選び、右側にその日のシフトを「縦軸=時間、横軸=人」で表示する。
+
 import React, { useState, useMemo, useCallback } from "react";
 import {
   View,

@@ -1,3 +1,15 @@
+/**
+ * @file ShiftDateSelector.tsx
+ * @description 単一日付選択カレンダー。react-native-calendars で1日だけ選択できる。
+ *
+ * 【このファイルの位置づけ】
+ *   user-view > user-shift-forms 配下のフォームパーツ。
+ *   シフト作成・編集フォームの日付選択に使われる。
+ *
+ * 主要Props:
+ *   - selectedDate: 現在選択中の日付 ("YYYY-MM-DD")
+ *   - onSelect: 日付選択コールバック
+ */
 import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Calendar } from "react-native-calendars";

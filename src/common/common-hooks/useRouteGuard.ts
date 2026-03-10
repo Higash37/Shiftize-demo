@@ -1,13 +1,14 @@
+/**
+ * @file useRouteGuard.ts
+ * @description 認証ガードとAppState復帰時の認証チェックを統合したルーティングガード
+ */
 import { useEffect } from "react";
 import { useRouter, useSegments } from "expo-router";
 import { AppState } from "react-native";
 import { useAuth } from "@/services/auth/useAuth";
 import { Routes, RouteGroups, getDefaultHomeRoute } from "@/common/common-constants/RouteConstants";
 
-/**
- * ルーティングガードフック（統合版）
- * 認証ガードとAppState変更時の認証チェックを統合
- */
+/** 認証ガード + AppState変更時の再チェックを統合したフック */
 export const useRouteGuard = () => {
   const { user, role, loading } = useAuth();
   const router = useRouter();

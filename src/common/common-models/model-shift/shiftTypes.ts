@@ -1,10 +1,9 @@
 /**
- * シフト管理に関する基本的な型定義
+ * @file shiftTypes.ts
+ * @description シフト管理に関する型定義（ステータス、シフト本体、募集シフト等）
  */
 
-/**
- * シフトのステータス
- */
+/** シフトのステータス */
 export type ShiftStatus =
   | "draft" // 下書き
   | "pending" // 申請中
@@ -16,20 +15,21 @@ export type ShiftStatus =
   | "purged" // 完全非表示
   | "recruitment"; // 募集中
 
-/**
- * シフトステータスの設定情報
- */
+/** シフトステータスの設定情報（表示ラベル・色・編集可否など） */
 export interface ShiftStatusConfig {
+  /** ステータスコード */
   status: ShiftStatus;
+  /** 表示ラベル */
   label: string;
+  /** 表示色 */
   color: string;
+  /** 編集可能か */
   canEdit: boolean;
+  /** 説明文 */
   description: string;
 }
 
-/**
- * デフォルトのシフトステータス設定
- */
+/** 各ステータスの表示設定デフォルト値 */
 export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
   {
     status: "pending",
@@ -89,40 +89,54 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
   },
 ];
 
-/**
- * シフトの種類
- */
+/** シフトの種類 */
 export type ShiftType = "user" | "class" | "staff" | "deleted" | "recruitment";
 
-/**
- * 基本的なシフト情報
- */
+/** シフトの基本情報。全シフト型の共通フィールド */
 export interface BaseShift {
+  /** UUID */
   id: string;
+  /** シフト所有者のUID */
   userId: string;
+  /** 店舗ID */
   storeId: string;
+  /** "YYYY-MM-DD"形式 */
   date: string;
+  /** "HH:MM"形式 */
   startTime: string;
+  /** "HH:MM"形式 */
   endTime: string;
+  /** 現在のステータス */
   status: ShiftStatus;
 }
 
-/**
- * シフト情報（拡張版）
- */
+/** シフト情報（拡張版）。BaseShiftに表示・管理用の追加フィールドを持つ */
 export interface Shift extends BaseShift {
+  /** ユーザーのニックネーム（表示用） */
   nickname?: string;
+  /** シフトの種類 */
   type?: ShiftType;
+  /** 教科 */
   subject?: string;
+  /** メモ */
   notes?: string;
+  /** 承認者のUID */
   approvedBy?: string;
+  /** 却下理由 */
   rejectedReason?: string;
+  /** 完了済みか */
   isCompleted?: boolean;
+  /** 作成日時 */
   createdAt?: Date;
+  /** 更新日時 */
   updatedAt?: Date;
+  /** 勤務時間（分） */
   duration?: number;
+  /** Googleカレンダー連携用のイベントID */
   googleCalendarEventId?: string;
+  /** 途中時間スロットの配列 */
   classes?: Array<ClassTimeSlot>;
+  /** 変更リクエストの履歴 */
   requestedChanges?: Array<{
     startTime: string;
     endTime: string;
@@ -134,48 +148,54 @@ export interface Shift extends BaseShift {
   }>;
 }
 
-/**
- * 時間スロット（開始時間と終了時間）
- */
+/** 開始時間と終了時間のペア */
 export type TimeSlot = {
+  /** "HH:MM"形式 */
   start: string;
+  /** "HH:MM"形式 */
   end: string;
 };
 
-/**
- * 途中時間スロット（休憩・授業など）
- */
+/** 途中時間スロット（休憩・授業など） */
 export type ClassTimeSlot = {
+  /** "HH:MM"形式 */
   startTime: string;
+  /** "HH:MM"形式 */
   endTime: string;
+  /** スロットID */
   id?: string;
-  typeId?: string;    // time_segment_types.id
-  typeName?: string;  // 非正規化（タイプ削除後も表示用）
+  /** time_segment_types.id */
+  typeId?: string;
+  /** タイプ名（非正規化。タイプ削除後も表示用に保持） */
+  typeName?: string;
 };
 
-/**
- * 途中時間タイプの給与モード
- */
+/** 途中時間タイプの給与計算モード */
 export type WageMode = "exclude" | "include" | "custom_rate";
 
-/**
- * 途中時間タイプ（マスター管理）
- */
+/** 途中時間タイプ（マスター管理）。DBのtime_segment_typesテーブルに対応 */
 export interface TimeSegmentType {
+  /** UUID */
   id: string;
+  /** 店舗ID */
   storeId: string;
+  /** タイプ名（例: "休憩", "授業"） */
   name: string;
+  /** アイコン名 */
   icon: string;
+  /** 表示色 */
   color: string;
+  /** 給与計算モード */
   wageMode: WageMode;
+  /** custom_rate時の時給倍率 */
   customRate: number;
+  /** 表示順 */
   sortOrder: number;
+  /** タスクとの重複を許可するか */
   allowTaskOverlap: boolean;
 }
 
-/**
- * 繰り返し設定
- */
+/** 曜日ごとの繰り返し設定 */
 export interface RecurringSettings {
   monday: boolean;
   tuesday: boolean;
@@ -186,15 +206,19 @@ export interface RecurringSettings {
   sunday: boolean;
 }
 
-/**
- * シフトデータ（表示用）
- */
+/** シフトデータ（ガントチャート等の表示用） */
 export interface ShiftData {
+  /** UUID */
   id: string;
+  /** ユーザー名 */
   userName: string;
+  /** "HH:MM"形式 */
   startTime: string;
+  /** "HH:MM"形式 */
   endTime: string;
+  /** ユーザー固有色 */
   color?: string;
+  /** ステータス */
   status: ShiftStatus;
 }
 
@@ -207,9 +231,7 @@ export interface ShiftRequestedChanges {
   subject?: string;
 }
 
-/**
- * シフト項目（表示用の拡張情報を含む）
- */
+/** シフト項目（一覧表示用。表示に必要な拡張情報を含む） */
 export interface ShiftItem {
   id: string;
   userId: string;
@@ -231,36 +253,53 @@ export interface ShiftItem {
   requestedChanges?: ShiftRequestedChanges;
 }
 
-/**
- * 募集シフト情報
- */
+/** 募集シフト情報。マスターが作成し、ユーザーが応募する */
 export interface RecruitmentShift {
+  /** UUID */
   id: string;
+  /** 店舗ID */
   storeId: string;
+  /** "YYYY-MM-DD"形式 */
   date: string;
+  /** "HH:MM"形式 */
   startTime: string;
+  /** "HH:MM"形式 */
   endTime: string;
+  /** 教科 */
   subject?: string;
+  /** メモ */
   notes?: string;
-  createdBy: string; // マスターのユーザーID
+  /** 作成したマスターのUID */
+  createdBy: string;
+  /** 作成日時 */
   createdAt: Date;
+  /** 更新日時 */
   updatedAt: Date;
-  maxApplicants?: number; // 最大応募者数
-  applications: RecruitmentApplication[]; // 応募情報の配列
-  status: "open" | "closed" | "cancelled"; // 募集状態
-  deadline?: Date; // 応募締切日時
+  /** 最大応募者数 */
+  maxApplicants?: number;
+  /** 応募情報の配列 */
+  applications: RecruitmentApplication[];
+  /** 募集状態 */
+  status: "open" | "closed" | "cancelled";
+  /** 応募締切日時 */
+  deadline?: Date;
 }
 
-/**
- * 募集シフトへの応募情報
- */
+/** 募集シフトへの応募情報 */
 export interface RecruitmentApplication {
-  userId: string; // 応募した講師のユーザーID
-  nickname: string; // 講師のニックネーム
-  requestedStartTime: string; // 希望開始時間
-  requestedEndTime: string; // 希望終了時間
-  appliedAt: Date; // 応募日時
-  status: "pending" | "approved" | "rejected"; // 応募状態
-  notes?: string; // 応募時のメモ
+  /** 応募した講師のUID */
+  userId: string;
+  /** 講師のニックネーム */
+  nickname: string;
+  /** 希望開始時間 */
+  requestedStartTime: string;
+  /** 希望終了時間 */
+  requestedEndTime: string;
+  /** 応募日時 */
+  appliedAt: Date;
+  /** 応募状態 */
+  status: "pending" | "approved" | "rejected";
+  /** 応募時のメモ */
+  notes?: string;
 }
 

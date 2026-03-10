@@ -1,16 +1,12 @@
+/**
+ * @file ColorConstants.ts
+ * @description レガシー互換カラー定義。MD3ライトスキームからの導出ブリッジ
+ * @deprecated 新規コードでは useMD3Theme().colorScheme を使用
+ */
 import { ShiftStatus } from "../common-models/model-shift/shiftTypes";
 import { lightColorScheme } from "../common-theme/md3/MD3Colors";
 
-/**
- * レガシー互換カラー定義
- *
- * 既存コードの `import { colors } from "ThemeConstants"` を壊さないためのブリッジ。
- * 内部値はMD3ライトスキームから導出。
- *
- * 新規コードでは `useMD3Theme().colorScheme` を使用してください。
- * @deprecated 段階的に useMD3Theme() へ移行
- */
-
+/** レガシーテーマ用のカラー型定義 */
 export type ColorsType = {
   primary: string;
   secondary: string;

@@ -1,3 +1,11 @@
+/**
+ * @file MasterDashboardView.tsx
+ * @description マスターのダッシュボード画面。統計カード（今月のシフト数、スタッフ数等）を表示。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > masterDashboard 配下の画面コンポーネント。
+ *   マスターの「ダッシュボード」タブで描画される。
+ */
 import React, { useMemo } from "react";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
 import { Link } from "expo-router";

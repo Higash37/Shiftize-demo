@@ -1,3 +1,16 @@
+/**
+ * @file TodoSettingsView.tsx
+ * @description Todoテンプレートの設定画面。定型業務テンプレートの CRUD を行う。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > todayView 配下の画面コンポーネント。
+ *   InfoDashboard の「Todoテンプレート」タブから使われる。
+ *
+ * 主な内部ロジック:
+ *   - テンプレート名・カテゴリ・フローステップの入力フォーム
+ *   - テンプレートの追加・編集・削除
+ *   - ServiceProvider.todo 経由で Supabase に保存
+ */
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

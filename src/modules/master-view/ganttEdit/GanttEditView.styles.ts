@@ -1,3 +1,4 @@
+/** @file GanttEditView.styles.ts @description ガントチャート編集画面のスタイル定義。Web環境でのスクロールバー非表示CSS注入も含む */
 import { StyleSheet } from "react-native";
 
 export const ganttEditViewStyles = StyleSheet.create({

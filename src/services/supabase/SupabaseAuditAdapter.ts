@@ -1,3 +1,5 @@
+/** @file SupabaseAuditAdapter.ts @description シフト変更の監査ログ記録・履歴取得のSupabase実装 */
+
 import type { IAuditService } from "../interfaces/IAuditService";
 import type { ShiftItem } from "@/common/common-models/ModelIndex";
 import type {
@@ -77,7 +79,9 @@ const generateSummary = (
   }
 };
 
+/** 監査ログサービスのSupabase実装 */
 export class SupabaseAuditAdapter implements IAuditService {
+  /** シフト変更を監査ログに記録する */
   async logShiftChange(
     action: ShiftActionType,
     actor: ShiftHistoryActor,
@@ -153,6 +157,7 @@ export class SupabaseAuditAdapter implements IAuditService {
     }
   }
 
+  /** シフト一括承認を監査ログに記録する */
   async logBatchApprove(
     actor: ShiftHistoryActor,
     storeId: string,
@@ -169,6 +174,7 @@ export class SupabaseAuditAdapter implements IAuditService {
     );
   }
 
+  /** シフト変更履歴をリアルタイム購読する */
   onShiftHistory(
     options: {
       storeId: string;

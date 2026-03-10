@@ -1,3 +1,12 @@
+/** @file GanttViewView.styles.ts
+ *  @description ガントチャート閲覧画面のスタイル定義。
+ *    コンテナのスクロールバー非表示と PWA セーフエリアを管理する。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: react-native の StyleSheet
+ *  - 利用先: GanttViewView コンポーネント
+ *  - Web(PWA) 環境では DOM を直接操作して CSS を注入している
+ */
 import { StyleSheet } from "react-native";
 
 export const ganttViewViewStyles = StyleSheet.create({

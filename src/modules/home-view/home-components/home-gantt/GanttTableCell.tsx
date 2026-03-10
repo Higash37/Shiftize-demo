@@ -1,3 +1,16 @@
+/**
+ * @file GanttTableCell.tsx
+ * @description ガントチャートの汎用セルコンポーネント。Pressable / View の切り替えに対応。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下の UIパーツ。
+ *   GanttRowMobile / GanttRowTablet から呼ばれる最小単位のセル。
+ *
+ * 主要Props:
+ *   - onPress?: タップ時コールバック（あれば Pressable、なければ View で描画）
+ *   - isActive: シフトがある時間帯かどうか
+ *   - color: セルの背景色
+ */
 import React from "react";
 import { View, Pressable } from "react-native";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";

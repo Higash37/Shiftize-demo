@@ -1,3 +1,18 @@
+/**
+ * @file autoScheduler.ts
+ * @description 自動スケジューリングエンジン。均等分配アルゴリズムで
+ *   スタッフにタスク・業務を自動配置する。
+ *
+ * 【このファイルの位置づけ】
+ *   master-view > auto-scheduling 配下のビジネスロジック。
+ *   DailyTaskGanttView の「自動配置」ボタンから呼ばれる。
+ *
+ * 主な内部ロジック:
+ *   - 各スタッフの空き時間帯を算出
+ *   - タスクの所要時間とスタッフの空き時間をマッチング
+ *   - 均等分配: 各スタッフの担当量が偏らないように配分
+ *   - 結果を ShiftTaskAssignment[] として返す
+ */
 import { timeStringToMinutes } from "@/common/common-utils/util-shift/wageCalculator";
 import type { StaffRole, RoleTask, RoleAssignment, TaskAssignment } from "../info-dashboard/useStaffTasks";
 import type { ShiftTaskAssignment } from "../info-dashboard/useShiftTaskAssignments";

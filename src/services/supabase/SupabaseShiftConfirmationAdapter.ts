@@ -1,7 +1,11 @@
+/** @file SupabaseShiftConfirmationAdapter.ts @description シフト確認状態の管理のSupabase実装 */
+
 import type { IShiftConfirmationService, ShiftConfirmation } from "../interfaces/IShiftConfirmationService";
 import { getSupabase } from "./supabase-client";
 
+/** シフト確認サービスのSupabase実装 */
 export class SupabaseShiftConfirmationAdapter implements IShiftConfirmationService {
+  /** シフトを確認済みにする */
   async confirmShift(userId: string, storeId: string, periodId: string): Promise<void> {
     const supabase = getSupabase();
     const confirmationId = `${userId}_${periodId}`;
@@ -16,6 +20,7 @@ export class SupabaseShiftConfirmationAdapter implements IShiftConfirmationServi
     });
   }
 
+  /** シフトの確認を取り消す */
   async cancelConfirmation(userId: string, periodId: string): Promise<void> {
     const supabase = getSupabase();
     const confirmationId = `${userId}_${periodId}`;
@@ -23,6 +28,7 @@ export class SupabaseShiftConfirmationAdapter implements IShiftConfirmationServi
     await supabase.from("shift_confirmations").delete().eq("id", confirmationId);
   }
 
+  /** ユーザーの確認状態を取得する */
   async getUserConfirmationStatus(userId: string, periodId: string): Promise<boolean> {
     try {
       const supabase = getSupabase();
@@ -41,6 +47,7 @@ export class SupabaseShiftConfirmationAdapter implements IShiftConfirmationServi
     }
   }
 
+  /** 店舗全体の確認状態一覧を取得する */
   async getStoreConfirmationStatus(storeId: string, periodId: string): Promise<ShiftConfirmation[]> {
     try {
       const supabase = getSupabase();

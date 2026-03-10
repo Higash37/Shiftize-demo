@@ -1,3 +1,17 @@
+/**
+ * @file HomeGanttWideScreen.tsx
+ * @description PC版ホーム画面。時計 + ウィジェット + ガントチャートの3カラム構成。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-screens 配下の画面コンポーネント。
+ *   HomeCommonScreen がPC幅（Wide）の時に描画する。
+ *
+ * 主な内部ロジック:
+ *   - 左カラム: ClockWidget
+ *   - 中央カラム: ガントチャート（GanttHeaderRow + GanttRow）
+ *   - 右カラム: NextShiftWidget + TodayStaffWidget
+ *   - DateNavigator で日付ナビゲーション
+ */
 import React, { useState, useMemo } from "react";
 import {
   View,

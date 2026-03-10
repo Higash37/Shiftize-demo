@@ -1,3 +1,18 @@
+/**
+ * @file UserDayGanttModal.tsx
+ * @description ユーザーの1日ガントチャートをモーダル表示するコンポーネント。
+ *   30分刻みのスロットでシフト状況を可視化する。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-gantt 配下のモーダル。
+ *   HomeGanttMobileScreen / HomeGanttTabletScreen からスタッフタップ時に開く。
+ *
+ * 主要Props:
+ *   - visible: モーダル表示フラグ
+ *   - userName: 表示対象のスタッフ名
+ *   - shifts: そのユーザーの当日シフト配列
+ *   - onClose: 閉じるコールバック
+ */
 import React from "react";
 import {
   Modal,

@@ -1,3 +1,20 @@
+/** @file ShiftListView.tsx
+ *  @description ユーザーのシフト一覧画面。
+ *    月別カレンダー + シフトリスト + シフト確定ボタンを表示する。
+ *    シフトタップで報告/編集モーダルを開く。
+ *
+ *  【このファイルの位置づけ】
+ *  - 依存: React / React Native / expo-router / ServiceProvider /
+ *          ShiftCalendar / ShiftListItem / ShiftDetailsView /
+ *          ShiftModal / ShiftReportModal / ChangePassword /
+ *          DateNavigator / useShift / useAuth / useMD3Theme / useBreakpoint
+ *  - 利用先: ユーザー画面のシフト一覧ルート（/(main)/user/shifts）
+ *
+ *  【コンポーネント概要】
+ *  - 表示内容: ヘッダー → 月ナビゲーション → カレンダー → シフトリスト
+ *              + シフト確定ボタン + 各種モーダル
+ *  - 主要Props: なし（内部でデータ取得を行う）
+ */
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   View,
@@ -32,41 +49,64 @@ export const UserShiftList = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
+  /** useShift フックからシフト一覧と取得関数を取得 */
   const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
+
+  // --- State ---
+  /** カレンダーで選択中の日付（"yyyy-MM-dd" 形式、空文字 = 未選択） */
   const [selectedDate, setSelectedDate] = useState("");
+  /** 現在表示中の月（"yyyy-MM" 形式）。初期値は今月 */
   const [currentMonth, setCurrentMonth] = useState(() => {
     const today = new Date();
     return format(today, "yyyy-MM");
   });
+  /** 表示用の月文字列（カレンダーマウント後にセットされる） */
   const [displayMonth, setDisplayMonth] = useState<string | null>(null);
+  /** 詳細展開中のシフトID */
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
+  /** カレンダーがマウント済みかどうか */
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
+  /** シフト操作モーダル（報告/変更選択）の表示フラグ */
   const [isModalVisible, setModalVisible] = useState(false);
+  /** モーダル操作対象のシフト */
   const [modalShift, setModalShift] = useState<ShiftItem | null>(null);
+  /** 現在のユーザーの店舗ID */
   const [currentUserStoreId, setCurrentUserStoreId] = useState<
     string | undefined
   >(user?.storeId);
+  /** シフト報告モーダルの表示フラグ */
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  /** 報告時のコメント */
   const [comments, setComments] = useState("");
+  /** シフトリストの ScrollView 参照（日付選択時の自動スクロールに使用） */
   const scrollViewRef = useRef<ScrollView | null>(null);
+  /** 各シフトの Y 座標位置を記録する辞書（自動スクロール用） */
   const shiftPositionsRef = useRef<Record<string, number>>({});
+  /** パスワード変更モーダルの表示フラグ */
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // MD3 theme hooks
+  // --- Theme / Style ---
   const theme = useMD3Theme();
   const bp = useBreakpoint();
+  /** テーマとブレークポイントが変わった時だけスタイルを再生成 */
   const styles = useMemo(
     () => createShiftListViewStyles(theme, bp),
     [theme, bp]
   );
 
-  // シフト確定ボタン用の状態
+  // --- シフト確定ボタン用の状態 ---
+  /** アクティブな提出期間 */
   const [period, setPeriod] = useState<ShiftSubmissionPeriod | null>(null);
+  /** ユーザーがシフト確定済みかどうか */
   const [isCompleted, setIsCompleted] = useState(false);
+  /** シフト確定確認モーダルの表示フラグ */
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // 画面がフォーカスされた時にデータを更新
-  // 初回マウント時のfetchはuseShift内のuseEffectで実行されるため不要
+  // --- Effects ---
+  /**
+   * 画面がフォーカスされた時にシフトデータを再取得する。
+   * 初回マウント時の fetch は useShift 内の useEffect で実行されるため不要。
+   */
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchShifts();
@@ -82,6 +122,7 @@ export const UserShiftList = () => {
     }
   }, [user?.storeId]);
 
+  /** アクティブな提出期間と確定状況をロードする */
   const loadActivePeriod = async () => {
     try {
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(
@@ -104,6 +145,11 @@ export const UserShiftList = () => {
     }
   };
 
+  // --- Handlers ---
+  /**
+   * シフト確定ボタン押下時のハンドラ。
+   * 確定済みなら取り消し確認、未確定なら確認モーダルを表示する。
+   */
   const handleShiftConfirm = () => {
     if (isCompleted) {
       // 確定済みの場合は取り消しを確認
@@ -137,6 +183,7 @@ export const UserShiftList = () => {
     }
   };
 
+  /** シフト確定を実行する（確認モーダルで「決定」を押した時） */
   const handleConfirmComplete = async () => {
     try {
       const canConfirm = user?.uid && user?.storeId && period?.id;
@@ -177,7 +224,11 @@ export const UserShiftList = () => {
     setSelectedShiftId(null);
   };
 
-  // 月ごとにシフトをグループ化
+  // --- 派生データ ---
+  /**
+   * 現在表示中の月に該当するシフトを抽出してソートする。
+   * useMemo で shifts / displayMonth / user が変わった時だけ再計算する。
+   */
   const monthlyShifts = useMemo(() => {
     if (!displayMonth || !user) {
       return [];
@@ -228,6 +279,10 @@ export const UserShiftList = () => {
     }, 120);
   }, [selectedDate, monthlyShifts]);
 
+  /**
+   * カレンダーの日付タップ時のハンドラ。
+   * 同じ日付を再タップすると選択解除。別の月の日付なら月を切り替える。
+   */
   const handleDayPress = (day: { dateString: string }) => {
     // 同じ日付をもう一度押したときに選択を解除
     if (selectedDate === day.dateString) {
@@ -251,6 +306,7 @@ export const UserShiftList = () => {
       setSelectedDate(day.dateString);
     }
   };
+  /** シフト編集画面に遷移する。classes は JSON 文字列でパラメータに渡す */
   const handleShiftEdit = (shift: ShiftItem) => {
     router.push({
       pathname: "/(main)/user/shifts/create",
@@ -265,6 +321,10 @@ export const UserShiftList = () => {
     });
   };
 
+  /**
+   * シフト行タップ時のハンドラ。
+   * 承認済みなら操作選択モーダルを表示、それ以外は直接編集画面へ遷移する。
+   */
   const handleShiftPress = (shift: ShiftItem) => {
     if (shift.status === "approved") {
       setModalShift(shift);
@@ -288,29 +348,34 @@ export const UserShiftList = () => {
     setModalVisible(false);
   };
 
+  // --- Render 準備 ---
+  /** タブレットの場合は中央に 80% 幅で表示、それ以外はフル幅 */
   const containerStyle = bp.isTablet
     ? styles.tabletContainer
     : styles.defaultContainer;
 
-  // サブヘッダー用の月ナビゲーション
+  /** サブヘッダーに表示する「yyyy年M月」ラベル */
   const subHeaderLabel = useMemo(() => {
     const d = new Date(currentMonth + "-01");
     const validDate = Number.isNaN(d.getTime()) ? new Date() : d;
     return `${validDate.getFullYear()}年${validDate.getMonth() + 1}月`;
   }, [currentMonth]);
 
+  /** 前月に移動するハンドラ */
   const handlePrevMonth = useCallback(() => {
     const d = new Date(currentMonth + "-01");
     d.setMonth(d.getMonth() - 1);
     handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
   }, [currentMonth]);
 
+  /** 次月に移動するハンドラ */
   const handleNextMonth = useCallback(() => {
     const d = new Date(currentMonth + "-01");
     d.setMonth(d.getMonth() + 1);
     handleMonthChange({ dateString: format(d, "yyyy-MM-dd") });
   }, [currentMonth]);
 
+  // --- Render ---
   return (
     <>
       <View style={containerStyle}>

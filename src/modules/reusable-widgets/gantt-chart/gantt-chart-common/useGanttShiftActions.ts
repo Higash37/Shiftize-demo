@@ -1,3 +1,14 @@
+/** @file useGanttShiftActions.ts
+ *  @description シフトの保存・削除・ステータス更新を行うカスタムフック。
+ *    ガントチャートのモーダルから呼ばれるCRUD操作をまとめている。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: ServiceProvider（Firebaseアクセス）, shiftHistoryLogger（監査ログ）
+// - importされる先: GanttChartMonthView（saveShift, deleteShift, updateShiftStatus を使う）
+// - 役割: シフトの「追加」「編集」「削除」「ステータス変更」をビジネスロジックとしてまとめる。
+//   コンポーネントから DB 操作を切り離して再利用しやすくする「カスタムフック」パターン。
+
 import { useCallback, useRef } from "react";
 import {
   ShiftItem,
@@ -8,6 +19,7 @@ import { ServiceProvider } from "@/services/ServiceProvider";
 import { AuthError } from "@/common/common-errors/AppErrors";
 import { createActor } from "@/services/shift-history/shiftHistoryLogger";
 
+// UseGanttShiftActionsProps: このフックに渡すオプション
 export interface UseGanttShiftActionsProps {
   user: { uid: string; storeId?: string; nickname?: string; role?: string } | null;
   users?: Array<{ uid: string; color?: string; nickname?: string }>;
@@ -21,7 +33,8 @@ export function useGanttShiftActions({
   onShiftUpdate,
   refreshPage,
 }: UseGanttShiftActionsProps) {
-  // 保存処理中のフラグ（重複防止）
+  // useRef で「保存処理中」フラグを管理。useState と違い、値を変えても再レンダリングされない。
+  // ボタン連打で二重保存されるのを防ぐ「排他制御」に使う。
   const savingRef = useRef(false);
 
   const buildActor = useCallback(() => createActor(user), [user]);

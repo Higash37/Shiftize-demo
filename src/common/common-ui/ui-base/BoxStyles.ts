@@ -1,12 +1,8 @@
+/** @file BoxStyles.ts @description Boxコンポーネントのテーマ連動スタイル定義 */
 import { StyleSheet, ViewStyle } from "react-native";
 import { MD3Theme } from "../../common-theme/md3/MD3Theme.types";
 import { BoxStyleName } from "./BoxTypes";
 
-/**
- * Box コンポーネントのスタイルファクトリ
- *
- * useThemedStyles と組み合わせて使用し、テーマ変更時に自動再生成される。
- */
 export const createBoxStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     base: {

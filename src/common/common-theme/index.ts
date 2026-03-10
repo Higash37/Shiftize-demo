@@ -1,18 +1,44 @@
 /**
- * レガシー互換: Theme オブジェクト
+ * @file index.ts (common-theme)
+ * @description テーマシステム全体の公開エントリーポイント。
  *
- * 1ファイル (SettingsBackupView.styles.ts) が使用。
- * MD3カラーから導出。
+ * 【このファイルの位置づけ】
+ * - common/common-theme/ のルートindex
+ * - レガシーテーマ（Theme オブジェクト）を外部に公開する
+ * - 新しいMD3テーマは md3/index.ts から直接インポートする
  *
- * 新規コードでは `useMD3Theme()` を使用してください。
+ * 【レガシー vs 新規の使い分け】
+ * - レガシー: `import { Theme } from "@/common/common-theme"` → 古いコード向け
+ * - 新規:    `import { useMD3Theme } from "@/common/common-theme/md3"` → 推奨
+ *
  * @deprecated 段階的に useMD3Theme() へ移行
  */
 import { lightColorScheme } from "./md3/MD3Colors";
 import { md3Shape } from "./md3/MD3Shape";
 import { md3Spacing } from "./md3/MD3Spacing";
 
+/**
+ * cs → lightColorScheme の短縮エイリアス
+ * 以下のThemeオブジェクト内で繰り返し参照するため、短い変数名にしている
+ */
 const cs = lightColorScheme;
 
+/**
+ * Theme オブジェクト - レガシー互換用のテーマ定義
+ *
+ * SettingsBackupView.styles.ts など1ファイルが使用している。
+ * MD3カラーシステムから値を導出しているため、MD3側の変更が自動的に反映される。
+ *
+ * 【Material Design 3 の色の意味】
+ * - primary:        アプリの主要色。ボタンやアクティブ要素に使う
+ * - secondary:      補助色。副次的なUI要素に使う
+ * - surface:        カードや背景の色
+ * - onSurface:      surface上のテキストやアイコンの色
+ * - onSurfaceVariant: surface上の補助テキストの色
+ * - outlineVariant: 境界線やセパレータの色
+ * - error:          エラー状態を示す色（赤系）
+ * - success:        成功状態を示す色（緑系、MD3拡張）
+ */
 export const Theme = {
   colors: {
     primary: cs.primary,

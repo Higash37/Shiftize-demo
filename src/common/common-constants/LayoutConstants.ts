@@ -1,3 +1,9 @@
+/**
+ * @file LayoutConstants.ts
+ * @description パディング・角丸などレイアウト関連の定数定義
+ */
+
+/** レイアウト定数の型 */
 export type LayoutType = {
   padding: {
     small: number;

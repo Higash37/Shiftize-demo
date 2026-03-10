@@ -1,3 +1,9 @@
+/**
+ * @file home-view-styles.ts
+ * @description ホーム画面のガントチャート・日付ナビゲーション・セル表示で使われるスタイル定義。
+ *   MD3テーマ（Material Design 3）を受け取り、テーマに応じたスタイルを動的に生成する。
+ *   useThemedStyles フックから呼ばれる。
+ */
 import { StyleSheet } from "react-native";
 import { MD3Theme } from "@/common/common-theme/md3/MD3Theme.types";
 import { SUB_HEADER_HEIGHT } from "@/common/common-ui/ui-navigation/DateNavigator";

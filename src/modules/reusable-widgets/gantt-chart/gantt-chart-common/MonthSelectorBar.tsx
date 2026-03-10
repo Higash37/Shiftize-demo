@@ -1,3 +1,15 @@
+/** @file MonthSelectorBar.tsx
+ *  @description ガントチャート上部のツールバー。
+ *    年月ナビゲーション、色モード切替、ビュー切替、印刷、一括承認、更新、履歴、
+ *    自動配置、期間設定など、マスター画面の操作ボタンを集約する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: PrintButton, ColorToggleButton, ViewToggleButton, UnifiedButtonStyles, PeriodSettingModal
+// - importされる先: GanttChartMonthView（ガントチャートの親）
+// - 役割: ガントチャート上部の「ツールバー」。左ゾーン（金額・時間）、
+//   中央ゾーン（年月ナビ）、右ゾーン（アクションボタン）の3分割レイアウト。
+
 import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -14,6 +26,8 @@ import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { ShiftSelectionContext } from "./components";
 import { DateNavigator } from "@/common/common-ui/ui-navigation/DateNavigator";
 
+// MonthSelectorBarProps: ツールバーが受け取る全プロパティ。
+// ほとんどが省略可能（?）で、デバイスタイプやビューモードに応じて表示を切り替える。
 interface MonthSelectorBarProps {
   selectedDate: Date;
   onPrevMonth: () => void;

@@ -1,3 +1,5 @@
+/** @file SupabaseMultiStoreAdapter.ts @description 複数店舗管理（招待・切替・連携）のSupabase実装 */
+
 import type {
   IMultiStoreService,
   StoreInfo,
@@ -10,7 +12,9 @@ import * as Crypto from "expo-crypto";
 import { PermissionError, NotFoundError, ValidationError } from "@/common/common-errors/AppErrors";
 import type { UserRole } from "@/common/common-models/model-user/UserModel";
 
+/** 複数店舗サービスのSupabase実装 */
 export class SupabaseMultiStoreAdapter implements IMultiStoreService {
+  /** ユーザーの店舗アクセス情報を取得する */
   async getUserStoreAccess(userUid: string): Promise<UserStoreAccess | null> {
     const supabase = getSupabase();
     const { data } = await supabase
@@ -30,6 +34,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     };
   }
 
+  /** ユーザーを店舗に招待する */
   async inviteUserToStore(
     inviterUid: string,
     inviterStoreId: string,
@@ -101,6 +106,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("uid", userUid);
   }
 
+  /** 現在の操作対象店舗を切り替える */
   async switchCurrentStore(userUid: string, storeId: string): Promise<void> {
     const supabase = getSupabase();
     const userAccess = await this.getUserStoreAccess(userUid);
@@ -131,6 +137,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("uid", userUid);
   }
 
+  /** 全店舗一覧を取得する */
   async getAllStores(): Promise<StoreInfo[]> {
     const supabase = getSupabase();
     const { data } = await supabase.from("stores").select("*");
@@ -145,6 +152,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     }));
   }
 
+  /** ユーザーを店舗から削除する */
   async removeUserFromStore(
     removerUid: string,
     targetUserUid: string,
@@ -180,6 +188,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     }
   }
 
+  /** 旧形式ユーザーをマルチストア対応形式に移行する */
   async migrateLegacyUser(userUid: string): Promise<void> {
     const supabase = getSupabase();
 
@@ -217,6 +226,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     });
   }
 
+  /** 店舗連携用の一時パスワードを生成する（24時間有効） */
   async generateConnectionPassword(storeId: string, _userUid: string): Promise<string> {
     const supabase = getSupabase();
     // 暗号学的に安全な乱数でパスワード生成
@@ -241,6 +251,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     return password;
   }
 
+  /** パスワード認証で2つの店舗を連携する */
   async connectStores(
     fromStoreId: string,
     toStoreId: string,
@@ -333,6 +344,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
       .eq("uid", userUid);
   }
 
+  /** 2つの店舗の連携を解除する */
   async disconnectStores(
     storeId1: string,
     storeId2: string,
@@ -375,6 +387,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     await this.updateUsersConnectedStores(storeId1, storeId2, "disconnect");
   }
 
+  /** 連携店舗のユーザー一覧を取得する */
   async getConnectedStoreUsers(storeId: string): Promise<ConnectedStoreUser[]> {
     const supabase = getSupabase();
 
@@ -419,6 +432,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     return allUsers;
   }
 
+  /** ユーザーがアクセス可能な店舗一覧を取得する */
   async getConnectedStores(userUid: string): Promise<StoreInfo[]> {
     const userAccess = await this.getUserStoreAccess(userUid);
     if (!userAccess?.storesAccess) return [];
@@ -453,6 +467,7 @@ export class SupabaseMultiStoreAdapter implements IMultiStoreService {
     return stores;
   }
 
+  /** 店舗連携/解除に伴いユーザーのconnected_storesを更新する */
   async updateUsersConnectedStores(
     storeId1: string,
     storeId2: string,

@@ -1,3 +1,15 @@
+/** @file GanttChartRow.tsx
+ *  @description ガントチャートの「1行」を描画するコンポーネント。
+ *    左に日付セル、中央にシフトバー（または空セル）、右に情報セルを配置する。
+ *    同じ日付の行が複数ある場合は、日付セルを縦に結合して表示する。
+ */
+
+// 【このファイルの位置づけ】
+// - import元: components.tsx（DateCell, GanttChartGrid, EmptyCell等の部品）
+// - importされる先: GanttChartBody（FlatListのrenderItemから呼ばれる）
+// - 関係: GanttChartBody → GanttChartRow → DateCell + GanttChartGrid + GanttChartInfo
+// - 役割: 1日分の行を「シフトあり」と「シフトなし」で分岐して描画する。
+
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import {
@@ -13,33 +25,34 @@ import {
 } from "./components";
 import { getDateBackgroundColor } from "@/common/common-utils/date/dateUtils";
 
+// GanttChartRowProps: 1行分の描画に必要な情報すべて
 interface GanttChartRowProps {
-  date: string;
-  group: ShiftItem[];
-  dateColumnWidth: number;
-  ganttColumnWidth: number;
-  infoColumnWidth: number;
-  cellWidth: number;
-  halfHourLines: string[];
-  isClassTime: (time: string) => boolean;
-  getStatusConfig: (status: string) => ShiftStatusConfig;
-  handleShiftPress: (shift: ShiftItem) => void;
-  handleEmptyCellClick: (date: string, position: number) => void;
+  date: string;                    // この行の日付 ("2025-01-15")
+  group: ShiftItem[];              // この行に表示するシフトの配列（空なら空白行）
+  dateColumnWidth: number;         // 日付列の幅（px）
+  ganttColumnWidth: number;        // ガントチャート列の幅（px）
+  infoColumnWidth: number;         // 情報列の幅（px）
+  cellWidth: number;               // 30分あたりのセル幅（px）
+  halfHourLines: string[];         // 30分刻みの時間ラベル配列 ["9:00","9:30","10:00",...]
+  isClassTime: (time: string) => boolean;  // その時間が授業時間帯かどうか判定する関数
+  getStatusConfig: (status: string) => ShiftStatusConfig; // ステータス→設定オブジェクト変換
+  handleShiftPress: (shift: ShiftItem) => void;   // シフトバータップ時のコールバック
+  handleEmptyCellClick: (date: string, position: number) => void; // 空白クリック時のコールバック
   onTimeChange?: (
     shiftId: string,
     newStartTime: string,
     newEndTime: string
   ) => void;
-  styles: ReturnType<typeof StyleSheet.create>;
-  userColorsMap: Record<string, string>;
-  users?: Array<{ uid: string; role: string; nickname: string }>; // ユーザー情報を追加
-  statusStyles?: (status: ShiftStatus) => {
+  styles: ReturnType<typeof StyleSheet.create>;    // ReturnType<typeof X> は「Xの戻り値の型」を取得するTypeScript構文
+  userColorsMap: Record<string, string>;           // Record<K, V> は「キーがK型、値がV型」のオブジェクト型。ここではuserID→色のマッピング。
+  users?: Array<{ uid: string; role: string; nickname: string }>;
+  statusStyles?: (status: ShiftStatus) => {        // 省略可能な関数型プロパティ
     borderColor: string;
     color: string;
   };
-  isFirstInGroup?: boolean; // 同じ日付の最初の行かどうか
-  groupSize?: number; // 同じ日付の総行数
-  colorMode?: "status" | "user"; // 色表示モード
+  isFirstInGroup?: boolean; // 同じ日付の最初の行かどうか（日付セルの結合表示に使う）
+  groupSize?: number;       // 同じ日付の総行数（日付セルの高さ計算に使う）
+  colorMode?: "status" | "user";
 }
 
 export { GanttChartRowProps };

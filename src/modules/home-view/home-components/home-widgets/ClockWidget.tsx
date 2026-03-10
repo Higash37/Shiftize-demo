@@ -1,3 +1,22 @@
+/**
+ * @file ClockWidget.tsx
+ * @description アナログ時計ウィジェット。SVG で時計盤を描画し、スタッフのシフト時間を
+ *   円弧（アーク）で可視化する。AM/PM の切り替えにも対応。
+ *
+ * 【このファイルの位置づけ】
+ *   home-view > home-components > home-widgets 配下のウィジェット。
+ *   HomeGanttMobileScreen / HomeGanttTabletScreen / HomeGanttWideScreen で使われる。
+ *
+ * 主な内部ロジック:
+ *   - SVG の円弧パス生成（describeArc）
+ *   - 現在時刻の針の角度計算
+ *   - AM/PM トグルで表示時間帯を切り替え
+ *   - Platform 分岐: Web は <svg> タグ、ネイティブは react-native-svg
+ *
+ * 主要Props:
+ *   - shifts: 表示するシフト配列
+ *   - size: 時計盤のサイズ(px)
+ */
 import React, { useEffect, useState } from "react";
 import {
   View,
