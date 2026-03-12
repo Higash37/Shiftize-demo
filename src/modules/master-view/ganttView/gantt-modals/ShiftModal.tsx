@@ -117,7 +117,7 @@ export const ShiftModal: React.FC<ShiftModalProps> = ({
         );
         setConnectedStoreUsers(users);
       } catch (error) {
-        console.warn("連携校舎ユーザーの取得に失敗しました:", error);
+        // 連携校舎ユーザーの取得失敗は無視
       }
     };
 

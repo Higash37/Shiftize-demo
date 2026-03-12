@@ -78,7 +78,6 @@ export class SupabaseUserAdapter implements IUserService {
 
     const { data, error } = await query;
     if (error) {
-      console.error("checkMasterExists error:", error);
       throw error;
     }
 

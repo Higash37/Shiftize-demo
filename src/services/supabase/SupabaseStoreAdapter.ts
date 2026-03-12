@@ -233,10 +233,7 @@ export class SupabaseStoreAdapter implements IStoreService {
     } catch (error: any) {
       // Auth作成済みだがDB挿入失敗した場合は孤児ユーザー警告
       if (createdAdminUid) {
-        console.warn(
-          `createGroup failed after Auth user creation. Orphan user ID: ${createdAdminUid}. ` +
-          `Cleanup via admin API or DB trigger recommended.`
-        );
+        // createGroup failed after Auth user creation - orphan user may exist
       }
 
       let errorMessage = "グループの作成に失敗しました";

@@ -82,7 +82,6 @@ export default function MasterNextMonthShiftScreen() {
         duration: durationHours,
       });
     } catch (error) {
-      console.error("Failed to update shift time", error);
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
     }
   };
@@ -135,7 +134,6 @@ export default function MasterNextMonthShiftScreen() {
         });
       }
     } catch (error) {
-      console.error("Failed to save shift", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
       throw error;
     }

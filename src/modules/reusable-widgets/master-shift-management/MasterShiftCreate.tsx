@@ -144,7 +144,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         );
         setConnectedStoreUsers(connectedUsers);
       } catch (error) {
-        console.warn("連携校舎ユーザーの取得に失敗しました:", error);
+        // 連携校舎ユーザーの取得失敗は無視
       }
     };
 
@@ -176,7 +176,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
           });
         }
       } catch (error) {
-        console.warn("シフトデータの取得に失敗しました:", error);
+        // シフトデータの取得失敗は無視（ローディング終了で処理）
       } finally {
         setIsLoading(false);
       }

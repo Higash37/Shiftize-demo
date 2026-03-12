@@ -127,11 +127,10 @@ export class SupabaseQuickShiftTokenAdapter implements IQuickShiftTokenService {
       });
 
       if (rpcError) {
-        console.error("record_token_usage RPC failed:", rpcError.message);
         throw new Error("トークン使用記録に失敗しました。DB関数 record_token_usage が未定義の可能性があります。");
       }
-    } catch (error) {
-      console.error("Failed to record token usage:", error);
+    } catch {
+      // トークン使用記録の失敗は業務処理をブロックしない
     }
   }
 

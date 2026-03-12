@@ -272,7 +272,7 @@ export const logShiftChange = async (
   try {
     // 店舗IDがない場合はログ記録をスキップ
     if (!storeId) {
-      console.warn("logShiftChange: storeId is missing, skipping history log");
+      // storeId missing - skip history log
       return;
     }
 
@@ -347,13 +347,9 @@ export const logShiftChange = async (
       next_snapshot: entry.nextSnapshot || null,  // 変更後スナップショット（JSONBカラム）
     });
 
-    if (error) {
-      // ログ記録の失敗は業務処理をブロックしない（エラーログのみ）
-      console.error("Shift history logging failed:", error.message);
-    }
-  } catch (error: any) {
-    // try-catch全体で囲むことで、ログ記録の失敗がシフト操作に影響しないようにする
-    console.error("Shift history logging failed:", error);
+    // ログ記録の失敗は業務処理をブロックしない
+  } catch {
+    // ログ記録の失敗がシフト操作に影響しないようにする
   }
 };
 

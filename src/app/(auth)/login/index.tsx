@@ -140,7 +140,6 @@ export default function Login() {
         router.replace(getDefaultHomeRoute(result.role));
       }
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage(
         "ログインに失敗しました。メールアドレス・ニックネームまたはパスワードが違います"
       );

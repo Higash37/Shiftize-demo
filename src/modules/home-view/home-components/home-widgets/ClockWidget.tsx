@@ -46,7 +46,7 @@ if (Platform.OS === "web") {
     Line = svgModule.Line;
     Path = svgModule.Path;
   } catch (e) {
-    console.warn("react-native-svg not available");
+    // react-native-svg not available
   }
 }
 

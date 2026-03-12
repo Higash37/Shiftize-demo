@@ -72,24 +72,18 @@ export const useUser = (storeId?: string) => {
       setError(null);
 
       if (!nickname) {
-        console.error("❌ [useUser.addUser] Validation failed: No nickname");
         throw new Error("ニックネームを入力してください");
       }
       if (password.length < 6) {
-        console.error(
-          "❌ [useUser.addUser] Validation failed: Password too short",
-        );
         throw new Error("パスワードは6文字以上で入力してください");
       }
       if (!storeId) {
-        console.error("❌ [useUser.addUser] Validation failed: No storeId");
         throw new Error("店舗IDを入力してください");
       }
 
       if (role === "master") {
         const hasMaster = await ServiceProvider.users.checkMasterExists(storeId);
         if (hasMaster) {
-          console.error("❌ [useUser.addUser] Master user already exists");
           throw new Error("マスターユーザーは既に存在します");
         }
       }
@@ -115,10 +109,6 @@ export const useUser = (storeId?: string) => {
       try {
         const emailExists = await ServiceProvider.users.checkEmailExists(userEmail, storeId);
         if (emailExists) {
-          console.error(
-            "❌ [useUser.addUser] Email already exists:",
-            userEmail,
-          );
           throw new Error(
             email
               ? "このメールアドレスは既に使用されています"
@@ -127,9 +117,6 @@ export const useUser = (storeId?: string) => {
         }
       } catch (emailCheckError: any) {
         if (emailCheckError.message === "Query timeout after 10 seconds") {
-          console.warn(
-            "⚠️ [useUser.addUser] Email check timed out, proceeding anyway",
-          );
           // タイムアウトの場合は処理を継続（重複の可能性はあるがSupabase Authでエラーになる）
         } else {
           throw emailCheckError;
@@ -151,8 +138,6 @@ export const useUser = (storeId?: string) => {
       await fetchUsers();
       return newUser;
     } catch (err: any) {
-      console.error("❌ [useUser.addUser] Error occurred:", err);
-
       const errorMessage =
         err.code === "auth/weak-password"
           ? "パスワードは6文字以上で入力してください"
@@ -164,7 +149,6 @@ export const useUser = (storeId?: string) => {
           ? "このプロジェクトでメール認証が無効になっています"
           : err.message || "ユーザーの作成に失敗しました";
 
-      console.error("❌ [useUser.addUser] Final error message:", errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

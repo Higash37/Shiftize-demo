@@ -160,9 +160,6 @@ export const useShift = (storeId?: string) => {
       );
       await fetchShifts(); // 作成後にデータを即時再取得（UI更新）
     } catch (err) {
-      if (__DEV__) {
-        console.error("シフト作成エラー:", err);
-      }
       throw err; // 呼び出し元にエラーを伝播
     }
   };
@@ -202,9 +199,6 @@ export const useShift = (storeId?: string) => {
       );
       await fetchShifts(); // 編集後にデータを即時再取得
     } catch (err) {
-      if (__DEV__) {
-        console.error("シフト編集エラー:", err);
-      }
       throw err;
     }
   };
@@ -227,9 +221,6 @@ export const useShift = (storeId?: string) => {
       );
       await fetchShifts(); // 削除後にデータを即時再取得
     } catch (err) {
-      if (__DEV__) {
-        console.error("シフト削除エラー:", err);
-      }
       throw err;
     }
   };
@@ -250,9 +241,6 @@ export const useShift = (storeId?: string) => {
       );
       await fetchShifts(); // 承認後にデータを即時再取得
     } catch (err) {
-      if (__DEV__) {
-        console.error("シフト承認エラー:", err);
-      }
       throw err;
     }
   };
@@ -278,9 +266,6 @@ export const useShift = (storeId?: string) => {
       );
       await fetchShifts(); // ステータス更新後にデータを即時再取得
     } catch (err) {
-      if (__DEV__) {
-        console.error("シフトステータス更新エラー:", err);
-      }
       throw err;
     }
   };

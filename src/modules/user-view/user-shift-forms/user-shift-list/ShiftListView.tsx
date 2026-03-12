@@ -140,8 +140,8 @@ export const UserShiftList = () => {
           );
         setIsCompleted(isConfirmed);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
+      // 期間ロード失敗は無視
     }
   };
 
@@ -170,8 +170,7 @@ export const UserShiftList = () => {
                 );
                 setIsCompleted(false);
               }
-            } catch (error) {
-              console.error(error);
+            } catch {
               Alert.alert("エラー", "取り消しに失敗しました");
             }
           },
@@ -196,8 +195,7 @@ export const UserShiftList = () => {
         setIsCompleted(true);
         setShowConfirmModal(false);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
       Alert.alert("エラー", "確定に失敗しました");
     }
   };
