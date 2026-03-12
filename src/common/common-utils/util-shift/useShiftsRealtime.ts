@@ -82,9 +82,6 @@ export const useShiftsRealtime = (storeId?: string) => {
             setLoading(false);
           },
           (err) => {
-            if (__DEV__) {
-              console.error("Realtime shift error:", err);
-            }
             setError(err);
             setLoading(false);
           }
@@ -116,9 +113,6 @@ export const useShiftsRealtime = (storeId?: string) => {
         setLoading(false);
       },
       (err) => {
-        if (__DEV__) {
-          console.error("Realtime shift error:", err);
-        }
         setError(err);
         setLoading(false);
       }

@@ -187,14 +187,14 @@ const recordAuditLog = async (
 const syncCalendar = (shift: Shift & { id: string }) => {
   ServiceProvider.googleCalendar
     .syncShiftToCalendar(shift)
-    .catch((err) => console.warn("Google Calendar同期に失敗しました:", err));
+    .catch(() => {/* Google Calendar同期失敗は無視 */});
 };
 
 /** Google Calendar からシフトを削除する（fire-and-forget）。 */
 const removeFromCalendar = (shiftId: string, eventId: string) => {
   ServiceProvider.googleCalendar
     .removeShiftFromCalendar(shiftId, eventId)
-    .catch((err) => console.warn("Google Calendarイベント削除に失敗しました:", err));
+    .catch(() => {/* Google Calendarイベント削除失敗は無視 */});
 };
 
 /** シフトサービスのSupabase実装 */

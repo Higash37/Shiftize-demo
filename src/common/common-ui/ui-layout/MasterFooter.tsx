@@ -170,7 +170,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
       );
       setPeriod(periods?.[0] ?? null);
     } catch (error) {
-      console.warn("Failed to load active period:", error);
+      // 期間ロード失敗は無視
     }
   };
 

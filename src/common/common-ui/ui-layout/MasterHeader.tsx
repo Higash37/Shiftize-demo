@@ -101,7 +101,7 @@ export function MasterHeader({
           );
         }
       } catch (error) {
-        console.warn("Failed to fetch user store access:", error);
+        // 店舗アクセス取得失敗時はstoreIdにフォールバック
         setCurrentStoreInfo(user?.storeId || "");
       }
     };
@@ -123,7 +123,7 @@ export function MasterHeader({
       await ServiceProvider.auth.signOut();
       router.replace("/(auth)/login");
     } catch (error) {
-      console.error("Error signing out:", error);
+      // サインアウトエラーは無視
     }
   };
 
@@ -150,7 +150,6 @@ export function MasterHeader({
         ]
       );
     } catch (error) {
-      console.error("Error switching store:", error);
       Alert.alert("エラー", "店舗の切り替えに失敗しました");
     }
   };
@@ -326,7 +325,7 @@ export function MasterHeader({
                 );
                 setUserStoreAccess(storeAccess);
               } catch (error) {
-                console.error("Error reloading store access:", error);
+                // 店舗アクセス再読み込みエラーは無視
               }
             };
             fetchUserStoreAccess();

@@ -81,7 +81,6 @@ export function useZodForm<T extends z.ZodSchema>(schema: T) {
         await onSubmit(formData);
       }
     } catch (error) {
-      console.error("Form submission error:", error);
       setErrors({
         _submit: error instanceof Error ? error.message : "Submission failed",
       });

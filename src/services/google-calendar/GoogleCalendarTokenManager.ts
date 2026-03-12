@@ -124,7 +124,6 @@ export class GoogleCalendarTokenManager {
 
     // リフレッシュ失敗時（トークン無効化、ネットワークエラー等）
     if (error || !data?.access_token) {
-      console.warn("Google token refresh failed:", error);
       return null;
     }
 

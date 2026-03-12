@@ -279,7 +279,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       refetch();
       Alert.alert("成功", "シフトを更新しました");
     } catch (error) {
-      console.error("Failed to save shift", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
     } finally {
       setIsLoading(false);
@@ -298,7 +297,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
       refetch();
       Alert.alert("成功", "シフトを削除しました");
     } catch (error) {
-      console.error("Failed to delete shift", error);
       Alert.alert("エラー", "シフトの削除に失敗しました");
     } finally {
       setIsLoading(false);

@@ -149,11 +149,9 @@ export class SupabaseAuditAdapter implements IAuditService {
       const supabase = getSupabase();
       const { error } = await supabase.from("shift_change_logs").insert(row);
 
-      if (error) {
-        console.error("Shift history logging failed:", error);
-      }
-    } catch (error) {
-      console.error("Shift history logging failed:", error);
+      // ログ記録の失敗は業務処理をブロックしない
+    } catch {
+      // ログ記録の失敗は業務処理をブロックしない
     }
   }
 

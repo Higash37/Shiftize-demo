@@ -257,7 +257,6 @@ export class AESEncryption {
       // 本来は safeStringCompare() を使うべき
       return hash === inputHash.toString();
     } catch (error) {
-      console.warn("Password verification failed:", error);
       return false;
     }
   }

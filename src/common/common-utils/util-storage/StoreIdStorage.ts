@@ -44,10 +44,6 @@ export const StoreIdStorage = {
       // AsyncStorage.setItem → キーと値のペアを保存
       await AsyncStorage.setItem(STORE_ID_KEY, storeId);
     } catch (err) {
-      // __DEV__ → 開発環境フラグ。本番環境ではログを出力しない
-      if (__DEV__) {
-        console.error("Failed to save store ID:", err);
-      }
       throw err; // 呼び出し元にエラーを伝播
     }
   },
@@ -67,9 +63,6 @@ export const StoreIdStorage = {
       const storeId = await AsyncStorage.getItem(STORE_ID_KEY);
       return storeId;
     } catch (err) {
-      if (__DEV__) {
-        console.error("Failed to get store ID:", err);
-      }
       return null; // エラー時は null を返す（アプリを止めない）
     }
   },
@@ -86,9 +79,6 @@ export const StoreIdStorage = {
       // AsyncStorage.removeItem → 指定キーのデータを削除
       await AsyncStorage.removeItem(STORE_ID_KEY);
     } catch (err) {
-      if (__DEV__) {
-        console.error("Failed to clear store ID:", err);
-      }
       throw err;
     }
   },

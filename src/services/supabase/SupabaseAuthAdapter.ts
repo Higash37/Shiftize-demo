@@ -179,7 +179,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       if (error) {
         // DB insert失敗時：孤児ユーザーを防ぐためAuth側ユーザーを削除
         try {
-          console.warn(`Auth user ${newUserId} created but DB insert failed. Manual cleanup may be needed.`);
+          // Auth user created but DB insert failed - orphan user may exist
         } catch (_) {}
         throw new Error(`ユーザー情報の保存に失敗しました: ${error.message}`);
       }
@@ -201,7 +201,7 @@ export class SupabaseAuthAdapter implements IAuthService {
       } catch (_) {}
       // signUp済みのAuthユーザーを削除試行（孤児防止）
       if (createdAuthUserId) {
-        console.warn(`Orphan auth user may exist: ${createdAuthUserId}. Consider cleanup via admin API or DB trigger.`);
+        // Orphan auth user may exist - consider cleanup via admin API or DB trigger
       }
       throw new Error(
         `ユーザー作成に失敗しました: ${error.message}`

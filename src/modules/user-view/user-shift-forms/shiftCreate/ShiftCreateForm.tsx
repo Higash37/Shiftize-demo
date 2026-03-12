@@ -217,7 +217,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
               });
             }
           } catch (error) {
-            console.error("Error processing store:", error);
+            // store processing error - skip this store
           }
         }
 
@@ -228,7 +228,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
           setSelectedStoreId(userData.storeId ?? allStores[0]?.storeId ?? "");
         }
       } catch (error) {
-        console.error("Error fetching connected stores:", error);
+        // 連携店舗の取得失敗は無視
       }
     };
 

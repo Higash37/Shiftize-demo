@@ -104,7 +104,6 @@ export const QuickShiftUrlModal: React.FC<QuickShiftUrlModalProps> = ({
       setGeneratedUrl(url);
       Alert.alert("成功", "URLを発行しました");
     } catch (error) {
-      console.error("Error generating URL:", error);
       Alert.alert("エラー", "URL発行に失敗しました");
     } finally {
       setGenerating(false);

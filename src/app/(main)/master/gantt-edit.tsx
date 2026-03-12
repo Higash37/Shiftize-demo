@@ -99,9 +99,6 @@ export default function GanttEditScreen() {
       });
       // リアルタイムリスナーが自動的にUIを更新する
     } catch (error) {
-      console.error("Failed to save shift", error);
-      console.error("Failed to update shift time", error);
-      // Alert.alert: React Native のアラートダイアログ
       Alert.alert("エラー", "シフト時間の変更に失敗しました");
     }
   };
@@ -158,7 +155,6 @@ export default function GanttEditScreen() {
         });
       }
     } catch (error) {
-      console.error("Failed to delete shift", error);
       Alert.alert("エラー", "シフトの保存に失敗しました");
       throw error;  // 呼び出し元にもエラーを伝播
     }

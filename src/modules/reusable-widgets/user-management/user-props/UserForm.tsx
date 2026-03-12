@@ -82,7 +82,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         const hasMasterUser = await ServiceProvider.users.checkMasterExists(currentUser?.storeId);
         setHasMaster(hasMasterUser);
       } catch (err) {
-        console.warn("マスターユーザーの存在チェックに失敗しました:", err);
+        // マスターユーザーの存在チェック失敗は無視
       }
     };
 

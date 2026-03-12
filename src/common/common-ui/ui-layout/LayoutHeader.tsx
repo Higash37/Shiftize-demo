@@ -33,7 +33,7 @@ export function Header({
       await signOut();
       router.replace("/(auth)/login");
     } catch (error) {
-      console.error("Error signing out:", error);
+      // サインアウトエラーは無視（ログイン画面に遷移済み）
     }
   };
 

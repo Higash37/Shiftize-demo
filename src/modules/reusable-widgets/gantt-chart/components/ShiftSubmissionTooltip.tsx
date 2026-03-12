@@ -46,7 +46,7 @@ export const ShiftSubmissionTooltip: React.FC<ShiftSubmissionTooltipProps> = ({
       const periods = await ServiceProvider.shiftSubmissions.getActivePeriods(storeId);
       setPeriod(periods?.[0] ?? null);
     } catch (error) {
-      console.warn("シフト提出期間の取得に失敗しました:", error);
+      // シフト提出期間の取得失敗は無視
     } finally {
       setLoading(false);
     }
