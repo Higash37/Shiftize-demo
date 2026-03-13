@@ -92,7 +92,16 @@ class CSRFTokenManager {
   private static readonly TOKEN_KEY = "csrf_token";
   /** セッションストレージのキー名（有効期限） */
   private static readonly TOKEN_EXPIRY_KEY = "csrf_token_expiry";
-  /** トークンの有効期限（ミリ秒）。BoundaryConstantsから取得 */
+  /**
+   * トークンの有効期限（ミリ秒）。BoundaryConstantsから取得
+   *
+   * ⚠️ セキュリティ制約:
+   * 現在の有効期限は30分に設定されている。以下の制約に注意:
+   * - 30分を超える長時間フォーム入力ではトークンが期限切れになる可能性がある
+   * - トークンはセッションストレージに保存されるため、タブを閉じると消失する
+   * - サーバーサイドでのトークン検証は別途実装が必要（クライアント側のみの防御は不十分）
+   * - 有効期限を短くするとセキュリティは向上するが、UXが低下する（トレードオフ）
+   */
   private static readonly TOKEN_LIFETIME = SECURITY_TIMEOUTS.CSRF_TOKEN_LIFETIME_MS;
 
   /**

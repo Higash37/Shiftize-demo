@@ -150,10 +150,17 @@ export class SupabaseAuthAdapter implements IAuthService {
       const userRole = role || "user";
 
       // 管理者セッションを復元（signUpで新ユーザーにログインされるため）
-      await supabase.auth.setSession({
+      // セキュリティ修正: setSession() のエラーチェックを追加
+      // セッション復元に失敗すると、以降のDB操作が新ユーザーの権限で実行される恐れがある
+      const { error: sessionError } = await supabase.auth.setSession({
         access_token: adminSession.access_token,
         refresh_token: adminSession.refresh_token,
       });
+      if (sessionError) {
+        throw new AuthError(
+          `管理者セッションの復元に失敗しました: ${sessionError.message}`
+        );
+      }
 
       // パスワードハッシュ化
       const { AESEncryption } = await import(

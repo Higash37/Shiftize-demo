@@ -38,6 +38,41 @@ interface ShiftRow {
 /** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
+/**
+ * validateStoreId - store_id のバリデーション（Realtimeフィルタインジェクション対策）
+ *
+ * Supabase Realtimeのフィルタ文字列にstoreIdを直接埋め込むため、
+ * 英数字・ハイフン・アンダースコアのみ許可して不正な文字列の注入を防ぐ。
+ *
+ * @param storeId - 検証する店舗ID
+ * @throws Error 不正な文字が含まれる場合
+ */
+const validateStoreId = (storeId: string): void => {
+  if (!storeId || !/^[a-zA-Z0-9_-]+$/.test(storeId)) {
+    throw new Error(`不正な店舗IDです: store_id に使用できない文字が含まれています`);
+  }
+};
+
+/**
+ * validateRealtimeParams - Realtimeサブスクリプション用パラメータのバリデーション
+ *
+ * storeId, year, month の各パラメータを検証する。
+ * フィルタインジェクション防止のため、Realtime購読前に必ず呼び出す。
+ *
+ * @param storeId - 店舗ID
+ * @param year - 年（オプション）
+ * @param month - 月（オプション、0-11）
+ */
+const validateRealtimeParams = (storeId: string, year?: number, month?: number): void => {
+  validateStoreId(storeId);
+  if (year !== undefined && (!Number.isInteger(year) || year < 2000 || year > 2100)) {
+    throw new Error(`不正な年パラメータです: ${year}`);
+  }
+  if (month !== undefined && (!Number.isInteger(month) || month < 0 || month > 11)) {
+    throw new Error(`不正な月パラメータです: ${month}`);
+  }
+};
+
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   const item: ShiftItem = {
     id: row.id,
@@ -512,6 +547,9 @@ export class SupabaseShiftAdapter implements IShiftService {
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
+    // セキュリティ修正: Realtimeフィルタインジェクション防止のため storeId をバリデーション
+    validateRealtimeParams(storeId);
+
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
@@ -600,6 +638,9 @@ export class SupabaseShiftAdapter implements IShiftService {
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
+    // セキュリティ修正: Realtimeフィルタインジェクション防止のため全パラメータをバリデーション
+    validateRealtimeParams(storeId, year, month);
+
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 

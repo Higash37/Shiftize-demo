@@ -79,9 +79,18 @@ export const AuthResponseSchema = z.object({
     uid: z.string(),
     email: z
       .string()
-      .refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-        message: "Invalid email format",
-      })
+      .refine(
+        (val) =>
+          val === null ||
+          // セキュリティ修正: メール正規表現を強化
+          // - TLD 2文字以上必須（.c のような不正TLDを拒否）
+          // - 連続ドット禁止（user..name@example.com を拒否）
+          // - ローカルパートとドメインの先頭・末尾のドットを禁止
+          /^[^\s@.][^\s@]*[^\s@.]@[^\s@.][^\s@]*(\.[^\s@.]+)*\.[^\s@.]{2,}$/.test(val),
+        {
+          message: "Invalid email format",
+        }
+      )
       .nullable(),              // null を許容（メール未設定の場合）
     displayName: z.string().nullable(), // null を許容
   }),

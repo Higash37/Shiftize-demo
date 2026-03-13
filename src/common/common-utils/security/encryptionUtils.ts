@@ -30,7 +30,7 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import CryptoJS from "crypto-js";
-import { SecurityLogger } from "./securityUtils";
+import { SecurityLogger, safeStringCompare } from "./securityUtils";
 import type { UserRole } from "@/common/common-models/model-user/UserModel";
 
 // ============================================================================
@@ -253,9 +253,10 @@ export class AESEncryption {
         iterations: 100000,
       });
 
-      // ⚠️ この比較は === を使っているため、タイミング攻撃に弱い
-      // 本来は safeStringCompare() を使うべき
-      return hash === inputHash.toString();
+      // セキュリティ修正: タイミング攻撃対策として safeStringCompare() を使用
+      // === 比較は最初に不一致の文字で処理を中断するため、
+      // 攻撃者が処理時間の差から正しいハッシュ値を推測できる
+      return safeStringCompare(hash, inputHash.toString());
     } catch (error) {
       return false;
     }

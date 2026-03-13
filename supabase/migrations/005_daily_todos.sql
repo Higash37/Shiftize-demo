@@ -19,10 +19,16 @@ CREATE INDEX IF NOT EXISTS idx_todo_templates_store
 
 ALTER TABLE todo_templates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "todo_templates_select" ON todo_templates FOR SELECT USING (true);
-CREATE POLICY "todo_templates_insert" ON todo_templates FOR INSERT WITH CHECK (true);
-CREATE POLICY "todo_templates_update" ON todo_templates FOR UPDATE USING (true);
-CREATE POLICY "todo_templates_delete" ON todo_templates FOR DELETE USING (true);
+-- セキュリティ修正: USING(true) はRLSを実質無効化するため、
+-- store_id ベースの認可チェックに変更。同じ店舗のユーザーのみアクセス可能
+CREATE POLICY "todo_templates_select" ON todo_templates FOR SELECT
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "todo_templates_insert" ON todo_templates FOR INSERT
+  WITH CHECK (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "todo_templates_update" ON todo_templates FOR UPDATE
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "todo_templates_delete" ON todo_templates FOR DELETE
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
 
 -- ============================================
 -- Daily Todos テーブル
@@ -59,10 +65,16 @@ CREATE INDEX IF NOT EXISTS idx_daily_todos_store_date
 
 ALTER TABLE daily_todos ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "daily_todos_select" ON daily_todos FOR SELECT USING (true);
-CREATE POLICY "daily_todos_insert" ON daily_todos FOR INSERT WITH CHECK (true);
-CREATE POLICY "daily_todos_update" ON daily_todos FOR UPDATE USING (true);
-CREATE POLICY "daily_todos_delete" ON daily_todos FOR DELETE USING (true);
+-- セキュリティ修正: USING(true) はRLSを実質無効化するため、
+-- store_id ベースの認可チェックに変更。同じ店舗のユーザーのみアクセス可能
+CREATE POLICY "daily_todos_select" ON daily_todos FOR SELECT
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "daily_todos_insert" ON daily_todos FOR INSERT
+  WITH CHECK (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "daily_todos_update" ON daily_todos FOR UPDATE
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
+CREATE POLICY "daily_todos_delete" ON daily_todos FOR DELETE
+  USING (store_id IN (SELECT store_id FROM users WHERE uid = auth.uid()::text));
 
 -- ============================================
 -- Todo コメントテーブル
@@ -83,6 +95,24 @@ CREATE INDEX IF NOT EXISTS idx_todo_comments_todo_id
 
 ALTER TABLE todo_comments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "todo_comments_select" ON todo_comments FOR SELECT USING (true);
-CREATE POLICY "todo_comments_insert" ON todo_comments FOR INSERT WITH CHECK (true);
-CREATE POLICY "todo_comments_delete" ON todo_comments FOR DELETE USING (true);
+-- セキュリティ修正: USING(true) はRLSを実質無効化するため、
+-- todo_id 経由で store_id ベースの認可チェックに変更。
+-- コメントの親となる daily_todos の store_id を参照して同店舗のユーザーのみアクセス可能
+CREATE POLICY "todo_comments_select" ON todo_comments FOR SELECT
+  USING (todo_id IN (
+    SELECT id FROM daily_todos WHERE store_id IN (
+      SELECT store_id FROM users WHERE uid = auth.uid()::text
+    )
+  ));
+CREATE POLICY "todo_comments_insert" ON todo_comments FOR INSERT
+  WITH CHECK (todo_id IN (
+    SELECT id FROM daily_todos WHERE store_id IN (
+      SELECT store_id FROM users WHERE uid = auth.uid()::text
+    )
+  ));
+CREATE POLICY "todo_comments_delete" ON todo_comments FOR DELETE
+  USING (todo_id IN (
+    SELECT id FROM daily_todos WHERE store_id IN (
+      SELECT store_id FROM users WHERE uid = auth.uid()::text
+    )
+  ));
