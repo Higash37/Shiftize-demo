@@ -1,145 +1,133 @@
 # Shiftize
 
-## 概要
-
-Shiftize は、店舗運営におけるシフト管理を効率化する Web アプリケーションです。React Native for Web + Expo Router で構築され、Supabase をバックエンドとして使用しています。1 年以上の実運用実績があります。
+エンタープライズ級のシフト管理アプリケーション。React Native (Expo) + Supabase で構築し、iOS / Android / Web をワンソースで提供する。1 年以上の実運用実績。
 
 ## 主要機能
 
-### シフト管理
-
-- ガントチャート表示（PC / タブレット / モバイル対応）
-- 分割レイアウト（カレンダー + 1 日ガントチャート）
-- モバイル版シフト一覧（月別表示・ステータス管理）
-- シフト申請・承認フロー（複数選択・一括承認対応）
-- Supabase Realtime によるシフト変更の即時同期
-- PDF 出力機能
-
-### Google Calendar 同期
-
-- 承認済みシフトを Google Calendar に自動同期（一方向）
-- OAuth 連携によるトークン管理
-- Supabase Edge Function によるトークンリフレッシュ
-
-### 募集シフト
-
-- 募集シフト作成・応募機能
-- クイックシフト URL（外部共有用トークン）
-
-### ユーザー管理
-
-- Supabase Auth によるネイティブ認証
-- Google OAuth 連携
-- ロールベースアクセス制御（master / user）
-- 多店舗対応（店舗間連携・招待機能）
-
-### セキュリティ
-
-- AES-256 暗号化による個人情報保護
-- RLS（Row Level Security）による店舗データ分離
-- GDPR 準拠データ管理・監査システム
+| 機能 | 説明 |
+|------|------|
+| シフト管理 | ガントチャート（PC/タブレット/モバイル）、申請・承認フロー、一括操作 |
+| 自動配置 | 業務・タスクをスタッフに均等自動割り当て（曜日・時間帯・必要人数設定） |
+| 給与計算 | 時給×勤務時間、途中時間の除外/カスタムレート、日跨ぎ対応 |
+| 募集シフト | QRコード / URL による外部共有・応募 |
+| Google Calendar | 承認済みシフトの自動同期（OAuth + Edge Function） |
+| リアルタイム同期 | Supabase Realtime による即時反映（300ms デバウンス） |
+| セキュリティ | AES-256暗号化、RLS店舗分離、GDPR準拠、監査ログ（7年保存） |
+| PDF出力 | シフト表のPDFエクスポート |
 
 ## 技術スタック
 
-### フロントエンド
-
-- React Native for Web + React 19
-- TypeScript 5.9
-- Expo SDK 54 + Expo Router 6
-- MD3（Material Design 3）テーマシステム
-
-### バックエンド
-
-- **Supabase** (PostgreSQL + Auth + Realtime + Edge Functions)
-- **Supabase RLS** (店舗分離 + ロールベースアクセス制御)
-
-### デプロイ
-
-- Render（本番ホスティング）
-- Supabase Edge Functions（トークンリフレッシュ等）
-
-## 開発環境セットアップ
-
-```bash
-# 依存関係のインストール
-npm install
-
-# 開発サーバー起動
-npm run dev
-
-# ビルド
-npm run build
-
-# TypeScript 型チェック
-npx tsc --noEmit
 ```
-
-## バージョン管理
-
-セマンティックバージョニング（major.minor.patch）を採用。現在 v2.0.0。
-
-```bash
-# パッチリリース（バグフィックス）
-npm run release:patch
-
-# マイナーリリース（新機能追加）
-npm run release:minor
-
-# メジャーリリース（破壊的変更）
-npm run release:major
+フロントエンド:  React 19 + React Native 0.81 + Expo 54 + Expo Router 6
+バックエンド:    Supabase (PostgreSQL + Auth + Realtime + Edge Functions)
+型システム:      TypeScript 5.9（strict: true, 全13オプション有効）
+バリデーション:  Zod 4.3
+暗号化:          CryptoJS (AES-256-CBC)
+テスト:          Jest + jest-expo/web（150+テスト）
+デプロイ:        Vercel (Web) / Expo (iOS・Android)
 ```
 
 ## アーキテクチャ
 
-Supabase を中心としたリアルタイム同期システム。RLS ポリシーによる店舗単位のデータ分離と、master / user ロールによるアクセス制御を実装。多店舗対応の基盤（店舗間連携・クロスストア管理）も構築済み。
+```
+┌────────────────────────────────────────────────┐
+│  UI Layer (Expo Router ファイルベースルーティング) │
+│  modules/ → home-view, master-view, user-view  │
+├────────────────────────────────────────────────┤
+│  Service Layer (ServiceProvider: 13サービス)     │
+│  Interface → Adapter (snake_case ↔ camelCase)  │
+├────────────────────────────────────────────────┤
+│  Supabase (PostgreSQL + RLS + Auth + Realtime) │
+│  店舗ID による完全データ分離                      │
+└────────────────────────────────────────────────┘
+```
 
-## マルチプラットフォーム戦略
+**設計パターン**: Service Locator + Adapter + React Context + Singleton
 
-React Native + Expo によるクロスプラットフォーム構成。全プラットフォームで TypeScript を使用し、ビジネスロジックを共有しつつ、UI はプラットフォームごとに最適化する方針。
+## ディレクトリ構成
+
+```
+src/
+├── app/                  # Expo Router ルーティング
+│   ├── (auth)/           # 認証画面
+│   └── (main)/           # メイン画面（master/ + user/）
+├── common/               # 共有モジュール
+│   ├── common-constants/ # 定数（色・フォント・ブレークポイント）
+│   ├── common-context/   # React Context プロバイダー
+│   ├── common-models/    # 型定義（Shift, User, Store）
+│   ├── common-ui/        # 再利用UIコンポーネント
+│   └── common-utils/     # ユーティリティ（security/, util-shift/, util-date/）
+├── modules/              # 機能モジュール
+│   ├── home-view/        # スタッフダッシュボード
+│   ├── master-view/      # 管理者画面（auto-scheduling/, info-dashboard/）
+│   └── reusable-widgets/ # ガントチャート、カレンダー
+└── services/             # サービス層
+    ├── ServiceProvider.ts    # Service Locator（13サービス）
+    ├── interfaces/           # サービスインターフェース
+    ├── supabase/             # Supabase アダプター群
+    └── auth/                 # 認証（AuthContext, useAuth）
+```
+
+## クイックスタート
+
+```bash
+# 1. 依存関係インストール
+npm install
+
+# 2. 環境変数設定
+cp .env.example .env
+# EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY を設定
+
+# 3. 開発サーバー起動
+npm run dev        # Expo 開発サーバー
+npm run web        # Web版のみ
+```
+
+## コマンド一覧
+
+| コマンド | 用途 |
+|---------|------|
+| `npm run dev` | 開発サーバー起動 |
+| `npm run web` | Web版開発サーバー |
+| `npm run build` | Web版ビルド |
+| `npx tsc --noEmit` | TypeScript型チェック |
+| `npx jest` | テスト実行（150件） |
+| `npm run lint` | ESLint（警告0必須） |
+| `npm audit` | セキュリティ監査 |
+| `npm run release:patch` | パッチリリース (x.y.Z) |
+| `npm run release:minor` | マイナーリリース (x.Y.0) |
+| `npm run release:major` | メジャーリリース (X.0.0) |
+
+## 環境変数
+
+| 変数名 | 必須 | 説明 |
+|--------|------|------|
+| `EXPO_PUBLIC_SUPABASE_URL` | 必須 | Supabase プロジェクトURL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | 必須 | Supabase 匿名キー |
+| `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | 任意 | Google OAuth クライアントID |
+| `EXPO_PUBLIC_USE_SUPABASE` | 必須 | `true` 固定 |
+| `EXPO_PUBLIC_JMA_AREA_CODE` | 任意 | 気象庁エリアコード |
+
+> `SUPABASE_SERVICE_ROLE_KEY` 等のシークレットはクライアントに置かない。Edge Functions の環境変数に設定する。
+
+## マルチプラットフォーム
 
 | プラットフォーム | 状態 | デザイン方針 |
-|---------------|------|------------|
-| Web | 運用中 | MD3 Web 風 |
+|----------------|------|-------------|
+| Web | 運用中 | MD3 Web風 |
 | Android | 予定 | Material Design 3 |
-| iOS | 予定 | Apple HIG 準拠 |
+| iOS | 予定 | Apple HIG準拠 |
 
-### プラットフォーム別 UI
+React Native のファイル拡張子（`.web.tsx`, `.ios.tsx`, `.android.tsx`）でプラットフォーム分岐。ビジネスロジック（services/, common/）は全プラットフォーム共有。
 
-React Native のファイル拡張子によるプラットフォーム分岐を活用する。
+## ドキュメント
 
-```
-Component.tsx          ← 共通（フォールバック）
-Component.web.tsx      ← Web 用
-Component.ios.tsx      ← iOS 用
-Component.android.tsx  ← Android 用
-```
+| ファイル | 内容 |
+|---------|------|
+| [CLAUDE.md](CLAUDE.md) | AI開発エージェント用の指示書 |
+| [CODING_STANDARDS.md](CODING_STANDARDS.md) | コーディング規約 |
+| [docs/OPERATIONS_GUIDE.md](docs/OPERATIONS_GUIDE.md) | 運用・保守ガイド（複雑ロジック解説含む） |
 
-### レイヤー構成
+## ライセンス
 
-| レイヤー | 共有 / 分離 |
-|---------|-----------|
-| Services（Supabase, 認証, API） | 共有 |
-| ビジネスロジック（hooks, 型定義） | 共有 |
-| UI コンポーネント | プラットフォーム別 |
-
-## プッシュ通知戦略
-
-Supabase にはネイティブのプッシュ通知機能がないため、以下の構成を予定。
-
-| プラットフォーム | 通知方式 |
-|---------------|---------|
-| Web | Web Push（Service Worker） |
-| Android / iOS | Expo Push Notifications（FCM / APNs をラップ） |
-
-### 通知フロー（モバイル）
-
-```
-Supabase DB 変更 → Edge Function → Expo Push API → FCM/APNs → 端末通知
-```
-
-### 活用例
-
-- シフト承認通知
-- シフト変更通知
-- 募集シフト通知
-- リマインダー（翌日のシフト通知）
+Private
