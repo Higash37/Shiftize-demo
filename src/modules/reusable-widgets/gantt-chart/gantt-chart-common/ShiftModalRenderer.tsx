@@ -192,6 +192,7 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
         <EditShiftModalView
           visible={showEditModal}
           newShiftData={newShiftData}
+          shiftId={editingShift?.id}
           users={users}
           timeOptions={timeOptions}
           statusConfigs={statusConfigs}
