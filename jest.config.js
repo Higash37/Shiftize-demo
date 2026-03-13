@@ -1,0 +1,58 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+module.exports = {
+  preset: "ts-jest",
+  testEnvironment: "node",
+  roots: ["<rootDir>/src"],
+  testMatch: ["**/*.test.ts", "**/*.test.tsx"],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@components/(.*)$": "<rootDir>/src/common/common-ui/$1",
+    "^@utils/(.*)$": "<rootDir>/src/common/common-utils/$1",
+    "^@types/(.*)$": "<rootDir>/src/common/common-models/$1",
+    "^@services/(.*)$": "<rootDir>/src/services/$1",
+    "^@providers/(.*)$": "<rootDir>/src/providers/$1",
+    "^@core/(.*)$": "<rootDir>/src/common/$1",
+    "^@features/(.*)$": "<rootDir>/src/modules/$1",
+    "^@backend/(.*)$": "<rootDir>/src/backend-migration/$1",
+    "^@styles/(.*)$": "<rootDir>/src/styles/$1",
+    "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+    "^@constants/(.*)$": "<rootDir>/src/common/common-constants/$1",
+    "^@theme/(.*)$": "<rootDir>/src/common/common-theme/$1",
+  },
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          module: "commonjs",
+          target: "es2020",
+          strict: true,
+          esModuleInterop: true,
+          baseUrl: ".",
+          types: ["jest", "node"],
+          paths: {
+            "@/*": ["./src/*"],
+            "@components/*": ["src/common/common-ui/*"],
+            "@utils/*": ["src/common/common-utils/*"],
+            "@types/*": ["src/common/common-models/*"],
+            "@services/*": ["./src/services/*"],
+            "@providers/*": ["./src/providers/*"],
+            "@core/*": ["./src/common/*"],
+            "@features/*": ["./src/modules/*"],
+            "@backend/*": ["./src/backend-migration/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@constants/*": ["./src/common/common-constants/*"],
+            "@theme/*": ["./src/common/common-theme/*"],
+          },
+          // テスト用に厳密設定を緩和
+          noUncheckedIndexedAccess: false,
+          exactOptionalPropertyTypes: false,
+          noPropertyAccessFromIndexSignature: false,
+        },
+      },
+    ],
+  },
+  clearMocks: true,
+  restoreMocks: true,
+};
