@@ -67,8 +67,9 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
   const [isAddingClassTime, setIsAddingClassTime] = React.useState(false);
   const [isManualInput, setIsManualInput] = React.useState(false);
 
+  // visible=false 時は shiftId を渡さずDB fetchをスキップ
   const { canUndo, canRedo, undo, redo, historyCount, currentIndex } =
-    useShiftUndoRedo(shiftId, user?.storeId);
+    useShiftUndoRedo(visible ? shiftId : undefined, user?.storeId);
 
   const applySnapshot = React.useCallback(
     (snapshot: ShiftSnapshot) => {
@@ -100,6 +101,9 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
       setIsManualInput(false);
     }
   }, [visible]);
+
+  // 全フックの後で早期リターン（フックルール遵守）
+  if (!visible) return null;
 
   const renderTimeInput = (label: string, field: "startTime" | "endTime") => (
     <View style={styles.timeInputGroup}>
@@ -194,19 +198,15 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                   onPress={handleUndo}
                   disabled={!canUndo}
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: canUndo ? "#4A90E2" : "#E0E0E0",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 12,
+                    padding: 6,
+                    marginRight: 10,
+                    opacity: canUndo ? 1 : 0.2,
                   }}
                 >
                   <Ionicons
-                    name="arrow-undo"
-                    size={16}
-                    color={canUndo ? "#fff" : "#999"}
+                    name="arrow-undo-outline"
+                    size={20}
+                    color={canUndo ? "#4A90E2" : "#BDBDBD"}
                   />
                 </TouchableOpacity>
 
@@ -216,19 +216,15 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
                   onPress={handleRedo}
                   disabled={!canRedo}
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: canRedo ? "#4A90E2" : "#E0E0E0",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginLeft: 12,
+                    padding: 6,
+                    marginLeft: 10,
+                    opacity: canRedo ? 1 : 0.2,
                   }}
                 >
                   <Ionicons
-                    name="arrow-redo"
-                    size={16}
-                    color={canRedo ? "#fff" : "#999"}
+                    name="arrow-redo-outline"
+                    size={20}
+                    color={canRedo ? "#4A90E2" : "#BDBDBD"}
                   />
                 </TouchableOpacity>
               </View>

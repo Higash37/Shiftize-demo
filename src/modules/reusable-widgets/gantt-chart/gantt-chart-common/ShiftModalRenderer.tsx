@@ -188,35 +188,31 @@ const ShiftModalRendererInner: React.ForwardRefRenderFunction<
 
   return (
     <>
-      {showEditModal && (
-        <EditShiftModalView
-          visible={showEditModal}
-          newShiftData={newShiftData}
-          shiftId={editingShift?.id}
-          users={users}
-          timeOptions={timeOptions}
-          statusConfigs={statusConfigs}
-          isLoading={isLoading}
-          styles={styles}
-          onChange={handleEditChange}
-          onClose={closeEditModal}
-          onSave={handleSaveShift}
-          onDelete={handleDeleteShift}
-        />
-      )}
-      {showAddModal && (
-        <AddShiftModalView
-          visible={showAddModal}
-          newShiftData={newShiftData}
-          users={users}
-          timeOptions={timeOptions}
-          isLoading={isLoading}
-          styles={styles}
-          onChange={handleAddChange}
-          onClose={closeAddModal}
-          onSave={handleSaveShift}
-        />
-      )}
+      <EditShiftModalView
+        visible={showEditModal}
+        newShiftData={newShiftData}
+        shiftId={editingShift?.id}
+        users={users}
+        timeOptions={timeOptions}
+        statusConfigs={statusConfigs}
+        isLoading={isLoading}
+        styles={styles}
+        onChange={handleEditChange}
+        onClose={closeEditModal}
+        onSave={handleSaveShift}
+        onDelete={handleDeleteShift}
+      />
+      <AddShiftModalView
+        visible={showAddModal}
+        newShiftData={newShiftData}
+        users={users}
+        timeOptions={timeOptions}
+        isLoading={isLoading}
+        styles={styles}
+        onChange={handleAddChange}
+        onClose={closeAddModal}
+        onSave={handleSaveShift}
+      />
     </>
   );
 };

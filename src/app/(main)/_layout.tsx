@@ -62,6 +62,7 @@ import { TimeSegmentTypesProvider } from "@/common/common-context/TimeSegmentTyp
 import { StaffRolesProvider } from "@/common/common-context/StaffRolesContext";
 import { ShiftTaskAssignmentsProvider } from "@/common/common-context/ShiftTaskAssignmentsContext";
 import { TodoBadgeProvider } from "@/common/common-context/TodoBadgeContext";
+import { PendingShiftBadgeProvider } from "@/common/common-context/PendingShiftBadgeContext";
 
 /**
  * MainLayout: メイングループのレイアウトコンポーネント。
@@ -104,8 +105,10 @@ export default function MainLayout() {
         <StaffRolesProvider storeId={user?.storeId || ""}>
           <ShiftTaskAssignmentsProvider storeId={user?.storeId || ""}>
             <TodoBadgeProvider storeId={user?.storeId || ""} userId={user?.uid}>
-              {/* Slot: /(main)/master/... や /(main)/user/... がここに表示される */}
-              <Slot />
+              <PendingShiftBadgeProvider storeId={user?.storeId || ""}>
+                {/* Slot: /(main)/master/... や /(main)/user/... がここに表示される */}
+                <Slot />
+              </PendingShiftBadgeProvider>
             </TodoBadgeProvider>
           </ShiftTaskAssignmentsProvider>
         </StaffRolesProvider>
