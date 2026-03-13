@@ -32,7 +32,7 @@ import {
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
-import { escapeHtml } from "@/common/common-utils/validation/inputValidation";
+import { escapeHtml } from "@/common/common-utils/util-validation/inputValidation";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { colors } from "@/common/common-constants/ThemeConstants";

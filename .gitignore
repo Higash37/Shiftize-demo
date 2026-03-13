@@ -95,6 +95,9 @@ docs-local/
 # Supabase CLI cache
 supabase/.temp/
 
+# Serena AI cache
+.serena/
+
 # Temporary files
 config.json
 temp_package.json
