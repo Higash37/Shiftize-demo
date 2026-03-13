@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# サイトマップの場所
-Sitemap: https://shift-scheduler-app-vu6i.onrender.com/sitemap.xml
-
-# 検索エンジンにクロールを許可
-Crawl-delay: 1

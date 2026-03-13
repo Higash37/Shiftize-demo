@@ -44,7 +44,7 @@ import { CalendarHeader } from "../../calendar/CalendarHeader";
 import { DatePickerModal } from "../../calendar/modals/DatePickerModal";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
 import { shadows } from "@/common/common-constants/ShadowConstants";
-import { getDateTextColor } from "@/common/common-utils/date/dateUtils";
+import { getDateTextColor } from "@/common/common-utils/util-date/dateUtils";
 import type { MarkedDates } from "react-native-calendars/src/types";
 
 // ============================================================
@@ -487,7 +487,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     }}
                   >
                     <Ionicons
-                      name={userIcon as any}
+                      name={shift.status === "deletion_requested" ? "trash-outline" as any : userIcon as any}
                       size={11}
                       color={borderColor}
                       style={{ marginRight: 2 }}
@@ -498,14 +498,14 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                         {
                           fontSize: 9,
                           fontWeight: "bold",
-                          color: "#333",
+                          color: shift.status === "deletion_requested" ? borderColor : "#333",
                           textAlign: "left",
                           lineHeight: 11,
                         },
                       ]}
                       numberOfLines={1}
                     >
-                      {shift.nickname}
+                      {shift.status === "deletion_requested" ? "削除申請中" : shift.nickname}
                     </Text>
                   </View>
 
@@ -547,7 +547,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     }}
                   >
                     <Ionicons
-                      name={userIcon as any}
+                      name={shift.status === "deletion_requested" ? "trash-outline" as any : userIcon as any}
                       size={11}
                       color={borderColor}
                       style={{ marginRight: 2 }}
@@ -558,13 +558,13 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                         {
                           fontSize: 13,
                           fontWeight: "bold",
-                          color: "#333",
+                          color: shift.status === "deletion_requested" ? borderColor : "#333",
                           textAlign: "left",
                         },
                       ]}
                       numberOfLines={1}
                     >
-                      {shift.nickname}
+                      {shift.status === "deletion_requested" ? "削除申請中" : shift.nickname}
                     </Text>
                   </View>
 
@@ -812,8 +812,7 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
             borderBottomWidth: 1.5,
             borderBottomColor: borderColor,
             opacity:
-              shift.status === "deleted" ||
-              shift.status === "deletion_requested"
+              shift.status === "deleted"
                 ? 0.5
                 : 1,
             borderRadius: 6,

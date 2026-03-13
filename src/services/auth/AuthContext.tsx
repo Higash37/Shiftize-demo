@@ -76,7 +76,7 @@ import { getSupabase } from "../supabase/supabase-client";
 // StoreIdStorage: 店舗IDをAsyncStorageに永続化するユーティリティ
 import { StoreIdStorage } from "@/common/common-utils/util-storage/StoreIdStorage";
 // validateEmail: メールアドレスの形式を検証するバリデーション関数
-import { validateEmail } from "@/common/common-utils/validation/inputValidation";
+import { validateEmail } from "@/common/common-utils/util-validation/inputValidation";
 // SecurityLogger: セキュリティイベントをログに記録するユーティリティ
 // RateLimiter: ログイン試行回数を制限するユーティリティ（ブルートフォース対策）
 // CSRFTokenManager: CSRFトークンの生成・検証を行うユーティリティ

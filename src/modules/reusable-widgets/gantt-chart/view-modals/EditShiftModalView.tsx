@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/services/auth/useAuth";
 import { TimeInput } from "@/common/common-ui/ui-input/TimeInput";
@@ -153,6 +154,27 @@ export const EditShiftModalView: React.FC<EditShiftModalViewProps> = React.memo(
               >
               <Text style={styles.modalTitle}>シフト編集</Text>
               <Text style={styles.modalSubtitle}>{newShiftData.date}</Text>
+
+              {newShiftData.status === "deletion_requested" && (
+                <View style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#FFF3E0",
+                  borderRadius: 8,
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  marginTop: 8,
+                  marginBottom: 8,
+                  borderWidth: 1,
+                  borderColor: "#FF9F0A",
+                }}>
+                  <Ionicons name="trash-outline" size={16} color="#FF9F0A" style={{ marginRight: 6 }} />
+                  <Text style={{ color: "#E65100", fontWeight: "bold", fontSize: 13 }}>
+                    削除申請中
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>ユーザー</Text>
