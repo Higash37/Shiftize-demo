@@ -57,11 +57,14 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
   const calculateUserPayrollData = (): UserPayrollData[] => {
     const userDataMap = new Map<string, UserPayrollData>();
 
+    // O(1)ルックアップ用のユーザーMapを事前構築（O(n²) → O(n)に改善）
+    const userLookup = new Map(users.map(u => [u.uid, u]));
+
     // 選択された月のシフトをフィルタリング
+    // new Date(shift.date) の代わりに文字列スライスで年月を取得（Date生成コスト削減）
     const monthlyShifts = shifts.filter((shift) => {
-      const shiftDate = new Date(shift.date);
-      const shiftYear = shiftDate.getFullYear();
-      const shiftMonth = shiftDate.getMonth() + 1;
+      const shiftYear = Number(shift.date.slice(0, 4));
+      const shiftMonth = Number(shift.date.slice(5, 7));
 
       return (
         shiftYear === selectedYear &&
@@ -73,7 +76,8 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
 
     // 各シフトを処理して個人別データを集計
     monthlyShifts.forEach((shift) => {
-      const user = users.find((u) => u.uid === shift.userId);
+      // Map.get()でO(1)ルックアップ（元のusers.find()はO(n)）
+      const user = userLookup.get(shift.userId);
       if (!user) return;
 
       const hourlyWage = user.hourlyWage || 1100; // デフォルト時給

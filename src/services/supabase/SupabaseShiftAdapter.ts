@@ -38,6 +38,12 @@ interface ShiftRow {
 /** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
+/**
+ * ShiftItem取得用の必要列のみ指定（select("*") による不要列転送を削減）
+ * toShiftItemFromRow が参照する全列を列挙している。
+ */
+const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,nickname,date,start_time,end_time,type,subject,notes,is_completed,status,duration,created_at,updated_at,classes,google_calendar_event_id,requested_changes" as const;
+
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   const item: ShiftItem = {
     id: row.id,
@@ -495,9 +501,10 @@ export class SupabaseShiftAdapter implements IShiftService {
   /** 店舗のシフトをShiftItem形式で取得する */
   async getShiftItems(storeId: string): Promise<ShiftItem[]> {
     const supabase = getSupabase();
+    // 必要列のみ取得してデータ転送量を削減
     const { data, error } = await supabase
       .from("shifts")
-      .select("*")
+      .select(SHIFT_ITEM_COLUMNS)
       .eq("store_id", storeId)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true });
@@ -516,9 +523,10 @@ export class SupabaseShiftAdapter implements IShiftService {
     let channel: RealtimeChannel | null = null;
 
     const fetchAsShiftItems = async (): Promise<ShiftItem[]> => {
+      // 必要列のみ取得してデータ転送量を削減
       const { data, error } = await supabase
         .from("shifts")
-        .select("*")
+        .select(SHIFT_ITEM_COLUMNS)
         .eq("store_id", storeId)
         .order("date", { ascending: true })
         .order("start_time", { ascending: true });
@@ -579,9 +587,10 @@ export class SupabaseShiftAdapter implements IShiftService {
     const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
+    // 必要列のみ取得してデータ転送量を削減
     const { data, error } = await supabase
       .from("shifts")
-      .select("*")
+      .select(SHIFT_ITEM_COLUMNS)
       .eq("store_id", storeId)
       .gte("date", startDate)
       .lte("date", endDate)
@@ -607,9 +616,10 @@ export class SupabaseShiftAdapter implements IShiftService {
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
     const fetchMonthShifts = async () => {
+      // 必要列のみ取得してデータ転送量を削減
       const { data, error } = await supabase
         .from("shifts")
-        .select("*")
+        .select(SHIFT_ITEM_COLUMNS)
         .eq("store_id", storeId)
         .gte("date", startDate)
         .lte("date", endDate)

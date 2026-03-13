@@ -146,15 +146,20 @@ const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
   }, [data]);
 
   // データ更新後にスクロール位置を復元
+  // setTimeoutのクリーンアップを追加（メモリリーク防止）
   useEffect(() => {
+    let timerId: ReturnType<typeof setTimeout> | null = null;
     if (flatListRef.current && lastScrollOffset.current > 0) {
-      setTimeout(() => {
+      timerId = setTimeout(() => {
         flatListRef.current?.scrollToOffset({
           offset: lastScrollOffset.current,
           animated: false
         });
       }, 50);
     }
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
   }, [data]);
 
   return (
