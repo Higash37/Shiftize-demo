@@ -40,7 +40,7 @@
     "expo-secure-store": "~15.0.7",
     "expo-status-bar": "~3.0.8",
     "html2canvas": "^1.4.1",
-    "jspdf": "4.1.0",
+    "jspdf": "4.2.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
