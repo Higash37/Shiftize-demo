@@ -71,7 +71,7 @@ export const getStatusColor = (status: ShiftStatus) => {
     case "completed":
       return "#4CAF50";   // 緑: 完了（承認済みと同じ色）
     case "deletion_requested":
-      return "#FFA500";   // オレンジ: 削除申請中
+      return "#FFC107";   // 黄色: 削除申請中（pending と同色）
     case "recruitment":
       return "#9e9e9e";   // グレー: 募集シフト
     default:
