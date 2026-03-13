@@ -18,7 +18,8 @@
     "release:patch": "npm run version:patch && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push",
     "release:minor": "npm run version:minor && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push",
     "release:major": "npm run version:major && git add . && git commit -m \"chore: bump version to $(node -p \\\"require('./package.json').version\\\")\" && git push",
-    "analyze:bundle": "npm run build && npx source-map-explorer dist/_expo/static/js/web/*.js"
+    "analyze:bundle": "npm run build && npx source-map-explorer dist/_expo/static/js/web/*.js",
+    "test": "jest --no-coverage"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -53,6 +54,7 @@
     "@babel/core": "7.29.0",
     "@eslint/js": "10.0.1",
     "@types/crypto-js": "^4.2.2",
+    "@types/jest": "30.0.0",
     "@types/node": "25.2.2",
     "@types/react": "~19.1.10",
     "@typescript-eslint/eslint-plugin": "8.54.0",
@@ -64,8 +66,10 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-native": "^5.0.0",
     "globals": "17.3.0",
+    "jest": "30.3.0",
     "metro": "^0.83.1",
     "source-map-explorer": "2.5.3",
+    "ts-jest": "29.4.6",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.54.0"
   },
