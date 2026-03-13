@@ -1,170 +1,249 @@
 # Claude 開発ドキュメント
 
-## 📋 開発注意事項
+Shiftize プロジェクトでの AI 開発エージェント用の指示書。
 
-### 🎯 開発方針
+---
+
+## 開発方針
 
 - **Supabase 最適化**: 現行システムのパフォーマンス向上を重視
 - **機能拡張**: ユーザビリティとパフォーマンスの継続改善
 - **セキュリティ**: 既存のセキュリティ機能の維持・強化
+- **コード品質**: TypeScript strict モード遵守、any 型禁止
 
 ---
 
-## 🛠️ プロジェクト概要
+## プロジェクト概要
 
-エンタープライズ級のシフト管理アプリケーション
+エンタープライズ級シフト管理アプリ。React Native (Expo) + Supabase。
+
+### 技術スタック
+
+```
+React 19 + React Native 0.81 + Expo 54 + Expo Router 6
+TypeScript 5.9 (strict: true, 全13オプション有効)
+Supabase (PostgreSQL + Auth + Realtime + Edge Functions)
+Zod 4.3 (バリデーション) + CryptoJS (AES-256 暗号化)
+Jest + jest-expo/web (テスト)
+```
 
 ### 主要機能
 
-- シフト管理（作成、編集、削除）
-- ガントチャート表示（PC/タブレット/モバイル対応）
-- 分割レイアウト（カレンダー + 1 日ガントチャート）
-- 募集シフト機能
-- 通知機能
-- **🔒 包括的セキュリティシステム**
-- **📊 GDPR 準拠データ管理**
+- シフト管理（CRUD + 承認フロー + ガントチャート表示）
+- 業務・タスク自動配置エンジン（均等分散アルゴリズム）
+- 給与計算（途中時間除外 / カスタムレート / 日跨ぎ対応）
+- 募集シフト（QRコード / URL トークン共有）
+- Google Calendar 同期（OAuth + Edge Function）
+- リアルタイム同期（Supabase Realtime + 300ms デバウンス）
+- GDPR 準拠（AES-256暗号化 + 監査ログ7年保存 + データ削除）
 
 ---
 
-## 🔒 セキュリティ実装状況 (2025-01-27)
+## アーキテクチャ要点
 
-### ✅ 完了済みセキュリティ対策
+### Service Locator パターン
 
-- **AES-256 暗号化**: 個人情報の完全暗号化実装
-- **Supabase RLS (Row Level Security)**: 店舗分離＋ロールベースアクセス制御
-- **GDPR 準拠**: データ管理・監査システム・削除機能
-- **入力値検証**: XSS/CSRF 対策・包括的バリデーション
-- **監査ログ**: 7 年保存対応の監査システム
+```
+ServiceProvider（シングルトン、13サービス）
+  ├─ .auth    → SupabaseAuthAdapter
+  ├─ .users   → SupabaseUserAdapter
+  ├─ .shifts  → SupabaseShiftAdapter（Realtime 含む）
+  └─ ... 全13サービス（interfaces/ で型定義）
+```
 
-### 🎯 継続開発方針（Supabase 最適化）
+- **コンポーネントから Supabase を直接呼ばない**。必ず `ServiceProvider` 経由。
+- Adapter 層で `snake_case` (DB) ↔ `camelCase` (TS) 変換。
+- テスト時は `ServiceProvider.setXxxService(mockAdapter)` でモック差し替え。
 
-- **Supabase 最適化**: 現行システムのパフォーマンス向上
-- **機能拡張**: 現在の info ページレベル内での機能改善
-- **運用最適化**: パフォーマンスの継続改善
+### ディレクトリ構成
+
+```
+src/
+├── app/          # Expo Router ルーティング
+├── common/       # 共有（constants, context, models, ui, utils）
+├── modules/      # 機能モジュール（home, master, login, user, reusable-widgets）
+└── services/     # サービス層（interfaces/ + supabase/ + auth/）
+```
+
+### パスエイリアス（tsconfig.json）
+
+```
+@/*          → ./src/*
+@components/ → src/common/common-ui/*
+@utils/      → src/common/common-utils/*
+@types/      → src/common/common-models/*
+@services/   → ./src/services/*
+@features/   → ./src/modules/*
+```
 
 ---
 
-## 🧪 テスト・ビルドコマンド
+## コマンド
 
 ```bash
-# 開発サーバー起動
-npm run dev
+# 開発
+npm run dev              # Expo 開発サーバー
+npm run web              # Web版
+
+# 品質チェック（PR前に必ず実行）
+npx tsc --noEmit         # TypeScript型チェック
+npx jest                 # テスト実行（150+件）
+npm run lint             # ESLint（警告0必須）
+npm audit                # セキュリティ監査
 
 # ビルド
-npm run build
+npm run build            # Web ビルド
+npm run vercel-build     # Vercel 向けビルド
 
-# TypeScript型チェック
-npx tsc --noEmit
+# リリース
+npm run release:patch    # パッチ (x.y.Z)
+npm run release:minor    # マイナー (x.Y.0)
+npm run release:major    # メジャー (X.0.0)
 
-# セキュリティ監査
-npm audit
-
-# 暗号化機能テスト
-npm test src/common/common-utils/security/
+# バンドル分析
+npm run analyze:bundle
 ```
 
 ---
 
-## 📦 バージョン管理システム
+## セキュリティ
 
-### 🏷️ バージョン管理方針
+### 実装済み対策
 
-- **シンプル設計**: package.json を直接読み込み、アプリ内に自動反映
-- **セマンティックバージョニング**: major.minor.patch 形式でバージョン管理
-- **ワンコマンドリリース**: バージョンアップ・コミット・プッシュを一括実行
+| 対策 | 実装箇所 |
+|------|----------|
+| AES-256-CBC 暗号化 | `common-utils/security/encryptionUtils.ts` |
+| RLS（店舗ID分離） | 全テーブルの PostgreSQL ポリシー |
+| タイミング攻撃対策 | `safeStringCompare()` (securityUtils.ts) |
+| Realtimeインジェクション防止 | `validateStoreId()` (SupabaseShiftAdapter.ts) |
+| 管理者store_idクロスチェック | `secureDeleteUserByAdmin()` (SupabaseUserAdapter.ts) |
+| CSRF対策 | CSRFTokenManager |
+| レートリミッター | RateLimiter（ブルートフォース防止） |
+| 入力検証 | Zod スキーマ + XSS サニタイズ |
+| 監査ログ | SupabaseAuditAdapter（7年保存） |
 
-### 📋 バージョンアップコマンド
+### 守るべきルール
+
+- `SUPABASE_SERVICE_ROLE_KEY` 等のシークレットはクライアントに置かない
+- `EXPO_PUBLIC_` は公開していい値のみ（ANON_KEY は OK）
+- RLS ポリシーに `USING(true)` は使用禁止。必ず `store_id` チェック
+- パスワード比較は `===` ではなく `safeStringCompare()` を使う
+- Realtime フィルタに動的値を入れる前に `validateStoreId()` で検証
+
+---
+
+## パフォーマンス指針
+
+| 手法 | 適用箇所 |
+|------|----------|
+| `React.memo` / `useMemo` / `useCallback` | ガントチャート全コンポーネント |
+| `FlatList` 仮想スクロール | スタッフ行、シフト一覧 |
+| `React.lazy` + `Suspense` | モーダル、タブ |
+| 必要列のみ SELECT | `SHIFT_ITEM_COLUMNS` (select("*") 禁止) |
+| `Map` O(1) ルックアップ | ユーザー検索、割り当て検索 |
+| Realtime 300ms デバウンス | `REALTIME_DEBOUNCE_MS` |
+| `clearTimeout` クリーンアップ | useEffect の return で必ず実行 |
+
+### 禁止パターン
+
+- `Array.find()` をループ内で使う（O(n²)）→ `Map` を使う
+- `select("*")` → 必要列を明示する
+- `new Date()` をループ内で生成 → 文字列操作で代替
+- `setTimeout` を return でクリーンアップしない → メモリリーク
+
+---
+
+## テスト
+
+### テスト構成（150件、2026-03-13 時点）
+
+| テスト対象 | 件数 |
+|-----------|------|
+| SupabaseShiftAdapter | 30 |
+| SupabaseUserAdapter | 27 |
+| SupabaseQuickShiftTokenAdapter | 27 |
+| ServiceProvider | 43 |
+| shiftStatusUtils | 14 |
+| ganttTimeUtils | 9 |
+
+### テスト方針
+
+- **Supabase モック**: `jest.mock("./supabase-client")` + `createMockQueryBuilder()`
+- **各テスト独立**: `beforeEach` で `jest.clearAllMocks()`
+- **テスト命名**: 日本語で `正常系: ...` / `異常系: ...` / `エッジケース: ...`
 
 ```bash
-# パッチリリース (1.0.0 → 1.0.1) - バグフィックス・小さな改修
-npm run release:patch
+# 全テスト
+npx jest
 
-# マイナーリリース (1.0.0 → 1.1.0) - 新機能追加・互換性のある変更
-npm run release:minor
+# 特定ファイル
+npx jest src/services/supabase/SupabaseShiftAdapter.test.ts
 
-# メジャーリリース (1.0.0 → 2.0.0) - 破壊的変更・大きなアップデート
-npm run release:major
-```
-
-### 🔧 バージョン管理の内部実装
-
-- **AppVersion.ts**: package.json を直接インポートしてバージョン情報を管理
-- **設定画面**: AppVersion.ts クラス経由でバージョン表示
-- **自動コミット**: バージョンアップ時に自動で Git コミット・プッシュ実行
-
-### 📝 使用例
-
-```bash
-# 新機能追加後のリリース
-npm run release:minor
-
-# このコマンドで以下が自動実行される：
-# 1. package.jsonのバージョンを1.0.0 → 1.1.0に更新
-# 2. 変更をgit add
-# 3. コミットメッセージ「chore: bump version to 1.1.0」で自動コミット
-# 4. git push実行
-# 5. アプリの設定画面に新バージョンが自動反映
-```
-
-### 🎯 実装のポイント
-
-```typescript
-// AppVersion.ts - シンプルなpackage.json直接読み込み
-// @ts-ignore
-import packageJson from "../../../../package.json";
-
-export class AppVersion {
-  static getVersion(): string {
-    return packageJson.version;
-  }
-
-  static getFormattedVersion(): string {
-    return `Version ${packageJson.version}`;
-  }
-}
+# ウォッチモード
+npx jest --watch
 ```
 
 ---
 
-## 📝 開発履歴
+## バージョン管理
 
-### Phase 1: セキュリティ強化 (2025-01-27 完了)
+- `package.json` の version を直接読み込み（`AppVersion.ts`）
+- セマンティックバージョニング: `MAJOR.MINOR.PATCH`
+- `npm run release:*` でバージョン更新 + コミット + プッシュを一括実行
 
-- ✅ AES-256 暗号化システム実装
-- ✅ GDPR 準拠データ管理システム実装
-- ✅ Supabase RLS (Row Level Security) 完全見直し
-- ✅ 入力値検証・XSS/CSRF 対策実装
-- ✅ 監査ログ・同意管理システム実装
+---
+
+## コミット規約
+
+```
+feat: 新機能追加
+fix: バグ修正
+perf: パフォーマンス改善
+refactor: リファクタリング
+test: テスト追加・修正
+docs: ドキュメント
+chore: 雑務（依存更新、設定変更）
+```
+
+ブランチ: `feat/`, `fix/`, `refactor/`, `perf/`, `test/`, `chore/`, `cleanup/`
+
+---
+
+## 開発履歴
+
+### Phase 1: セキュリティ強化 (2025-01-27)
+
+- AES-256 暗号化、GDPR 準拠、RLS 全面見直し、XSS/CSRF 対策、監査ログ
 
 ### Phase 2: アーキテクチャ決定 (2025-01-30)
 
-- ✅ **Supabase 移行完了**: Firebase から Supabase へ全面移行済み
-- ✅ バックエンドは **Supabase** に統一（認証・DB・ストレージ）
-- 🎯 **Supabase 最適化路線**: 現行システムの改善・拡張に注力
+- Firebase → Supabase 全面移行完了
 
-### Phase 3: UI/UX 改善 (2025-08-01 完了)
+### Phase 3: UI/UX 改善 (2025-08-01)
 
-- ✅ **分割レイアウト実装**: タブレット・モバイル向けカレンダー + 1 日ガントチャート
-- ✅ **時間範囲切り替え**: 9:00-22:00 ⇔ 13:00-22:00 の動的切り替え
-- ✅ **日付ナビゲーション**: 前日・翌日への簡単移動機能
-- ✅ **列詰めロジック**: 重複しないシフトの効率的グループ化
-- ✅ **シフト追加最適化**: 空白部分タップでシフト追加
+- 分割レイアウト、時間範囲切り替え、列詰めロジック、空白タップでシフト追加
 
-### Phase 4: パフォーマンス最適化 (2025-01-27 完了)
+### Phase 4: パフォーマンス最適化 (2025-01-27)
 
-- ✅ **コード分割・遅延読み込み**: ランディングページ、モーダル、タブコンテンツの遅延読み込み実装
-- ✅ **メモ化の拡充**: `GanttChartMonthView`と`InfoDashboard`のメモ化
-- ✅ **API呼び出しの最適化**: APIキャッシュと重複リクエスト防止の実装
-- ✅ **画像最適化**: 遅延読み込みと`OptimizedImage`コンポーネントの実装
-- ✅ **FlatList最適化**: すべてのFlatListに最適化設定を適用
-- ✅ **バンドルサイズの最適化**: 未使用依存関係の削除とTree shakingの最適化
-- ✅ **Service Workerの改善**: キャッシュ戦略の多様化とクリーンアップ機能の追加
-- ✅ **フォント読み込みの最適化**: 動的フォント読み込みの実装
-- ✅ **レンダリング最適化**: 条件付きレンダリングの見直し
+- コード分割、メモ化、API キャッシュ、FlatList 最適化、Service Worker 改善
 
-### 過去の主要変更
+### Phase 5: 機能拡張 (2025-12)
 
-- モバイル版ガントチャートに PC 版機能を統合完了
-- 募集シフト機能実装完了
-- TypeScript エラー全修正完了
-- React Native 警告の完全解決
+- 業務・タスク自動配置エンジン、当日スケジュール画面
+
+### Phase 6: 品質監査・修正 (2026-03-13)
+
+- セキュリティ CRITICAL/HIGH 7件修正（RLS, タイミング攻撃, Realtime注入防止等）
+- パフォーマンス 5件修正（O(n²)→O(1), メモリリーク, select最適化）
+- テスト 150件追加（サービス層・ビジネスロジック）
+- リファクタ（重複削除-122行, マジックナンバー定数化）
+- JSDoc コメント追加（SupabaseShiftSubmissionAdapter）
+
+---
+
+## 関連ドキュメント
+
+| ファイル | 内容 |
+|---------|------|
+| [CODING_STANDARDS.md](CODING_STANDARDS.md) | コーディング規約 |
+| [docs/OPERATIONS_GUIDE.md](docs/OPERATIONS_GUIDE.md) | 運用・保守ガイド（複雑ロジック解説含む） |
