@@ -23,7 +23,7 @@ import {
   GanttChartInfo,
   EmptyCell,
 } from "./components";
-import { getDateBackgroundColor } from "@/common/common-utils/date/dateUtils";
+import { getDateBackgroundColor } from "@/common/common-utils/util-date/dateUtils";
 
 // GanttChartRowProps: 1行分の描画に必要な情報すべて
 interface GanttChartRowProps {

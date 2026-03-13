@@ -225,7 +225,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         case "rejected":
           return "#EF4444"; // 赤（却下）
         case "deletion_requested":
-          return "#F59E0B"; // 黄色（削除申請中）
+          return "#FFB800"; // オレンジ（削除申請中、pending と同色）
         default:
           return "#10B981"; // デフォルトは緑
       }

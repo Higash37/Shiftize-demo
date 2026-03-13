@@ -55,7 +55,7 @@ export const DEFAULT_SHIFT_STATUS_CONFIG: ShiftStatusConfig[] = [
   {
     status: "deletion_requested",
     label: "削除申請中",
-    color: "#FFA500",
+    color: "#FFD700",
     canEdit: false,
     description: "削除申請中のシフト",
   },
