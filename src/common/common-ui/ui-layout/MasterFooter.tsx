@@ -20,6 +20,7 @@ import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 import { MD3ColorScheme } from "@/common/common-theme/md3/MD3Colors";
 import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
+import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 
 // レスポンシブデザイン用の定数
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -149,6 +150,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
   const { colorScheme } = useMD3Theme();
   const masterTabs = useMemo(() => createMasterTabs(colorScheme), [colorScheme]);
   const { todayUnreadCount } = useTodoBadge();
+  const { thisMonthCount: pendingThisMonth, nextMonthCount: pendingNextMonth } = usePendingShiftBadge();
   useExtendedFonts();
   const pathname = usePathname();
   const { user } = useAuth();
@@ -269,6 +271,30 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
                 }}>
                   <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
                     {todayUnreadCount > 99 ? "99+" : todayUnreadCount}
+                  </Text>
+                </View>
+              )}
+              {tab.name === "thisMonth" && pendingThisMonth > 0 && (
+                <View style={{
+                  position: "absolute", top: -4, right: -8,
+                  minWidth: 16, height: 16, borderRadius: 8,
+                  backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
+                  paddingHorizontal: 3,
+                }}>
+                  <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
+                    {pendingThisMonth > 99 ? "99+" : pendingThisMonth}
+                  </Text>
+                </View>
+              )}
+              {tab.name === "nextMonth" && pendingNextMonth > 0 && (
+                <View style={{
+                  position: "absolute", top: -4, right: -8,
+                  minWidth: 16, height: 16, borderRadius: 8,
+                  backgroundColor: "#D32F2F", justifyContent: "center", alignItems: "center",
+                  paddingHorizontal: 3,
+                }}>
+                  <Text style={{ fontSize: 9, fontWeight: "700", color: "#fff" }}>
+                    {pendingNextMonth > 99 ? "99+" : pendingNextMonth}
                   </Text>
                 </View>
               )}

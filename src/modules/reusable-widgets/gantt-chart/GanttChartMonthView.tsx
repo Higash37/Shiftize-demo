@@ -106,6 +106,7 @@ import type { ShiftHistoryEntry } from "@/services/shift-history/shiftHistoryLog
 import { QuickShiftUrlModal } from "@/modules/master-view/quick-shift-url/QuickShiftUrlModal";
 import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext";
 import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
+import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 import { computeAutoSchedule, ProposedAssignment } from "@/modules/master-view/auto-scheduling/autoScheduler";
 
 // --- 静的データ（コンポーネント外に定義することで毎レンダーの再生成を防止） ---
@@ -115,6 +116,7 @@ const SIMPLIFIED_STATUS_CONFIGS: ShiftStatusConfig[] = [
   { status: "approved", label: "承認済み", color: "#90caf9", canEdit: false, description: "承認されたシフト" },
   { status: "pending", label: "申請中", color: "#FFD700", canEdit: true, description: "新規申請されたシフト" },
   { status: "rejected", label: "却下", color: "#ffcdd2", canEdit: true, description: "却下されたシフト" },
+  { status: "deletion_requested", label: "削除申請中", color: "#FF9F0A", canEdit: false, description: "削除申請中のシフト" },
   { status: "deleted", label: "削除済み", color: "#9e9e9e", canEdit: false, description: "削除されたシフト" },
   { status: "completed", label: "完了", color: "#4CAF50", canEdit: false, description: "完了したシフト" },
 ];
@@ -184,6 +186,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
 
   const { roles, tasks, roleAssignments, taskAssignments } = useStaffRolesContext();
   const { assignments: existingAssignments, fetchForMonth, bulkSave } = useShiftTaskAssignmentsContext();
+  const { markAsRead } = usePendingShiftBadge();
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -222,7 +225,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   }, [selectedDate, fetchForMonth]);
 
   // 時間選択オプションを生成（プルダウン用の "09:00", "09:15", ... のリスト）
-  const timeOptions = generateTimeOptions();
+  const timeOptions = useMemo(() => generateTimeOptions(), []);
 
   // --- レイアウト幅の計算（windowWidthから導出） ---
   // ガントチャートの横幅を3つのカラムに分割する。
@@ -333,8 +336,10 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
   const handleShiftPress = useCallback(
     (shift: ShiftItem) => {
       modalRef.current?.openEdit(shift);
+      // モーダル表示後に既読処理（再レンダリングを遅延）
+      requestAnimationFrame(() => markAsRead(shift.id));
     },
-    []
+    [markAsRead]
   );
 
   const handleHistoryEntryAction = useCallback(
