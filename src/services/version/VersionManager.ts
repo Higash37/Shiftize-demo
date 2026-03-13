@@ -51,8 +51,11 @@ export class VersionManager {
   /** settingsテーブルのキー名 */
   private static readonly VERSION_KEY = 'app_version';
 
-  /** バージョンチェックの間隔: 60秒（ミリ秒） */
-  private static readonly CHECK_INTERVAL = 60000;
+  /** バージョンチェックの間隔（ミリ秒） */
+  private static readonly CHECK_INTERVAL_MS = 60_000;
+
+  /** Service Worker処理完了を待つ遅延（ミリ秒） */
+  private static readonly RELOAD_DELAY_MS = 100;
 
   /**
    * intervalId: setIntervalの戻り値を保持する。
@@ -80,7 +83,7 @@ export class VersionManager {
     // setInterval: 指定間隔で繰り返し関数を実行するタイマー
     this.intervalId = setInterval(async () => {
       await this.checkVersion(onUpdateRequired);
-    }, this.CHECK_INTERVAL);
+    }, this.CHECK_INTERVAL_MS);
   }
 
   /**
@@ -204,7 +207,7 @@ export class VersionManager {
       navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
     }
 
-    // 100ms後にリロード（Service Workerの処理完了を待つため）
+    // RELOAD_DELAY_MS後にリロード（Service Workerの処理完了を待つため）
     setTimeout(() => {
       // URLにタイムスタンプを追加してキャッシュ回避
       // 例: https://app.shiftize.com/?v=1709876543210
@@ -213,7 +216,7 @@ export class VersionManager {
       url.searchParams.set('v', timestamp.toString());
       // window.location.href への代入でページ遷移（リロード）
       window.location.href = url.toString();
-    }, 100);
+    }, this.RELOAD_DELAY_MS);
   }
 
   /**

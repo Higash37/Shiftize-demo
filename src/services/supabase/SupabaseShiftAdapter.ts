@@ -38,6 +38,9 @@ interface ShiftRow {
 /** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
+/** リアルタイム購読のデバウンス間隔（ミリ秒） */
+const REALTIME_DEBOUNCE_MS = 300;
+
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   const item: ShiftItem = {
     id: row.id,
@@ -537,7 +540,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchAsShiftItems()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）
@@ -631,7 +634,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchMonthShifts()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）

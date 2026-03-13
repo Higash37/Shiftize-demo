@@ -70,9 +70,7 @@ export class OnboardingStorage {
       // AsyncStorageから値を取得（存在しなければnull）
       const value = await AsyncStorage.getItem(ONBOARDING_KEY);
       // 文字列 "true" と厳密比較。null や他の文字列なら false
-      const isCompleted = value === "true";
-
-      return isCompleted;
+      return value === "true";
     } catch (error) {
       // 読み取りエラー時は「未完了」として扱う（安全側に倒す）
       return false;

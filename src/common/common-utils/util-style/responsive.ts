@@ -30,7 +30,8 @@ import { Dimensions } from "react-native";
 import { BREAKPOINTS } from "@/common/common-constants/BoundaryConstants";
 
 // 画面サイズを取得（モジュール読み込み時に一度だけ実行）
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+// heightは現時点で未使用のため、widthのみ取得
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 /**
  * デバイスの種類を判定するフラグ定数
