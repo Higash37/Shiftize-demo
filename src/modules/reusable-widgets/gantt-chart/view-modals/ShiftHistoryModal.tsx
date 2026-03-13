@@ -167,7 +167,9 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
           }}
           onPress={onClose}
         >
-          <View
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
             style={{
               backgroundColor: "white",
               borderRadius: 12,
@@ -446,7 +448,7 @@ export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     );

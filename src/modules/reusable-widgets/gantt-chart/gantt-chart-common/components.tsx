@@ -17,6 +17,7 @@ import React, { useState, useContext, useMemo, createContext } from "react";
 import { useTimeSegmentTypesContext } from "@/common/common-context/TimeSegmentTypesContext";
 import { useShiftTaskAssignmentsContext } from "@/common/common-context/ShiftTaskAssignmentsContext";
 import { useStaffRolesContext } from "@/common/common-context/StaffRolesContext";
+import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 import type { TimeSegmentType } from "@/common/common-models/model-shift/shiftTypes";
 import type { ShiftTaskAssignment } from "@/modules/master-view/info-dashboard/useShiftTaskAssignments";
 import {
@@ -420,11 +421,13 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
           singleBarHeight = Math.floor(cellHeight / Math.min(totalShifts, 3));
           barVerticalOffset = index * singleBarHeight;
         }
-        // 色モードに応じて色を取得
+        // 色モードに応じて色を取得（削除申請中は常にステータス色）
         const borderColor =
-          colorMode === "status"
+          shift.status === "deletion_requested"
             ? statusConfig.color
-            : userColorsMap?.[shift.userId] || statusConfig.color;
+            : colorMode === "status"
+              ? statusConfig.color
+              : userColorsMap?.[shift.userId] || statusConfig.color;
 
         // 2時間以下かどうかを判定（120分 = 2時間）
         const startTimeMinutes = (() => {
@@ -487,7 +490,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     }}
                   >
                     <Ionicons
-                      name={shift.status === "deletion_requested" ? "trash-outline" as any : userIcon as any}
+                      name={shift.status === "deletion_requested" ? "alert-circle-outline" as any : userIcon as any}
                       size={11}
                       color={borderColor}
                       style={{ marginRight: 2 }}
@@ -505,25 +508,26 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       ]}
                       numberOfLines={1}
                     >
-                      {shift.status === "deletion_requested" ? "削除申請中" : shift.nickname}
+                      {shift.nickname}
                     </Text>
                   </View>
 
-                  {/* 2行目: 時間 */}
+                  {/* 2行目: 時間 or 削除申請中 */}
                   <Text
                     style={[
                       styles['shiftTimeText'],
                       {
                         fontSize: 8,
-                        color: "#666",
+                        color: shift.status === "deletion_requested" ? borderColor : "#666",
                         textAlign: "left",
                         lineHeight: 10,
                         paddingLeft: 13,
+                        fontWeight: shift.status === "deletion_requested" ? "bold" : "normal",
                       },
                     ]}
                     numberOfLines={1}
                   >
-                    {shift.startTime}～{shift.endTime}
+                    {shift.status === "deletion_requested" ? "削除申請中" : `${shift.startTime}～${shift.endTime}`}
                   </Text>
                 </View>
               ) : (
@@ -547,7 +551,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                     }}
                   >
                     <Ionicons
-                      name={shift.status === "deletion_requested" ? "trash-outline" as any : userIcon as any}
+                      name={shift.status === "deletion_requested" ? "alert-circle-outline" as any : userIcon as any}
                       size={11}
                       color={borderColor}
                       style={{ marginRight: 2 }}
@@ -564,11 +568,11 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                       ]}
                       numberOfLines={1}
                     >
-                      {shift.status === "deletion_requested" ? "削除申請中" : shift.nickname}
+                      {shift.nickname}
                     </Text>
                   </View>
 
-                  {/* 右側（中央寄せ）: 時間（大きいテキスト） */}
+                  {/* 右側（中央寄せ）: 時間 or 削除申請中 */}
                   <View
                     style={{
                       flex: 1,
@@ -582,14 +586,14 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
                         {
                           fontSize: 13,
                           fontWeight: "bold",
-                          color: "#555",
+                          color: shift.status === "deletion_requested" ? borderColor : "#555",
                           textAlign: "center",
                           marginRight: 26,
                         },
                       ]}
                       numberOfLines={1}
                     >
-                      {shift.startTime}～{shift.endTime}
+                      {shift.status === "deletion_requested" ? "削除申請中" : `${shift.startTime}～${shift.endTime}`}
                     </Text>
                   </View>
                 </View>
@@ -745,9 +749,11 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
   children,
 }) => {
   const { selectedShiftIds, onToggleSelect } = useContext(ShiftSelectionContext);
+  const { isUnreadChange } = usePendingShiftBadge();
   const isSelected = selectedShiftIds.has(shift.id);
   const [hovered, setHovered] = useState(false);
   const showCheckbox = hovered || isSelected;
+  const showUnreadChip = isUnreadChange(shift.id);
 
   return (
     <View
@@ -761,7 +767,7 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
         width: barWidth,
         height: singleBarHeight,
         top: barVerticalOffset,
-        zIndex: 2,
+        zIndex: showUnreadChip ? 100 : 2,
       }}
     >
       {/* チェックボックス */}
@@ -822,6 +828,23 @@ const ShiftBarWithCheckboxInner: React.FC<ShiftBarWithCheckboxProps> = ({
       >
         {children}
       </TouchableOpacity>
+      {showUnreadChip && (
+        <View style={{
+          position: "absolute",
+          top: 1,
+          right: 2,
+          backgroundColor: "#FF3B30",
+          borderRadius: 4,
+          paddingHorizontal: 3,
+          paddingVertical: 0,
+          zIndex: 9999,
+          elevation: 9999,
+        }}>
+          <Text style={{ fontSize: 6, fontWeight: "bold", color: "#fff", lineHeight: 10 }}>
+            変更あり
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

@@ -64,6 +64,8 @@ export const AddShiftModalView: React.FC<AddShiftModalViewProps> = React.memo(({
     }
   }, [visible]);
 
+  if (!visible) return null;
+
   const handleSave = () => {
     setAttemptedSave(true);
     if (!newShiftData.userId) {
