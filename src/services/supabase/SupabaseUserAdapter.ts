@@ -257,6 +257,27 @@ export class SupabaseUserAdapter implements IUserService {
         throw new PermissionError("管理者権限が必要です");
       }
 
+      // セキュリティ修正: 管理者の store_id と対象ユーザーの store_id の一致を検証
+      // 異なる店舗のユーザーを削除できないようにする（店舗間のデータ分離を保証）
+      const supabase = getSupabase();
+      const { data: adminProfile } = await supabase
+        .from("users")
+        .select("store_id")
+        .eq("uid", adminUserId)
+        .maybeSingle();
+      const { data: targetProfile } = await supabase
+        .from("users")
+        .select("store_id")
+        .eq("uid", targetUserId)
+        .maybeSingle();
+
+      if (!adminProfile || !targetProfile) {
+        throw new NotFoundError("ユーザー情報が見つかりません");
+      }
+      if (adminProfile.store_id !== targetProfile.store_id) {
+        throw new PermissionError("異なる店舗のユーザーを削除する権限がありません");
+      }
+
       await PersonalDataDeletion.deleteUserDataByAdmin(
         targetUserId,
         storeId,

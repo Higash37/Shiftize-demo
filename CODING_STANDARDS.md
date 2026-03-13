@@ -18,6 +18,7 @@ src/
 ├── common/                 # アプリ全体で共有するコード
 │   ├── common-constants/   # 定数定義
 │   ├── common-context/     # React Context
+│   ├── common-errors/      # カスタムエラークラス
 │   ├── common-hooks/       # カスタムフック
 │   ├── common-models/      # データモデル（型定義）
 │   ├── common-schemas/     # Zodバリデーションスキーマ
@@ -25,18 +26,32 @@ src/
 │   ├── common-types/       # グローバル型宣言（.d.ts）
 │   ├── common-ui/          # 共通UIコンポーネント
 │   └── common-utils/       # ユーティリティ関数
+│       ├── security/       # 暗号化・監査・GDPR
+│       ├── util-date/      # 日付操作・祝日判定
+│       ├── util-shift/     # 給与計算
+│       ├── util-validation/ # 入力検証・XSS対策
+│       └── util-storage/   # ローカルストレージ
 │
 ├── modules/                # 機能別モジュール（画面単位）
 │   ├── home-view/          # ホーム画面
 │   ├── login-view/         # ログイン画面
 │   ├── master-view/        # 管理者画面群
+│   │   ├── auto-scheduling/ # 自動配置エンジン
+│   │   └── info-dashboard/ # 業務・タスク管理
 │   ├── user-view/          # ユーザー画面群
 │   └── reusable-widgets/   # 複数画面で再利用するウィジェット
+│       ├── gantt-chart/    # ガントチャートコンポーネント群
+│       └── calendar/       # カレンダーコンポーネント
 │
 └── services/               # バックエンド連携層
+    ├── ServiceProvider.ts  # Service Locator（13サービス）
+    ├── initializeServices.ts # 起動時初期化
     ├── interfaces/         # サービスインターフェース定義
     ├── supabase/           # Supabaseアダプター実装
-    └── auth/               # 認証関連サービス
+    ├── auth/               # 認証関連サービス
+    ├── google-calendar/    # Google Calendar連携
+    ├── shift-history/      # シフト変更履歴・監査ログ
+    └── version/            # バージョン管理
 ```
 
 ### ルール
@@ -61,6 +76,7 @@ src/
 | 定数                     | `PascalCaseConstants.ts` | `ColorConstants.ts`       |
 | サービスIF               | `IPascalCase.ts`         | `IAuthService.ts`         |
 | アダプター               | `SupabasePascalCase.ts`  | `SupabaseShiftAdapter.ts` |
+| テスト                   | `*.test.ts`              | `SupabaseShiftAdapter.test.ts` |
 | データ                   | `PascalCase.data.ts`     | `Changelog.data.ts`       |
 
 ### コンポーネントファイルのセット
@@ -82,37 +98,38 @@ LoginForm/
 ## 3. TypeScript命名規則
 
 ```typescript
-// ✅ 変数・関数: camelCase
+// 変数・関数: camelCase
 const userName = "田中";
 function calculateWage() { ... }
 
-// ✅ 定数値: UPPER_SNAKE_CASE
+// 定数値: UPPER_SNAKE_CASE
 const MAX_SHIFT_HOURS = 12;
-const API_TIMEOUT_MS = 5000;
+const REALTIME_DEBOUNCE_MS = 300;
+const DEFAULT_HOURLY_WAGE = 1100;
 
-// ✅ 型・インターフェース: PascalCase（I接頭辞はサービスIFのみ）
+// 型・インターフェース: PascalCase（I接頭辞はサービスIFのみ）
 type ShiftStatus = "approved" | "pending" | "rejected";
 interface ShiftData { ... }
 
-// ✅ サービスインターフェース: I接頭辞
+// サービスインターフェース: I接頭辞
 interface IShiftService { ... }
 
-// ✅ Props型: コンポーネント名 + Props
+// Props型: コンポーネント名 + Props
 interface LoginFormProps { ... }
 
-// ✅ Enum: PascalCase（値もPascalCase）
+// Enum: PascalCase（値もPascalCase）
 enum UserRole {
   Master = "master",
   Teacher = "teacher",
 }
 
-// ✅ React コンポーネント: PascalCase
+// React コンポーネント: PascalCase
 const ShiftCalendar: React.FC<ShiftCalendarProps> = () => { ... }
 
-// ✅ カスタムフック: use + PascalCase
+// カスタムフック: use + PascalCase
 function useShiftData() { ... }
 
-// ❌ any型の使用は原則禁止
+// any型の使用は原則禁止
 // やむを得ない場合はコメントで理由を明記する
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const data = response as any; // 外部API型定義なし
@@ -122,12 +139,12 @@ const data = response as any; // 外部API型定義なし
 
 ```typescript
 // DB: snake_case → TypeScript: camelCase
-// マッピングはアダプター層で行う
+// マッピングはアダプター層（toShiftItemFromRow等）で行う
 
-// ❌ コンポーネント内でsnake_caseを使わない
+// NG: コンポーネント内でsnake_caseを使わない
 const user_name = row.user_name;
 
-// ✅ アダプターで変換してからコンポーネントに渡す
+// OK: アダプターで変換してからコンポーネントに渡す
 const userName = row.user_name;
 ```
 
@@ -152,6 +169,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   // --- Hooks ---
   const styles = useThemedStyles(createLoginFormStyles);
 
+  // --- Derived (useMemo) ---
+  const isValid = useMemo(() => password.length >= 6, [password]);
+
   // --- Handlers ---
   const handleLogin = useCallback(() => {
     onLogin(password);
@@ -168,7 +188,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
 ### コンポーネント設計ルール
 
-- **コンポーネント内のセクション順序**: State → Hooks → 派生値(useMemo) → Handlers → Render
+- **セクション順序**: State → Hooks → Derived(useMemo) → Handlers → Render
 - **セクションコメント**: `// --- セクション名 ---` で区切る
 - **1コンポーネント = 1ファイル**: 例外はごく小さなヘルパーコンポーネントのみ
 - **Props**: 3個以上なら `.types.ts` に分離する
@@ -178,8 +198,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
 ## 5. スタイル管理
 
-### スタイルファイルの構造
-
 ```typescript
 /** LoginFormのスタイル。テーマカラーを受け取ってStyleSheetを返す */
 import { StyleSheet } from "react-native";
@@ -187,13 +205,11 @@ import { MD3ColorScheme } from "@/common/common-theme/md3/MD3ThemeContext";
 
 export const createLoginFormStyles = (colorScheme: MD3ColorScheme) =>
   StyleSheet.create({
-    /** フォーム全体のコンテナ */
     container: {
       flex: 1,
       padding: 16,
       backgroundColor: colorScheme.surface,
     },
-    /** ログインボタン */
     loginButton: {
       backgroundColor: colorScheme.primary,
       borderRadius: 8,
@@ -202,10 +218,10 @@ export const createLoginFormStyles = (colorScheme: MD3ColorScheme) =>
   });
 ```
 
-### スタイル管理ルール
+### ルール
 
 - **テーマカラー**: `colorScheme.xxx` を使う。ハードコードした色は禁止
-- **マジックナンバー禁止**: `padding: 16` は許容するが、特殊な値は定数化する
+- **マジックナンバー**: `padding: 16` は許容。特殊な値は定数化する
 - **レスポンシブ**: `Breakpoints.ts` の値を使って画面サイズ分岐する
 - **Shadow**: MD3の`elevation`を使う。`shadow*` propsは使わない（Web非対応）
 
@@ -213,7 +229,7 @@ export const createLoginFormStyles = (colorScheme: MD3ColorScheme) =>
 
 ## 6. サービス層の設計
 
-### アーキテクチャ（3層構造）
+### 3層構造
 
 ```txt
 UI Layer（コンポーネント）
@@ -223,46 +239,46 @@ Service Layer（インターフェース + アダプター）
 Data Layer（Supabase / PostgreSQL）
 ```
 
-### インターフェース定義
+### ルール
 
-```typescript
-/** シフトのCRUD操作。実装はアダプターが担当する */
-export interface IShiftService {
-  getShifts(storeId: string, month: string): Promise<Shift[]>;
-  createShift(data: CreateShiftInput): Promise<Shift>;
-  updateShift(id: string, data: UpdateShiftInput): Promise<void>;
-  deleteShift(id: string): Promise<void>;
-}
-```
-
-### アダプター実装
-
-```typescript
-/** IShiftServiceのSupabase実装。DB操作はここに集約する */
-export class SupabaseShiftAdapter implements IShiftService {
-  async getShifts(storeId: string, month: string): Promise<Shift[]> {
-    // ...
-  }
-}
-```
-
-### サービス層ルール
-
-- **コンポーネントからSupabaseを直接呼ばない**: 必ずServiceProvider経由
+- **コンポーネントからSupabaseを直接呼ばない**: 必ず `ServiceProvider` 経由
 - **インターフェースに型をつける**: 引数・戻り値は明示的に型定義する
 - **エラーハンドリング**: アダプター内でtry-catchし、意味のあるエラーメッセージを返す
 - **DB列名の変換**: アダプター層で `snake_case` → `camelCase` に変換する
+- **SELECT**: `select("*")` は禁止。必要列を明示する（例: `SHIFT_ITEM_COLUMNS`）
+- **バリデーション**: Realtime フィルタに動的値を入れる前に `validateStoreId()` で検証
+
+### アダプター実装パターン
+
+```typescript
+// 定数定義（ファイル先頭、class外）
+const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,..." as const;
+const REALTIME_DEBOUNCE_MS = 300;
+
+// 変換関数
+const toShiftItemFromRow = (row: ShiftRow): ShiftItem => ({ ... });
+const toInsertRow = (shift: Omit<Shift, "id">): ShiftRow => ({ ... });
+
+// アダプタークラス
+export class SupabaseShiftAdapter implements IShiftService {
+  async getShifts(storeId: string): Promise<ShiftItem[]> {
+    const { data, error } = await getSupabase()
+      .from("shifts")
+      .select(SHIFT_ITEM_COLUMNS)   // 必要列のみ
+      .eq("store_id", storeId);
+    if (error) throw new Error(`シフト取得に失敗: ${error.message}`);
+    return data.map(toShiftItemFromRow);
+  }
+}
+```
 
 ---
 
 ## 7. コメント規約
 
-「このコード何してるんだっけ？」を防ぐためのルール。
 読み手は半年後の自分、または初めてこのコードを見るメンバーを想定する。
 
 ### 7.1 ファイルヘッダー（必須）
-
-ファイルの先頭、import文の前に書く。何のファイルか1〜2行でわかればOK。
 
 ```typescript
 /**
@@ -272,8 +288,6 @@ export class SupabaseShiftAdapter implements IShiftService {
 ```
 
 ### 7.2 コンポーネント（必須）
-
-何をするコンポーネントか + 主要Propsだけ書く。@exampleは大きいコンポーネントだけでいい。
 
 ```typescript
 /**
@@ -287,22 +301,15 @@ export class SupabaseShiftAdapter implements IShiftService {
 
 ### 7.3 関数（exportする関数は必須）
 
-やること + 引数 + 戻り値。ロジックが名前から自明なら省略してもいい。
-
 ```typescript
 /**
  * 時間文字列を分数に変換する（"09:30" → 570）
  * ガントチャートの位置計算で使う。
  */
-function timeStringToMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
+function timeStringToMinutes(time: string): number { ... }
 ```
 
 ### 7.4 型・インターフェース（必須）
-
-各プロパティに `/** */` をつける。型の役割は冒頭に1行。
 
 ```typescript
 /** 1つのシフト（出勤予定）。DBのshiftsテーブルに対応 */
@@ -313,50 +320,19 @@ interface Shift {
   userId: string;
   /** "2026-03-10"形式 */
   date: string;
-  /** "09:00"形式 */
-  startTime: string;
-  /** "18:00"形式 */
-  endTime: string;
-  status: "approved" | "pending" | "rejected";
 }
 ```
 
 ### 7.5 インラインコメント（任意）
 
-「なぜ」を書く。「何をしているか」はコードを読めばわかるので不要。
+**「なぜ」を書く。「何をしているか」はコードを読めばわかるので不要。**
 
 ```typescript
 // Supabaseは空配列をnullで返すのでフォールバック
 const shifts = data?.shifts ?? [];
 
-// 重複しないシフトをグループ化して列数を減らす
-const groups = packShiftsIntoColumns(shifts);
-
 // 管理者は全シフト編集可、一般ユーザーは自分のだけ
 if (role === "master" || shift.userId === currentUserId) {
-```
-
-書かなくていい例:
-
-```typescript
-// ❌ 見ればわかる
-i++; // iを1増やす
-
-// ❌ 放置されたTODO
-// TODO: あとで修正する ← いつの話？消すか直す
-```
-
-### 7.6 コンポーネント内のセクション区切り
-
-```typescript
-// --- State ---
-const [shifts, setShifts] = useState<Shift[]>([]);
-
-// --- Handlers ---
-const handlePress = () => { ... };
-
-// --- Render ---
-return ( ... );
 ```
 
 ### コメント対象まとめ
@@ -394,7 +370,7 @@ import { createShiftCalendarStyles } from "./ShiftCalendar.styles";
 import type { ShiftCalendarProps } from "./ShiftCalendar.types";
 ```
 
-### Import管理ルール
+### ルール
 
 - **グループ間に空行**を入れる
 - **type-only import**: 型だけの場合は `import type { ... }` を使う
@@ -404,10 +380,19 @@ import type { ShiftCalendarProps } from "./ShiftCalendar.types";
 
 ## 9. エラーハンドリング
 
-サービス層で具体的なエラーを投げて、コンポーネント層でユーザーに見せる。
+### カスタムエラークラス
 
 ```typescript
-// サービス層: 何が失敗したかわかるメッセージを投げる
+// common/common-errors/AppErrors.ts で定義済み
+throw new ValidationError("メールアドレスの形式が正しくありません");
+throw new PermissionError("管理者権限が必要です");
+throw new NotFoundError("ユーザー情報が見つかりません");
+```
+
+### サービス層 → UI層
+
+```typescript
+// サービス層: 具体的なエラーを投げる
 if (error) {
   throw new Error(`シフト取得に失敗: ${error.message}`);
 }
@@ -420,17 +405,13 @@ try {
 }
 ```
 
-catchの中を空にしない。最低限ログを出すかユーザーに通知する。
+- catchの中を空にしない。最低限ログを出すかユーザーに通知する。
 
 ---
 
 ## 10. セキュリティ規約
 
-- SECRET_KEY / SERVICE_ROLE_KEY はクライアントに置かない
-- `EXPO_PUBLIC_` は公開していい値だけにつける（ANON_KEYはOK）
-- ユーザー入力はサニタイズする（XSS対策）
-- innerHTML使うなら `escapeHtml()` を通す
-- パスワードは平文でDBに保存しない（Supabase Authに任せる）
+### 環境変数
 
 ```bash
 # クライアントに公開OK
@@ -442,17 +423,129 @@ SUPABASE_SERVICE_ROLE_KEY=xxx
 SIGNING_KEY_JWK=xxx
 ```
 
+### コーディングルール
+
+- ユーザー入力はサニタイズする（XSS対策）
+- innerHTML使うなら `escapeHtml()` を通す
+- パスワードは平文でDBに保存しない（Supabase Authに任せる）
+- パスワード比較は `===` ではなく `safeStringCompare()` を使う（タイミング攻撃対策）
+- RLS ポリシーに `USING(true)` は禁止。必ず `store_id` ベースのチェック
+- Realtime フィルタの動的値は `validateStoreId()` で検証してから使う
+- 管理者操作には `store_id` クロスチェックを入れる（店舗間分離の保証）
+
 ---
 
-## 11. Git規約
+## 11. パフォーマンス規約
+
+### 必須
+
+- リスト表示は `FlatList` を使う（ScrollView + map は重い）
+- 計算が重いものは `useMemo` で囲む
+- イベントハンドラは `useCallback` で囲む
+- `useEffect` の依存配列は正しく書く（無限ループ注意）
+- `setTimeout` / `setInterval` は useEffect の return で `clearTimeout` / `clearInterval` する
+
+### 禁止パターン
+
+```typescript
+// NG: ループ内の Array.find() — O(n²)
+shifts.forEach(shift => {
+  const user = users.find(u => u.id === shift.userId);
+});
+
+// OK: 先に Map を構築 — O(n)
+const userMap = new Map(users.map(u => [u.id, u]));
+shifts.forEach(shift => {
+  const user = userMap.get(shift.userId);
+});
+
+// NG: select("*") — 不要列まで転送
+supabase.from("shifts").select("*");
+
+// OK: 必要列のみ指定
+supabase.from("shifts").select(SHIFT_ITEM_COLUMNS);
+
+// NG: ループ内で new Date()
+shifts.forEach(s => { const d = new Date(s.date); ... });
+
+// OK: 文字列操作で代替（可能な場合）
+shifts.forEach(s => { const month = s.date.slice(5, 7); ... });
+
+// NG: インライン関数を props に渡す（毎回再生成）
+<Component onPress={() => handlePress(id)} />
+
+// OK: useCallback で安定参照
+const handlePressItem = useCallback((id) => { ... }, []);
+```
+
+---
+
+## 12. テスト規約
+
+### ファイル配置
+
+テストファイルはテスト対象と同じディレクトリに配置する。
+
+```
+src/services/supabase/
+├── SupabaseShiftAdapter.ts
+└── SupabaseShiftAdapter.test.ts    # 同じ場所に配置
+```
+
+### テスト命名
+
+```typescript
+describe("SupabaseShiftAdapter", () => {
+  describe("getShiftsByMonth（月次シフト取得）", () => {
+    it("正常系: 指定月のシフトを取得できる", async () => { ... });
+    it("異常系: 不正なstoreIdでエラーをスローする", async () => { ... });
+    it("エッジケース: データが0件の場合は空配列を返す", async () => { ... });
+  });
+});
+```
+
+### モックパターン
+
+```typescript
+// Supabaseクエリビルダーのモック
+const createMockQueryBuilder = () => {
+  const builder: any = {};
+  const methods = ["select", "insert", "update", "delete", "eq", "gte", "lte", "order", "limit"];
+  methods.forEach((method) => {
+    builder[method] = jest.fn().mockReturnValue(builder);
+  });
+  builder.single = jest.fn().mockResolvedValue({ data: null, error: null });
+  builder.maybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+  return builder;
+};
+
+// 各テストで独立したビルダーを生成（テスト間の状態漏洩防止）
+const builder = createMockQueryBuilder();
+mockFrom.mockReturnValueOnce(builder);
+```
+
+### PR前チェック
+
+```bash
+npx jest              # 全テスト通過
+npx tsc --noEmit      # 型チェック通過（テストファイル含む）
+```
+
+---
+
+## 13. Git規約
 
 ### ブランチ命名
 
 ```txt
 feat/機能名        # 新機能
 fix/修正内容       # バグ修正
+perf/対象          # パフォーマンス改善
 refactor/対象      # リファクタリング
+test/対象          # テスト追加
+docs/対象          # ドキュメント
 chore/内容         # 雑務（依存更新、設定変更など）
+cleanup/対象       # コード品質改善
 ```
 
 ### コミットメッセージ
@@ -460,7 +553,9 @@ chore/内容         # 雑務（依存更新、設定変更など）
 ```txt
 feat: シフト自動配置機能を追加
 fix: カレンダーの日付選択が動作しない問題を修正
+perf: PayrollDetailModalのO(n²)検索をMap O(1)に改善
 refactor: サービス層のエラーハンドリングを統一
+test: SupabaseShiftAdapterのユニットテスト30件追加
 chore: 不要な依存パッケージを削除
 ```
 
@@ -470,19 +565,10 @@ chore: 不要な依存パッケージを削除
 
 ---
 
-## 12. パフォーマンス
-
-- リスト表示は `FlatList` を使う（ScrollView + mapは重い）
-- 計算が重いものは `useMemo` で囲む
-- イベントハンドラは `useCallback` で囲む
-- `setInterval` で全DOM走査みたいな力技はやらない
-- `useEffect` の依存配列は正しく書く（無限ループ注意）
-
----
-
-## PRを出す前の確認
+## PR前の最終チェックリスト
 
 - [ ] `npx tsc --noEmit` が通る
+- [ ] `npx jest` が全件パス
 - [ ] `npm run lint` が警告0
 - [ ] `any` を増やしていない（どうしても必要ならコメントで理由を書く）
 - [ ] 新規ファイルにヘッダーコメントがある
@@ -490,3 +576,8 @@ chore: 不要な依存パッケージを削除
 - [ ] 色のハードコードがない（`colorScheme.xxx` を使う）
 - [ ] シークレットを `.env` に追加していない
 - [ ] コンポーネントからSupabaseを直接呼んでいない
+- [ ] `select("*")` を使っていない
+- [ ] ループ内で `Array.find()` / `new Date()` を使っていない
+- [ ] `setTimeout` は useEffect return で `clearTimeout` している
+- [ ] RLS ポリシーに `USING(true)` を使っていない
+- [ ] テストを追加した場合、モックが各テストで独立している

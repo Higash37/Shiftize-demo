@@ -38,6 +38,50 @@ interface ShiftRow {
 /** チャンネル名の一意性を保証するカウンター */
 let channelCounter = 0;
 
+/**
+ * validateStoreId - store_id のバリデーション（Realtimeフィルタインジェクション対策）
+ *
+ * Supabase Realtimeのフィルタ文字列にstoreIdを直接埋め込むため、
+ * 英数字・ハイフン・アンダースコアのみ許可して不正な文字列の注入を防ぐ。
+ *
+ * @param storeId - 検証する店舗ID
+ * @throws Error 不正な文字が含まれる場合
+ */
+const validateStoreId = (storeId: string): void => {
+  if (!storeId || !/^[a-zA-Z0-9_-]+$/.test(storeId)) {
+    throw new Error(`不正な店舗IDです: store_id に使用できない文字が含まれています`);
+  }
+};
+
+/**
+ * validateRealtimeParams - Realtimeサブスクリプション用パラメータのバリデーション
+ *
+ * storeId, year, month の各パラメータを検証する。
+ * フィルタインジェクション防止のため、Realtime購読前に必ず呼び出す。
+ *
+ * @param storeId - 店舗ID
+ * @param year - 年（オプション）
+ * @param month - 月（オプション、0-11）
+ */
+const validateRealtimeParams = (storeId: string, year?: number, month?: number): void => {
+  validateStoreId(storeId);
+  if (year !== undefined && (!Number.isInteger(year) || year < 2000 || year > 2100)) {
+    throw new Error(`不正な年パラメータです: ${year}`);
+  }
+  if (month !== undefined && (!Number.isInteger(month) || month < 0 || month > 11)) {
+    throw new Error(`不正な月パラメータです: ${month}`);
+  }
+};
+
+/**
+ * ShiftItem取得用の必要列のみ指定（select("*") による不要列転送を削減）
+ * toShiftItemFromRow が参照する全列を列挙している。
+ */
+const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,nickname,date,start_time,end_time,type,subject,notes,is_completed,status,duration,created_at,updated_at,classes,google_calendar_event_id,requested_changes" as const;
+
+/** リアルタイム購読のデバウンス間隔（ミリ秒） */
+const REALTIME_DEBOUNCE_MS = 300;
+
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   const item: ShiftItem = {
     id: row.id,
@@ -495,9 +539,10 @@ export class SupabaseShiftAdapter implements IShiftService {
   /** 店舗のシフトをShiftItem形式で取得する */
   async getShiftItems(storeId: string): Promise<ShiftItem[]> {
     const supabase = getSupabase();
+    // 必要列のみ取得してデータ転送量を削減
     const { data, error } = await supabase
       .from("shifts")
-      .select("*")
+      .select(SHIFT_ITEM_COLUMNS)
       .eq("store_id", storeId)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true });
@@ -512,13 +557,17 @@ export class SupabaseShiftAdapter implements IShiftService {
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
+    // セキュリティ修正: Realtimeフィルタインジェクション防止のため storeId をバリデーション
+    validateRealtimeParams(storeId);
+
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
     const fetchAsShiftItems = async (): Promise<ShiftItem[]> => {
+      // 必要列のみ取得してデータ転送量を削減
       const { data, error } = await supabase
         .from("shifts")
-        .select("*")
+        .select(SHIFT_ITEM_COLUMNS)
         .eq("store_id", storeId)
         .order("date", { ascending: true })
         .order("start_time", { ascending: true });
@@ -537,7 +586,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchAsShiftItems()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）
@@ -579,9 +628,10 @@ export class SupabaseShiftAdapter implements IShiftService {
     const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
+    // 必要列のみ取得してデータ転送量を削減
     const { data, error } = await supabase
       .from("shifts")
-      .select("*")
+      .select(SHIFT_ITEM_COLUMNS)
       .eq("store_id", storeId)
       .gte("date", startDate)
       .lte("date", endDate)
@@ -600,6 +650,9 @@ export class SupabaseShiftAdapter implements IShiftService {
     callback: (shifts: ShiftItem[]) => void,
     onError?: (error: Error) => void
   ): () => void {
+    // セキュリティ修正: Realtimeフィルタインジェクション防止のため全パラメータをバリデーション
+    validateRealtimeParams(storeId, year, month);
+
     const supabase = getSupabase();
     let channel: RealtimeChannel | null = null;
 
@@ -607,9 +660,10 @@ export class SupabaseShiftAdapter implements IShiftService {
     const endDate = `${year}-${String(month + 1).padStart(2, "0")}-31`;
 
     const fetchMonthShifts = async () => {
+      // 必要列のみ取得してデータ転送量を削減
       const { data, error } = await supabase
         .from("shifts")
-        .select("*")
+        .select(SHIFT_ITEM_COLUMNS)
         .eq("store_id", storeId)
         .gte("date", startDate)
         .lte("date", endDate)
@@ -631,7 +685,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchMonthShifts()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）

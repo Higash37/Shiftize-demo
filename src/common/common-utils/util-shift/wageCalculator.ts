@@ -20,6 +20,9 @@
  * 4. 別単価モード（wageMode="custom_rate"）は別途加算
  */
 
+/** デフォルト時給（円）。明示的に指定されない場合に使用する */
+const DEFAULT_HOURLY_WAGE = 1100;
+
 /**
  * timeStringToMinutes - "HH:mm" 形式の時間文字列を分数に変換する
  *
@@ -185,7 +188,7 @@ export const calculateWage = (hourlyWage: number, minutes: number): number => {
  */
 export const calculateShiftWage = (
   shift: { startTime: string; endTime: string },
-  hourlyWage: number = 1100
+  hourlyWage: number = DEFAULT_HOURLY_WAGE
 ): { minutes: number; wage: number } => {
   const minutes = calculateMinutesBetween(shift.startTime, shift.endTime);
   const wage = calculateWage(hourlyWage, minutes);
@@ -369,7 +372,7 @@ export const calculateTotalWage = (
     endTime: string;
     classes?: Array<{ startTime: string; endTime: string; typeId?: string; typeName?: string }>;
   },
-  hourlyWage: number = 1100,
+  hourlyWage: number = DEFAULT_HOURLY_WAGE,
   typesMap?: Record<string, TimeSegmentType>
 ): {
   totalMinutes: number;

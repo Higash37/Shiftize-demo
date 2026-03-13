@@ -421,6 +421,13 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     });
   }, [selectedDate, user, users]);
 
+  // GanttChartBodyのonMonthChange用コールバック（インライン関数の再生成を防止）
+  const handleBodyMonthChange = useCallback((month: { year: number; month: number }) => {
+    if (onMonthChange) {
+      onMonthChange(month.year, month.month);
+    }
+  }, [onMonthChange]);
+
   // 色モード切替
   const handleColorModeToggle = useCallback(() => {
     setColorMode(prev => prev === "status" ? "user" : "status");
@@ -448,15 +455,16 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     return map;
   }, [users]);
 
+  // ユーザーID→ユーザー情報のMapをメモ化（レンダーごとの再生成を防止）
+  // 複数箇所で参照されるため、独立したuseMemoで一度だけ構築する
+  const userMap = useMemo(() => new Map(users.map(u => [u.uid, u])), [users]);
+
   // 月の合計金額・時間を計算（useMemoで直接導出、useEffect不要）
   const totalWage = useMemo(() => {
     if (!shifts || shifts.length === 0) return { totalAmount: 0, totalHours: 0 };
 
     const selectedYear = selectedDate.getFullYear();
     const selectedMonth = selectedDate.getMonth() + 1;
-
-    // ユーザーIDをキーにしたMapで高速検索
-    const userMap = new Map(users.map(u => [u.uid, u]));
 
     let totalMinutes = 0;
     let totalAmount = 0;
@@ -478,7 +486,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
     }
 
     return { totalHours: totalMinutes / 60, totalAmount: Math.round(totalAmount) };
-  }, [shifts, users, selectedDate]);
+  }, [shifts, userMap, selectedDate]);
 
   // MobileVerticalView / GoogleCalendarView 共通コールバック
   const handleMobileEmptyCellClick = useCallback((date: string, time: string, userId: string) => {
@@ -707,7 +715,7 @@ const GanttChartMonthViewComponent: React.FC<GanttChartMonthViewProps> = ({
             onDateSelect={(date) => {
               // 日付選択時の処理
             }}
-            {...(onMonthChange && { onMonthChange: (month: any) => onMonthChange(month.getFullYear(), month.getMonth()) })}
+            {...(onMonthChange && { onMonthChange: handleBodyMonthChange })}
             users={usersWithRole}
           />
         </View>

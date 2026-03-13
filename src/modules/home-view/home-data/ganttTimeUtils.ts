@@ -6,14 +6,6 @@
  *   ホーム画面のガントチャート表示で使われる。
  */
 
-import type {
-  SampleSlot,
-  SampleScheduleColumn,
-} from "../home-types/home-view-types";
-// ↑ type-only import: 型だけをインポートする書き方。
-//   「import type」にすると、ビルド後のJSからは完全に除去される。
-//   型チェックのためだけに使い、バンドルサイズに影響しない。
-
 // --- ユーティリティ関数 ---
 
 /**
@@ -24,7 +16,7 @@ import type {
  * padStart(2, "0") は文字列メソッドで、文字列が2文字未満なら先頭に"0"を足す。
  * 例: "9".padStart(2, "0") → "09", "12".padStart(2, "0") → "12"
  */
-export const pad = (n: number) => n.toString().padStart(2, "0");
+export const pad = (n: number): string => n.toString().padStart(2, "0");
 
 // --- 時間配列の生成 ---
 

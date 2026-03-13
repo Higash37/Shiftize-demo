@@ -79,9 +79,18 @@ export const AuthResponseSchema = z.object({
     uid: z.string(),
     email: z
       .string()
-      .refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-        message: "Invalid email format",
-      })
+      .refine(
+        (val) =>
+          val === null ||
+          // セキュリティ修正: メール正規表現を強化
+          // - TLD 2文字以上必須（.c のような不正TLDを拒否）
+          // - 連続ドット禁止（user..name@example.com を拒否）
+          // - ローカルパートとドメインの先頭・末尾のドットを禁止
+          /^[^\s@.][^\s@]*[^\s@.]@[^\s@.][^\s@]*(\.[^\s@.]+)*\.[^\s@.]{2,}$/.test(val),
+        {
+          message: "Invalid email format",
+        }
+      )
       .nullable(),              // null を許容（メール未設定の場合）
     displayName: z.string().nullable(), // null を許容
   }),
@@ -187,60 +196,6 @@ export function validateEmailMessage(data: unknown) {
     );
   }
   return result.data;
-}
-
-// ============================================================================
-// React Hook Form 連携
-// ============================================================================
-
-/**
- * userFormResolver - React Hook FormでZodスキーマを使うためのリゾルバー
- *
- * @hookform/resolvers パッケージをインストールすると有効化可能。
- * zodResolver(UserWithPasswordSchema) を設定すると、
- * フォーム送信時に自動的にZodスキーマで検証される。
- *
- * 【使い方の例（有効化後）】
- * ```typescript
- * import { zodResolver } from "@hookform/resolvers/zod";
- * const { register, handleSubmit } = useForm({
- *   resolver: zodResolver(UserWithPasswordSchema),
- * });
- * ```
- */
-export const userFormResolver = {
-  // zodResolver(UserWithPasswordSchema) // @hookform/resolversをインストール後に有効化
-};
-
-// ============================================================================
-// 開発者向けヘルパー
-// ============================================================================
-
-/**
- * debugValidation - 開発時のデータ検証デバッグ関数
- *
- * バリデーション結果をコンソールに出力する。本番環境では使用しない。
- *
- * 【ジェネリクス <T> の解説】
- * - `<T>` → 型パラメータ。呼び出し時に具体的な型が決まる
- * - `z.ZodSchema<T>` → T型のデータを検証するZodスキーマ
- * これにより、任意のZodスキーマとデータのペアでこの関数を使える。
- *
- * @param schema - 検証に使用するZodスキーマ
- * @param data - 検証するデータ
- * @param label - ログ出力時のラベル（識別用）
- * @returns safeParse の結果オブジェクト
- */
-export function debugValidation<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown,
-  label: string
-) {
-  const result = schema.safeParse(data);
-
-  // バリデーション結果はresultオブジェクトで返す（ログ出力なし）
-
-  return result;
 }
 
 // ============================================================================
