@@ -375,6 +375,22 @@ describe("SupabaseUserAdapter", () => {
       });
       mockFrom.mockReturnValueOnce(builder);
 
+      // store_idクロスチェック: admin profile
+      const adminProfileBuilder = createMockQueryBuilder();
+      adminProfileBuilder.maybeSingle.mockResolvedValue({
+        data: { store_id: STORE_ID },
+        error: null,
+      });
+      mockFrom.mockReturnValueOnce(adminProfileBuilder);
+
+      // store_idクロスチェック: target profile
+      const targetProfileBuilder = createMockQueryBuilder();
+      targetProfileBuilder.maybeSingle.mockResolvedValue({
+        data: { store_id: STORE_ID },
+        error: null,
+      });
+      mockFrom.mockReturnValueOnce(targetProfileBuilder);
+
       await adapter.secureDeleteUserByAdmin(USER_ID, STORE_ID, ADMIN_ID);
 
       expect(PersonalDataDeletion.deleteUserDataByAdmin).toHaveBeenCalledWith(
@@ -415,6 +431,23 @@ describe("SupabaseUserAdapter", () => {
         error: null,
       });
       mockFrom.mockReturnValueOnce(builder);
+
+      // store_idクロスチェック: admin profile
+      const adminProfileBuilder = createMockQueryBuilder();
+      adminProfileBuilder.maybeSingle.mockResolvedValue({
+        data: { store_id: STORE_ID },
+        error: null,
+      });
+      mockFrom.mockReturnValueOnce(adminProfileBuilder);
+
+      // store_idクロスチェック: target profile
+      const targetProfileBuilder = createMockQueryBuilder();
+      targetProfileBuilder.maybeSingle.mockResolvedValue({
+        data: { store_id: STORE_ID },
+        error: null,
+      });
+      mockFrom.mockReturnValueOnce(targetProfileBuilder);
+
       (PersonalDataDeletion.deleteUserDataByAdmin as jest.Mock).mockRejectedValueOnce(
         new Error("Deletion failed")
       );

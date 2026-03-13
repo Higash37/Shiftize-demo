@@ -26,7 +26,7 @@
     // 実務ではほぼtrue推奨。
     "skipLibCheck": true,
     // Node.jsの型定義を利用
-    "types": ["node"],
+    "types": ["node", "jest"],
     // =====追加の厳密設定群=====
     // オーバーライドの強制
     // 継承時の事故を防ぐ
