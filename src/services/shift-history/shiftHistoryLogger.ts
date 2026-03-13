@@ -132,13 +132,14 @@ export interface ShiftHistoryEntry {
 
 /**
  * getStatusLabel: ステータスの英語コードを日本語ラベルに変換するヘルパー関数。
+ * SupabaseAuditAdapterでも共用されるためexportする。
  *
  * Record<string, string> は「キーがstring、値がstringのオブジェクト」を表すTypeScript型。
  *
  * @param status - ステータスの英語コード
  * @returns 日本語ラベル。未知のステータスはそのまま返す
  */
-const getStatusLabel = (status: string): string => {
+export const getStatusLabel = (status: string): string => {
   const statusMap: Record<string, string> = {
     approved: "承認済み",
     pending: "申請中",
@@ -151,7 +152,7 @@ const getStatusLabel = (status: string): string => {
 
 /**
  * toHistorySnapshot: ShiftItemから監査ログ用のスナップショットを生成する。
- * 全フィールドではなく、ログに必要なフィールドだけを抽出する。
+ * SupabaseAuditAdapterでも共用されるためexportする。
  *
  * Partial<ShiftItem>: ShiftItemの全プロパティをオプショナル（?）にした型。
  * 「シフトの一部分だけを持つオブジェクト」を表現できる。
@@ -159,7 +160,7 @@ const getStatusLabel = (status: string): string => {
  * @param shift - 元のシフトデータ
  * @returns Partial<ShiftItem> - ログ用に絞り込まれたスナップショット
  */
-const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
+export const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
   // 必須フィールドをまず設定
   const snapshot: Partial<ShiftItem> = {
     id: shift.id,
@@ -192,7 +193,7 @@ const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
 
 /**
  * generateSummary: アクションタイプに基づいて人が読める要約文を生成する。
- * ログ一覧画面で「何が起きたか」を一目で把握するための文章。
+ * SupabaseAuditAdapterでも共用されるためexportする。
  *
  * @param action - アクションタイプ
  * @param actor - 操作者
@@ -202,7 +203,7 @@ const toHistorySnapshot = (shift: ShiftItem): Partial<ShiftItem> => {
  * @param metadata - 追加メタデータ（一括承認の件数等）
  * @returns 要約文（例: "教室長 が 2025-03-10 のシフトを追加しました"）
  */
-const generateSummary = (
+export const generateSummary = (
   action: ShiftActionType,
   actor: ShiftHistoryActor,
   date: string,

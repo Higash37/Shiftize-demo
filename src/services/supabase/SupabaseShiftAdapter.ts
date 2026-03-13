@@ -79,6 +79,9 @@ const validateRealtimeParams = (storeId: string, year?: number, month?: number):
  */
 const SHIFT_ITEM_COLUMNS = "id,user_id,store_id,nickname,date,start_time,end_time,type,subject,notes,is_completed,status,duration,created_at,updated_at,classes,google_calendar_event_id,requested_changes" as const;
 
+/** リアルタイム購読のデバウンス間隔（ミリ秒） */
+const REALTIME_DEBOUNCE_MS = 300;
+
 const toShiftItemFromRow = (row: ShiftRow): ShiftItem => {
   const item: ShiftItem = {
     id: row.id,
@@ -583,7 +586,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchAsShiftItems()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）
@@ -682,7 +685,7 @@ export class SupabaseShiftAdapter implements IShiftService {
         fetchMonthShifts()
           .then((items) => { if (!aborted) callback(items); })
           .catch((err) => { if (!aborted) onError?.(err); });
-      }, 300);
+      }, REALTIME_DEBOUNCE_MS);
     };
 
     // 初回データ取得（デバウンスなし）
