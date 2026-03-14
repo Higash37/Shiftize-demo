@@ -10,8 +10,13 @@
 1. [デモ版との違い](#1-デモ版との違い)
 2. [デモ版から持ち越す課題](#2-デモ版から持ち越す課題)
 3. [商用版の新規開発項目](#3-商用版の新規開発項目)
+   - 3.2 オンボーディング導線
+   - 3.3 ロール階層と権限（Owner / Manager / Staff）
+   - 3.4 料金モデル（Free / Pro、Stripe連携フロー）
 4. [アーキテクチャ変更](#4-アーキテクチャ変更)
 5. [料金モデルとデータ構造](#5-料金モデルとデータ構造)
+   - 5.1 新規テーブル（organizations, invitations）
+   - 5.4 オーナー管理画面
 6. [プラットフォーム戦略・デザイン方針](#6-プラットフォーム戦略デザイン方針)
 7. [移行手順](#7-移行手順)
 8. [優先度とフェーズ分け](#8-優先度とフェーズ分け)
@@ -119,32 +124,187 @@
 | **パスワードリセット** | Supabase Auth 標準のリセットフロー |
 | **実メール認証** | `@example.com` 廃止、実メールアドレスのみ |
 
-### 3.2 マルチテナント（企業 → 支店）
+### 3.2 オンボーディング導線
+
+#### 新規登録フロー（オーナー）
 
 ```
-企業（Organization）
+1. ランディングページ（shiftize.jp）
+   └─ 「無料で始める」ボタン
+        │
+2. 新規登録画面
+   └─ メールアドレス + パスワード入力
+        │
+3. メール確認
+   └─ 確認リンクをクリック
+        │
+4. 企業情報入力
+   ├─ 企業名（例: 「○○学習塾」）
+   ├─ 業種選択（塾・飲食・小売・医療・その他）
+   └─ 用語プリセット自動適用（業種に応じて）
+        │
+5. 最初の支店作成
+   └─ 支店名（例: 「本校」「渋谷店」）
+        │
+6. ダッシュボード（空の状態）
+   ├─ チュートリアルオーバーレイ（初回のみ）
+   ├─ 「スタッフを招待する」CTA
+   └─ 「最初のシフトを作る」CTA
+```
+
+#### スタッフ招待フロー
+
+```
+オーナー/マネージャー側:
+  スタッフ管理 → 「招待」→ メールアドレス入力 → ロール選択 → 送信
+        │
+招待メール送信（Edge Function）
+        │
+スタッフ側:
+  メール内リンクをクリック → 登録画面（名前+パスワード）→ 自動的に支店に参加
+```
+
+#### 既存ユーザーの別支店参加
+
+```
+オーナーが別支店に招待 → メール通知 → アプリ内で承認 → 支店切替が可能に
+```
+
+### 3.3 ロール階層と権限
+
+#### 3.3.1 組織構造
+
+```
+企業（Organization）←── サブスク契約の単位
+  │
+  ├── オーナー（Owner）      ← 1企業に1人。課金・全支店管理
+  │
   ├── 支店A（Store）
-  │     ├── マスター
-  │     └── スタッフ 1..N
+  │     ├── マネージャー（Manager）  ← 支店責任者。シフト承認・スタッフ管理
+  │     ├── スタッフ（Staff）        ← 一般従業員。シフト申請・閲覧
+  │     └── スタッフ（Staff）
+  │
   ├── 支店B（Store）
+  │     ├── マネージャー（Manager）
+  │     └── スタッフ（Staff）
+  │
   └── 支店C（Store）
+        └── マネージャー（Manager）  ← オーナーが兼任も可
 ```
 
-- `organizations` テーブル新設（企業情報 + 課金プラン）
-- `stores.organization_id` 追加
-- 企業管理者（org_admin）ロール追加
-- 支店間のスタッフ共有（ヘルプ要請）
+#### 3.3.2 ロール定義
 
-### 3.3 課金・プラン管理
+| ロール | DB値 | スコープ | 説明 |
+|--------|------|---------|------|
+| **オーナー** | `owner` | 企業全体 | サブスク契約者。企業設定・支店管理・課金管理。全支店のデータ閲覧可 |
+| **マネージャー** | `manager` | 支店単位 | 支店の管理者。シフト承認/却下、スタッフ管理、給与確認。デモ版の「master」相当 |
+| **スタッフ** | `staff` | 支店単位 | 一般従業員。シフト申請・閲覧・募集応募。デモ版の「user」相当 |
 
-| プラン | 条件 | 機能 |
-|--------|------|------|
-| **Free** | スタッフ 20 人以下 & 1 店舗 | 全機能利用可 |
-| **Pro** | 21 人以上 or 2 店舗以上 | 全機能 + 優先サポート |
+> **デモ版からの移行**: `master` → `owner` or `manager`、`user` → `staff`
 
-- Stripe 連携（サブスクリプション）
-- プランゲート（人数/店舗数チェック）
-- 無料トライアル期間
+#### 3.3.3 権限マトリクス
+
+| 機能 | オーナー | マネージャー | スタッフ |
+|------|:--------:|:----------:|:-------:|
+| **企業レベル** | | | |
+| サブスクリプション管理（Stripe） | ✅ | ❌ | ❌ |
+| 支店の作成・削除 | ✅ | ❌ | ❌ |
+| 支店間のスタッフ異動 | ✅ | ❌ | ❌ |
+| 全支店のデータ閲覧 | ✅ | ❌ | ❌ |
+| マネージャーの任命・解任 | ✅ | ❌ | ❌ |
+| 企業設定（用語カスタマイズ等） | ✅ | ❌ | ❌ |
+| **支店レベル** | | | |
+| シフト承認・却下 | ✅ | ✅ | ❌ |
+| シフト直接作成（承認不要） | ✅ | ✅ | ❌ |
+| スタッフ招待・削除 | ✅ | ✅ | ❌ |
+| スタッフの時給・ロール設定 | ✅ | ✅ | ❌ |
+| 給与一覧・CSV出力 | ✅ | ✅ | ❌ |
+| ガントチャート編集 | ✅ | ✅ | ❌ |
+| 自動配置エンジン実行 | ✅ | ✅ | ❌ |
+| 募集シフト作成 | ✅ | ✅ | ❌ |
+| 店舗設定（業務・タスク等） | ✅ | ✅ | ❌ |
+| **個人レベル** | | | |
+| シフト申請（作成） | ✅ | ✅ | ✅ |
+| 自分のシフト閲覧 | ✅ | ✅ | ✅ |
+| ガントチャート閲覧（全体） | ✅ | ✅ | ✅ |
+| 削除申請 | ✅ | ✅ | ✅ |
+| 募集シフト応募 | ❌ | ❌ | ✅ |
+| Google Calendar連携（自分） | ✅ | ✅ | ✅ |
+| プロフィール編集 | ✅ | ✅ | ✅ |
+
+#### 3.3.4 オーナーのマネージャー兼任
+
+小規模事業者（1支店）ではオーナー = マネージャーになるケースが多い。
+
+```
+1支店の場合:
+  オーナー（自分）= 支店のマネージャーを兼任
+  → 企業管理画面は表示するが、日常操作はマネージャーUIで行う
+
+複数支店の場合:
+  オーナー → 企業ダッシュボード（全支店の俯瞰）
+  各支店のマネージャー → 支店ごとのシフト管理
+```
+
+### 3.4 料金モデル
+
+#### 3.4.1 プラン構成
+
+| | Free | Pro |
+|---|------|-----|
+| **月額** | ¥0 | ¥1,980/月（税抜）|
+| **年額** | ¥0 | ¥19,800/年（税抜、2ヶ月分お得） |
+| **スタッフ数** | 20人まで | 無制限 |
+| **支店数** | 1支店 | 無制限 |
+| **機能** | 全機能利用可 | 全機能 + 優先サポート |
+| **データ保持** | 6ヶ月 | 無制限 |
+| **CSV出力** | ✅ | ✅ |
+| **Google Calendar連携** | ✅ | ✅ |
+| **通知** | ✅ | ✅ |
+
+> **価格設定の根拠**: 競合（Airシフト ¥0〜、ジョブカン ¥200/人/月、シフオプ ¥300/人/月）と比較して、
+> 「人数課金なし」の定額制で差別化。30人で使えば ¥66/人/月 相当。
+
+#### 3.4.2 プランゲート（制限の実装）
+
+```
+Free → Pro へのアップグレード促進ポイント:
+
+1. 21人目のスタッフ招待時
+   → 「無料プランはスタッフ20人までです。Proプランにアップグレードしますか？」
+
+2. 2つ目の支店作成時
+   → 「無料プランは1支店までです。Proプランで複数支店を管理できます」
+
+3. 6ヶ月前のデータ閲覧時
+   → 「過去データの閲覧はProプランで利用できます」
+```
+
+#### 3.4.3 無料トライアル
+
+- Pro プランの 30 日間無料トライアル（クレジットカード登録不要）
+- トライアル中は全制限解除
+- 期限後は Free プランに自動ダウングレード（データは保持、制限適用）
+
+#### 3.4.4 Stripe 連携フロー
+
+```
+アップグレード:
+  設定 → 料金プラン → 「Proに変更」
+  → Stripe Checkout（決済画面）
+  → Webhook → organizations.plan = 'pro' に更新
+  → 制限解除
+
+ダウングレード:
+  設定 → 料金プラン → 「Freeに戻す」
+  → 次回更新日まではPro継続
+  → 更新日にWebhook → organizations.plan = 'free'
+  → 制限適用（既存データは保持、超過分は読み取り専用）
+
+解約:
+  → ダウングレードと同じフロー
+  → データは90日間保持、その後削除
+```
 
 ### 3.4 用語のカスタマイズ
 
@@ -202,43 +362,116 @@
 ### 5.1 新規テーブル
 
 ```sql
--- 企業テーブル
-organizations (
-  id UUID PRIMARY KEY,
-  name TEXT,
-  plan TEXT DEFAULT 'free',  -- 'free' | 'pro'
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
-  max_staff INTEGER DEFAULT 20,
-  max_stores INTEGER DEFAULT 1,
-  created_at TIMESTAMPTZ
-)
+-- 企業テーブル（サブスク契約の単位）
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,                                    -- 企業名
+  industry TEXT DEFAULT 'other',                         -- 業種（juku/restaurant/retail/medical/other）
+  plan TEXT DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'trial')),
+  trial_ends_at TIMESTAMPTZ,                             -- トライアル終了日
+  stripe_customer_id TEXT,                               -- Stripe顧客ID
+  stripe_subscription_id TEXT,                           -- StripeサブスクリプションID
+  owner_uid UUID NOT NULL,                               -- オーナーのUID
+  terminology JSONB DEFAULT '{}',                        -- 用語カスタマイズ {"staff":"クルー","store":"拠点"}
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- stores に organization_id 追加
 ALTER TABLE stores ADD COLUMN organization_id UUID REFERENCES organizations(id);
 
+-- users.role の値を拡張（owner / manager / staff）
+-- デモ版の master → owner or manager, user → staff に移行
+
 -- 招待テーブル
-invitations (
-  id UUID PRIMARY KEY,
-  organization_id UUID,
-  store_id TEXT,
-  email TEXT,
-  role TEXT DEFAULT 'user',
-  token TEXT UNIQUE,
-  expires_at TIMESTAMPTZ,
-  accepted_at TIMESTAMPTZ
-)
+CREATE TABLE invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id),
+  store_id TEXT NOT NULL REFERENCES stores(store_id),
+  email TEXT NOT NULL,
+  role TEXT DEFAULT 'staff' CHECK (role IN ('manager', 'staff')),
+  invited_by UUID NOT NULL,                              -- 招待者のUID
+  token TEXT NOT NULL UNIQUE,                            -- 招待トークン（URLに含める）
+  expires_at TIMESTAMPTZ NOT NULL,                       -- 有効期限（7日）
+  accepted_at TIMESTAMPTZ,                               -- 承認日時（NULL=未承認）
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_invitations_token ON invitations (token);
+CREATE INDEX idx_invitations_email ON invitations (email);
 ```
 
-### 5.2 プランゲートロジック
+### 5.2 ロール管理のデータフロー
+
+```
+新規登録時:
+  1. auth.users にユーザー作成
+  2. organizations を作成（owner_uid = 自分）
+  3. stores を作成（organization_id = 上記）
+  4. users を作成（role = 'owner', store_id = 上記）
+
+招待受諾時:
+  1. invitations.token で招待を検索
+  2. auth.users にユーザー作成
+  3. users を作成（role = invitations.role, store_id = invitations.store_id）
+  4. invitations.accepted_at を更新
+
+支店追加時（オーナーのみ）:
+  1. プランゲート確認（Free は 1 支店まで）
+  2. stores を作成（organization_id = 既存企業）
+  3. オーナーをその支店の管理者としても登録
+
+ロール変更時（オーナーのみ）:
+  1. users.role を更新（staff ↔ manager）
+  2. owner は変更不可（企業に1人のみ）
+```
+
+### 5.3 プランゲートロジック
 
 ```typescript
-// スタッフ追加時
-const staffCount = await getStaffCount(storeId);
-const plan = await getOrganizationPlan(organizationId);
-if (plan === 'free' && staffCount >= 20) {
-  throw new PlanLimitError('無料プランはスタッフ20人までです');
+// Edge Function: スタッフ招待時
+async function checkPlanLimits(organizationId: string, action: 'add_staff' | 'add_store') {
+  const org = await getOrganization(organizationId);
+  const plan = org.trial_ends_at && new Date(org.trial_ends_at) > new Date()
+    ? 'trial' : org.plan;
+
+  if (plan === 'free') {
+    if (action === 'add_staff') {
+      const count = await getTotalStaffCount(organizationId);  // 全支店合計
+      if (count >= 20) throw new PlanLimitError('FREE_STAFF_LIMIT');
+    }
+    if (action === 'add_store') {
+      const count = await getStoreCount(organizationId);
+      if (count >= 1) throw new PlanLimitError('FREE_STORE_LIMIT');
+    }
+  }
+  // pro / trial は無制限
 }
+```
+
+### 5.4 オーナー管理画面（企業ダッシュボード）
+
+オーナーのみアクセス可能な企業レベルの管理画面。
+
+```
+企業ダッシュボード
+├── 概要（全支店のシフト数、スタッフ数、今月の概況）
+├── 支店管理
+│     ├── 支店一覧（支店名、マネージャー、スタッフ数）
+│     ├── 支店の追加・削除
+│     └── スタッフの支店間異動
+├── メンバー管理
+│     ├── 全スタッフ一覧（支店横断）
+│     ├── ロール変更（staff ↔ manager）
+│     └── 招待管理（招待中・承認済み一覧）
+├── プラン・課金
+│     ├── 現在のプラン表示
+│     ├── アップグレード / ダウングレード
+│     ├── 請求履歴（Stripe Customer Portal）
+│     └── 利用状況（スタッフ数 / 支店数 vs 上限）
+└── 企業設定
+      ├── 企業名・業種
+      └── 用語カスタマイズ
 ```
 
 ---
