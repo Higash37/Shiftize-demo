@@ -21,6 +21,11 @@
 12. [障害対応・トラブルシューティング](#12-障害対応トラブルシューティング)
 13. [バージョン管理・リリース](#13-バージョン管理リリース)
 14. [依存関係](#14-依存関係)
+15. [用語集（ドメイン用語）](#15-用語集ドメイン用語)
+16. [ユーザーロールと権限](#16-ユーザーロールと権限)
+17. [シフトのステータスライフサイクル](#17-シフトのステータスライフサイクル)
+18. [データモデル](#18-データモデル)
+19. [開発環境セットアップ（初回）](#19-開発環境セットアップ初回)
 
 ---
 
@@ -169,6 +174,9 @@ supabase/migrations/
   002_oauth_linking.sql             # マルチプロバイダOAuth
   003_google_calendar_sync.sql      # カレンダー連携テーブル
   004_google_calendar_token_rpc.sql # トークン更新RPC
+  005_daily_todos.sql               # 日次TODO機能
+  006_staff_roles.sql               # 業務・タスク・配置
+  007_remaining_tables.sql          # 途中時間タイプ・レポート・自動配置
   005_daily_todos.sql               # 日次ToDo機能
 ```
 
@@ -947,6 +955,307 @@ npx npm-check-updates
     "send": "^0.19.1"             // セキュリティパッチ
   }
 }
+```
+
+---
+
+---
+
+## 15. 用語集（ドメイン用語）
+
+| 用語 | 英語 | 説明 |
+|------|------|------|
+| **店舗** | Store | シフト管理の単位。塾の教室1つ = 1店舗。`store_id`で全データが分離される |
+| **マスター** | Master | 管理者ロール。シフト承認・スタッフ管理・設定変更・給与確認が可能 |
+| **ユーザー** | User | 一般スタッフ（講師）ロール。自分のシフト申請・確認のみ |
+| **途中時間** | Class Time / Time Segment | シフト勤務中の区切り（授業・休憩等）。給与計算で除外/カスタムレートが適用される |
+| **業務** | Role (Staff Role) | スタッフの担当業務（例: 数学講師、事務）。`staff_roles`テーブル |
+| **タスク** | Task (Role Task) | 業務に紐づく具体的な作業（例: 採点、電話対応）。`role_tasks`テーブル |
+| **募集シフト** | Recruitment Shift | マスターが作成する「人手が欲しい枠」。QRコード/URLで外部共有し応募を受け付ける |
+| **クイックシフトトークン** | Quick Shift Token | 募集シフトへの応募URLに含まれるワンタイムトークン |
+| **シフト提出期間** | Submission Period | マスターが設定する「来月のシフト希望を出してください」の募集期間 |
+| **途中時間タイプ** | Time Segment Type | 途中時間の種類（休憩・授業等）。マスターが定義。給与計算モード（除外/含む/カスタムレート）を持つ |
+
+---
+
+## 16. ユーザーロールと権限
+
+### 16.1 ロール一覧
+
+| ロール | DB値 | 説明 |
+|--------|------|------|
+| **マスター** | `master` | 店舗管理者。1店舗に1人。全機能にアクセス可能 |
+| **ユーザー** | `user` | 一般スタッフ（講師）。自分のシフトのみ操作可能 |
+
+> **コード上の "teacher" について**: 変更ログ（`shift_change_logs`）の `actor.role` で `teacher` が使われる箇所がある。これは `user` ロールの別名で、DB の `users.role` は常に `master` か `user`。
+
+### 16.2 権限マトリクス
+
+| 機能 | マスター | ユーザー |
+|------|:--------:|:--------:|
+| シフト閲覧（全スタッフ） | ✅ | ❌（自分のみ） |
+| シフト申請（作成） | ✅ | ✅ |
+| シフト承認・却下 | ✅ | ❌ |
+| シフト削除 | ✅ | ❌（削除申請のみ） |
+| スタッフ管理（追加・削除・時給設定） | ✅ | ❌ |
+| 店舗設定 | ✅ | ❌ |
+| 給与一覧・CSV出力 | ✅ | ❌ |
+| ガントチャート（全体） | ✅ | ✅（閲覧のみ） |
+| 募集シフト作成 | ✅ | ❌ |
+| 募集シフト応募 | ❌ | ✅ |
+| 自動配置実行 | ✅ | ❌ |
+| Google Calendar連携 | ✅ | ✅（自分のシフトのみ） |
+
+---
+
+## 17. シフトのステータスライフサイクル
+
+### 17.1 ステータス一覧
+
+| ステータス | DB値 | 色 | 編集可 | 説明 |
+|-----------|------|-----|:------:|------|
+| 下書き | `draft` | #e0e0e0 | ✅ | マスターが直接作成した未公開シフト |
+| 申請中 | `pending` | #FFD700 | ✅ | ユーザーが申請し、マスター承認待ち |
+| 承認済み | `approved` | #90caf9 | ❌ | マスターが承認した確定シフト |
+| 却下 | `rejected` | #ffcdd2 | ✅ | マスターが却下。ユーザーは修正して再申請可能 |
+| 削除申請中 | `deletion_requested` | #FFD700 | ❌ | ユーザーが削除を申請し、マスター判断待ち |
+| 削除済み | `deleted` | #9e9e9e | ❌ | マスターが削除承認。一覧から非表示 |
+| 完了 | `completed` | #4CAF50 | ❌ | 勤務完了（現在は手動切替） |
+| 完全非表示 | `purged` | - | ❌ | 完全に非表示。復元不可 |
+| 募集中 | `recruitment` | #9e9e9e | ❌ | 募集シフト専用ステータス |
+
+### 17.2 ステータス遷移図
+
+```
+                    ┌──── ユーザーが修正して再申請 ────┐
+                    │                                  │
+                    ▼                                  │
+  ┌─────────┐    ┌─────────┐    ┌───────────┐    ┌──────────┐
+  │  draft   │───▶│ pending │───▶│ approved  │───▶│completed │
+  │ (下書き)  │    │(申請中)  │    │(承認済み)  │    │ (完了)   │
+  └─────────┘    └────┬────┘    └─────┬─────┘    └──────────┘
+    │マスター          │                │
+    │直接承認          ▼                ▼
+    │           ┌──────────┐    ┌─────────────────┐
+    └──────────▶│ rejected │    │deletion_requested│
+                │ (却下)    │    │ (削除申請中)      │
+                └──────────┘    └────────┬────────┘
+                                         │
+                                    マスター判断
+                                    ┌────┴────┐
+                                    ▼         ▼
+                              ┌─────────┐  却下して
+                              │ deleted  │  approved
+                              │(削除済み) │  に戻す
+                              └────┬────┘
+                                   │
+                                   ▼
+                              ┌─────────┐
+                              │ purged  │
+                              │(完全非表示)│
+                              └─────────┘
+```
+
+### 17.3 遷移ルール（誰が・いつ）
+
+| 遷移 | 実行者 | トリガー |
+|------|--------|---------|
+| `draft` → `pending` | ユーザー | シフト申請ボタン |
+| `draft` → `approved` | マスター | 直接シフト作成（承認不要） |
+| `pending` → `approved` | マスター | 承認ボタン |
+| `pending` → `rejected` | マスター | 却下ボタン（理由入力） |
+| `rejected` → `pending` | ユーザー | 修正して再申請 |
+| `approved` → `deletion_requested` | ユーザー | 削除申請ボタン |
+| `approved` → `deleted` | マスター | 直接削除 |
+| `approved` → `completed` | マスター | 完了マーク |
+| `deletion_requested` → `deleted` | マスター | 削除承認 |
+| `deletion_requested` → `approved` | マスター | 削除申請を却下（元に戻す） |
+| `deleted` → `purged` | マスター | 完全削除 |
+
+---
+
+## 18. データモデル
+
+### 18.1 テーブル一覧と目的
+
+| テーブル | 目的 | 主キー | 店舗分離 |
+|---------|------|--------|:--------:|
+| `stores` | 店舗情報（教室）。全データの分離単位 | `store_id` (TEXT) | - |
+| `users` | スタッフ情報。認証・ロール・時給 | `uid` (UUID) | ✅ |
+| `shifts` | シフトデータ本体。日付・時間・ステータス | `id` (UUID) | ✅ |
+| `settings` | 店舗設定（KVS形式）。途中時間タイプ等 | `id` (UUID) | ✅ |
+| `shift_change_logs` | シフト変更履歴（監査ログ） | `id` (UUID) | ✅ |
+| `recruitment_shifts` | 募集シフト。外部公開して応募を受け付ける | `id` (UUID) | ✅ |
+| `quick_shift_tokens` | 募集シフト共有用ワンタイムトークン | `id` (TEXT) | ✅ |
+| `shift_submission_periods` | シフト提出募集期間（マスターが設定） | `id` (UUID) | ✅ |
+| `shift_submissions` | ユーザーのシフト希望提出データ | `id` (UUID) | ✅ |
+| `shift_confirmations` | シフト確定の確認記録 | `id` (TEXT) | ✅ |
+| `user_store_access` | マルチ店舗アクセス管理 | `id` (UUID) | - |
+| `daily_todos` | 日次TODO（当日タスク管理） | `id` (UUID) | ✅ |
+| `todo_templates` | TODOテンプレート（繰り返し用） | `id` (UUID) | ✅ |
+| `todo_comments` | TODOへのコメント（スレッド対応） | `id` (UUID) | ✅ |
+| `staff_roles` | 業務定義（数学講師、事務等） | `id` (UUID) | ✅ |
+| `role_tasks` | 業務に紐づくタスク（採点、電話対応等） | `id` (UUID) | ✅ |
+| `user_role_assignments` | ユーザー×業務の配置 | `id` (UUID) | ✅ |
+| `user_task_assignments` | ユーザー×タスクの配置 | `id` (UUID) | ✅ |
+| `time_segment_types` | 途中時間タイプ定義（休憩・授業等の給与計算モード） | `id` (UUID) | ✅ |
+| `reports` | シフト勤務報告（タスク実績・コメント） | `id` (UUID) | ✅ |
+| `shift_task_assignments` | 自動配置エンジンの結果（シフト×タスク×ユーザー） | `id` (UUID) | ✅ |
+
+### 18.2 テーブル関係図
+
+```
+stores (店舗)
+  │
+  ├─── users (スタッフ)          ... store_id → stores
+  │      │
+  │      ├─── shifts (シフト)    ... user_id → users, store_id → stores
+  │      │      │
+  │      │      └─── shift_change_logs (変更履歴) ... shift_id → shifts
+  │      │
+  │      └─── user_store_access (マルチ店舗) ... uid → users
+  │
+  ├─── settings (店舗設定)       ... store_id → stores
+  │
+  ├─── recruitment_shifts (募集)  ... store_id → stores
+  │      │
+  │      └─── quick_shift_tokens (共有トークン) ... store_id → stores
+  │
+  ├─── shift_submission_periods (提出期間) ... store_id → stores
+  │      │
+  │      └─── shift_submissions (提出データ)   ... period_id → periods
+  │
+  ├─── staff_roles (業務定義)     ... store_id → stores
+  │      │
+  │      ├─── role_tasks (タスク)  ... role_id → staff_roles
+  │      ├─── user_role_assignments (業務配置) ... role_id → staff_roles
+  │      └─── user_task_assignments (タスク配置) ... task_id → role_tasks
+  │
+  ├─── time_segment_types (途中時間タイプ) ... store_id → stores
+  │
+  ├─── shift_task_assignments (自動配置結果) ... store_id → stores, shift_id → shifts
+  │
+  ├─── reports (勤務報告)          ... shift_id → shifts
+  │
+  └─── daily_todos (日次TODO)     ... store_id → stores
+         ├─── todo_comments (コメント) ... todo_id → daily_todos
+         └─── todo_templates (テンプレート) ... store_id → stores
+```
+
+### 18.3 サービスとテーブルの対応
+
+| サービス | アダプタ | 対象テーブル |
+|---------|---------|-------------|
+| `auth` | SupabaseAuthAdapter | `auth.users` + `users` |
+| `users` | SupabaseUserAdapter | `users` |
+| `shifts` | SupabaseShiftAdapter | `shifts` + `shift_change_logs` + `reports` |
+| `stores` | SupabaseStoreAdapter | `stores` |
+| `settings` | SupabaseSettingsAdapter | `settings` |
+| `recruitment` | SupabaseRecruitmentAdapter | `recruitment_shifts` |
+| `quickShiftTokens` | SupabaseQuickShiftTokenAdapter | `quick_shift_tokens` |
+| `shiftSubmission` | SupabaseShiftSubmissionAdapter | `shift_submission_periods` + `shift_submissions` |
+| `shiftConfirmation` | SupabaseShiftConfirmationAdapter | `shift_confirmations` |
+| `audit` | SupabaseAuditAdapter | `shift_change_logs` |
+| `multiStore` | SupabaseMultiStoreAdapter | `user_store_access` |
+| `teacherStatus` | SupabaseTeacherStatusAdapter | `shifts`（勤務状態判定用） |
+| `todos` | SupabaseTodoAdapter | `daily_todos` + `todo_templates` + `todo_comments` |
+
+---
+
+## 19. 開発環境セットアップ（初回）
+
+### 19.1 前提条件
+
+- Node.js 18以上
+- npm 9以上
+- Supabaseアカウント（無料プランで可）
+- Git
+
+### 19.2 手順
+
+```bash
+# 1. リポジトリをクローン
+git clone https://github.com/Higash37/Shiftize-demo.git
+cd Shiftize-demo
+
+# 2. 依存パッケージをインストール
+npm install
+
+# 3. 環境変数を設定
+cp .env.example .env
+# .env を開いて以下を設定:
+#   EXPO_PUBLIC_SUPABASE_URL — Supabaseダッシュボードの Settings > API > Project URL
+#   EXPO_PUBLIC_SUPABASE_ANON_KEY — 同ページの anon public key
+```
+
+### 19.3 Supabase プロジェクトの作成
+
+1. [supabase.com](https://supabase.com) にログイン
+2. 「New Project」でプロジェクトを作成（リージョン: 東京推奨）
+3. 作成完了後、Settings > API から:
+   - **Project URL** → `.env` の `EXPO_PUBLIC_SUPABASE_URL` に設定
+   - **anon public key** → `.env` の `EXPO_PUBLIC_SUPABASE_ANON_KEY` に設定
+
+### 19.4 データベースのセットアップ
+
+Supabaseダッシュボードの SQL Editor で、以下のマイグレーションファイルを**順番に**実行:
+
+```
+supabase/migrations/001_schema_and_rpc.sql    ← テーブル・RLS・RPC関数
+supabase/migrations/002_oauth_linking.sql      ← OAuth連携カラム
+supabase/migrations/003_google_calendar_sync.sql ← Googleカレンダー同期
+supabase/migrations/004_google_calendar_token_rpc.sql ← トークン管理RPC
+supabase/migrations/005_daily_todos.sql        ← 日次TODO機能
+supabase/migrations/006_staff_roles.sql        ← 業務・タスク・配置
+supabase/migrations/007_remaining_tables.sql   ← 途中時間タイプ・レポート・自動配置
+```
+
+### 19.5 初期管理者ユーザーの作成
+
+Supabase ダッシュボード > Authentication > Users で:
+
+1. 「Add user」 > 「Create new user」
+2. メールアドレスとパスワードを入力
+3. SQL Editor で public.users にレコードを追加:
+
+```sql
+INSERT INTO public.users (uid, nickname, email, role, store_id, color, hourly_wage, is_active)
+VALUES (
+  'ここにAuth UsersのUID',  -- AuthenticationタブからコピーExact
+  'あなたの名前',
+  'メールアドレス',
+  'master',                  -- 管理者ロール
+  '001',                     -- 任意の店舗ID
+  '#4A90E2',
+  1000,
+  true
+);
+```
+
+4. 店舗レコードも作成:
+
+```sql
+INSERT INTO stores (store_id, store_name, admin_uid, is_active)
+VALUES ('001', 'テスト教室', 'ここに同じUID', true);
+```
+
+### 19.6 起動確認
+
+```bash
+# Web版で起動
+npm run web
+
+# ブラウザで http://localhost:8081 を開く
+# 先ほど作成したメール/パスワードでログイン
+# ガントチャート画面が表示されれば成功
+```
+
+### 19.7 品質チェック
+
+```bash
+npx tsc --noEmit     # TypeScript型チェック — 0エラーであること
+npx jest             # テスト — 150件全パスであること
+npm run lint         # ESLint — 0エラー0警告であること
 ```
 
 ---

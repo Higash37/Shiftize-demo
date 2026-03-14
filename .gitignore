@@ -68,6 +68,7 @@ ios/
 
 # Environment variables
 .env*
+!.env.example
 
 # Firebase
 serviceAccountKey.json
