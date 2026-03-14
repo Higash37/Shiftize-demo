@@ -174,6 +174,9 @@ supabase/migrations/
   002_oauth_linking.sql             # マルチプロバイダOAuth
   003_google_calendar_sync.sql      # カレンダー連携テーブル
   004_google_calendar_token_rpc.sql # トークン更新RPC
+  005_daily_todos.sql               # 日次TODO機能
+  006_staff_roles.sql               # 業務・タスク・配置
+  007_remaining_tables.sql          # 途中時間タイプ・レポート・自動配置
   005_daily_todos.sql               # 日次ToDo機能
 ```
 
@@ -1095,6 +1098,9 @@ npx npm-check-updates
 | `role_tasks` | 業務に紐づくタスク（採点、電話対応等） | `id` (UUID) | ✅ |
 | `user_role_assignments` | ユーザー×業務の配置 | `id` (UUID) | ✅ |
 | `user_task_assignments` | ユーザー×タスクの配置 | `id` (UUID) | ✅ |
+| `time_segment_types` | 途中時間タイプ定義（休憩・授業等の給与計算モード） | `id` (UUID) | ✅ |
+| `reports` | シフト勤務報告（タスク実績・コメント） | `id` (UUID) | ✅ |
+| `shift_task_assignments` | 自動配置エンジンの結果（シフト×タスク×ユーザー） | `id` (UUID) | ✅ |
 
 ### 18.2 テーブル関係図
 
@@ -1125,6 +1131,12 @@ stores (店舗)
   │      ├─── user_role_assignments (業務配置) ... role_id → staff_roles
   │      └─── user_task_assignments (タスク配置) ... task_id → role_tasks
   │
+  ├─── time_segment_types (途中時間タイプ) ... store_id → stores
+  │
+  ├─── shift_task_assignments (自動配置結果) ... store_id → stores, shift_id → shifts
+  │
+  ├─── reports (勤務報告)          ... shift_id → shifts
+  │
   └─── daily_todos (日次TODO)     ... store_id → stores
          ├─── todo_comments (コメント) ... todo_id → daily_todos
          └─── todo_templates (テンプレート) ... store_id → stores
@@ -1136,7 +1148,7 @@ stores (店舗)
 |---------|---------|-------------|
 | `auth` | SupabaseAuthAdapter | `auth.users` + `users` |
 | `users` | SupabaseUserAdapter | `users` |
-| `shifts` | SupabaseShiftAdapter | `shifts` + `shift_change_logs` |
+| `shifts` | SupabaseShiftAdapter | `shifts` + `shift_change_logs` + `reports` |
 | `stores` | SupabaseStoreAdapter | `stores` |
 | `settings` | SupabaseSettingsAdapter | `settings` |
 | `recruitment` | SupabaseRecruitmentAdapter | `recruitment_shifts` |
@@ -1195,6 +1207,7 @@ supabase/migrations/003_google_calendar_sync.sql ← Googleカレンダー同期
 supabase/migrations/004_google_calendar_token_rpc.sql ← トークン管理RPC
 supabase/migrations/005_daily_todos.sql        ← 日次TODO機能
 supabase/migrations/006_staff_roles.sql        ← 業務・タスク・配置
+supabase/migrations/007_remaining_tables.sql   ← 途中時間タイプ・レポート・自動配置
 ```
 
 ### 19.5 初期管理者ユーザーの作成
