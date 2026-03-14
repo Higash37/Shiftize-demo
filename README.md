@@ -97,6 +97,8 @@ npm run web        # Web版のみ
 | `npm run release:patch` | パッチリリース (x.y.Z) |
 | `npm run release:minor` | マイナーリリース (x.Y.0) |
 | `npm run release:major` | メジャーリリース (X.0.0) |
+| `npm run vercel-build` | Vercel向けビルド |
+| `npm run analyze:bundle` | バンドルサイズ分析 |
 
 ## 環境変数
 

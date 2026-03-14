@@ -1088,6 +1088,13 @@ npx npm-check-updates
 | `shift_submissions` | ユーザーのシフト希望提出データ | `id` (UUID) | ✅ |
 | `shift_confirmations` | シフト確定の確認記録 | `id` (TEXT) | ✅ |
 | `user_store_access` | マルチ店舗アクセス管理 | `id` (UUID) | - |
+| `daily_todos` | 日次TODO（当日タスク管理） | `id` (UUID) | ✅ |
+| `todo_templates` | TODOテンプレート（繰り返し用） | `id` (UUID) | ✅ |
+| `todo_comments` | TODOへのコメント（スレッド対応） | `id` (UUID) | ✅ |
+| `staff_roles` | 業務定義（数学講師、事務等） | `id` (UUID) | ✅ |
+| `role_tasks` | 業務に紐づくタスク（採点、電話対応等） | `id` (UUID) | ✅ |
+| `user_role_assignments` | ユーザー×業務の配置 | `id` (UUID) | ✅ |
+| `user_task_assignments` | ユーザー×タスクの配置 | `id` (UUID) | ✅ |
 
 ### 18.2 テーブル関係図
 
@@ -1108,9 +1115,19 @@ stores (店舗)
   │      │
   │      └─── quick_shift_tokens (共有トークン) ... store_id → stores
   │
-  └─── shift_submission_periods (提出期間) ... store_id → stores
-         │
-         └─── shift_submissions (提出データ)   ... period_id → periods
+  ├─── shift_submission_periods (提出期間) ... store_id → stores
+  │      │
+  │      └─── shift_submissions (提出データ)   ... period_id → periods
+  │
+  ├─── staff_roles (業務定義)     ... store_id → stores
+  │      │
+  │      ├─── role_tasks (タスク)  ... role_id → staff_roles
+  │      ├─── user_role_assignments (業務配置) ... role_id → staff_roles
+  │      └─── user_task_assignments (タスク配置) ... task_id → role_tasks
+  │
+  └─── daily_todos (日次TODO)     ... store_id → stores
+         ├─── todo_comments (コメント) ... todo_id → daily_todos
+         └─── todo_templates (テンプレート) ... store_id → stores
 ```
 
 ### 18.3 サービスとテーブルの対応
@@ -1129,7 +1146,7 @@ stores (店舗)
 | `audit` | SupabaseAuditAdapter | `shift_change_logs` |
 | `multiStore` | SupabaseMultiStoreAdapter | `user_store_access` |
 | `teacherStatus` | SupabaseTeacherStatusAdapter | `shifts`（勤務状態判定用） |
-| `todos` | SupabaseTodoAdapter | `daily_todos` + `daily_todo_steps` |
+| `todos` | SupabaseTodoAdapter | `daily_todos` + `todo_templates` + `todo_comments` |
 
 ---
 
@@ -1177,6 +1194,7 @@ supabase/migrations/002_oauth_linking.sql      ← OAuth連携カラム
 supabase/migrations/003_google_calendar_sync.sql ← Googleカレンダー同期
 supabase/migrations/004_google_calendar_token_rpc.sql ← トークン管理RPC
 supabase/migrations/005_daily_todos.sql        ← 日次TODO機能
+supabase/migrations/006_staff_roles.sql        ← 業務・タスク・配置
 ```
 
 ### 19.5 初期管理者ユーザーの作成
