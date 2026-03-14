@@ -16,7 +16,6 @@ import { GanttChartRow } from "./GanttChartRow";
 import { GanttChartInfo } from "./components";
 import {
   ShiftItem,
-  ShiftStatus,
   ShiftStatusConfig,
 } from "@/common/common-models/ModelIndex";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
@@ -176,7 +175,7 @@ const GanttChartBodyInner: React.FC<GanttChartBodyProps> = ({
           // 安定したキーを生成（シフトIDまたは日付とグループ情報）
           keyExtractor={(
             item: RowData & { isFirstInGroup: boolean; groupSize: number },
-            index: number
+            _index: number
           ) => {
             // indexに依存しない安定したキーを生成
             if (item.group.length > 0) {

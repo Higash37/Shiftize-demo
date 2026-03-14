@@ -19,7 +19,7 @@ import { useMemo } from "react";
 // Dimensions.get("window") で現在の画面サイズを取得する。
 // 分割代入（destructuring）で width と height を取り出し、
 // SCREEN_WIDTH, SCREEN_HEIGHT という別名に束縛している。
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // カレンダーの横幅を画面幅の30%に設定する基本比率
 export const BASE_CALENDAR_WIDTH_RATIO = 0.3; // 画面幅の30%をデフォルトに

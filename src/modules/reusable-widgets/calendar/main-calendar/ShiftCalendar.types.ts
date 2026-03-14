@@ -9,7 +9,6 @@
 //              react-native（ViewStyle）, @/common/common-models/ModelIndex（Shift, ShiftItem）
 // インポート先: ShiftCalendar.tsx, ShiftCalendar.styles.ts
 
-import { DayComponentProps } from "../calendar-types/common.types";
 import { ViewStyle } from "react-native";
 import { Shift, ShiftItem } from "@/common/common-models/ModelIndex";
 

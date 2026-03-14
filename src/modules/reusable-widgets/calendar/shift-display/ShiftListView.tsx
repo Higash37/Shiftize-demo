@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { createShiftListStyles, getStatusColor } from "./ShiftList.styles";
 import { ShiftListProps, ShiftTypeMap } from "./ShiftList.types";
-import { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
+import { ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { useMD3Theme } from "@/common/common-theme/md3/MD3ThemeContext";
 

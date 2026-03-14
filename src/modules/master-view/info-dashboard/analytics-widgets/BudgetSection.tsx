@@ -17,7 +17,6 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
-import { shadows } from "@/common/common-constants/ShadowConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
 
 interface BudgetSectionProps {

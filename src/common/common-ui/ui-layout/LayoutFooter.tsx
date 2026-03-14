@@ -171,7 +171,7 @@ export function Footer(_props: Readonly<FooterProps>) {
   return (
     <>
       <View style={styles.footer}>
-        {userTabs.map((tab, index) => {
+        {userTabs.map((tab, _index) => {
           // シフトタブは /user/shifts で始まるパスすべてをアクティブとする
           const active = tab.name === "shifts"
             ? pathname.startsWith(tab.path)

@@ -28,7 +28,6 @@ import {
 import { format, addDays, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsRealtime";
 import { useUsers } from "@/modules/reusable-widgets/user-management/user-hooks/useUserList";
@@ -376,11 +375,9 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
     ? SHIFT_HOURS.AFTERNOON_START_HOUR_INCLUSIVE
     : SHIFT_HOURS.START_HOUR_INCLUSIVE;
   const endHour = SHIFT_HOURS.END_HOUR_INCLUSIVE;
-  const totalSlots = (endHour - baseHour) * 2 + 1; // 30分刻み
   const ROW_HEIGHT = 48;
   const TASK_ROW_HEIGHT = Math.round(ROW_HEIGHT * 0.6);
   const LABEL_WIDTH = isMobile ? 110 : 160;
-  const MOBILE_SLOT_HEIGHT = 24;
 
   // 時間ラベル
   const timeLabels = useMemo(() => {
@@ -580,31 +577,6 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
     setEditModal({ visible: true, assignment });
   }, []);
 
-  const openAssignModal = useCallback((slot: ExpectedSlot, userId: string) => {
-    const shift = dayShifts.find((s) => s.userId === userId);
-    if (!shift) return;
-    setEditStartTime(slot.startTime);
-    setEditEndTime(slot.endTime);
-    setEditManual(false);
-    setEditModal({
-      visible: true,
-      newSlot: {
-        userId,
-        shiftId: shift.id,
-        taskId: slot.itemType === "task" ? slot.item.id : null,
-        roleId:
-          slot.itemType === "role"
-            ? slot.item.id
-            : (slot.item as RoleTask).role_id,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        taskName: slot.item.name,
-        taskColor: slot.item.color,
-        taskIcon: slot.item.icon,
-      },
-    });
-  }, [dayShifts]);
-
   const handleSaveEdit = async () => {
     if (editModal.assignment) {
       await upsertAssignment({
@@ -634,14 +606,6 @@ export const DailyTaskGanttView: React.FC<DailyTaskGanttViewProps> = ({ readOnly
     }
     setEditModal({ visible: false });
   };
-
-  // --- 空セルクリック ---
-  const handleEmptyCellClick = useCallback((userId: string, time: string) => {
-    if (unfilledSlots.length === 0) return;
-    const slot = unfilledSlots[0];
-    if (!slot) return;
-    openAssignModal(slot, userId);
-  }, [unfilledSlots, openAssignModal]);
 
   // --- 自動配置（当日の未配置スロットを直接処理） ---
   const handleAutoSchedule = useCallback(async () => {

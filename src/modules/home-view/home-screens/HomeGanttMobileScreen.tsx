@@ -53,7 +53,7 @@ export const HomeGanttMobileScreen: React.FC<Props> = ({
   sampleSchedule,
   selectedDate = new Date(),
   onDateSelect = () => {},
-  shiftsForDate = [],
+  shiftsForDate: _shiftsForDate = [],
   maxHeight,
   showShiftListModal: showShiftListModalProp,
   onToggleShiftListModal,

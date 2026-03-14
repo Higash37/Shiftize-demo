@@ -42,7 +42,7 @@ export function TodayStaffWidget({ todayShifts, onPress }: TodayStaffWidgetProps
 
       {approvedShifts.length > 0 ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {approvedShifts.slice(0, 3).map((shift, index) => (
+          {approvedShifts.slice(0, 3).map((shift, _index) => (
             <View key={shift.id} style={styles.staffItem}>
               <View style={styles.staffAvatar}>
                 <Text style={styles.avatarText}>

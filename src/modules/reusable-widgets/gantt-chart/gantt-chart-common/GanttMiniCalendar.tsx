@@ -87,8 +87,6 @@ export const GanttMiniCalendar: React.FC<GanttMiniCalendarProps> = ({
     shifts.forEach((shift) => {
       const shiftDate = new Date(shift.date);
       shiftDate.setHours(0, 0, 0, 0);
-      const isPastShift = shiftDate < today;
-
       // 他店舗のシフトかどうかを判定
       const isFromOtherStore =
         currentUserStoreId &&

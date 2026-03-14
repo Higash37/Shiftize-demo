@@ -7,7 +7,7 @@
  *   マスターの「ダッシュボード」タブで描画される。
  */
 import React, { useMemo } from "react";
-import { View, Text, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Link } from "expo-router";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { User } from "@/common/common-models/model-user/UserModel";

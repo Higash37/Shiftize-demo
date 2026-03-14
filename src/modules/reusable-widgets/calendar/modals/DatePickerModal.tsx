@@ -283,14 +283,6 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
     setShowDayPicker(false);
   };
 
-  // --- Derived Values ---
-
-  // カレンダーの current プロパティに渡す "YYYY-MM-01" 形式の文字列を生成
-  // padStart(2, "0"): 1桁の月を0埋めして2桁にする（例: 3 → "03"）
-  const calendarCurrent = `${tempDate.getFullYear()}-${String(
-    tempDate.getMonth() + 1
-  ).padStart(2, "0")}-01`;
-
   // --- Render ---
 
   return (

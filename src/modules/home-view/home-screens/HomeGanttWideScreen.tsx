@@ -55,11 +55,11 @@ interface Props {
 
 export const HomeGanttWideScreen: React.FC<Props> = ({
   sampleSchedule,
-  onCellPress,
+  onCellPress: _onCellPress,
   selectedDate,
   onDateSelect,
   shifts,
-  shiftsForDate,
+  shiftsForDate: _shiftsForDate,
   currentYearMonth,
   currentUserStoreId,
 }) => {

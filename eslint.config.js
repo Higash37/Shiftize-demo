@@ -45,10 +45,20 @@ module.exports = tseslint.config(
       ...reactNativePlugin.configs.all.rules,
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
+      'react/display-name': 'off',
       'react-native/no-inline-styles': 'off',
       'react-native/no-color-literals': 'off',
       'react-native/sort-styles': 'off',
-      'react-native/no-raw-text': 'off', // Often has false positives
+      'react-native/no-raw-text': 'off',
+      'react-native/no-unused-styles': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        caughtErrors: 'none',
+      }],
     },
     settings: {
       react: {

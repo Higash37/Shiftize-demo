@@ -12,7 +12,7 @@
 import { ViewStyle, TextStyle } from "react-native";
 // ShiftStatus: シフトの状態を表すユニオン型（"draft" | "pending" | "approved" | ...）
 // Shift: シフト1件分のデータモデル型
-import { ShiftStatus, Shift } from "@/common/common-models/ModelIndex";
+import { Shift } from "@/common/common-models/ModelIndex";
 
 /**
  * ShiftListProps

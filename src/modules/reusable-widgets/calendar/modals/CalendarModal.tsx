@@ -17,7 +17,6 @@ import { Calendar } from "react-native-calendars";
 import { createCalendarModalStyles } from "./CalendarModal.styles";
 import { CalendarModalProps } from "./CalendarModal.types";
 import { colors } from "@/common/common-theme/ThemeColors";
-import { DAY_WIDTH } from "./CalendarModal.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 
 /**

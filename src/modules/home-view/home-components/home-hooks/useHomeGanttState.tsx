@@ -58,10 +58,9 @@ export function useHomeGanttState() {
   // _loading の「_」は「この変数は使わない」という慣習的な命名。
   const {
     shifts,
-    loading: _loading,    // loading を _loading にリネームして「未使用」を明示
   } = useShiftsRealtime(user?.storeId);
 
-  const { users } = useUsers();
+  useUsers();
   const { typesMap } = useTimeSegmentTypesContext();
   // ↑ typesMap は Record<string, SegmentType> 型。セグメント種別IDをキーにして種別情報を取得できる。
 

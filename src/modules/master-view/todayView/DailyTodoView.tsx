@@ -372,11 +372,6 @@ const TodoDetailModal: React.FC<{
   }, [todo.id]);
   useEffect(() => { fetchComments(); }, [fetchComments]);
 
-  const commentsForStep = useMemo(() => {
-    if (!commentOpenStepId) return [];
-    return comments.filter((c) => c.stepId === commentOpenStepId);
-  }, [comments, commentOpenStepId]);
-
   const handlePostComment = useCallback(async () => {
     if (!newComment.trim() || !currentUser || !commentOpenStepId) return;
     await ServiceProvider.todos.addComment(
@@ -861,7 +856,7 @@ interface TodoCardProps {
 }
 
 const TodoCard: React.FC<TodoCardProps> = React.memo(
-  ({ todo, cs, expanded, onToggleExpand, onOpenDetail, canDelete, userNameMap, currentUser, onToggle, onStepToggle, onDelete }) => {
+  ({ todo, cs, expanded, onToggleExpand, onOpenDetail, canDelete, userNameMap, currentUser: _currentUser, onToggle, onStepToggle: _onStepToggle, onDelete }) => {
     const pri = todo.priority ? PRIORITY_CONFIG[todo.priority] : null;
     const hasSteps = todo.steps.length > 0;
     const totalSteps = hasSteps ? countAllFlowSteps(todo.steps) : 0;

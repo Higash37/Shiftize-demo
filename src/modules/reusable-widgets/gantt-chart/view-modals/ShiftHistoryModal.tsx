@@ -51,7 +51,7 @@ interface ShiftHistoryModalProps {
 type ActionType = ShiftActionType | "all";
 
 export const ShiftHistoryModal: React.FC<ShiftHistoryModalProps> = React.memo(
-  ({ visible, onClose, storeId, selectedDate, onEntryAction }) => {
+  ({ visible, onClose, storeId, selectedDate, onEntryAction: _onEntryAction }) => {
     const [filterAction, setFilterAction] = useState<ActionType>("all");
     const [filterUser, setFilterUser] = useState<string>("");
     const [searchQuery, setSearchQuery] = useState<string>("");

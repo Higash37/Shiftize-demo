@@ -19,7 +19,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { createTimeInputSectionStyles } from "./TimeInputSection.styles";
-import { TimeInputSectionProps, TimeSlot } from "./TimeInputSection.types";
+import { TimeInputSectionProps } from "./TimeInputSection.types";
 import { generateTimeOptions } from "../user-shift-utils/ui-utils";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 

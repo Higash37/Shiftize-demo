@@ -36,7 +36,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   selectedDate,
   onShiftPress,
   onMonthChange,
-  styles,
+  styles: _styles,
 }) => {
 
   // ShiftItemからShiftへの変換
@@ -122,15 +122,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return marks;
   }, [shifts, selectedCalendarDate, selectedUserId]);
 
-  // 選択された日のシフトを取得
-  const selectedDateShifts = useMemo(() => {
-    return shifts.filter(
-      (shift) =>
-        shift.date === selectedCalendarDate &&
-        shift.status !== "deleted" &&
-        shift.status !== "purged"
-    );
-  }, [shifts, selectedCalendarDate]);
 
   // 選択された月の全シフトを取得（日付順にソート）
   const monthShifts = useMemo(() => {
@@ -194,7 +185,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setCurrentMonth(month.dateString); // カレンダーの表示月を更新
     if (onMonthChange) {
       // 月の最初の日に設定して親コンポーネントのselectedDateを更新
-      const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
       onMonthChange({ year: date.getFullYear(), month: date.getMonth() });
     }
   };
@@ -243,7 +233,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               style={{ flex: 1, padding: 8, backgroundColor: "#fff" }}
               showsVerticalScrollIndicator={false}
             >
-              {monthShifts.map((shift, index) => {
+              {monthShifts.map((shift, _index) => {
                 const borderColor = getStatusColor(shift.status);
                 return (
                   <TouchableOpacity

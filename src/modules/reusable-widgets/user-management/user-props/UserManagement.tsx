@@ -25,7 +25,7 @@ import { colors, typography } from "@/common/common-constants/ThemeConstants";
  * ユーザー管理コンポーネント
  * ユーザー一覧の表示、追加、編集、削除などの管理機能を提供します
  */
-const UserManagement: React.FC<UserManagementProps> = ({ userId }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ userId: _userId }) => {
   const [userList, setUserList] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

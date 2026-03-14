@@ -101,7 +101,7 @@ export const getStatusColor = (status: ShiftStatus) => {
 export const getDayColor = (
   date: string | undefined,
   state?: string,
-  isSelected?: boolean
+  _isSelected?: boolean
 ) => {
   // 早期リターン: date がない、または無効化された日付なら薄いグレー
   if (!date || state === "disabled") return "#d9e1e8";

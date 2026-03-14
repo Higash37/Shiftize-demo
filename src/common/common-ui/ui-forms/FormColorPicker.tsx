@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import { PRESET_COLORS, COLOR_GRID } from "./FormColorPicker.constants";
 import type { ColorPickerProps } from "./FormColorPicker.types";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";

@@ -17,7 +17,7 @@ import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import type { MarkedDates } from "react-native-calendars/src/types";
 
 interface GoogleCalendarViewProps {
@@ -41,7 +41,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
   onEmptyCellClick,
   onAddShift,
   colorMode,
-  styles,
+  styles: _styles,
 }) => {
   const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week");
   const [selectedDay, setSelectedDay] = useState(selectedDate);
@@ -49,7 +49,6 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
 
   const screenWidth = Dimensions.get("window").width;
   const sidebarWidth = sidebarCollapsed ? 0 : Math.min(300, screenWidth * 0.25);
-  const mainViewWidth = screenWidth - sidebarWidth;
 
   // ShiftItemからShiftへの変換
   const convertedShifts = useMemo(() => {
@@ -360,7 +359,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
 
           {/* タイムスロット */}
           <ScrollView style={{ flex: 1 }}>
-            {timeLabels.map((time, timeIndex) => (
+            {timeLabels.map((time, _timeIndex) => (
               <View key={time} style={{
                 flexDirection: "row",
                 minHeight: time === "終日" ? 50 : 60,
@@ -410,7 +409,7 @@ export const GoogleCalendarView: React.FC<GoogleCalendarViewProps> = ({
                       )}
                     >
                       {/* シフトブロック */}
-                      {timeShifts.map((shift, shiftIndex) => {
+                      {timeShifts.map((shift, _shiftIndex) => {
                         const user = users.find(u => u.uid === shift.userId);
                         const shiftColor = getShiftColor(shift);
                         

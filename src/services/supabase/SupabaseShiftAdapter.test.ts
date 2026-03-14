@@ -40,7 +40,6 @@ const createMockQueryBuilder = () => {
 
   // orderの場合、チェインされるか結果を返すかは状況による
   // orderをデフォルトではchainableにしつつ、resolveで結果を返せるようにする
-  const originalOrder = builder.order;
   builder.order = jest.fn().mockImplementation(() => {
     // pendingResolvesに値があり、次のorderが呼ばれたらそれを返す
     // → 2回目のorderで結果を返すパターン
@@ -129,20 +128,6 @@ const setupMockFrom = () => {
     mockBuilder = createMockQueryBuilder();
     return mockBuilder;
   });
-};
-
-/**
- * mockFrom呼び出しで返すbuilderを1つずつ設定するヘルパー。
- * 各builderごとにレスポンスをコントロールしたい場合に使う。
- */
-const createBuilderWithResolve = (resolveValue: any) => {
-  const builder = createMockQueryBuilder();
-  // singleとmaybeSingleに固定値を設定
-  builder.single.mockResolvedValue(resolveValue);
-  builder.maybeSingle.mockResolvedValue(resolveValue);
-  // orderの最後でも結果を返せるように
-  // チェインの最後でawaitされる場合のためにthenを設定
-  return builder;
 };
 
 describe("SupabaseShiftAdapter", () => {

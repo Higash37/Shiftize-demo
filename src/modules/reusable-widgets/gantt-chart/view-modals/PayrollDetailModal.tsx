@@ -192,7 +192,7 @@ export const PayrollDetailModal: React.FC<PayrollDetailModalProps> = React.memo(
                 </Text>
               </View>
             ) : (
-              payrollData.map((user, index) => (
+              payrollData.map((user, _index) => (
                 <View key={user.uid} style={styles.userRow}>
                   {/* ユーザー色インジケーター */}
                   <View

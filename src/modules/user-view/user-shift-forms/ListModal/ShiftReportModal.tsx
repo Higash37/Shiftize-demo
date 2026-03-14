@@ -227,7 +227,7 @@ const ShiftReportModal = ({
   modalShift: ShiftItem | null;
   fetchShifts: () => void;
 }) => {
-  const { user } = useAuth();
+  useAuth();
   const { colorScheme } = useMD3Theme();
 
   // --- State ---

@@ -39,7 +39,6 @@ import {
 import { ja } from "date-fns/locale";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { ShiftStatusConfig } from "../GanttChartTypes";
-import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { CalendarHeader } from "../../calendar/CalendarHeader";
 import { DatePickerModal } from "../../calendar/modals/DatePickerModal";
@@ -256,7 +255,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
   getStatusConfig,
   onShiftPress,
   onBackgroundPress,
-  onTimeChange,
+  onTimeChange: _onTimeChange,
   styles,
   userColorsMap,
   users = [], // デフォルト値を設定
@@ -310,49 +309,6 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
     return position;
   }
 
-  // --- ピクセル位置→時間逆変換（positionToTime） ---
-  // timeToPosition の逆関数。ドラッグ操作などでピクセル位置から時間文字列に戻す。
-  function positionToTime(position: number): string {
-    let currentPosition = 0;
-
-    for (let i = 0; i < halfHourLines.length; i++) {
-      const currentWidth = getTimeWidth
-        ? getTimeWidth(halfHourLines[i] || "")
-        : cellWidth;
-      const nextPosition = currentPosition + currentWidth;
-
-      if (position <= nextPosition) {
-        // この時間範囲内に位置がある
-        const [hourStr, minStr] = halfHourLines[i]?.split(":") || ["0", "0"];
-        const hour = hourStr ? Number(hourStr) : 0;
-        const min = minStr ? Number(minStr) : 0;
-        const baseMinutes = hour * 60 + min;
-
-        if (position <= currentPosition) {
-          // 現在の時間ポイント
-          return halfHourLines[i] ?? "00:00";
-        } else {
-          // 時間範囲内での補間
-          const ratio = (position - currentPosition) / currentWidth;
-          const intervalMinutes = 30; // 30分間隔
-          const additionalMinutes = Math.round(ratio * intervalMinutes);
-          const totalMinutes = baseMinutes + additionalMinutes;
-
-          const newHour = Math.floor(totalMinutes / 60);
-          const newMin = totalMinutes % 60;
-
-          return `${newHour.toString().padStart(2, "0")}:${newMin
-            .toString()
-            .padStart(2, "0")}`;
-        }
-      }
-
-      currentPosition = nextPosition;
-    }
-
-    // 範囲外の場合は最後の時間を返す
-    return halfHourLines.at(-1) ?? "22:00";
-  }
 
   return (
     <View
@@ -370,7 +326,7 @@ export const GanttChartGrid: React.FC<GanttChartGridProps> = ({
         activeOpacity={0.7}
       />
       <View style={styles['ganttBgRow']}>
-        {halfHourLines.map((t, i) => {
+        {halfHourLines.map((t, _i) => {
           const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
           const isHourMark = t.endsWith(":00");
           return (
@@ -871,13 +827,13 @@ export type GanttChartInfoProps = {
   onMonthChange?: (month: { year: number; month: number }) => void;
 };
 export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
-  shifts,
-  getStatusConfig,
-  onShiftPress,
-  onDelete,
+  shifts: _shifts,
+  getStatusConfig: _getStatusConfig,
+  onShiftPress: _onShiftPress,
+  onDelete: _onDelete,
   infoColumnWidth,
   styles,
-  onToggleComplete,
+  onToggleComplete: _onToggleComplete,
   allShifts = [],
   selectedDate,
   onDateSelect,
@@ -1079,7 +1035,7 @@ export const GanttChartInfo: React.FC<GanttChartInfoProps> = ({
             >
               {calendarData
                 .slice(weekIndex * 7, weekIndex * 7 + 7)
-                .map((dayData, dayIndex) => {
+                .map((dayData, _dayIndex) => {
                   const dateString = format(dayData.date, "yyyy-MM-dd");
                   const isSelected = internalSelectedDate === dateString;
                   const isToday =
@@ -1239,7 +1195,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
         activeOpacity={0.7}
       />
       <View style={styles['ganttBgRow']}>
-        {halfHourLines.map((t, i) => {
+        {halfHourLines.map((t, _i) => {
           const currentWidth = getTimeWidth ? getTimeWidth(t) : cellWidth;
           const isHourMark = t.endsWith(":00");
           return (

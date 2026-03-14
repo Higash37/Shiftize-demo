@@ -70,11 +70,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
     "list" | "calendar" | "unified-calendar" | "all"
   >("all"); // 印刷形式の選択
 
-  // 月の日付リストを取得
-  const monthStart = startOfMonth(selectedDate);
-  const monthEnd = endOfMonth(selectedDate);
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
   // ユーザーごとのシフトデータを整理
   const getUserShiftData = (): UserShiftData[] => {
     const selectedYear = selectedDate.getFullYear();
@@ -809,8 +804,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
   const generateCalendarHTML = (): string => {
     const userShiftData = getUserShiftData();
     const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
-    const selectedYear = selectedDate.getFullYear();
-    const selectedMonth = selectedDate.getMonth();
 
     // 月の全日付を取得
     const monthStart = startOfMonth(selectedDate);
@@ -952,8 +945,6 @@ export const ShiftPrintModal: React.FC<ShiftPrintModalProps> = ({
   const generateUnifiedCalendarHTML = (): string => {
     const userShiftData = getUserShiftData();
     const monthYear = format(selectedDate, "yyyy年M月", { locale: ja });
-    const selectedYear = selectedDate.getFullYear();
-    const selectedMonth = selectedDate.getMonth();
 
     // 月の全日付を取得
     const monthStart = startOfMonth(selectedDate);

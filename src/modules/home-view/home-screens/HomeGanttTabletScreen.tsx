@@ -54,11 +54,11 @@ interface Props {
 
 export const HomeGanttTabletScreen: React.FC<Props> = ({
   sampleSchedule,
-  onCellPress,
+  onCellPress: _onCellPress,
   selectedDate,
   onDateSelect,
   shifts,
-  shiftsForDate,
+  shiftsForDate: _shiftsForDate,
   currentYearMonth,
   currentUserStoreId,
 }) => {

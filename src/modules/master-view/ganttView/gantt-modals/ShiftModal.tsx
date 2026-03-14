@@ -23,8 +23,6 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
-  Platform,
-  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";

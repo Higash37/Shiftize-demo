@@ -31,7 +31,7 @@ export function useGanttShiftActions({
   user,
   users = [],
   onShiftUpdate,
-  refreshPage,
+  refreshPage: _refreshPage,
 }: UseGanttShiftActionsProps) {
   // useRef で「保存処理中」フラグを管理。useState と違い、値を変えても再レンダリングされない。
   // ボタン連打で二重保存されるのを防ぐ「排他制御」に使う。
@@ -78,6 +78,7 @@ export function useGanttShiftActions({
       await ServiceProvider.shifts.approveShiftChanges(editingShift.id, actor);
 
       // ステータス以外の変更がある場合は追加で更新
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { status, ...otherChanges } = newShiftData;
       if (Object.keys(otherChanges).length > 0) {
         await ServiceProvider.shifts.updateShift(

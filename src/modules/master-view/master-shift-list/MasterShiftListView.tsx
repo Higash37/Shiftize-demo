@@ -16,10 +16,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import {
   View,
   ScrollView,
-  ActivityIndicator,
   Text,
-  TouchableOpacity,
-  useWindowDimensions,
   Alert,
 } from "react-native";
 import { ShiftCalendar } from "@/modules/reusable-widgets/calendar/main-calendar/ShiftCalendar";
@@ -28,7 +25,6 @@ import { useShiftsByMonth } from "@/common/common-utils/util-shift/useShiftsReal
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 import { useAuth } from "@/services/auth/useAuth";
 import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { ShiftListItem } from "@/modules/user-view/user-shift-forms/user-shift-list/ShiftListItem";
 import { ShiftDetailsView } from "@/modules/user-view/user-shift-forms/shiftDetail/ShiftDetailsView";
 import { splitShiftIntoTimeSlots } from "@/modules/user-view/user-shift-utils/shift-time.utils";
@@ -92,7 +88,6 @@ export const MasterShiftListView: React.FC<MasterShiftListViewProps> = ({
   const [isCalendarMounted, setIsCalendarMounted] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shiftPositionsRef = useRef<Record<string, number>>({});
-  const { width } = useWindowDimensions();
 
   // ガントチャートスタイル（MD3テーマ対応）+ モバイル用幅オーバーライド
   const ganttBaseStyles = useThemedStyles(createGanttChartMonthViewStyles);

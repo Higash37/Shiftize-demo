@@ -35,7 +35,7 @@ import type { IAuthService } from "../interfaces/IAuthService";
 import type { User, UserRole } from "@/common/common-models/model-user/UserModel";
 import { getSupabase } from "./supabase-client";
 import { toAsciiEmail } from "./utils/asciiEmail";
-import { AuthError, NotFoundError, PermissionError, ValidationError } from "@/common/common-errors/AppErrors";
+import { AuthError, NotFoundError, PermissionError } from "@/common/common-errors/AppErrors";
 
 /** 認証サービスのSupabase実装（IAuthService の Supabase 版アダプター） */
 export class SupabaseAuthAdapter implements IAuthService {

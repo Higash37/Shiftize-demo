@@ -18,11 +18,10 @@
  *   - onComplete: 完了時コールバック
  */
 import React, { useState } from "react";
-import { View, Text, Modal, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, Modal, TouchableOpacity } from "react-native";
 import Input from "@/common/common-ui/ui-forms/FormInput";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { ServiceProvider } from "@/services/ServiceProvider";
-import { useRouter } from "expo-router";
 import { createChangePasswordStyles } from "./ChangePassword.styles";
 import { useThemedStyles } from "@/common/common-theme/md3/useThemedStyles";
 import { ChangePasswordProps } from "../user-types/components";
@@ -32,7 +31,7 @@ import { ChangePasswordProps } from "../user-types/components";
  * ユーザー自身のパスワードを変更するためのインターフェース
  */
 const ChangePassword: React.FC<ChangePasswordProps> = ({
-  userId,
+  userId: _userId,
   onComplete,
 }) => {
   const styles = useThemedStyles(createChangePasswordStyles);
@@ -42,7 +41,6 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const validatePasswords = () => {
     if (!currentPassword) {

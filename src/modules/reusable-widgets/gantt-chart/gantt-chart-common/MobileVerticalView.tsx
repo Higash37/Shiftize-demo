@@ -21,10 +21,9 @@ import {
 } from "react-native";
 import { ShiftItem } from "@/common/common-models/ModelIndex";
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
-import { format, addMonths, subMonths, addDays, subDays } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { getStatusColor } from "../../calendar/calendar-utils/calendar.utils";
-import { Ionicons } from "@expo/vector-icons";
 import { ShiftCalendar } from "../../calendar/main-calendar/ShiftCalendar";
 import { colors } from "@/common/common-constants/ThemeConstants";
 import type { MarkedDates } from "react-native-calendars/src/types";
@@ -87,7 +86,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
   onClassAdd,
   colorMode,
   getStatusConfig,
-  styles,
+  styles: _styles,
 }) => {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(
     format(selectedDate, "yyyy-MM-dd")
@@ -430,7 +429,7 @@ export const MobileVerticalView: React.FC<MobileVerticalViewProps> = ({
                         if (!shiftA || !shiftB) return 0;
                         return shiftA.startTime.localeCompare(shiftB.startTime);
                       })
-                      .map((user, userIndex) => {
+                      .map((user, _userIndex) => {
                         const userShift = getShiftForUser(user.uid);
 
                         return (

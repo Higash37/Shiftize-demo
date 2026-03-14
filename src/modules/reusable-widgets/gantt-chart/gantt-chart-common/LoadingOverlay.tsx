@@ -9,8 +9,7 @@
 //   position: absolute で親要素全体を覆い、pointerEvents: "auto" でタッチを吸収する。
 
 import React from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
+import { View, StyleSheet } from "react-native";
 
 // React.FC<{ isLoading: boolean }>: isLoading を boolean で受け取る関数コンポーネントの型。
 const LoadingOverlay: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {

@@ -1,5 +1,5 @@
 /** @file LayoutHeader.tsx @description 講師用ヘッダー。タイトル、サービス紹介、設定、サインアウトを提供 */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/services/auth/useAuth";
@@ -21,7 +21,7 @@ export function Header({
   // --- Hooks ---
   const styles = useThemedStyles(createHeaderStyles);
   const { colorScheme } = useMD3Theme();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   useExtendedFonts();
 
   // --- State ---

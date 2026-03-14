@@ -18,11 +18,8 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   Animated,
   Alert,
-  TextInput,
-  Modal,
   ScrollView,
   Dimensions,
 } from "react-native";
@@ -36,7 +33,6 @@ import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { calculateDurationHours } from "@/common/common-utils/util-shift/wageCalculator";
 import type { Shift, ShiftStatus } from "@/common/common-models/ModelIndex";
 import { useAuth } from "@/services/auth/useAuth";
-import type { ExtendedUser } from "@/modules/reusable-widgets/user-management/user-types/components";
 import { MasterHeader } from "@/common/common-ui/ui-layout";
 // import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 import { format } from "date-fns";
@@ -60,8 +56,8 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const styles = useThemedStyles(createMasterShiftCreateStyles);
   const { markShiftAsDeleted, createShift } = useShift();
   const isEditMode = mode === "edit";
-  const { user, role } = useAuth();
-  const { users, loading: usersLoading } = useUsers(user?.storeId);
+  const { user } = useAuth();
+  const { users } = useUsers(user?.storeId);
   const [connectedStoreUsers, setConnectedStoreUsers] = useState<
     Array<{
       uid: string;
@@ -73,6 +69,7 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
       isFromOtherStore: boolean;
     }>
   >([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userData, setUserData] = useState<UserData | null>(null);
   const [existingShift, setExistingShift] = useState<Shift | null>(null);
   const [shiftData, setShiftData] = useState<ShiftData>({
@@ -91,20 +88,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
   const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<ShiftStatus>("approved");
   const [showUserPicker, setShowUserPicker] = useState<boolean>(false);
-
-  const [selectedDate, setSelectedDate] = useState(date || "");
-  const [selectedStartTime, setSelectedStartTime] = useState(startTime || "");
-  const [selectedEndTime, setSelectedEndTime] = useState(endTime || "");
-  const [selectedClasses, setSelectedClasses] = useState<any[]>(() => {
-    if (classes) {
-      try {
-        return JSON.parse(classes);
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
-  });
 
   // AuthContextの情報から即座にuserData設定、追加データはバックグラウンドで取得
   useEffect(() => {
@@ -226,9 +209,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
         }
       }
 
-      const totalDays = shiftData.dates.length;
-      let completedCount = 0;
-
       // シフトを各日付に登録（並列処理）
       {
         const createPromises = shiftData.dates.map(async (date) => {
@@ -253,7 +233,6 @@ export const MasterShiftCreate: React.FC<MasterShiftCreateProps> = ({
 
           // useShiftのcreateShiftメソッドを使用
           await createShift(newShift);
-          completedCount++;
           // プログレス更新は削除（シンプルにする）
         });
 

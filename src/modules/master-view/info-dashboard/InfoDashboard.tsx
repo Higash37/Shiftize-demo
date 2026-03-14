@@ -62,13 +62,6 @@ interface StaffData {
  * Wrapper: auth解決後にContentをマウントし、hooks が loading=true の初期状態から開始する
  */
 export const InfoDashboard: React.FC = () => {
-  const theme = useMD3Theme();
-  const bp = useBreakpoint();
-  const styles = useMemo(
-    () => createInfoDashboardStyles(theme, bp),
-    [theme, bp]
-  );
-
   const { user, loading: authLoading } = useAuth();
 
   if (authLoading || !user?.storeId) {

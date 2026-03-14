@@ -7,7 +7,7 @@
  *  - 依存: react-native の StyleSheet / 共通定数（ShadowConstants, ThemeConstants）
  *  - 利用先: ShiftModal / ShiftReportModal などモーダル系コンポーネント
  */
-import { StyleSheet, ViewStyle, Platform } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import { colors } from "@/common/common-constants/ThemeConstants";
 

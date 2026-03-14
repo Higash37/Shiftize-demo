@@ -14,7 +14,6 @@
 //   - timeToPosition(): 時間文字列→ピクセル位置に変換
 //   - positionToTime(): ピクセル位置→時間文字列に変換
 
-import { useMemo } from 'react';
 import { SHIFT_HOURS } from "@/common/common-constants/BoundaryConstants";
 
 // --- 時間選択肢の生成 ---

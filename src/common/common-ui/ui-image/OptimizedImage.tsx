@@ -26,7 +26,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   placeholder,
   fallback,
   lazy = true,
-  threshold = 200,
+  threshold: _threshold = 200,
   style,
   ...props
 }) => {

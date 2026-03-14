@@ -53,10 +53,6 @@ export const useUser = (storeId?: string) => {
       // サイレントなので無視
     }
   };
-  // For backward compatibility with old naming
-  async function fetchUMembers() {
-    await fetchUsers();
-  }
   const addUser = async (
     email: string,
     password: string,

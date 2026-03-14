@@ -12,7 +12,7 @@
 // StyleProp, TextStyle, ViewStyle は React Native のスタイル型。
 // StyleProp<T> は「T型のスタイル、またはその配列」を許容する型。
 // ViewStyle はView用、TextStyle はText用のスタイルプロパティ集合。
-import { StyleProp, TextStyle, ViewStyle } from "react-native";
+import { TextStyle, ViewStyle } from "react-native";
 import { DayComponentProps } from "../calendar-types/common.types";
 
 /**

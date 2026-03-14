@@ -50,7 +50,7 @@ export const UserShiftList = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
   /** useShift フックからシフト一覧と取得関数を取得 */
-  const { shifts, loading: shiftsLoading, fetchShifts } = useShift();
+  const { shifts, fetchShifts } = useShift();
 
   // --- State ---
   /** カレンダーで選択中の日付（"yyyy-MM-dd" 形式、空文字 = 未選択） */
