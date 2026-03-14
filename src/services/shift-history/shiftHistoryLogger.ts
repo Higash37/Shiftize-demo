@@ -334,7 +334,7 @@ export const logShiftChange = async (
 
     // --- Supabaseに保存 ---
     const supabase = getSupabase();
-    const { error } = await supabase.from("shift_change_logs").insert({
+    await supabase.from("shift_change_logs").insert({
       store_id: entry.storeId,            // 店舗ID
       shift_id: entry.shiftId,            // シフトID
       action: entry.action,               // アクション種別

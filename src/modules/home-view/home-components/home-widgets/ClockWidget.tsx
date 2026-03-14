@@ -60,7 +60,7 @@ interface ClockWidgetProps {
 export const ClockWidget: React.FC<ClockWidgetProps> = ({
   staffSchedules,
   size = 300,
-  selectedDate,
+  selectedDate: _selectedDate,
   onDateSelect,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());

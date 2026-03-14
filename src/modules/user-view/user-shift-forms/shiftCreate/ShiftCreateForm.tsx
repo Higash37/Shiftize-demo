@@ -20,7 +20,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Animated,
-  ActivityIndicator,
   useWindowDimensions,
   Modal,
 } from "react-native";
@@ -29,7 +28,6 @@ import { ServiceProvider } from "@/services/ServiceProvider";
 import { useShift } from "@/common/common-utils/util-shift/useShiftActions";
 import { useAuth } from "@/services/auth/useAuth";
 import { Header, Footer } from "@/common/common-ui/ui-layout";
-import { colors } from "@/common/common-constants/ThemeConstants";
 import type { ShiftData, ShiftCreateFormProps } from "./types";
 import { shiftCreateFormStyles as styles } from "./styles";
 import ShiftCreateFormContent from "./ShiftCreateFormContent";
@@ -60,7 +58,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   initialClasses,
 }) => {
   const router = useRouter();
-  const { markShiftAsDeleted, createShift } = useShift();
+  const { createShift } = useShift();
   /** 編集モードかどうか（initialMode === "edit" で判定） */
   const isEditMode = initialMode === "edit";
   const { user } = useAuth();
@@ -87,6 +85,7 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   /** 削除処理中フラグ */
   const [isDeleting, setIsDeleting] = useState(false);
   /** 成功アニメーション表示フラグ */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showSuccess, setShowSuccess] = useState(false);
   /** 成功アニメーション用のフェード値 */
   const fadeAnim = new Animated.Value(0);
@@ -98,10 +97,13 @@ export const ShiftCreateForm: React.FC<ShiftCreateFormProps> = ({
   const [selectedStoreId, setSelectedStoreId] = useState<string>(user?.storeId || "");
 
   const [selectedDate, setSelectedDate] = useState(initialDate || "");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedStartTime, setSelectedStartTime] = useState(
     initialStartTime || ""
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedEndTime, setSelectedEndTime] = useState(initialEndTime || "");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedClasses, setSelectedClasses] = useState<ClassTimeSlot[]>(() => {
     if (initialClasses) {
       try {

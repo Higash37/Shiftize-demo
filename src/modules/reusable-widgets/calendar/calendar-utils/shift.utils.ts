@@ -72,7 +72,7 @@ export const getStatusColor = (status: ShiftStatus) => {
 export const getDayColor = (
   date: string | undefined,
   state?: string,
-  isSelected?: boolean
+  _isSelected?: boolean
 ) => {
   if (!date || state === "disabled") return "#d9e1e8";
 

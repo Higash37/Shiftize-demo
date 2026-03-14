@@ -24,8 +24,8 @@ export const GanttEditView: React.FC<GanttEditViewProps> = ({
   onShiftUpdate,
   onShiftPress,
   onTimeChange,
-  onShiftSave,
-  onShiftDelete,
+  onShiftSave: _onShiftSave,
+  onShiftDelete: _onShiftDelete,
   refreshPage,
 }) => {
 

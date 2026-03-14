@@ -12,7 +12,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
-import { typography } from "@/common/common-constants/TypographyConstants";
 
 export const styles = StyleSheet.create({
   container: {

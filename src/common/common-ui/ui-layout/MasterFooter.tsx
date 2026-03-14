@@ -1,6 +1,6 @@
 /** @file MasterFooter.tsx @description 管理者用フッターナビゲーション。ホーム/業務/当日/追加/今月/来月/ユーザー/設定のタブを提供 */
 import React, { useState, useEffect, useMemo } from "react";
-import { View, TouchableOpacity, Text, Dimensions, Alert } from "react-native";
+import { View, TouchableOpacity, Text, Alert } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import {
   AntDesign,
@@ -23,7 +23,6 @@ import { useTodoBadge } from "@/common/common-context/TodoBadgeContext";
 import { usePendingShiftBadge } from "@/common/common-context/PendingShiftBadgeContext";
 
 // レスポンシブデザイン用の定数
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 /** 管理者用フッタータブをテーマカラーに応じて生成 */
 const createMasterTabs = (cs: MD3ColorScheme): TabItem[] => [
@@ -238,7 +237,7 @@ export function MasterFooter(_props: Readonly<MasterFooterProps>) {
         },
       ]}
     >
-      {masterTabs.map((tab, index) => {
+      {masterTabs.map((tab, _index) => {
         const active = pathname === tab.path;
         return (
           <TouchableOpacity

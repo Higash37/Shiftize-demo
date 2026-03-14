@@ -10,7 +10,7 @@
 /**
  * User shift forms types
  */
-import { StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { ViewStyle, TextStyle } from "react-native";
 
 export interface TimeSlot {
   start: string;

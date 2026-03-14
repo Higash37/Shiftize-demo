@@ -72,7 +72,7 @@ export function TodayStaffDetailModal({
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {sortedShifts.length > 0 ? (
-              sortedShifts.map((shift, index) => (
+              sortedShifts.map((shift, _index) => (
                 <View key={shift.id} style={styles.staffCard}>
                   <View style={styles.staffHeader}>
                     <View style={styles.staffAvatar}>

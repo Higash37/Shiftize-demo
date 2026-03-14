@@ -20,7 +20,7 @@
 //     ├→ ShiftModalRenderer: シフト追加・編集モーダルの管理
 //     └→ 各種モーダル（PayrollDetail, BatchConfirm, ShiftHistory, AutoSchedulePreview）
 
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import {
   View,

@@ -38,8 +38,6 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   // --- Handlers ---
   /** 入力文字列をHH:MM形式にフォーマットする */
   const formatTime = (input: string): string => {
-    // 数字のみを抽出（正規表現のため replace を使用）
-    // eslint-disable-next-line unicorn/prefer-string-replace-all
     const numbers = input.replace(/\D/g, "");
 
     // 空の場合
@@ -115,8 +113,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
         return;
       }
 
-      // その他の削除操作は数字のみを抽出して処理（正規表現のため replace を使用）
-      // eslint-disable-next-line unicorn/prefer-string-replace-all
+      // その他の削除操作は数字のみを抽出して処理
       const numbers = text.replace(/\D/g, "");
 
       if (numbers === "") {

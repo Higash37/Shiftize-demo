@@ -101,3 +101,6 @@ supabase/.temp/
 # Temporary files
 config.json
 temp_package.json
+
+# Claude local settings
+.claude/settings.local.json

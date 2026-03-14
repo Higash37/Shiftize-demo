@@ -25,8 +25,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // 画面幅がブレークポイント未満なら「小さいデバイス」と判定
 const IS_SMALL_DEVICE = SCREEN_WIDTH < BREAKPOINTS.SMALL_DEVICE_MAX_WIDTH_EXCLUSIVE;
-// タブレット判定: 最小幅以上 かつ 最大幅未満
-const IS_TABLET = SCREEN_WIDTH >= BREAKPOINTS.TABLET_MIN_WIDTH_INCLUSIVE && SCREEN_WIDTH < BREAKPOINTS.TABLET_MAX_WIDTH_EXCLUSIVE;
 
 
 /**

@@ -46,7 +46,7 @@ const BatchConfirmModal: React.FC<BatchConfirmModalProps> = ({
   styles,
   setBatchModal,
   setIsLoading,
-  refreshPage,
+  refreshPage: _refreshPage,
 }) => {
   const { user } = useAuth();
   const { selectedShiftIds, clearSelection } = useContext(ShiftSelectionContext);

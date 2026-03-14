@@ -21,7 +21,6 @@ import {
 import { ShiftStatusConfig } from "../GanttChartTypes";
 import { EditShiftModalView } from "../view-modals/EditShiftModalView";
 import { AddShiftModalView } from "../view-modals/AddShiftModalView";
-import { ServiceProvider } from "@/services/ServiceProvider";
 
 // NewShiftData: シフト追加/編集フォームに必要なデータの型
 export interface NewShiftData {

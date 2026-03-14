@@ -48,11 +48,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 export const UserForm: React.FC<UserFormProps> = ({
   onSubmit,
   onCancel,
-  error,
+  error: _error,
   loading = false,
   initialData,
   mode = "add",
-  currentPassword,
+  currentPassword: _currentPassword,
 }) => {
   const { user: currentUser } = useAuth();
   const theme = useMD3Theme();

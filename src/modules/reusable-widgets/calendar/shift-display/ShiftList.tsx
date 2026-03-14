@@ -18,7 +18,6 @@ import { AntDesign } from "@expo/vector-icons";
 import { colors } from "@/common/common-theme/ThemeColors";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Shift } from "@/common/common-models/ModelIndex";
 import {
   getStatusColor,
   getStatusText,
@@ -29,7 +28,6 @@ import { ShiftItemProps } from "./ShiftList.types";
 import { getPlatformShadow } from "@/common/common-utils/util-style/StyleHelpers";
 // ShiftDetailsAdapter: ShiftDetails をラップして表示/非表示を制御するアダプター
 import { ShiftDetailsAdapter } from "./ShiftListAdapter";
-import { ShiftAdapterProps } from "../calendar-types/shift.types";
 import CustomScrollView from "@/common/common-ui/ui-scroll/ScrollViewComponent";
 
 // ============================================================

@@ -1,6 +1,6 @@
 /** @file SkeletonLoader.tsx @description 読み込み中のプレースホルダー表示用スケルトンコンポーネント群 */
 import React from "react";
-import { View, StyleSheet, ViewStyle, DimensionValue } from "react-native";
+import { View, ViewStyle, DimensionValue } from "react-native";
 
 /** SkeletonBoxのProps */
 interface SkeletonBoxProps {
@@ -59,7 +59,7 @@ export const GanttSkeleton: React.FC<{
 
   return (
     <View style={{ flexDirection: "column", padding: 16 }}>
-      {rowKeys.map((rowKey, rowIndex) => (
+      {rowKeys.map((rowKey, _rowIndex) => (
         <View key={rowKey} style={{ flexDirection: "row", marginBottom: 8 }}>
           {Array.from({ length: columns }).map((_, colIndex) => (
             <SkeletonBox
@@ -75,4 +75,3 @@ export const GanttSkeleton: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({});

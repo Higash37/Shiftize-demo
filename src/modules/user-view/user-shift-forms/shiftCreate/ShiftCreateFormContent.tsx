@@ -26,7 +26,6 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import TimeSelect from "@/modules/user-view/user-shift-forms/TimeSelect";
 import CalendarModal from "@/modules/reusable-widgets/calendar/modals/CalendarModal";
-import { Header } from "@/common/common-ui/ui-layout";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ThemeConstants";

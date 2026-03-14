@@ -8,7 +8,7 @@
 // - 役割: viewMode を "gantt" ⇔ "calendar" でトグルする単機能ボタン。
 
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getButtonStyle, getButtonTextStyle, UnifiedButtonStyles } from "./UnifiedButtonStyles";
 

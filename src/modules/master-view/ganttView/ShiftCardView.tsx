@@ -20,7 +20,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { format, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { colors } from "@/common/common-constants/ColorConstants";
@@ -40,7 +40,7 @@ export const ShiftCardView: React.FC<ShiftCardViewProps> = ({
   days,
   currentYearMonth,
   onMonthChange,
-  onShiftUpdate,
+  onShiftUpdate: _onShiftUpdate,
   onShiftPress,
 }) => {
   const { width } = useWindowDimensions();

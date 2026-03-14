@@ -18,7 +18,7 @@
  *   - onChange: 時刻変更コールバック (Date) => void
  */
 import React, { useState } from "react";
-import { View, Platform, TouchableOpacity, Text, Modal, NativeSyntheticEvent } from "react-native";
+import { View, Platform, TouchableOpacity, Text, Modal } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { UnifiedTimePickerProps } from "./UnifiedTimePicker.types";
 import { format } from "date-fns";

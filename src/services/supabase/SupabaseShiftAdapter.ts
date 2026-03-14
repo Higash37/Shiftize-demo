@@ -1,7 +1,7 @@
 /** @file SupabaseShiftAdapter.ts @description シフトCRUD・リアルタイム購読・監査ログ連携のSupabase実装 */
 
 import type { IShiftService } from "../interfaces/IShiftService";
-import type { Shift, ShiftItem, ShiftType, ShiftStatus, ClassTimeSlot, ShiftRequestedChanges } from "@/common/common-models/ModelIndex";
+import type { Shift, ShiftItem, ShiftType, ShiftStatus, ClassTimeSlot } from "@/common/common-models/ModelIndex";
 import type { ShiftHistoryActor } from "@/services/shift-history/shiftHistoryLogger";
 import { getSupabase } from "./supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -346,7 +346,7 @@ export class SupabaseShiftAdapter implements IShiftService {
   async markShiftAsDeleted(
     id: string,
     deletedBy?: ShiftHistoryActor,
-    reason?: string
+    _reason?: string
   ): Promise<void> {
     const supabase = getSupabase();
 
@@ -370,8 +370,6 @@ export class SupabaseShiftAdapter implements IShiftService {
     id: string,
     approver?: ShiftHistoryActor
   ): Promise<void> {
-    const supabase = getSupabase();
-
     // 1. 現在のシフトデータを取得
     const shiftData = await this.fetchShiftById(id);
     if (!shiftData) return;

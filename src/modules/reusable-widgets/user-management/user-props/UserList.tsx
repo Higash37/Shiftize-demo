@@ -25,14 +25,12 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
-  ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { User } from "@/common/common-models/model-user/UserModel";
 import Button from "@/common/common-ui/ui-forms/FormButton";
 import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "@/common/common-constants/ColorConstants";
 import { styles } from "./UserList.styles";
 import { UserListProps } from "../user-types/components";
 import { getOptimizedFlatListProps } from "@/common/common-utils/performance/webOptimization";
@@ -56,7 +54,7 @@ export const UserList: React.FC<UserListProps> = ({
   onDelete,
   onAdd,
   loading = false,
-  userPasswords = {},
+  userPasswords: _userPasswords = {},
 }) => {
   const { width } = useWindowDimensions();
   const theme = useMD3Theme();
@@ -66,7 +64,7 @@ export const UserList: React.FC<UserListProps> = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // MaterialCommunityIconsフォントを遅延読み込み
-  const [fontsLoaded] = useExtendedFonts();
+  useExtendedFonts();
 
   // レスポンシブ設定
   const isTablet = width >= 768;

@@ -21,7 +21,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
-  Alert,
 } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { format, addMonths, subMonths } from "date-fns";
@@ -30,7 +29,6 @@ import { colors } from "@/common/common-constants/ColorConstants";
 import { layout } from "@/common/common-constants/LayoutConstants";
 import { shadows } from "@/common/common-constants/ShadowConstants";
 import Box from "@/common/common-ui/ui-base/BoxComponent";
-import Button from "@/common/common-ui/ui-forms/FormButton";
 import { ShiftModal, ShiftData } from "./gantt-modals/ShiftModal";
 import type { ShiftItem } from "@/common/common-models/ModelIndex";
 
@@ -56,8 +54,8 @@ export const ShiftEditCardView: React.FC<ShiftEditCardViewProps> = ({
   currentYearMonth,
   onMonthChange,
   onShiftUpdate,
-  onShiftPress,
-  onShiftCreate,
+  onShiftPress: _onShiftPress,
+  onShiftCreate: _onShiftCreate,
   onShiftSave,
   onShiftDelete,
 }) => {

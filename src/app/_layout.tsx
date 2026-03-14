@@ -95,7 +95,6 @@ import { AuthProvider } from "@/services/auth/AuthContext";
 // StatusBar: 画面上部のステータスバー（時計、バッテリー等）のスタイル設定
 import { StatusBar } from "expo-status-bar";
 import { View, Text, TextInput, Platform } from "react-native";
-import { colors } from "@/common/common-constants/ThemeConstants";
 // ThemeProvider: React Navigationのテーマ設定用Provider
 import { ThemeProvider } from "@react-navigation/native";
 // SafeAreaProvider: iPhoneのノッチ等の安全領域を管理するProvider

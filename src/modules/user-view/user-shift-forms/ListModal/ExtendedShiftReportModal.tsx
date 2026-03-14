@@ -41,7 +41,7 @@ interface ExtendedShiftReportModalProps {
 
 export const ExtendedShiftReportModal: React.FC<
   ExtendedShiftReportModalProps
-> = ({ visible, shift, storeId, onClose, onReported }) => {
+> = ({ visible, shift, storeId: _storeId, onClose, onReported }) => {
   const { user } = useAuth();
   // useThemedStyles はテーマファクトリ関数を渡すと、現在のテーマを適用したスタイルを返す
   const styles = useThemedStyles(createExtendedShiftReportStyles);

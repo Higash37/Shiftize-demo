@@ -26,9 +26,6 @@
 
 // getSupabase: Supabaseクライアントインスタンスを取得する関数
 import { getSupabase } from "../supabase/supabase-client";
-// GoogleTokens: トークン型（accessToken, refreshToken, expiresAt）
-import type { GoogleTokens } from "./GoogleCalendarTypes";
-
 /**
  * トークンのリフレッシュ余裕時間: 5分（ミリ秒）。
  * 有効期限の5分前にリフレッシュすることで、
@@ -106,7 +103,7 @@ export class GoogleCalendarTokenManager {
    * @param uid - 対象ユーザーのUID
    * @returns Promise<string | null> - 新しいアクセストークン、失敗時はnull
    */
-  private async refreshToken(uid: string): Promise<string | null> {
+  private async refreshToken(_uid: string): Promise<string | null> {
     const supabase = getSupabase();
 
     // 現在のセッションを取得（Edge Function呼び出しの認証に使用）

@@ -85,7 +85,7 @@ export class SupabaseAuditAdapter implements IAuditService {
       if (metadata && metadata['notes']) row['notes'] = metadata['notes'];
 
       const supabase = getSupabase();
-      const { error } = await supabase.from("shift_change_logs").insert(row);
+      await supabase.from("shift_change_logs").insert(row);
 
       // ログ記録の失敗は業務処理をブロックしない
     } catch {

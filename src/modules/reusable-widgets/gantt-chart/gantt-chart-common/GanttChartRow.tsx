@@ -73,7 +73,7 @@ const GanttChartRowComponent: React.FC<GanttChartRowProps> = ({
   styles,
   userColorsMap,
   users = [], // デフォルト値を設定
-  statusStyles,
+  statusStyles: _statusStyles,
   isFirstInGroup = true, // デフォルトは true
   groupSize = 1, // デフォルトは 1
   colorMode = "status", // デフォルトはステータス色

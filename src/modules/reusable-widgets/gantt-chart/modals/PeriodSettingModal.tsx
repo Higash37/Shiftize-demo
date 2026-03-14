@@ -15,7 +15,6 @@ import {
   Text,
   Modal,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   Alert,
   StyleSheet,
@@ -44,7 +43,7 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   storeId,
   users = [],
   shifts = [],
-  onPeriodCreated,
+  onPeriodCreated: _onPeriodCreated,
 }) => {
   const { user } = useAuth();
   const [startDate, setStartDate] = useState("");
@@ -135,16 +134,15 @@ export const PeriodSettingModal: React.FC<PeriodSettingModalProps> = ({
   const createNewPeriod = async () => {
     try {
       setLoading(true);
-      const periodData = {
-        storeId,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        targetMonth,
-        isActive: true,
-        createdBy: user?.uid || "",
-      };
-
       // TODO: createShiftSubmissionPeriodメソッドが実装されたら有効にする
+      // const periodData = {
+      //   storeId,
+      //   startDate: new Date(startDate),
+      //   endDate: new Date(endDate),
+      //   targetMonth,
+      //   isActive: true,
+      //   createdBy: user?.uid || "",
+      // };
       // const newPeriod = await ServiceProvider.shiftSubmissions.createShiftSubmissionPeriod(periodData);
       
       Alert.alert("成功", "期間が作成されました");

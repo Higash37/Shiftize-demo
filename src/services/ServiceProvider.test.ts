@@ -82,7 +82,7 @@ describe("ServiceProvider", () => {
 
     it("エラーのnameプロパティがServiceNotInitializedErrorである", () => {
       try {
-        ServiceProvider.auth;
+        void ServiceProvider.auth;
         fail("例外がスローされるべき");
       } catch (error: any) {
         expect(error.name).toBe("ServiceNotInitializedError");

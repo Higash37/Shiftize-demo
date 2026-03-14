@@ -28,8 +28,6 @@
  *   - { id: string } → id パラメータが必須
  */
 
-import { NavigatorScreenParams } from "@react-navigation/native";
-
 declare global {
   namespace ReactNavigation {
     interface RootParamList {

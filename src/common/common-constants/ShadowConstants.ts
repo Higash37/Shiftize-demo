@@ -27,17 +27,6 @@ export type ShadowsType = {
   elevated: ViewStyle;
 };
 
-/** Web用のboxShadow生成（現在は無効化のため常に"none"を返す） */
-const createWebShadow = (
-  _color: string,
-  _x: number,
-  _y: number,
-  _blur: number,
-  _opacity: number
-) => {
-  return "none";
-};
-
 /** 既存のshadowプロパティをWeb警告回避形式に変換する（現在は無効化済み） */
 export const convertShadowForWeb = (_shadowStyle: {
   shadowColor?: string;
