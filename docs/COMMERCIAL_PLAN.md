@@ -247,29 +247,71 @@ if (plan === 'free' && staffCount >= 20) {
 
 ### 6.1 リリース戦略
 
-| 時期 | プラットフォーム | 形態 | 理由 |
-|------|----------------|------|------|
-| **夏ローンチ** | Web + PWA | Vercel デプロイ | 審査不要、URL共有で即営業可、開発速度最優先 |
-| **秋以降** | Android | Expo EAS Build | ユーザー要望次第。Play Store審査はiOSより軽い |
-| **需要確認後** | iOS | Expo EAS Build | Apple Developer Program($99/年) + 審査対応が必要 |
+**方針: 夏に Web / Android / iOS 3プラットフォーム同時ローンチ**
 
-### 6.2 PWA戦略（ローンチ時のモバイル対応）
+通知機能（シフト承認通知、変更通知、リマインダー）はシフト管理の核心機能。
+Web Push だけでは iOS Safari の信頼性が不十分なため、ネイティブアプリのストア公開を行う。
 
-ネイティブアプリなしでもスマホ対応できる。既に `service-worker.js` が存在。
+| フェーズ | プラットフォーム | 通知方式 | 備考 |
+|---------|----------------|---------|------|
+| Phase 1-2 | Web のみ | Supabase Realtime（起動中のみ） | 基盤完成に集中 |
+| Phase 3 | Web + Android + iOS | Expo Push Notifications | ストア審査のリードタイム確保 |
+| Phase 4 | 3プラットフォーム同時ローンチ | 全通知手段 | shiftize.jp + Play Store + App Store |
+
+### 6.2 通知アーキテクチャ
 
 ```
-PWA で実現できること:
-✅ ホーム画面に追加（アプリアイコン）
-✅ オフライン基本対応
-✅ フルスクリーン表示（ブラウザUI非表示）
-✅ Web Push 通知（Android Chrome, iOS 16.4+）
-✅ インストール不要 — URLを送るだけ
+通知トリガー（Supabase Edge Function or Database Webhook）
+  │
+  ├─ シフト承認/却下     → 申請したユーザーに通知
+  ├─ シフト変更          → マスターに通知（変更通知バッジ連携）
+  ├─ 削除申請            → マスターに通知
+  ├─ シフト提出期間開始  → 全ユーザーに通知
+  └─ リマインダー        → 翌日シフトがあるユーザーに前日通知
+```
 
-PWA で実現できないこと（ネイティブ版で対応）:
-❌ バックグラウンド処理（定期同期）
-❌ ネイティブカメラ高度制御
-❌ App Store / Play Store 掲載（信頼感）
-❌ ウィジェット
+| 層 | 実装 |
+|---|------|
+| **通知送信** | Expo Push API（`expo-server-sdk`）— 1つのAPIで iOS/Android 両方に送信 |
+| **トークン管理** | `push_tokens` テーブル（user_id, expo_push_token, platform, created_at） |
+| **トリガー** | Supabase Database Webhook → Edge Function → Expo Push API |
+| **Web 通知** | Web Push API（Service Worker 経由）— PWA 補完用 |
+| **アプリ内通知** | Supabase Realtime（既存の変更通知バッジを拡張） |
+
+```sql
+-- 新規テーブル
+CREATE TABLE push_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  store_id TEXT NOT NULL REFERENCES stores(store_id),
+  expo_push_token TEXT NOT NULL UNIQUE,
+  platform TEXT NOT NULL CHECK (platform IN ('ios', 'android', 'web')),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 6.3 ストア公開に必要な準備
+
+| 項目 | Android (Play Store) | iOS (App Store) |
+|------|---------------------|-----------------|
+| **開発者アカウント** | Google Play Console ($25 一回) | Apple Developer Program ($99/年) |
+| **ビルド** | Expo EAS Build (`eas build -p android`) | Expo EAS Build (`eas build -p ios`) |
+| **審査期間** | 数日 | 1-2 週間（初回は厳しめ） |
+| **必要素材** | アイコン、スクリーンショット 4枚+ | アイコン、スクリーンショット 6.7"/5.5" |
+| **プライバシーポリシー** | 必須（URL） | 必須（URL） |
+| **年齢レーティング** | IARC 質問票 | App Store 質問票 |
+
+### 6.4 PWA 併用（Web ユーザー向け）
+
+ストア公開と並行して PWA も維持。インストール不要でURLを送るだけで試せる営業メリットは大きい。
+
+```
+営業フロー:
+1. 見込み客にURLを送る → PWAですぐ試せる
+2. 気に入ったらストアからアプリをインストール → プッシュ通知が使える
+3. 有料プランに切り替え
 ```
 
 ### 6.3 コード共有とプラットフォーム分岐
@@ -363,20 +405,27 @@ cd Shiftize
 - [ ] §2.5 型安全性（as any 除去, any 型 48 箇所修正）
 - [ ] テスト追加（残り 7 アダプタ + autoScheduler）
 
-### Phase 3: 商用機能（3-4 週間）
-> 目標: 有料プランで課金できる状態
+### Phase 3: 商用機能 + ネイティブ（3-4 週間）
+> 目標: 有料プランで課金 + 3プラットフォームで通知が届く状態
 
 - [ ] マルチテナント（organizations テーブル + UI）
 - [ ] 招待フロー（Edge Function + メール送信）
 - [ ] Stripe 連携（サブスクリプション + プランゲート）
 - [ ] 用語カスタマイズ（設定画面 + i18n 基盤）
+- [ ] **Expo Push Notifications 実装**（`expo-notifications` + `push_tokens` テーブル）
+- [ ] **通知トリガー**（Edge Function: 承認/却下/変更/リマインダー）
+- [ ] **Expo EAS Build 設定**（`eas.json`, `app.json` ネイティブ設定）
+- [ ] **Android ビルド + Play Store 内部テスト公開**
+- [ ] **iOS ビルド + TestFlight 公開**（審査リードタイム確保）
 
 ### Phase 4: ローンチ（2 週間）
-> 目標: shiftize.jp で公開
+> 目標: shiftize.jp + Play Store + App Store で同時公開
 
 - [ ] ランディングページ（SEO, 料金表, FAQ）
 - [ ] Vercel 本番デプロイ（shiftize.jp）
 - [ ] PWA 最適化（manifest.json, service-worker, アイコン）
+- [ ] **Play Store 本番公開**
+- [ ] **App Store 本番公開**
 - [ ] 利用規約・プライバシーポリシー
 - [ ] 初期ユーザー獲得（自塾 + 知人の塾）
 
