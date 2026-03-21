@@ -174,7 +174,7 @@ export const createShiftListViewStyles = (
       paddingLeft: 0,
       marginLeft: 0,
       marginRight: 0,
-      marginTop: -20,
+      paddingTop: 4,
       alignSelf: "center",
     },
     listContentContainer: {

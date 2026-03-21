@@ -396,35 +396,35 @@ export const UserShiftList = () => {
             onNext={handleNextMonth}
           />
         </View>
+        <View
+          style={[styles.calendarContainer, styles.calendarContainerCompact]}
+        >
+          <ShiftCalendar
+            key={`calendar-${currentMonth}`}
+            shifts={monthlyShifts}
+            selectedDate={selectedDate}
+            currentMonth={currentMonth + "-01"}
+            currentUserStoreId={currentUserStoreId ?? ""}
+            onDayPress={handleDayPress}
+            onMonthChange={handleMonthChange}
+            onMount={handleCalendarMount}
+            hideMonthNav
+            responsiveSize={{
+              container: {
+                width: "98%",
+                maxWidth: 600,
+                paddingVertical: 0,
+              },
+              day: { fontSize: 32, fontWeight: "700" },
+              scale: 0.8,
+            }}
+          />
+        </View>
         <ScrollView
           ref={scrollViewRef}
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[styles.calendarContainer, styles.calendarContainerCompact]}
-          >
-            <ShiftCalendar
-              key={`calendar-${currentMonth}`}
-              shifts={monthlyShifts}
-              selectedDate={selectedDate}
-              currentMonth={currentMonth + "-01"}
-              currentUserStoreId={currentUserStoreId ?? ""}
-              onDayPress={handleDayPress}
-              onMonthChange={handleMonthChange}
-              onMount={handleCalendarMount}
-              hideMonthNav
-              responsiveSize={{
-                container: {
-                  width: "98%",
-                  maxWidth: 600,
-                  paddingVertical: 0,
-                },
-                day: { fontSize: 32, fontWeight: "700" },
-                scale: 0.8,
-              }}
-            />
-          </View>
           {isCalendarMounted && displayMonth && (
             <View
               style={styles.listContainer}
